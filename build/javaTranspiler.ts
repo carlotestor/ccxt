@@ -5,6 +5,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { installNonAsyncDelegatorSupport } from './nonAsyncDelegators.js'
 import { writeFile } from 'fs/promises';
 import { platform } from 'process'
 import fs from 'fs'
@@ -403,6 +404,7 @@ class NewTranspiler {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        installNonAsyncDelegatorSupport(this.transpiler);
     }
 
     createGeneratedHeader() {
@@ -717,13 +719,15 @@ class NewTranspiler {
     }
 
     createWrapper(exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.convertJavascriptTypeToJavaType(methodName, methodWrapper.returnType, true);
+        // the wrapper transforms the result, so it must await any future-returning
+        // method - including non-async Promise pass-through delegators
+        const isAsync = methodWrapper.async || String(returnType).startsWith('java.util.concurrent.CompletableFuture') || String(methodWrapper.returnType ?? '').startsWith('Promise');
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToJavaParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -1113,6 +1117,7 @@ class NewTranspiler {
         const allFilesPath = exchanges.map((file: string) => jsFolder + file);
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[java] Transpiling [', exchanges.join(', '), ']');
+        // non-async Promise-returning delegators are supported natively (see nonAsyncDelegators.ts)
         const transpiledFiles = allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
 
         if (!ws) {

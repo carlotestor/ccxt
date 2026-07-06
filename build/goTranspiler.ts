@@ -4,6 +4,7 @@ import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
+import { installNonAsyncDelegatorSupport } from './nonAsyncDelegators.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import fs from 'fs';
@@ -764,6 +765,7 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig());
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        installNonAsyncDelegatorSupport (this.transpiler);
     }
 
     createGeneratedHeader() {
@@ -2039,6 +2041,7 @@ ${caseStatements.join('\n')}
         const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
+        // non-async Promise-returning delegators are supported natively (see nonAsyncDelegators.ts)
         const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
 
         for (let i = 0; i < transpiledFiles.length; i++) {
