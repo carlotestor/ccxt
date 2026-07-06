@@ -292,10 +292,10 @@ public partial class binance : ccxt.binance
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    public override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -533,7 +533,7 @@ public partial class binance : ccxt.binance
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public async override Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    public override Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -676,7 +676,7 @@ public partial class binance : ccxt.binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         //
         // todo add support for <levels>-snapshots (depth)
@@ -716,7 +716,7 @@ public partial class binance : ccxt.binance
         // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
         //
         parameters ??= new Dictionary<string, object>();
-        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
+        return this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
     /**
@@ -881,10 +881,10 @@ public partial class binance : ccxt.binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
+        return this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -1398,11 +1398,10 @@ public partial class binance : ccxt.binance
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+        return this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -2208,10 +2207,10 @@ public partial class binance : ccxt.binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
+    public override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchMarkPrices(new List<object>() {symbol}, parameters);
+        return this.unWatchMarkPrices(new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -2228,10 +2227,10 @@ public partial class binance : ccxt.binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
+        return this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -3233,10 +3232,10 @@ public partial class binance : ccxt.binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositionWs(object symbol, object parameters = null)
+    public override Task<object> fetchPositionWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchPositionsWs(new List<object>() {symbol}, parameters);
+        return this.fetchPositionsWs(new List<object>() {symbol}, parameters);
     }
 
     /**

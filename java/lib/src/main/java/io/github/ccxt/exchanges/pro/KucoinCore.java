@@ -348,14 +348,9 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
 
     public java.util.concurrent.CompletableFuture<Object> unSubscribe(Object url, Object messageHash, Object topic, Object subscriptionHash, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object subscription = Helpers.getArg(optionalArgs, 1, null);
-            return (this.unSubscribeMultiple(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topic, new java.util.ArrayList<Object>(java.util.Arrays.asList(subscriptionHash)), parameters, subscription)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        Object subscription = Helpers.getArg(optionalArgs, 1, null);
+        return this.unSubscribeMultiple(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topic, new java.util.ArrayList<Object>(java.util.Arrays.asList(subscriptionHash)), parameters, subscription);
     }
 
     public java.util.concurrent.CompletableFuture<Object> subscribeMultiple(Object url, Object messageHashes, Object topic, Object subscriptionHashes, Object... optionalArgs)

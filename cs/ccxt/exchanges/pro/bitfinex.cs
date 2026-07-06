@@ -308,10 +308,10 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unSubscribe("trades", "trades", symbol, parameters);
+        return this.unSubscribe("trades", "trades", symbol, parameters);
     }
 
     /**
@@ -350,10 +350,10 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribe("ticker", symbol, parameters);
+        return this.subscribe("ticker", symbol, parameters);
     }
 
     /**
@@ -364,10 +364,10 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unSubscribe("ticker", "ticker", symbol, parameters);
+        return this.unSubscribe("ticker", "ticker", symbol, parameters);
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message, object subscription = null)

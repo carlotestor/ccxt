@@ -459,10 +459,10 @@ public partial class gemini : ccxt.gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    public override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters);
+        return this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters);
     }
 
     public virtual void handleBidsAsksForMultidata(WebSocketClient client, object rawBidAskChanges, object timestamp, object nonce)

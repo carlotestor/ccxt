@@ -406,15 +406,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
      */
     public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
-        });
-
+        Object since = Helpers.getArg(optionalArgs, 0, null);
+        Object limit = Helpers.getArg(optionalArgs, 1, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        return this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
     }
 
     /**
@@ -475,13 +470,8 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     /**
@@ -604,13 +594,8 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTicker(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     /**

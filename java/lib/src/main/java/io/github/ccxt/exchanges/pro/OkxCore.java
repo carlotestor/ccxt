@@ -188,15 +188,10 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      */
     public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
-        });
-
+        Object since = Helpers.getArg(optionalArgs, 0, null);
+        Object limit = Helpers.getArg(optionalArgs, 1, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        return this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
     }
 
     /**
@@ -335,13 +330,8 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     public void handleTrades(Client client, Object message)
@@ -549,13 +539,8 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTicker(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     /**
@@ -1219,15 +1204,9 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOHLCV(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
-            return (this.unWatchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
-
+        Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe)))), parameters);
     }
 
     /**
@@ -1399,37 +1378,32 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            //
-            // bbo-tbt
-            // 1. Newly added channel that sends tick-by-tick Level 1 data
-            // 2. All API users can subscribe
-            // 3. Public depth channel, verification not required
-            //
-            // books-l2-tbt
-            // 1. Only users who're VIP5 and above can subscribe
-            // 2. Identity verification required before subscription
-            //
-            // books50-l2-tbt
-            // 1. Only users who're VIP4 and above can subscribe
-            // 2. Identity verification required before subscription
-            //
-            // books
-            // 1. All API users can subscribe
-            // 2. Public depth channel, verification not required
-            //
-            // books5
-            // 1. All API users can subscribe
-            // 2. Public depth channel, verification not required
-            // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-            //
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
-        });
-
+        //
+        // bbo-tbt
+        // 1. Newly added channel that sends tick-by-tick Level 1 data
+        // 2. All API users can subscribe
+        // 3. Public depth channel, verification not required
+        //
+        // books-l2-tbt
+        // 1. Only users who're VIP5 and above can subscribe
+        // 2. Identity verification required before subscription
+        //
+        // books50-l2-tbt
+        // 1. Only users who're VIP4 and above can subscribe
+        // 2. Identity verification required before subscription
+        //
+        // books
+        // 1. All API users can subscribe
+        // 2. Public depth channel, verification not required
+        //
+        // books5
+        // 1. All API users can subscribe
+        // 2. Public depth channel, verification not required
+        // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
+        //
+        Object limit = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters);
     }
 
     /**
@@ -1586,13 +1560,8 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     public void handleDelta(Object bookside, Object delta)

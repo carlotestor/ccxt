@@ -223,10 +223,10 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
+        return this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -503,11 +503,11 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
+        return this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
     }
 
     /**
@@ -664,10 +664,10 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -679,10 +679,10 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+        return this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -869,10 +869,10 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
+        return this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
     /**
@@ -914,10 +914,10 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
+        return this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
     }
 
     /**

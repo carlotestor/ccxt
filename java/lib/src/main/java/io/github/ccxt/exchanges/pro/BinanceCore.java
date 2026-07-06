@@ -305,15 +305,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      */
     public java.util.concurrent.CompletableFuture<Object> watchLiquidations(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
-        });
-
+        Object since = Helpers.getArg(optionalArgs, 0, null);
+        Object limit = Helpers.getArg(optionalArgs, 1, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        return this.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
     }
 
     /**
@@ -562,15 +557,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      */
     public java.util.concurrent.CompletableFuture<Object> watchMyLiquidations(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
-        });
-
+        Object since = Helpers.getArg(optionalArgs, 0, null);
+        Object limit = Helpers.getArg(optionalArgs, 1, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        return this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
     }
 
     /**
@@ -719,51 +709,46 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            //
-            // todo add support for <levels>-snapshots (depth)
-            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
-            // valid <levels> are 5, 10, or 20
-            //
-            // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            //
-            // notice the differences between trading futures and spot trading
-            // the algorithms use different urls in step 1
-            // delta caching and merging also differs in steps 4, 5, 6
-            //
-            // spot/margin
-            // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-            //
-            // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-            // 2. Buffer the events you receive from the stream.
-            // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-            // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-            // 7. The data in each event is the absolute quantity for a price level.
-            // 8. If the quantity is 0, remove the price level.
-            // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-            //
-            // futures
-            // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-            //
-            // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-            // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-            // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
-            // 4. Drop any event where u is < lastUpdateId in the snapshot.
-            // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-            // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-            // 7. The data in each event is the absolute quantity for a price level.
-            // 8. If the quantity is 0, remove the price level.
-            // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-            //
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
-        });
-
+        //
+        // todo add support for <levels>-snapshots (depth)
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
+        // valid <levels> are 5, 10, or 20
+        //
+        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+        //
+        // notice the differences between trading futures and spot trading
+        // the algorithms use different urls in step 1
+        // delta caching and merging also differs in steps 4, 5, 6
+        //
+        // spot/margin
+        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
+        //
+        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
+        // 2. Buffer the events you receive from the stream.
+        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
+        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+        // 7. The data in each event is the absolute quantity for a price level.
+        // 8. If the quantity is 0, remove the price level.
+        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        //
+        // futures
+        // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
+        //
+        // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
+        // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
+        // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
+        // 4. Drop any event where u is < lastUpdateId in the snapshot.
+        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
+        // 7. The data in each event is the absolute quantity for a price level.
+        // 8. If the quantity is 0, remove the price level.
+        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        //
+        Object limit = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters);
     }
 
     /**
@@ -946,13 +931,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     /**
@@ -1496,14 +1476,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
-            return (this.unWatchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     /**
@@ -2402,13 +2376,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchMarkPrice(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     /**
@@ -2427,13 +2396,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTicker(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     /**
@@ -3505,13 +3469,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositionWs(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchPositionsWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.fetchPositionsWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     /**

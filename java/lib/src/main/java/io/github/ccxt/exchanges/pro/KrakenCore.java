@@ -855,15 +855,10 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      */
     public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
-        });
-
+        Object since = Helpers.getArg(optionalArgs, 0, null);
+        Object limit = Helpers.getArg(optionalArgs, 1, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        return this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
     }
 
     /**
@@ -909,14 +904,9 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
-        });
-
+        Object limit = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters);
     }
 
     /**
@@ -1527,18 +1517,13 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchPrivate("orders", symbol, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
-                put( "snap_orders", true );
-            }}))).join();
-        });
-
+        Object symbol = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+        return this.watchPrivate("orders", symbol, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            put( "snap_orders", true );
+        }}));
     }
 
     public void handleOrders(Client client, Object message, Object... optionalArgs)

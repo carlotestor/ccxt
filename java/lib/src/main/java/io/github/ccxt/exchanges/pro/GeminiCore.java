@@ -507,14 +507,9 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
      */
     public java.util.concurrent.CompletableFuture<Object> watchBidsAsks(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters)).join();
-        });
-
+        Object symbols = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters);
     }
 
     public void handleBidsAsksForMultidata(Client client, Object rawBidAskChanges, Object timestamp, Object nonce)

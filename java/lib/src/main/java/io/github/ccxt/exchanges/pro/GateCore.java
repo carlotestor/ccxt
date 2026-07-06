@@ -406,16 +406,11 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenOrdersWs(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrdersByStatusWs("open", symbol, since, limit, parameters)).join();
-        });
-
+        Object symbol = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+        return this.fetchOrdersByStatusWs("open", symbol, since, limit, parameters);
     }
 
     /**
@@ -431,16 +426,11 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
      */
     public java.util.concurrent.CompletableFuture<Object> fetchClosedOrdersWs(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrdersByStatusWs("finished", symbol, since, limit, parameters)).join();
-        });
-
+        Object symbol = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+        return this.fetchOrdersByStatusWs("finished", symbol, since, limit, parameters);
     }
 
     /**
@@ -900,16 +890,11 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
      */
     public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new java.util.HashMap<String, Object>() {{
-                put( "method", "tickers" );
-            }}, parameters))).join();
-        });
-
+        Object symbols = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new java.util.HashMap<String, Object>() {{
+            put( "method", "tickers" );
+        }}, parameters));
     }
 
     public void handleTicker(Client client, Object message)
@@ -948,16 +933,11 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
      */
     public java.util.concurrent.CompletableFuture<Object> watchBidsAsks(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new java.util.HashMap<String, Object>() {{
-                put( "method", "book_ticker" );
-            }}, parameters))).join();
-        });
-
+        Object symbols = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new java.util.HashMap<String, Object>() {{
+            put( "method", "book_ticker" );
+        }}, parameters));
     }
 
     public void handleBidAsk(Client client, Object message)
@@ -1077,15 +1057,10 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
      */
     public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
-        });
-
+        Object since = Helpers.getArg(optionalArgs, 0, null);
+        Object limit = Helpers.getArg(optionalArgs, 1, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        return this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
     }
 
     /**
@@ -1179,13 +1154,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters);
     }
 
     public void handleTrades(Client client, Object message)
@@ -1988,15 +1958,10 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
      */
     public java.util.concurrent.CompletableFuture<Object> watchMyLiquidations(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
-        });
-
+        Object since = Helpers.getArg(optionalArgs, 0, null);
+        Object limit = Helpers.getArg(optionalArgs, 1, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        return this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
     }
 
     /**

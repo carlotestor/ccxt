@@ -440,10 +440,10 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchMarkPrice(object symbol, object parameters = null)
+    public override Task<object> watchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTicker(symbol, parameters);
+        return this.watchTicker(symbol, parameters);
     }
 
     /**
@@ -455,10 +455,10 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchMarkPrices(object symbols = null, object parameters = null)
+    public override Task<object> watchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTickers(symbols, parameters);
+        return this.watchTickers(symbols, parameters);
     }
 
     /**
@@ -470,10 +470,10 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
+    public override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTicker(symbol, parameters);
+        return this.unWatchTicker(symbol, parameters);
     }
 
     /**
@@ -485,10 +485,10 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
+    public override Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTickers(symbols, parameters);
+        return this.unWatchTickers(symbols, parameters);
     }
 
     public override object parseWsTrade(object trade, object market = null)

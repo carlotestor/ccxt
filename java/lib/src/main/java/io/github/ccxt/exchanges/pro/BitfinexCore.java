@@ -358,13 +358,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTrades(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unSubscribe("trades", "trades", symbol, parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unSubscribe("trades", "trades", symbol, parameters);
     }
 
     /**
@@ -413,13 +408,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
      */
     public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.subscribe("ticker", symbol, parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.subscribe("ticker", symbol, parameters);
     }
 
     /**
@@ -432,13 +422,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchTicker(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unSubscribe("ticker", "ticker", symbol, parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unSubscribe("ticker", "ticker", symbol, parameters);
     }
 
     public void handleMyTrade(Client client, Object message, Object... optionalArgs)

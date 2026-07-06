@@ -365,10 +365,10 @@ public partial class bitmart : ccxt.bitmart
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -420,10 +420,10 @@ public partial class bitmart : ccxt.bitmart
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+        return this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -527,10 +527,10 @@ public partial class bitmart : ccxt.bitmart
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
+        return this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
     /**

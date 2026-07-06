@@ -136,13 +136,8 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      */
     public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchPublic("ticker24h", symbol, parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.watchPublic("ticker24h", symbol, parameters);
     }
 
     /**
@@ -1335,13 +1330,8 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMarketsWs(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchRequest("getMarkets", parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.watchRequest("getMarkets", parameters);
     }
 
     /**

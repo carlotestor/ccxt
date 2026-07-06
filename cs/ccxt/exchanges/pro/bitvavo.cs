@@ -112,10 +112,10 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchPublic("ticker24h", symbol, parameters);
+        return this.watchPublic("ticker24h", symbol, parameters);
     }
 
     /**
@@ -1155,10 +1155,10 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange api endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarketsWs(object parameters = null)
+    public override Task<object> fetchMarketsWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchRequest("getMarkets", parameters);
+        return this.watchRequest("getMarkets", parameters);
     }
 
     /**

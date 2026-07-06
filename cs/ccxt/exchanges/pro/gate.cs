@@ -357,10 +357,10 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByStatusWs("open", symbol, since, limit, parameters);
+        return this.fetchOrdersByStatusWs("open", symbol, since, limit, parameters);
     }
 
     /**
@@ -374,10 +374,10 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public override Task<object> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByStatusWs("finished", symbol, since, limit, parameters);
+        return this.fetchOrdersByStatusWs("finished", symbol, since, limit, parameters);
     }
 
     /**
@@ -809,10 +809,10 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new Dictionary<string, object>() {
+        return this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new Dictionary<string, object>() {
             { "method", "tickers" },
         }, parameters));
     }
@@ -851,10 +851,10 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    public override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new Dictionary<string, object>() {
+        return this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new Dictionary<string, object>() {
             { "method", "book_ticker" },
         }, parameters));
     }
@@ -967,10 +967,10 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -1050,10 +1050,10 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+        return this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -1808,7 +1808,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public async override Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    public override Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);

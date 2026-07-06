@@ -508,13 +508,8 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
      */
     public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTicker(symbol, parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.watchTicker(symbol, parameters);
     }
 
     /**
@@ -528,14 +523,9 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
      */
     public java.util.concurrent.CompletableFuture<Object> watchMarkPrices(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTickers(symbols, parameters)).join();
-        });
-
+        Object symbols = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.watchTickers(symbols, parameters);
     }
 
     /**
@@ -549,13 +539,8 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchMarkPrice(Object symbol, Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTicker(symbol, parameters)).join();
-        });
-
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTicker(symbol, parameters);
     }
 
     /**
@@ -569,14 +554,9 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchMarkPrices(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTickers(symbols, parameters)).join();
-        });
-
+        Object symbols = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        return this.unWatchTickers(symbols, parameters);
     }
 
     public Object parseWsTrade(Object trade, Object... optionalArgs)
