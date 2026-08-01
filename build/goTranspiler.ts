@@ -2394,15 +2394,9 @@ ${caseStatements.join('\n')}
         const configKey = JSON.stringify(parserConfig);
         const promises: any = [];
         const now = Date.now();
-        // Files per worker task. Default 1 keeps today's exact behaviour: one file per
-        // task, which load-balances best across workers (a slow exchange can't stall a
-        // whole chunk). CCXT_TRANSPILE_CHUNK only exists so a coarser chunk — fewer task
-        // round-trips and ONE ts.Program shared across the chunk's files inside the
-        // worker — can be A/B benchmarked.
-        // Default 26: shared Program per chunk (createProgramBatch). Override with CCXT_TRANSPILE_CHUNK.
-        const chunkSize = Math.max(1, Math.floor(Number(process.env.CCXT_TRANSPILE_CHUNK)) || 26);
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, files: allFiles.slice(i, i + chunkSize)}));
+        // One file per worker task (load-balances; a slow exchange can't stall others).
+        for (const file of allFiles) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, files: [file]}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
