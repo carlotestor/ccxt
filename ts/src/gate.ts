@@ -2370,7 +2370,7 @@ export default class gate extends Exchange {
         }
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const chainsIndexedById = await this.fetchDepositAddressesByNetwork (code, params) as any;
+        const chainsIndexedById: Dict = await this.fetchDepositAddressesByNetwork (code, params);
         const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, chainsIndexedById);
         return chainsIndexedById[selectedNetworkIdOrCode as string];
     }
