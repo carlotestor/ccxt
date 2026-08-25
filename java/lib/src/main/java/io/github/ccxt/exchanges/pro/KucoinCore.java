@@ -3549,7 +3549,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object position = (this.fetchPosition((Object)(symbol))).join();
+            Object position = io.github.ccxt.TypedCores.fromPosition((this.fetchPosition((Object)(symbol))).join());
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
             Object cache = this.positions;
             Helpers.callDynamically(cache, "append", new Object[]{position});

@@ -598,19 +598,55 @@ public class BaseTest {
         Object result = method.invoke(exchange, invokeArgs);
 
         if (result instanceof CompletableFuture<?>) {
-            // isolate the join from the ForkJoinPool: joining a common-pool
-            // future from a common-pool worker lets the pool "help" by
-            // stealing queued tasks (helpAsyncBlocker) onto the caller's
-            // stack — in the ws static test harness the watch side could
-            // steal the frame-injector task and deadlock beneath it. the
-            // wrapper joins on a dedicated plain thread and hands back a
-            // future whose executor is not the common pool, so joining it
-            // never steals anything.
-            CompletableFuture<Object> inner = (CompletableFuture<Object>) result;
-            return CompletableFuture.supplyAsync(() -> inner.join(), isolatedJoinPool);
+            // Typed cores hand back unified type objects (Ticker, Order, ...).
+            // The static request/response harness compares against JSON fixtures
+            // recorded from the untyped representation, and reaches into results
+            // with string keys. Detype here — via the exact `__raw` inverse the
+            // typed classes retain — so the comparator sees the same map the
+            // exchange actually produced, byte-for-byte, and this reflective
+            // dispatch path stays representation-agnostic.
+            CompletableFuture<Object> typedInner = (CompletableFuture<Object>) result;
+            return CompletableFuture.supplyAsync(
+                () -> detypeForComparison(typedInner.join()), isolatedJoinPool);
         }
 
-        return CompletableFuture.completedFuture(result);
+        return CompletableFuture.completedFuture(detypeForComparison(result));
+    }
+
+    /**
+     * Exact inverse of the typed-core projection, for the reflective test path.
+     *
+     * <p>A typed unified class is a *projection*: it names a fixed field set while
+     * the payload the exchange produced carries a variable key set (venue extras,
+     * `fees`, keys no TS interface names). Rebuilding a map from the declared
+     * fields would therefore drop real keys and invent nulls for keys the payload
+     * never had — the static-response diffs show exactly that (`amountBorrowed:
+     * 0` becoming `null`, `response` disappearing from a TransferEntry).
+     *
+     * <p>Every generated type retains a reference to the map it was built from in
+     * a public {@code __raw} field, so the inverse is a field read, not a rebuild.
+     * Gate on the field actually being present rather than on package name, so
+     * hand-written types without it (WS caches, order books) pass through
+     * untouched.
+     */
+    public static Object detypeForComparison(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof List<?> list) {
+            List<Object> out = new ArrayList<>(list.size());
+            for (Object element : list) {
+                out.add(detypeForComparison(element));
+            }
+            return out;
+        }
+        try {
+            Field raw = value.getClass().getField("__raw");
+            Object unwrapped = raw.get(value);
+            return (unwrapped != null) ? unwrapped : value;
+        } catch (NoSuchFieldException | IllegalAccessException notTyped) {
+            return value;
+        }
     }
 
     // plain (non-ForkJoin) threads used to await exchange futures — see

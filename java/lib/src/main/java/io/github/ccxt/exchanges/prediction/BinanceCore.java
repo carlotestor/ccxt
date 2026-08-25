@@ -917,7 +917,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionTicker> fetchTicker(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -934,7 +934,7 @@ final Object finalMarketSymbol = marketSymbol;
             //     { "marketId": 5567895, "lastTradePrice": "0.52" }
             //
             return this.parsePredictionTicker(response, ((Object)outcomeObj));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionTicker);
 
     }
 
@@ -1584,7 +1584,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object outcome2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionPosition> fetchPosition(Object outcome2, Object... optionalArgs)
     {
         final Object outcome3 = outcome2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1608,7 +1608,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object parsedPositions = this.parsePredictionPositions(positions);
             Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null);
             return this.safeDict(filteredPositions, 0);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionPosition);
 
     }
 
@@ -1687,7 +1687,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1779,7 +1779,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object trades = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object parsedTrades = this.parsePredictionTrades(trades, outcomeObj);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionTradeList);
 
     }
 

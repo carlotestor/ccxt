@@ -82,7 +82,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(Object code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
     {
         final Object toAccount3 = toAccount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -119,7 +119,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTransferEntry);
 
     }
 
