@@ -149,7 +149,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -179,7 +179,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Helpers.addElementToObject(args, topicOrChannel, "ticker");
             Helpers.addElementToObject(args, symbolOrInstId, Helpers.GetValue(market, "id"));
             return (this.watchPublic(uta, messageHash, args, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

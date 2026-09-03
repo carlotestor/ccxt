@@ -190,7 +190,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -224,7 +224,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             }};
             Object request = this.deepExtend(message, parameters);
             return (this.watch(url, channel, request, channel, request)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

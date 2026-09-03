@@ -153,7 +153,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -175,7 +175,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Object request = Helpers.objectKeys(tickerSubs);
             Object messageHash = Helpers.add(Helpers.add(name, "::"), Helpers.GetValue(market, "symbol"));
             return (this.subscribe(Helpers.add(name, ".subscribe"), messageHash, request, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

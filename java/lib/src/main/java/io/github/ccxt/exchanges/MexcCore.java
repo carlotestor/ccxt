@@ -3845,7 +3845,7 @@ public class MexcCore extends MexcApi
             } else
             {
                 Helpers.addElementToObject(request, "states", state);
-                return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+                return io.github.ccxt.TypedCores.fromOrderList((this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join());
             }
         });
 

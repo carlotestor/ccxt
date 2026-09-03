@@ -162,12 +162,20 @@ def wrap_typed_core_consumers(path, table):
     that is not a unified type, so wrapping the joined value restores the raw shape
     the surrounding untyped code expects.
 
-    Only `.join()`ed call sites are rewritten: a bare `return this.X(...)` is a tail
-    call whose type is already the method's declared type."""
+    Only `.join()`ed call sites are rewritten. A `return (this.X(...)).join()` tail is
+    left alone when the enclosing method is typed (its declared type already is the
+    callee's), but wrapped when the enclosing method is still `CompletableFuture<Object>`:
+    that method's wrapper still converts with `new T(res)`, and handing it an already
+    typed T makes the constructor's `(Map) raw` cast throw (LighterCore.watchMarkPrice
+    -> watchTicker, BingxCore.addMargin -> setMargin)."""
     lines = open(path).read().split('\n')
     names = sorted(table)
     n = 0
+    enclosing_typed = False
     for idx, line in enumerate(lines):
+        m = re.match(r'^\s*public java\.util\.concurrent\.CompletableFuture<(.+)> \w+\(', line)
+        if m:
+            enclosing_typed = m.group(1) != 'Object'
         if '(this.' not in line or ')).join()' not in line:
             continue                      # cheap reject: most lines cannot match
         for name in names:
@@ -180,7 +188,7 @@ def wrap_typed_core_consumers(path, table):
                 i = line.find(needle, start)
                 if i < 0:
                     break
-                if line[max(0, i - 7):i] == 'return ':
+                if line[max(0, i - 7):i] == 'return ' and enclosing_typed:
                     start = i + len(needle)
                     continue
                 # already wrapped by a previous run -- the pass must be idempotent

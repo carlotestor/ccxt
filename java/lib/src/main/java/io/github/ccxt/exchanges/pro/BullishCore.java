@@ -242,7 +242,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -257,7 +257,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), Helpers.GetValue(market, "id"));
             Object messageHash = Helpers.add("ticker::", symbol);
             return (this.watch(url, messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

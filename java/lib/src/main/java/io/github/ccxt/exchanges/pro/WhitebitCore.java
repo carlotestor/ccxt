@@ -297,7 +297,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -313,7 +313,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object messageHash = Helpers.add("ticker:", symbol);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
             return (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

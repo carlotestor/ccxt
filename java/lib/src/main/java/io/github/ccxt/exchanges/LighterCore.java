@@ -4126,7 +4126,7 @@ public class LighterCore extends LighterApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "direction", 1 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromMarginModification((this.setMargin(symbol, amount, this.extend(request, parameters))).join());
         });
 
     }
@@ -4149,7 +4149,7 @@ public class LighterCore extends LighterApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "direction", 0 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromMarginModification((this.setMargin(symbol, amount, this.extend(request, parameters))).join());
         });
 
     }

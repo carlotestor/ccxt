@@ -171,7 +171,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -214,7 +214,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 put( "id", uuid );
             }};
             return (this.watch(((String)url), messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

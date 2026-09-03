@@ -4290,7 +4290,7 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountType, "contract")))
             {
-                return (this.fetchContractDepositAddress(code, parameters)).join();
+                return io.github.ccxt.TypedCores.fromDepositAddress((this.fetchContractDepositAddress(code, parameters)).join());
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(uta) || Helpers.isTrue((Helpers.isEqual(accountType, "uta")))) || Helpers.isTrue((Helpers.isEqual(accountType, "unified")))))
             {
                 return (super.fetchDepositAddress(code, this.extend(parameters, new java.util.HashMap<String, Object>() {{

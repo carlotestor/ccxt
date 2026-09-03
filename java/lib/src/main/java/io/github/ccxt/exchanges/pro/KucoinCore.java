@@ -432,7 +432,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -469,7 +469,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             }
             Object topic = Helpers.add(Helpers.add(method, ":"), Helpers.GetValue(market, "id"));
             return (this.subscribe(url, messageHash, topic, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

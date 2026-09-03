@@ -6243,7 +6243,7 @@ public class BingxCore extends BingxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", 1 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromMarginModification((this.setMargin(symbol, amount, this.extend(request, parameters))).join());
         });
 
     }
@@ -6257,7 +6257,7 @@ public class BingxCore extends BingxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", 2 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromMarginModification((this.setMargin(symbol, amount, this.extend(request, parameters))).join());
         });
 
     }

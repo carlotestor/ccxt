@@ -954,13 +954,12 @@ public class Bitstamp extends BitstampCore {
 
     @SuppressWarnings("unchecked")
     public Ticker watchTicker(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchTicker((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return new Ticker(res);
+        return Helpers.joinTyped(super.watchTicker((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public Ticker watchTicker(String symbol) { return watchTicker(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Ticker> watchTickerAsync(String symbol, Map<String, Object> params) {
-        return super.watchTicker((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(Ticker::new);
+        return super.watchTicker((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<Ticker> watchTickerAsync(String symbol) { return watchTickerAsync(symbol, (Map<String, Object>) null); }
 

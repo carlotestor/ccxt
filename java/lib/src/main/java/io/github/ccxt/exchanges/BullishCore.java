@@ -1573,13 +1573,13 @@ public class BullishCore extends BullishApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(method, "fetchOHLCV")))
                     {
-                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, parameters)).join();
+                        return io.github.ccxt.TypedCores.fromOHLCVList((this.fetchOHLCV(((String)symbol), timeframe, since, limit, parameters)).join());
                     } else if (Helpers.isTrue(Helpers.isEqual(method, "fetchFundingRateHistory")))
                     {
-                        return (this.fetchFundingRateHistory(symbol, since, limit, parameters)).join();
+                        return io.github.ccxt.TypedCores.fromFundingRateHistoryList((this.fetchFundingRateHistory(symbol, since, limit, parameters)).join());
                     } else
                     {
-                        return (this.fetchTrades(((String)symbol), since, limit, parameters)).join();
+                        return io.github.ccxt.TypedCores.fromTradeList((this.fetchTrades(((String)symbol), since, limit, parameters)).join());
                     }
                 } catch(Exception e)
                 {

@@ -78,7 +78,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         Helpers.addElementToObject(this.options, "ws", wsOptions);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -104,7 +104,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             }};
             Object request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

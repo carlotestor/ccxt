@@ -133,6 +133,15 @@ export const TYPED_CORES: Record<string, string> = {
     'setMargin': 'MarginModification',
     'transfer': 'TransferEntry',
     'withdraw': 'Transaction',
+    // --- watch* -------------------------------------------------------------------
+    // Java analogue of ccxt/ccxt#30110. A watch core hands back the LIVE ws structure
+    // (the shared ticker dict, an ArrayCache*). `to<T>` materialises a NEW T from it,
+    // which is exactly the snapshot the wrapper produced with `new T(res)` /
+    // `toTypedList(res, T::new)`, so typing the core keeps the public semantics while
+    // removing the wrapper's conversion. WS tests bind these STATICALLY (no reflective
+    // detype), so build/javaTranspiler.ts wraps their call sites in
+    // BaseTest.detypeForComparison on the ws-test path only (detypeWsTypedCoreCalls).
+    'watchTicker': 'Ticker',
 };
 
 export const PREDICTION_TYPED_CORES: Record<string, string> = {

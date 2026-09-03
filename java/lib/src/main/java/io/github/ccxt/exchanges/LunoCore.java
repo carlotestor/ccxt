@@ -1691,7 +1691,7 @@ public class LunoCore extends LunoApi
                 put( "min_row", finalEntry );
                 put( "max_row", LunoCore.this.sum(finalEntry, finalLimit) );
             }};
-            return (this.fetchLedger(code, since, limit, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromLedgerEntryList((this.fetchLedger(code, since, limit, this.extend(request, parameters))).join());
         });
 
     }

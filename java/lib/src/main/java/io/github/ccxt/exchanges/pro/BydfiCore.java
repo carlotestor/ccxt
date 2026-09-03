@@ -182,7 +182,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -197,7 +197,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object messageHash = Helpers.add("ticker::", symbol);
             Object channel = Helpers.add(marketId, "@ticker");
             return (this.watchPublic(new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)), parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

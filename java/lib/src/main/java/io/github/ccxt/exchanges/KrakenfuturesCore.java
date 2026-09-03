@@ -3877,7 +3877,7 @@ final Object finalI = i;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.transfer(code, amount, "future", "spot", parameters)).join();
+            return io.github.ccxt.TypedCores.fromTransferEntry((this.transfer(code, amount, "future", "spot", parameters)).join());
         });
 
     }

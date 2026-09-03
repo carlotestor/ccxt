@@ -56,7 +56,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -75,7 +75,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 put( "tickTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList(BithumbCore.this.safeString(parameters, "tickTypes", "24H"))) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

@@ -375,7 +375,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -391,7 +391,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object method = this.safeString(parameters, "method", defaultMethod);
             Object name = Helpers.add(Helpers.add(method, "@"), Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchTicker", market, null, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
