@@ -310,7 +310,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -354,7 +354,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 return (this.watchMyTrades(symbol, since, limit, parameters)).join();
             }
             return trades;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 

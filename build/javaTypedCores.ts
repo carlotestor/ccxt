@@ -141,7 +141,9 @@ export const TYPED_CORES: Record<string, string> = {
     // removing the wrapper's conversion. WS tests bind these STATICALLY (no reflective
     // detype), so build/javaTranspiler.ts wraps their call sites in
     // BaseTest.detypeForComparison on the ws-test path only (detypeWsTypedCoreCalls).
+    'watchMyTrades': 'List<Trade>',
     'watchTicker': 'Ticker',
+    'watchTrades': 'List<Trade>',
 };
 
 export const PREDICTION_TYPED_CORES: Record<string, string> = {

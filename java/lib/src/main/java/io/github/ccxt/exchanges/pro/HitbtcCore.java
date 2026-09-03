@@ -688,7 +688,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -717,7 +717,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 

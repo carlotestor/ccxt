@@ -493,7 +493,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -518,7 +518,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
             Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
