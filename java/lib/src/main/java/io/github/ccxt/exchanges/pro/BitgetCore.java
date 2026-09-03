@@ -1550,7 +1550,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1606,7 +1606,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(newPositions, symbols, since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 

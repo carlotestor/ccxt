@@ -265,12 +265,11 @@ public class Independentreserve extends IndependentreserveCore {
 
     @SuppressWarnings("unchecked")
     public Position watchPosition(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchPosition((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return new Position(res);
+        return Helpers.joinTyped(super.watchPosition((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Position> watchPositionAsync(String symbol, Map<String, Object> params) {
-        return super.watchPosition((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(Position::new);
+        return super.watchPosition((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
 
     @SuppressWarnings("unchecked")
@@ -920,8 +919,7 @@ public class Independentreserve extends IndependentreserveCore {
 
     @SuppressWarnings("unchecked")
     public List<Position> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchPositions((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Position::new);
+        return Helpers.joinTyped(super.watchPositions((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public List<Position> watchPositions() { return watchPositions((List<String>) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<Position> watchPositions(List<String> symbols) { return watchPositions(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -929,7 +927,7 @@ public class Independentreserve extends IndependentreserveCore {
     public List<Position> watchPositions(List<String> symbols, Long since, Long limit) { return watchPositions(symbols, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Position>> watchPositionsAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        return super.watchPositions((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Position::new));
+        return super.watchPositions((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<List<Position>> watchPositionsAsync() { return watchPositionsAsync((List<String>) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<Position>> watchPositionsAsync(List<String> symbols) { return watchPositionsAsync(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -940,12 +938,11 @@ public class Independentreserve extends IndependentreserveCore {
 
     @SuppressWarnings("unchecked")
     public List<Position> watchPositionForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchPositionForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Position::new);
+        return Helpers.joinTyped(super.watchPositionForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Position>> watchPositionForSymbolsAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        return super.watchPositionForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Position::new));
+        return super.watchPositionForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public List<Position> watchPositionForSymbols(String[] symbols, Long since, Long limit, Map<String, Object> params) { return watchPositionForSymbols(symbols == null ? null : java.util.Arrays.asList(symbols), since, limit, params); }
     public CompletableFuture<List<Position>> watchPositionForSymbolsAsync(String[] symbols, Long since, Long limit, Map<String, Object> params) { return watchPositionForSymbolsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), since, limit, params); }

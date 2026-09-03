@@ -144,6 +144,9 @@ export const TYPED_CORES: Record<string, string> = {
     'watchMyTrades': 'List<Trade>',
     'watchOHLCV': 'List<OHLCV>',
     'watchOrders': 'List<Order>',
+    'watchPosition': 'Position',
+    'watchPositionForSymbols': 'List<Position>',
+    'watchPositions': 'List<Position>',
     'watchTicker': 'Ticker',
     'watchTrades': 'List<Trade>',
 };

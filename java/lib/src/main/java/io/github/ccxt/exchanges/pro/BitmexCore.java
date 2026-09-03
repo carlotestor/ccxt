@@ -836,7 +836,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -868,7 +868,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 

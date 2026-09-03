@@ -236,7 +236,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPosition(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> watchPosition(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -244,7 +244,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchPosition() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPosition);
 
     }
 
@@ -1254,7 +1254,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1264,11 +1264,11 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchPositions() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPositionForSymbols(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositionForSymbols(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1278,7 +1278,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.watchPositions(symbols, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
