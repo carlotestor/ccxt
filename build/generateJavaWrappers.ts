@@ -129,14 +129,14 @@ function shouldCreateWrapper(name: string): boolean {
     return ALLOWED_PREFIXES.some(p => name.startsWith(p));
 }
 
-interface ParamInfo {
+export interface ParamInfo {
     name: string;
     javaType: string;
     isOptional: boolean;
     defaultValue: string | null;
 }
 
-interface MethodInfo {
+export interface MethodInfo {
     name: string;
     javaReturnType: string;
     isArray: boolean;
@@ -199,7 +199,7 @@ export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
 // internal call sites don't trigger overload-resolution collisions; verified
 // via grep over ts/src/pro/*.ts). Keeps the user-facing surface symmetric
 // with their REST `fetch*` counterparts which already get truncations.
-const WATCH_ZERO_ARG_WHITELIST = new Set([
+export const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchTickers',
     'watchBalance',
     'watchOrders',
@@ -207,7 +207,7 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchPositions',
 ]);
 
-function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
+export function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
     const strippedBaseFile = writeOverloadStrippedFile (sourceFile);
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
@@ -267,11 +267,11 @@ function safeName(name: string): string {
     return reserved[name] || name;
 }
 
-function camelCase(name: string): string {
+export function camelCase(name: string): string {
     return name.charAt(0).toLowerCase() + name.slice(1);
 }
 
-function capitalize(s: string): string {
+export function capitalize(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
