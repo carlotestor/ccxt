@@ -64,6 +64,20 @@ RE_INFO = re.compile(r'this\.(\w+) = TypeHelper\.getInfo\(data\);')
 RE_RAW = re.compile(r'this\.(\w+) = TypeHelper\.safeValue\(data, "([^"]+)"\);')
 RE_AT = re.compile(r'this\.(\w+) = TypeHelper\.(safeIntegerAt|safeFloatAt)\(raw, (\d+)\);')
 RE_NESTED_HEAD = re.compile(r'Object (\w+)Raw = TypeHelper\.safeValue\(data, "([^"]+)"\);')
+# `data.containsKey("k") && data.get("k") != null ? new T(data.get("k")) : null`
+# (Limits / NetworkLimits / CurrencyLimits). Mechanically the same field read as
+# RE_NESTED_HEAD's ternary, so it is invertible under the same __raw rule.
+RE_CONTAINS_KEY = re.compile(
+    r'this\.(\w+) = data\.containsKey\("([^"]+)"\) && data\.get\("\2"\) != null '
+    r'\? new (\w+)\(data\.get\("\2"\)\) : null;')
+# `x = xRaw instanceof Map ? (Map<String, Object>) xRaw : null;` (OrderRequest.params)
+RE_MAP_IF = re.compile(
+    r'this\.(\w+) = (\w+)Raw instanceof Map \? \(Map<String, Object>\) \2Raw : null;')
+# `if (xRaw instanceof Map<?, ?> xMap) { this.<f> = new LinkedHashMap<>(); for (...) put(k, new T(v)); }`
+# (CurrencyInterface.networks / DepositWithdrawFee.networks -- a keyed bag of a
+# single nested family, i.e. the container shape inline in an interface)
+# `this.<field> = new LinkedHashMap<>();` opening a Dictionary-wrapper fill loop
+RE_BAG_INIT = re.compile(r'this\.(\w+) = new LinkedHashMap<>\(\);')
 
 
 class Unparseable(Exception):
@@ -106,6 +120,55 @@ def parse_ctor(name, src):
             out.append({'field': mm.group(1), 'kind': 'at', 'index': int(mm.group(3))})
             i += 1
             continue
+        # ---- container-bag shapes (Dictionary wrappers: Tickers, FundingRates, ...)
+        # `this.<f> = new LinkedHashMap<>();` followed by a for-loop that fills it
+        # from the payload's own entries. The loop is pure projection (every value
+        # re-enters through the element family's own constructor), so from* must
+        # return __raw -- the family is invertible ONLY when __raw is retained.
+        mm = RE_BAG_INIT.fullmatch(l)
+        if mm and i + 1 < len(lines) and lines[i + 1].startswith('for (Map.Entry<String, Object> entry : data.entrySet())'):
+            f = mm.group(1)
+            joined = '\n'.join(lines[i + 2:i + 6])
+            m2 = re.match(
+                r'if \(entry\.getValue\(\) instanceof List<\?> \w+\) \{\n'
+                r'this\.' + f + r'\.put\(entry\.getKey\(\),\n'
+                r'\(\(List<Object>\) \w+\)\.stream\(\)\.map\((\w+)::new\)\.collect\(Collectors\.toList\(\)\)\);\n'
+                r'\}\n\}', joined)
+            if m2:
+                out.append({'field': f, 'kind': 'bag', 'key': f, 'of': m2.group(1), 'list': True})
+                i += 6
+                continue
+            m2 = re.match(
+                r'if \(!"info"\.equals\(entry\.getKey\(\)\)\) \{\n'
+                r'this\.' + f + r'\.put\(entry\.getKey\(\), new (\w+)\(entry\.getValue\(\)\)\);\n'
+                r'\}\n\}', joined)
+            if m2:
+                out.append({'field': f, 'kind': 'bag', 'key': f, 'of': m2.group(1), 'list': False})
+                i += 6
+                continue
+            m2 = re.match(
+                r'this\.' + f + r'\.put\(entry\.getKey\(\), new (\w+)\(entry\.getValue\(\)\)\);\n\}',
+                '\n'.join(lines[i + 2:i + 4]))
+            if m2:
+                out.append({'field': f, 'kind': 'bag', 'key': f, 'of': m2.group(1), 'list': False})
+                i += 4
+                continue
+        # `this.<f> = data.containsKey("k") && data.get("k") != null ? new T(...)` (Limits & co)
+        mm = RE_CONTAINS_KEY.fullmatch(l)
+        if mm:
+            out.append({'field': mm.group(1), 'kind': 'nested', 'key': mm.group(2), 'of': mm.group(3)})
+            i += 1
+            continue
+        # `this.<f> = xRaw instanceof Map ? (Map<String, Object>) xRaw : null;`
+        # (OrderRequest.params -- a passthrough of the preceding safeValue line)
+        if i > 0:
+            prev = lines[i - 1]
+            pm = RE_RAW.fullmatch(prev)
+            mm = RE_MAP_IF.fullmatch(l)
+            if mm and pm and pm.group(2) == 'params':
+                out.append({'field': mm.group(1), 'kind': 'raw', 'key': 'params'})
+                i += 1
+                continue
         mm = RE_NESTED_HEAD.fullmatch(l)
         if mm and i + 1 < len(lines):
             f, key = mm.group(1), mm.group(2)
@@ -115,6 +178,22 @@ def parse_ctor(name, src):
                 out.append({'field': f, 'kind': 'nested', 'key': key, 'of': m2.group(1)})
                 i += 2
                 continue
+            # inline keyed bag: `if (xRaw instanceof Map<?, ?> xMap) { this.<f> = new
+            # LinkedHashMap<>(); for (...) { put(k, new T(v)); } }` (CurrencyInterface.networks /
+            # DepositWithdrawFee.networks). Consumes the head line too, so no 'raw'
+            # field is recorded for the head itself.
+            m2 = re.fullmatch(r'if \(' + f + r'Raw instanceof Map<\?, \?> \w+\) \{', nxt)
+            if m2 and i + 7 < len(lines):
+                blk = '\n'.join(lines[i + 2:i + 8])
+                m3 = re.fullmatch(
+                    r'this\.' + f + r' = new LinkedHashMap<>\(\);\n'
+                    r'for \(Map\.Entry<String, Object> entry : \(\(Map<String, Object>\) \w+\)\.entrySet\(\)\) \{\n'
+                    r'this\.' + f + r'\.put\(entry\.getKey\(\), new (\w+)\(entry\.getValue\(\)\)\);\n'
+                    r'\}\n\}', blk)
+                if m3:
+                    out.append({'field': f, 'kind': 'bag', 'key': key, 'of': m3.group(1), 'list': False})
+                    i += 7
+                    continue
             m2 = re.fullmatch(r'if \(' + f + r'Raw instanceof List<\?> (\w+)\) \{', nxt)
             if m2 and i + 3 < len(lines):
                 m3 = re.fullmatch(

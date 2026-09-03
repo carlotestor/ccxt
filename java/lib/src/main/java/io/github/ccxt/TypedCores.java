@@ -15,7 +15,7 @@ import io.github.ccxt.types.*;
  * Typed cores: bidirectional bridges between the unified type classes and the
  * raw Object/Map/List representation used by the transpiled exchange cores.
  * Only families whose (Object raw) constructor is mechanically invertible are
- * represented here (50 of 53 parsed families).
+ * represented here (70 of 70 parsed families).
  */
 public final class TypedCores {
 
@@ -494,6 +494,167 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- CrossBorrowRates ----
+
+    public static CrossBorrowRates toCrossBorrowRates(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof CrossBorrowRates already) {
+            return already;
+        }
+        return new CrossBorrowRates(raw);
+    }
+
+    public static List<CrossBorrowRates> toCrossBorrowRatesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<CrossBorrowRates> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toCrossBorrowRates(element));
+        }
+        return out;
+    }
+
+    public static Object fromCrossBorrowRates(Object value) {
+        if (!(value instanceof CrossBorrowRates typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromCrossBorrowRatesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromCrossBorrowRates(element));
+        }
+        return out;
+    }
+
+    // ---- Currencies ----
+
+    public static Currencies toCurrencies(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Currencies already) {
+            return already;
+        }
+        return new Currencies(raw);
+    }
+
+    public static List<Currencies> toCurrenciesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<Currencies> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toCurrencies(element));
+        }
+        return out;
+    }
+
+    public static Object fromCurrencies(Object value) {
+        if (!(value instanceof Currencies typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromCurrenciesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromCurrencies(element));
+        }
+        return out;
+    }
+
+    // ---- CurrencyLimits ----
+
+    public static CurrencyLimits toCurrencyLimits(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof CurrencyLimits already) {
+            return already;
+        }
+        return new CurrencyLimits(raw);
+    }
+
+    public static List<CurrencyLimits> toCurrencyLimitsList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<CurrencyLimits> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toCurrencyLimits(element));
+        }
+        return out;
+    }
+
+    public static Object fromCurrencyLimits(Object value) {
+        if (!(value instanceof CurrencyLimits typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("amount", fromMinMax(typed.amount));
+        out.put("withdraw", fromMinMax(typed.withdraw));
+        return out;
+    }
+
+    public static Object fromCurrencyLimitsList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromCurrencyLimits(element));
+        }
+        return out;
+    }
+
     // ---- DepositAddress ----
 
     public static DepositAddress toDepositAddress(Object raw) {
@@ -603,6 +764,60 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromDepositWithdrawFeeNetwork(element));
+        }
+        return out;
+    }
+
+    // ---- DepositWithdrawFees ----
+
+    public static DepositWithdrawFees toDepositWithdrawFees(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof DepositWithdrawFees already) {
+            return already;
+        }
+        return new DepositWithdrawFees(raw);
+    }
+
+    public static List<DepositWithdrawFees> toDepositWithdrawFeesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<DepositWithdrawFees> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toDepositWithdrawFees(element));
+        }
+        return out;
+    }
+
+    public static Object fromDepositWithdrawFees(Object value) {
+        if (!(value instanceof DepositWithdrawFees typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("info", typed.info);
+        return out;
+    }
+
+    public static Object fromDepositWithdrawFeesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromDepositWithdrawFees(element));
         }
         return out;
     }
@@ -852,6 +1067,59 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- FundingRates ----
+
+    public static FundingRates toFundingRates(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof FundingRates already) {
+            return already;
+        }
+        return new FundingRates(raw);
+    }
+
+    public static List<FundingRates> toFundingRatesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<FundingRates> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toFundingRates(element));
+        }
+        return out;
+    }
+
+    public static Object fromFundingRates(Object value) {
+        if (!(value instanceof FundingRates typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromFundingRatesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromFundingRates(element));
+        }
+        return out;
+    }
+
     // ---- Greeks ----
 
     public static Greeks toGreeks(Object raw) {
@@ -989,6 +1257,59 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- IsolatedBorrowRates ----
+
+    public static IsolatedBorrowRates toIsolatedBorrowRates(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof IsolatedBorrowRates already) {
+            return already;
+        }
+        return new IsolatedBorrowRates(raw);
+    }
+
+    public static List<IsolatedBorrowRates> toIsolatedBorrowRatesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<IsolatedBorrowRates> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toIsolatedBorrowRates(element));
+        }
+        return out;
+    }
+
+    public static Object fromIsolatedBorrowRates(Object value) {
+        if (!(value instanceof IsolatedBorrowRates typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromIsolatedBorrowRatesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromIsolatedBorrowRates(element));
+        }
+        return out;
+    }
+
     // ---- LastPrice ----
 
     public static LastPrice toLastPrice(Object raw) {
@@ -1044,6 +1365,59 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromLastPrice(element));
+        }
+        return out;
+    }
+
+    // ---- LastPrices ----
+
+    public static LastPrices toLastPrices(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof LastPrices already) {
+            return already;
+        }
+        return new LastPrices(raw);
+    }
+
+    public static List<LastPrices> toLastPricesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<LastPrices> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toLastPrices(element));
+        }
+        return out;
+    }
+
+    public static Object fromLastPrices(Object value) {
+        if (!(value instanceof LastPrices typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromLastPricesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromLastPrices(element));
         }
         return out;
     }
@@ -1231,6 +1605,117 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromLeverageTier(element));
+        }
+        return out;
+    }
+
+    // ---- Leverages ----
+
+    public static Leverages toLeverages(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Leverages already) {
+            return already;
+        }
+        return new Leverages(raw);
+    }
+
+    public static List<Leverages> toLeveragesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<Leverages> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toLeverages(element));
+        }
+        return out;
+    }
+
+    public static Object fromLeverages(Object value) {
+        if (!(value instanceof Leverages typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromLeveragesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromLeverages(element));
+        }
+        return out;
+    }
+
+    // ---- Limits ----
+
+    public static Limits toLimits(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Limits already) {
+            return already;
+        }
+        return new Limits(raw);
+    }
+
+    public static List<Limits> toLimitsList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<Limits> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toLimits(element));
+        }
+        return out;
+    }
+
+    public static Object fromLimits(Object value) {
+        if (!(value instanceof Limits typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("amount", fromMinMax(typed.amount));
+        out.put("cost", fromMinMax(typed.cost));
+        out.put("leverage", fromMinMax(typed.leverage));
+        out.put("price", fromMinMax(typed.price));
+        out.put("market", fromMinMax(typed.market));
+        return out;
+    }
+
+    public static Object fromLimitsList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromLimits(element));
         }
         return out;
     }
@@ -1473,6 +1958,59 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- MarginModes ----
+
+    public static MarginModes toMarginModes(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof MarginModes already) {
+            return already;
+        }
+        return new MarginModes(raw);
+    }
+
+    public static List<MarginModes> toMarginModesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<MarginModes> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toMarginModes(element));
+        }
+        return out;
+    }
+
+    public static Object fromMarginModes(Object value) {
+        if (!(value instanceof MarginModes typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromMarginModesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromMarginModes(element));
+        }
+        return out;
+    }
+
     // ---- MarginModification ----
 
     public static MarginModification toMarginModification(Object raw) {
@@ -1532,6 +2070,100 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromMarginModification(element));
+        }
+        return out;
+    }
+
+    // ---- MarketInterface ----
+
+    public static MarketInterface toMarketInterface(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof MarketInterface already) {
+            return already;
+        }
+        return new MarketInterface(raw);
+    }
+
+    public static List<MarketInterface> toMarketInterfaceList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<MarketInterface> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toMarketInterface(element));
+        }
+        return out;
+    }
+
+    public static Object fromMarketInterface(Object value) {
+        if (!(value instanceof MarketInterface typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", typed.id);
+        out.put("numericId", typed.numericId);
+        out.put("uppercaseId", typed.uppercaseId);
+        out.put("lowercaseId", typed.lowercaseId);
+        out.put("symbol", typed.symbol);
+        out.put("base", typed.base);
+        out.put("quote", typed.quote);
+        out.put("baseId", typed.baseId);
+        out.put("quoteId", typed.quoteId);
+        out.put("active", typed.active);
+        out.put("type", typed.type);
+        out.put("subType", typed.subType);
+        out.put("spot", typed.spot);
+        out.put("margin", typed.margin);
+        out.put("swap", typed.swap);
+        out.put("future", typed.future);
+        out.put("option", typed.option);
+        out.put("stock", typed.stock);
+        out.put("prediction", typed.prediction);
+        out.put("contract", typed.contract);
+        out.put("settle", typed.settle);
+        out.put("settleId", typed.settleId);
+        out.put("contractSize", typed.contractSize);
+        out.put("linear", typed.linear);
+        out.put("inverse", typed.inverse);
+        out.put("quanto", typed.quanto);
+        out.put("expiry", typed.expiry);
+        out.put("expiryDatetime", typed.expiryDatetime);
+        out.put("strike", typed.strike);
+        out.put("optionType", typed.optionType);
+        out.put("taker", typed.taker);
+        out.put("maker", typed.maker);
+        out.put("percentage", typed.percentage);
+        out.put("tierBased", typed.tierBased);
+        out.put("feeSide", typed.feeSide);
+        out.put("precision", fromPrecision(typed.precision));
+        out.put("marginModes", fromMarketMarginModes(typed.marginModes));
+        out.put("limits", fromLimits(typed.limits));
+        out.put("created", typed.created);
+        out.put("outcomes", fromPredictionOutcomeList(typed.outcomes));
+        out.put("info", typed.info);
+        return out;
+    }
+
+    public static Object fromMarketInterfaceList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromMarketInterface(element));
         }
         return out;
     }
@@ -1642,6 +2274,124 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromMinMax(element));
+        }
+        return out;
+    }
+
+    // ---- Network ----
+
+    public static Network toNetwork(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Network already) {
+            return already;
+        }
+        return new Network(raw);
+    }
+
+    public static List<Network> toNetworkList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<Network> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toNetwork(element));
+        }
+        return out;
+    }
+
+    public static Object fromNetwork(Object value) {
+        if (!(value instanceof Network typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", typed.id);
+        out.put("network", typed.network);
+        out.put("name", typed.name);
+        out.put("active", typed.active);
+        out.put("fee", typed.fee);
+        out.put("precision", typed.precision);
+        out.put("deposit", typed.deposit);
+        out.put("withdraw", typed.withdraw);
+        out.put("limits", fromNetworkLimits(typed.limits));
+        out.put("info", typed.info);
+        return out;
+    }
+
+    public static Object fromNetworkList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromNetwork(element));
+        }
+        return out;
+    }
+
+    // ---- NetworkLimits ----
+
+    public static NetworkLimits toNetworkLimits(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof NetworkLimits already) {
+            return already;
+        }
+        return new NetworkLimits(raw);
+    }
+
+    public static List<NetworkLimits> toNetworkLimitsList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<NetworkLimits> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toNetworkLimits(element));
+        }
+        return out;
+    }
+
+    public static Object fromNetworkLimits(Object value) {
+        if (!(value instanceof NetworkLimits typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("withdraw", fromMinMax(typed.withdraw));
+        out.put("deposit", fromMinMax(typed.deposit));
+        return out;
+    }
+
+    public static Object fromNetworkLimitsList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromNetworkLimits(element));
         }
         return out;
     }
@@ -1766,6 +2516,59 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- OpenInterests ----
+
+    public static OpenInterests toOpenInterests(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof OpenInterests already) {
+            return already;
+        }
+        return new OpenInterests(raw);
+    }
+
+    public static List<OpenInterests> toOpenInterestsList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<OpenInterests> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toOpenInterests(element));
+        }
+        return out;
+    }
+
+    public static Object fromOpenInterests(Object value) {
+        if (!(value instanceof OpenInterests typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromOpenInterestsList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromOpenInterests(element));
+        }
+        return out;
+    }
+
     // ---- Option ----
 
     public static Option toOption(Object raw) {
@@ -1832,6 +2635,59 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromOption(element));
+        }
+        return out;
+    }
+
+    // ---- OptionChain ----
+
+    public static OptionChain toOptionChain(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof OptionChain already) {
+            return already;
+        }
+        return new OptionChain(raw);
+    }
+
+    public static List<OptionChain> toOptionChainList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<OptionChain> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toOptionChain(element));
+        }
+        return out;
+    }
+
+    public static Object fromOptionChain(Object value) {
+        if (!(value instanceof OptionChain typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromOptionChainList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromOptionChain(element));
         }
         return out;
     }
@@ -1911,6 +2767,59 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromOrder(element));
+        }
+        return out;
+    }
+
+    // ---- OrderBooks ----
+
+    public static OrderBooks toOrderBooks(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof OrderBooks already) {
+            return already;
+        }
+        return new OrderBooks(raw);
+    }
+
+    public static List<OrderBooks> toOrderBooksList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<OrderBooks> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toOrderBooks(element));
+        }
+        return out;
+    }
+
+    public static Object fromOrderBooks(Object value) {
+        if (!(value instanceof OrderBooks typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        return out;
+    }
+
+    public static Object fromOrderBooksList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromOrderBooks(element));
         }
         return out;
     }
@@ -2158,6 +3067,90 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromPredictionFees(element));
+        }
+        return out;
+    }
+
+    // ---- PredictionMarket ----
+
+    public static PredictionMarket toPredictionMarket(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof PredictionMarket already) {
+            return already;
+        }
+        return new PredictionMarket(raw);
+    }
+
+    public static List<PredictionMarket> toPredictionMarketList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<PredictionMarket> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toPredictionMarket(element));
+        }
+        return out;
+    }
+
+    public static Object fromPredictionMarket(Object value) {
+        if (!(value instanceof PredictionMarket typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", typed.id);
+        out.put("market", typed.market);
+        out.put("event", typed.eventId);
+        out.put("marketType", typed.marketType);
+        out.put("executionModel", typed.executionModel);
+        out.put("title", typed.title);
+        out.put("description", typed.description);
+        out.put("outcomes", fromPredictionOutcomeList(typed.outcomes));
+        out.put("underlying", typed.underlying);
+        out.put("floorStrike", typed.floorStrike);
+        out.put("capStrike", typed.capStrike);
+        out.put("strikeType", typed.strikeType);
+        out.put("collateral", typed.collateral);
+        out.put("active", typed.active);
+        out.put("closed", typed.closed);
+        out.put("resolved", typed.resolved);
+        out.put("resolvedOutcome", typed.resolvedOutcome);
+        out.put("settlementValue", typed.settlementValue);
+        out.put("created", typed.created);
+        out.put("createdDatetime", typed.createdDatetime);
+        out.put("end", typed.end);
+        out.put("endDatetime", typed.endDatetime);
+        out.put("volume", typed.volume);
+        out.put("liquidity", typed.liquidity);
+        out.put("openInterest", typed.openInterest);
+        out.put("tickSize", typed.tickSize);
+        out.put("limits", fromLimits(typed.limits));
+        out.put("fees", fromPredictionFees(typed.fees));
+        out.put("resolutionSource", typed.resolutionSource);
+        out.put("image", typed.image);
+        out.put("info", typed.info);
+        return out;
+    }
+
+    public static Object fromPredictionMarketList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromPredictionMarket(element));
         }
         return out;
     }
@@ -2590,6 +3583,60 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- PredictionTickers ----
+
+    public static PredictionTickers toPredictionTickers(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof PredictionTickers already) {
+            return already;
+        }
+        return new PredictionTickers(raw);
+    }
+
+    public static List<PredictionTickers> toPredictionTickersList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<PredictionTickers> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toPredictionTickers(element));
+        }
+        return out;
+    }
+
+    public static Object fromPredictionTickers(Object value) {
+        if (!(value instanceof PredictionTickers typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("info", typed.info);
+        return out;
+    }
+
+    public static Object fromPredictionTickersList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromPredictionTickers(element));
+        }
+        return out;
+    }
+
     // ---- PredictionTrade ----
 
     public static PredictionTrade toPredictionTrade(Object raw) {
@@ -2854,6 +3901,60 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- Tickers ----
+
+    public static Tickers toTickers(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Tickers already) {
+            return already;
+        }
+        return new Tickers(raw);
+    }
+
+    public static List<Tickers> toTickersList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<Tickers> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toTickers(element));
+        }
+        return out;
+    }
+
+    public static Object fromTickers(Object value) {
+        if (!(value instanceof Tickers typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("info", typed.info);
+        return out;
+    }
+
+    public static Object fromTickersList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromTickers(element));
+        }
+        return out;
+    }
+
     // ---- Trade ----
 
     public static Trade toTrade(Object raw) {
@@ -2975,6 +4076,60 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromTradingFeeInterface(element));
+        }
+        return out;
+    }
+
+    // ---- TradingFees ----
+
+    public static TradingFees toTradingFees(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof TradingFees already) {
+            return already;
+        }
+        return new TradingFees(raw);
+    }
+
+    public static List<TradingFees> toTradingFeesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<TradingFees> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toTradingFees(element));
+        }
+        return out;
+    }
+
+    public static Object fromTradingFees(Object value) {
+        if (!(value instanceof TradingFees typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // nulls are PUT rather than omitted: the constructor reads every key via
+        // safe* accessors, so a present-but-null key and an absent key are
+        // indistinguishable on the way back in. Putting them keeps the key set
+        // stable, which is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("info", typed.info);
+        return out;
+    }
+
+    public static Object fromTradingFeesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromTradingFees(element));
         }
         return out;
     }
@@ -3204,11 +4359,23 @@ public final class TypedCores {
         if (value instanceof CrossBorrowRate) {
             return fromCrossBorrowRate(value);
         }
+        if (value instanceof CrossBorrowRates) {
+            return fromCrossBorrowRates(value);
+        }
+        if (value instanceof Currencies) {
+            return fromCurrencies(value);
+        }
+        if (value instanceof CurrencyLimits) {
+            return fromCurrencyLimits(value);
+        }
         if (value instanceof DepositAddress) {
             return fromDepositAddress(value);
         }
         if (value instanceof DepositWithdrawFeeNetwork) {
             return fromDepositWithdrawFeeNetwork(value);
+        }
+        if (value instanceof DepositWithdrawFees) {
+            return fromDepositWithdrawFees(value);
         }
         if (value instanceof Fee) {
             return fromFee(value);
@@ -3222,14 +4389,23 @@ public final class TypedCores {
         if (value instanceof FundingRateHistory) {
             return fromFundingRateHistory(value);
         }
+        if (value instanceof FundingRates) {
+            return fromFundingRates(value);
+        }
         if (value instanceof Greeks) {
             return fromGreeks(value);
         }
         if (value instanceof IsolatedBorrowRate) {
             return fromIsolatedBorrowRate(value);
         }
+        if (value instanceof IsolatedBorrowRates) {
+            return fromIsolatedBorrowRates(value);
+        }
         if (value instanceof LastPrice) {
             return fromLastPrice(value);
+        }
+        if (value instanceof LastPrices) {
+            return fromLastPrices(value);
         }
         if (value instanceof LedgerEntry) {
             return fromLedgerEntry(value);
@@ -3239,6 +4415,12 @@ public final class TypedCores {
         }
         if (value instanceof LeverageTier) {
             return fromLeverageTier(value);
+        }
+        if (value instanceof Leverages) {
+            return fromLeverages(value);
+        }
+        if (value instanceof Limits) {
+            return fromLimits(value);
         }
         if (value instanceof Liquidation) {
             return fromLiquidation(value);
@@ -3252,8 +4434,14 @@ public final class TypedCores {
         if (value instanceof MarginMode) {
             return fromMarginMode(value);
         }
+        if (value instanceof MarginModes) {
+            return fromMarginModes(value);
+        }
         if (value instanceof MarginModification) {
             return fromMarginModification(value);
+        }
+        if (value instanceof MarketInterface) {
+            return fromMarketInterface(value);
         }
         if (value instanceof MarketMarginModes) {
             return fromMarketMarginModes(value);
@@ -3261,17 +4449,32 @@ public final class TypedCores {
         if (value instanceof MinMax) {
             return fromMinMax(value);
         }
+        if (value instanceof Network) {
+            return fromNetwork(value);
+        }
+        if (value instanceof NetworkLimits) {
+            return fromNetworkLimits(value);
+        }
         if (value instanceof OHLCV) {
             return fromOHLCV(value);
         }
         if (value instanceof OpenInterest) {
             return fromOpenInterest(value);
         }
+        if (value instanceof OpenInterests) {
+            return fromOpenInterests(value);
+        }
         if (value instanceof Option) {
             return fromOption(value);
         }
+        if (value instanceof OptionChain) {
+            return fromOptionChain(value);
+        }
         if (value instanceof Order) {
             return fromOrder(value);
+        }
+        if (value instanceof OrderBooks) {
+            return fromOrderBooks(value);
         }
         if (value instanceof Position) {
             return fromPosition(value);
@@ -3284,6 +4487,9 @@ public final class TypedCores {
         }
         if (value instanceof PredictionFees) {
             return fromPredictionFees(value);
+        }
+        if (value instanceof PredictionMarket) {
+            return fromPredictionMarket(value);
         }
         if (value instanceof PredictionOpenInterest) {
             return fromPredictionOpenInterest(value);
@@ -3303,6 +4509,9 @@ public final class TypedCores {
         if (value instanceof PredictionTicker) {
             return fromPredictionTicker(value);
         }
+        if (value instanceof PredictionTickers) {
+            return fromPredictionTickers(value);
+        }
         if (value instanceof PredictionTrade) {
             return fromPredictionTrade(value);
         }
@@ -3315,11 +4524,17 @@ public final class TypedCores {
         if (value instanceof Ticker) {
             return fromTicker(value);
         }
+        if (value instanceof Tickers) {
+            return fromTickers(value);
+        }
         if (value instanceof Trade) {
             return fromTrade(value);
         }
         if (value instanceof TradingFeeInterface) {
             return fromTradingFeeInterface(value);
+        }
+        if (value instanceof TradingFees) {
+            return fromTradingFees(value);
         }
         if (value instanceof Transaction) {
             return fromTransaction(value);

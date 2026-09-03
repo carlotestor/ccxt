@@ -86,10 +86,10 @@ const FIELD_RENAMES: Record<string, string> = {
  * skip list stays visible instead of silently shrinking coverage.
  */
 const SKIPPED: Record<string, string> = {
-    'OrderBook': 'bespoke constructor (unwraps io.github.ccxt.ws.WsOrderBook and guards null data) - no drift against TS',
-    'Balances': 'bespoke constructor (flattens free/used/total sub-maps and the per-currency Balance rows)',
-    'Network': 'no TS declaration (models an entry of CurrencyInterface.networks, typed Dictionary<any> in TS)',
-    'NetworkLimits': 'no TS declaration (nested inside the Java-only Network POJO)',
+    'OrderBook': 'bespoke constructor (unwraps io.github.ccxt.ws.WsOrderBook and guards null data) - no drift against TS; carries a hand-maintained __raw snapshot field',
+    'Balances': 'bespoke constructor (flattens free/used/total sub-maps and the per-currency Balance rows); carries a hand-maintained __raw field',
+    'Network': 'no TS declaration (models an entry of CurrencyInterface.networks, typed Dictionary<any> in TS); hand-written, carries __raw',
+    'NetworkLimits': 'no TS declaration (nested inside the Java-only Network POJO); hand-written, carries __raw',
 };
 
 interface ExistingField {
@@ -731,9 +731,13 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
     if (hasInfo) {
         out.push (INDENT + 'public Map<String, Object> info;');
     }
+    // Lossless inverse support, same contract as the interface renderer: the
+    // wrapper is a projection, `from*` must hand back the exact input map.
+    out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     out.push (INDENT + '@SuppressWarnings("unchecked")');
     out.push (INDENT + 'public ' + className + '(Object raw) {');
+    out.push (BODY + 'this.__raw = raw;');
     out.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
     if (hasInfo) {
         out.push (BODY + 'this.info = TypeHelper.getInfo(data);');
