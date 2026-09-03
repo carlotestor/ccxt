@@ -212,8 +212,24 @@ def parse_ctor(name, src):
     return out
 
 
+RE_FINAL_RAW = re.compile(r'\n    public final Object __raw;\n')
+
+
 def load_families():
-    parsed, skipped = {}, {}
+    """Returns (parsed, raw_only, skipped).
+
+    parsed   : name -> field list; from* returns __raw and carries a field-rebuild
+               fallback for a type constructed without a payload.
+    raw_only : name -> reason; the constructor is hand-written / bespoke and cannot
+               be parsed, but the class declares `public final Object __raw`. javac
+               already proves a final field is assigned on EVERY constructor path, so
+               `from*` = `__raw` is total without parsing a single field line. This is
+               what makes the dictionary containers (Balances, OrderBook) and the
+               inline-bag interfaces invertible: their projection is lossy, the
+               retained payload is not.
+    skipped  : name -> reason; neither parseable nor carrying a final __raw.
+    """
+    parsed, raw_only, skipped = {}, {}, {}
     for path in sorted(glob.glob(os.path.join(TYPES_DIR, '*.java'))):
         name = os.path.basename(path)[:-5]
         if name == 'TypeHelper':
@@ -223,12 +239,19 @@ def load_families():
         try:
             parsed[name] = parse_ctor(name, src)
         except Unparseable as exc:
-            skipped[name] = exc.reason
-    return parsed, skipped
+            if RE_FINAL_RAW.search(src) and re.search(r'\n    public ' + re.escape(name) + r'\(Object raw\) \{\n', src):
+                raw_only[name] = exc.reason
+            else:
+                skipped[name] = exc.reason
+    return parsed, raw_only, skipped
 
 
-def compute_invertible(parsed, skipped):
-    """Transitive closure: a family nesting a non-invertible family is non-invertible."""
+def compute_invertible(parsed, raw_only, skipped):
+    """Transitive closure: a family nesting a non-invertible family is non-invertible.
+
+    raw_only families nest nothing we can see (their constructor is opaque), but
+    they do not need to: from* hands back __raw, never a rebuilt nested value.
+    """
     bad = dict(skipped)
     changed = True
     while changed:
@@ -243,11 +266,11 @@ def compute_invertible(parsed, skipped):
                         bad[name] = 'nests non-invertible family %s (field `%s`)' % (dep, f['field'])
                         changed = True
                         break
-                    if dep not in parsed:
+                    if dep not in parsed and dep not in raw_only:
                         bad[name] = 'nests unknown family %s (field `%s`)' % (dep, f['field'])
                         changed = True
                         break
-    inv = sorted(n for n in parsed if n not in bad)
+    inv = sorted(n for n in list(parsed) + list(raw_only) if n not in bad)
     return inv, bad
 
 
@@ -256,7 +279,8 @@ def compute_invertible(parsed, skipped):
 # ---------------------------------------------------------------------------
 
 def emit_family(name, fields):
-    positional = fields[0]['kind'] == 'at'
+    """fields is None for a raw-only family (opaque constructor, from* = __raw only)."""
+    positional = bool(fields) and fields[0]['kind'] == 'at'
     L = []
     L.append('    // ---- %s ----' % name)
     L.append('')
@@ -292,7 +316,12 @@ def emit_family(name, fields):
     L.append('        if (typed.__raw != null) {')
     L.append('            return typed.__raw;')
     L.append('        }')
-    if positional:
+    if fields is None:
+        L.append('        // Opaque (hand-written) constructor: __raw is final and therefore assigned')
+        L.append('        // on every construction path, so it is only null when the payload itself was')
+        L.append('        // null. There is no field set to rebuild from; hand the value back as-is.')
+        L.append('        return value;')
+    elif positional:
         L.append('        // Positional tuple: the constructor reads by index off a bare List and')
         L.append('        // widens every slot to Long/Double, so rebuilding from the parsed fields')
         L.append('        // is only a fallback for a type constructed without a payload -- it would')
@@ -336,7 +365,7 @@ def emit_family(name, fields):
     return L
 
 
-def emit(inv, parsed):
+def emit(inv, parsed, raw_only):
     L = []
     L.append(HEADER.rstrip('\n'))
     L.append('')
@@ -353,14 +382,15 @@ def emit(inv, parsed):
     L.append(' * Typed cores: bidirectional bridges between the unified type classes and the')
     L.append(' * raw Object/Map/List representation used by the transpiled exchange cores.')
     L.append(' * Only families whose (Object raw) constructor is mechanically invertible are')
-    L.append(' * represented here (%d of %d parsed families).' % (len(inv), len(parsed)))
+    L.append(' * represented here (%d of %d families; %d of them hand-written with an opaque' % (len(inv), len(parsed) + len(raw_only), len(raw_only)))
+    L.append(' * constructor and a final __raw, whose inverse is the retained payload alone).')
     L.append(' */')
     L.append('public final class TypedCores {')
     L.append('')
     L.append('    private TypedCores() {}')
     L.append('')
     for name in inv:
-        L.extend(emit_family(name, parsed[name]))
+        L.extend(emit_family(name, parsed.get(name)))
     # dispatcher
     L.append('    // ---- runtime dispatcher ----')
     L.append('')
@@ -397,17 +427,20 @@ def main():
     ap.add_argument('--check', action='store_true', help='verify the checked-in output is up to date')
     args = ap.parse_args()
 
-    parsed, skipped = load_families()
-    inv, bad = compute_invertible(parsed, skipped)
-    source = emit(inv, parsed)
+    parsed, raw_only, skipped = load_families()
+    inv, bad = compute_invertible(parsed, raw_only, skipped)
+    source = emit(inv, parsed, raw_only)
 
     if args.capabilities:
         print(json.dumps({'count': len(inv), 'families': inv}, indent=2))
         return 0
 
-    total = len(parsed) + len(skipped)
+    total = len(parsed) + len(raw_only) + len(skipped)
     print('scanned %d type classes in %s' % (total, os.path.relpath(TYPES_DIR, REPO_ROOT)))
     print('invertible families: %d' % len(inv))
+    print('  of which raw-only (opaque ctor, final __raw): %d' % len(raw_only))
+    for name in sorted(raw_only):
+        print('  RAW  %-28s %s' % (name, raw_only[name]))
     print('SKIPPED %d families:' % len(bad))
     for name in sorted(bad):
         print('  SKIP %-28s %s' % (name, bad[name]))

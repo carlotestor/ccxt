@@ -15,7 +15,8 @@ import io.github.ccxt.types.*;
  * Typed cores: bidirectional bridges between the unified type classes and the
  * raw Object/Map/List representation used by the transpiled exchange cores.
  * Only families whose (Object raw) constructor is mechanically invertible are
- * represented here (70 of 70 parsed families).
+ * represented here (79 of 79 families; 9 of them hand-written with an opaque
+ * constructor and a final __raw, whose inverse is the retained payload alone).
  */
 public final class TypedCores {
 
@@ -250,6 +251,57 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromBalanceAccount(element));
+        }
+        return out;
+    }
+
+    // ---- Balances ----
+
+    public static Balances toBalances(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Balances already) {
+            return already;
+        }
+        return new Balances(raw);
+    }
+
+    public static List<Balances> toBalancesList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<Balances> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toBalances(element));
+        }
+        return out;
+    }
+
+    public static Object fromBalances(Object value) {
+        if (!(value instanceof Balances typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromBalancesList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromBalances(element));
         }
         return out;
     }
@@ -600,6 +652,57 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- CurrencyInterface ----
+
+    public static CurrencyInterface toCurrencyInterface(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof CurrencyInterface already) {
+            return already;
+        }
+        return new CurrencyInterface(raw);
+    }
+
+    public static List<CurrencyInterface> toCurrencyInterfaceList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<CurrencyInterface> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toCurrencyInterface(element));
+        }
+        return out;
+    }
+
+    public static Object fromCurrencyInterface(Object value) {
+        if (!(value instanceof CurrencyInterface typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromCurrencyInterfaceList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromCurrencyInterface(element));
+        }
+        return out;
+    }
+
     // ---- CurrencyLimits ----
 
     public static CurrencyLimits toCurrencyLimits(Object raw) {
@@ -709,6 +812,57 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromDepositAddress(element));
+        }
+        return out;
+    }
+
+    // ---- DepositWithdrawFee ----
+
+    public static DepositWithdrawFee toDepositWithdrawFee(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof DepositWithdrawFee already) {
+            return already;
+        }
+        return new DepositWithdrawFee(raw);
+    }
+
+    public static List<DepositWithdrawFee> toDepositWithdrawFeeList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<DepositWithdrawFee> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toDepositWithdrawFee(element));
+        }
+        return out;
+    }
+
+    public static Object fromDepositWithdrawFee(Object value) {
+        if (!(value instanceof DepositWithdrawFee typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromDepositWithdrawFeeList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromDepositWithdrawFee(element));
         }
         return out;
     }
@@ -1605,6 +1759,57 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromLeverageTier(element));
+        }
+        return out;
+    }
+
+    // ---- LeverageTiers ----
+
+    public static LeverageTiers toLeverageTiers(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof LeverageTiers already) {
+            return already;
+        }
+        return new LeverageTiers(raw);
+    }
+
+    public static List<LeverageTiers> toLeverageTiersList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<LeverageTiers> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toLeverageTiers(element));
+        }
+        return out;
+    }
+
+    public static Object fromLeverageTiers(Object value) {
+        if (!(value instanceof LeverageTiers typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromLeverageTiersList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromLeverageTiers(element));
         }
         return out;
     }
@@ -2771,6 +2976,57 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- OrderBook ----
+
+    public static OrderBook toOrderBook(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof OrderBook already) {
+            return already;
+        }
+        return new OrderBook(raw);
+    }
+
+    public static List<OrderBook> toOrderBookList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<OrderBook> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toOrderBook(element));
+        }
+        return out;
+    }
+
+    public static Object fromOrderBook(Object value) {
+        if (!(value instanceof OrderBook typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromOrderBookList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromOrderBook(element));
+        }
+        return out;
+    }
+
     // ---- OrderBooks ----
 
     public static OrderBooks toOrderBooks(Object raw) {
@@ -2820,6 +3076,57 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromOrderBooks(element));
+        }
+        return out;
+    }
+
+    // ---- OrderRequest ----
+
+    public static OrderRequest toOrderRequest(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof OrderRequest already) {
+            return already;
+        }
+        return new OrderRequest(raw);
+    }
+
+    public static List<OrderRequest> toOrderRequestList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<OrderRequest> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toOrderRequest(element));
+        }
+        return out;
+    }
+
+    public static Object fromOrderRequest(Object value) {
+        if (!(value instanceof OrderRequest typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromOrderRequestList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromOrderRequest(element));
         }
         return out;
     }
@@ -3012,6 +3319,57 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromPrecision(element));
+        }
+        return out;
+    }
+
+    // ---- PredictionEvent ----
+
+    public static PredictionEvent toPredictionEvent(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof PredictionEvent already) {
+            return already;
+        }
+        return new PredictionEvent(raw);
+    }
+
+    public static List<PredictionEvent> toPredictionEventList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<PredictionEvent> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toPredictionEvent(element));
+        }
+        return out;
+    }
+
+    public static Object fromPredictionEvent(Object value) {
+        if (!(value instanceof PredictionEvent typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromPredictionEventList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromPredictionEvent(element));
         }
         return out;
     }
@@ -3291,6 +3649,108 @@ public final class TypedCores {
         List<Object> out = new ArrayList<>(list.size());
         for (Object element : list) {
             out.add(fromPredictionOrder(element));
+        }
+        return out;
+    }
+
+    // ---- PredictionOrderBook ----
+
+    public static PredictionOrderBook toPredictionOrderBook(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof PredictionOrderBook already) {
+            return already;
+        }
+        return new PredictionOrderBook(raw);
+    }
+
+    public static List<PredictionOrderBook> toPredictionOrderBookList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<PredictionOrderBook> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toPredictionOrderBook(element));
+        }
+        return out;
+    }
+
+    public static Object fromPredictionOrderBook(Object value) {
+        if (!(value instanceof PredictionOrderBook typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromPredictionOrderBookList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromPredictionOrderBook(element));
+        }
+        return out;
+    }
+
+    // ---- PredictionOrderRequest ----
+
+    public static PredictionOrderRequest toPredictionOrderRequest(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof PredictionOrderRequest already) {
+            return already;
+        }
+        return new PredictionOrderRequest(raw);
+    }
+
+    public static List<PredictionOrderRequest> toPredictionOrderRequestList(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return null;
+        }
+        List<PredictionOrderRequest> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(toPredictionOrderRequest(element));
+        }
+        return out;
+    }
+
+    public static Object fromPredictionOrderRequest(Object value) {
+        if (!(value instanceof PredictionOrderRequest typed)) {
+            return value;
+        }
+        // Exact inverse: hand back the very payload the type was built from.
+        // Reconstructing from the declared fields is NOT an inverse -- the type is a
+        // fixed-shape projection of a variable-shape payload, so it would drop venue
+        // extras and invent nulls for keys that were never present.
+        if (typed.__raw != null) {
+            return typed.__raw;
+        }
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
+    }
+
+    public static Object fromPredictionOrderRequestList(Object value) {
+        if (!(value instanceof List<?> list)) {
+            return value;
+        }
+        List<Object> out = new ArrayList<>(list.size());
+        for (Object element : list) {
+            out.add(fromPredictionOrderRequest(element));
         }
         return out;
     }
@@ -4347,6 +4807,9 @@ public final class TypedCores {
         if (value instanceof BalanceAccount) {
             return fromBalanceAccount(value);
         }
+        if (value instanceof Balances) {
+            return fromBalances(value);
+        }
         if (value instanceof BorrowInterest) {
             return fromBorrowInterest(value);
         }
@@ -4365,11 +4828,17 @@ public final class TypedCores {
         if (value instanceof Currencies) {
             return fromCurrencies(value);
         }
+        if (value instanceof CurrencyInterface) {
+            return fromCurrencyInterface(value);
+        }
         if (value instanceof CurrencyLimits) {
             return fromCurrencyLimits(value);
         }
         if (value instanceof DepositAddress) {
             return fromDepositAddress(value);
+        }
+        if (value instanceof DepositWithdrawFee) {
+            return fromDepositWithdrawFee(value);
         }
         if (value instanceof DepositWithdrawFeeNetwork) {
             return fromDepositWithdrawFeeNetwork(value);
@@ -4415,6 +4884,9 @@ public final class TypedCores {
         }
         if (value instanceof LeverageTier) {
             return fromLeverageTier(value);
+        }
+        if (value instanceof LeverageTiers) {
+            return fromLeverageTiers(value);
         }
         if (value instanceof Leverages) {
             return fromLeverages(value);
@@ -4473,8 +4945,14 @@ public final class TypedCores {
         if (value instanceof Order) {
             return fromOrder(value);
         }
+        if (value instanceof OrderBook) {
+            return fromOrderBook(value);
+        }
         if (value instanceof OrderBooks) {
             return fromOrderBooks(value);
+        }
+        if (value instanceof OrderRequest) {
+            return fromOrderRequest(value);
         }
         if (value instanceof Position) {
             return fromPosition(value);
@@ -4484,6 +4962,9 @@ public final class TypedCores {
         }
         if (value instanceof Precision) {
             return fromPrecision(value);
+        }
+        if (value instanceof PredictionEvent) {
+            return fromPredictionEvent(value);
         }
         if (value instanceof PredictionFees) {
             return fromPredictionFees(value);
@@ -4496,6 +4977,12 @@ public final class TypedCores {
         }
         if (value instanceof PredictionOrder) {
             return fromPredictionOrder(value);
+        }
+        if (value instanceof PredictionOrderBook) {
+            return fromPredictionOrderBook(value);
+        }
+        if (value instanceof PredictionOrderRequest) {
+            return fromPredictionOrderRequest(value);
         }
         if (value instanceof PredictionOutcome) {
             return fromPredictionOutcome(value);
