@@ -1825,7 +1825,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1844,7 +1844,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             }};
             Object message = this.extend(request, parameters);
             return (this.watchPublic(topic, message)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 

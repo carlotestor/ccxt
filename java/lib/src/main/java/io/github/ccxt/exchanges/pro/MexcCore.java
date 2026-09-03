@@ -1861,7 +1861,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1878,7 +1878,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             return (this.watchSwapPublic(channel, messageHash, requestParams, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 

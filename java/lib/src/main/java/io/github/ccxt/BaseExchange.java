@@ -4928,7 +4928,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidations(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidations(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4941,11 +4941,11 @@ public Object describe()
                 return (this.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
             }
             throw new NotSupported((String)Helpers.add(this.id, " watchLiquidations() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidationsForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidationsForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4954,11 +4954,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchLiquidationsForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMyLiquidations(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchMyLiquidations(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4971,11 +4971,11 @@ public Object describe()
                 return this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
             }
             throw new NotSupported((String)Helpers.add(this.id, " watchMyLiquidations() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMyLiquidationsForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchMyLiquidationsForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4984,7 +4984,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 
@@ -5379,14 +5379,14 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchFundingRate() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 

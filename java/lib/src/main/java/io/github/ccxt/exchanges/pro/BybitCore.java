@@ -1317,7 +1317,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1356,7 +1356,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2077,7 +2077,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
      * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidations(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidations(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2105,7 +2105,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 return newLiquidation;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 

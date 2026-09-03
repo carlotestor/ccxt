@@ -529,14 +529,14 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchMarkPrice(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return io.github.ccxt.TypedCores.fromTicker((this.watchTicker(symbol, parameters)).join());
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -1178,7 +1178,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidations(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidations(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1196,7 +1196,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             }};
             Object messageHash = this.getMessageHash("liquidations", symbol);
             return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 

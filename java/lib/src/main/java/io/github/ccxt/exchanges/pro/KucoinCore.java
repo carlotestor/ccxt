@@ -1396,7 +1396,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1441,7 +1441,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -3808,7 +3808,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3822,7 +3822,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object channel = "funding-fee";
             Object messageHash = Helpers.add("fundingRate:", symbol);
             return (this.subscribePublicUta(messageHash, channel, symbol, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 
@@ -3939,7 +3939,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchMarkPrice(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3953,7 +3953,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object channel = "mark-price";
             Object messageHash = Helpers.add("uta:ticker:", symbol);
             return (this.subscribePublicUta(messageHash, channel, symbol, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

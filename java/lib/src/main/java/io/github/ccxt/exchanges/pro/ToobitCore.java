@@ -213,7 +213,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -251,7 +251,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 

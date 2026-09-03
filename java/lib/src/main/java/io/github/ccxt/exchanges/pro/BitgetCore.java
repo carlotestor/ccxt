@@ -1234,7 +1234,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1298,7 +1298,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 return filtered;
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 

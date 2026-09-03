@@ -335,7 +335,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -351,7 +351,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 

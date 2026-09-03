@@ -234,7 +234,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -292,7 +292,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -436,7 +436,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -445,7 +445,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             symbol = this.symbol(symbol);
             Object fr = (this.watchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(fr, symbol);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 
@@ -641,7 +641,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchMarkPrice(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -656,7 +656,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             symbol = Helpers.GetValue(market, "symbol");
             Object ticker = (this.watchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(ticker, symbol);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -915,7 +915,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -973,7 +973,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 
@@ -1035,7 +1035,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1081,7 +1081,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 

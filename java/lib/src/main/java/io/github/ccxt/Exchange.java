@@ -248,7 +248,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMyTradesForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTradesForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -257,11 +257,11 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -270,7 +270,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchTradesForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -338,14 +338,14 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchMarkPrice(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchMarkPrice () is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -385,7 +385,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrdersForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrdersForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -394,7 +394,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 

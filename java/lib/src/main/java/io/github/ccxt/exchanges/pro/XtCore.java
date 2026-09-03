@@ -880,7 +880,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -897,7 +897,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchFundingRate", market, null, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 

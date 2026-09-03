@@ -641,7 +641,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -665,7 +665,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
                 put( "symbol", finalSymbol );
                 put( "messageHash", messageHash );
             }})).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 
@@ -730,7 +730,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchMarkPrice(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -755,7 +755,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
                 put( "symbol", finalSymbol );
                 put( "messageHash", messageHash );
             }})).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 

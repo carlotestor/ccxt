@@ -818,7 +818,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -854,7 +854,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             }
             Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 

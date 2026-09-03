@@ -407,7 +407,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidations(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidations(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -416,7 +416,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             return (this.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 
@@ -431,7 +431,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -471,7 +471,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLiquidationList);
 
     }
 
@@ -1539,7 +1539,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1577,7 +1577,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 

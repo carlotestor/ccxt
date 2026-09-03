@@ -545,7 +545,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -568,7 +568,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             }};
             Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 

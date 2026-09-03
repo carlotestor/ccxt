@@ -122,7 +122,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -143,7 +143,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             }
             Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -698,7 +698,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
      * @param {boolean} [params.trigger] set to true for trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrdersForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrdersForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -722,7 +722,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -842,7 +842,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -865,7 +865,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object request = this.getSubscriptionRequest(new java.util.ArrayList<Object>(java.util.Arrays.asList(requestParams)));
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue((Helpers.GetValue(this.urls, "api")), "ws"), marketType), "public");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
     }
 

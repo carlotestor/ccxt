@@ -26,15 +26,14 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public List<Liquidation> watchLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Liquidation::new);
+        return Helpers.joinTyped(super.watchLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public List<Liquidation> watchLiquidations(String symbol) { return watchLiquidations(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<Liquidation> watchLiquidations(String symbol, Long since) { return watchLiquidations(symbol, since, (Long) null, (Map<String, Object>) null); }
     public List<Liquidation> watchLiquidations(String symbol, Long since, Long limit) { return watchLiquidations(symbol, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Liquidation>> watchLiquidationsAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.watchLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Liquidation::new));
+        return super.watchLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<List<Liquidation>> watchLiquidationsAsync(String symbol) { return watchLiquidationsAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<Liquidation>> watchLiquidationsAsync(String symbol, Long since) { return watchLiquidationsAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
@@ -42,15 +41,14 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public List<Liquidation> watchLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchLiquidationsForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Liquidation::new);
+        return Helpers.joinTyped(super.watchLiquidationsForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public List<Liquidation> watchLiquidationsForSymbols(List<String> symbols) { return watchLiquidationsForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<Liquidation> watchLiquidationsForSymbols(List<String> symbols, Long since) { return watchLiquidationsForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
     public List<Liquidation> watchLiquidationsForSymbols(List<String> symbols, Long since, Long limit) { return watchLiquidationsForSymbols(symbols, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbolsAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        return super.watchLiquidationsForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Liquidation::new));
+        return super.watchLiquidationsForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbolsAsync(List<String> symbols) { return watchLiquidationsForSymbolsAsync(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbolsAsync(List<String> symbols, Long since) { return watchLiquidationsForSymbolsAsync(symbols, since, (Long) null, (Map<String, Object>) null); }
@@ -60,15 +58,14 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public List<Liquidation> watchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchMyLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Liquidation::new);
+        return Helpers.joinTyped(super.watchMyLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public List<Liquidation> watchMyLiquidations(String symbol) { return watchMyLiquidations(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<Liquidation> watchMyLiquidations(String symbol, Long since) { return watchMyLiquidations(symbol, since, (Long) null, (Map<String, Object>) null); }
     public List<Liquidation> watchMyLiquidations(String symbol, Long since, Long limit) { return watchMyLiquidations(symbol, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.watchMyLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Liquidation::new));
+        return super.watchMyLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsAsync(String symbol) { return watchMyLiquidationsAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsAsync(String symbol, Long since) { return watchMyLiquidationsAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
@@ -76,15 +73,14 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public List<Liquidation> watchMyLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchMyLiquidationsForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Liquidation::new);
+        return Helpers.joinTyped(super.watchMyLiquidationsForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public List<Liquidation> watchMyLiquidationsForSymbols(List<String> symbols) { return watchMyLiquidationsForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<Liquidation> watchMyLiquidationsForSymbols(List<String> symbols, Long since) { return watchMyLiquidationsForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
     public List<Liquidation> watchMyLiquidationsForSymbols(List<String> symbols, Long since, Long limit) { return watchMyLiquidationsForSymbols(symbols, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbolsAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        return super.watchMyLiquidationsForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Liquidation::new));
+        return super.watchMyLiquidationsForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbolsAsync(List<String> symbols) { return watchMyLiquidationsForSymbolsAsync(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbolsAsync(List<String> symbols, Long since) { return watchMyLiquidationsForSymbolsAsync(symbols, since, (Long) null, (Map<String, Object>) null); }
@@ -94,13 +90,12 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public FundingRate watchFundingRate(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchFundingRate((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return new FundingRate(res);
+        return Helpers.joinTyped(super.watchFundingRate((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public FundingRate watchFundingRate(String symbol) { return watchFundingRate(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRate> watchFundingRateAsync(String symbol, Map<String, Object> params) {
-        return super.watchFundingRate((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(FundingRate::new);
+        return super.watchFundingRate((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<FundingRate> watchFundingRateAsync(String symbol) { return watchFundingRateAsync(symbol, (Map<String, Object>) null); }
 
@@ -274,15 +269,14 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public List<Trade> watchMyTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchMyTradesForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Trade::new);
+        return Helpers.joinTyped(super.watchMyTradesForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public List<Trade> watchMyTradesForSymbols(List<String> symbols) { return watchMyTradesForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<Trade> watchMyTradesForSymbols(List<String> symbols, Long since) { return watchMyTradesForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
     public List<Trade> watchMyTradesForSymbols(List<String> symbols, Long since, Long limit) { return watchMyTradesForSymbols(symbols, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Trade>> watchMyTradesForSymbolsAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        return super.watchMyTradesForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Trade::new));
+        return super.watchMyTradesForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<List<Trade>> watchMyTradesForSymbolsAsync(List<String> symbols) { return watchMyTradesForSymbolsAsync(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<Trade>> watchMyTradesForSymbolsAsync(List<String> symbols, Long since) { return watchMyTradesForSymbolsAsync(symbols, since, (Long) null, (Map<String, Object>) null); }
@@ -292,15 +286,14 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public List<Trade> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchTradesForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Trade::new);
+        return Helpers.joinTyped(super.watchTradesForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public List<Trade> watchTradesForSymbols(List<String> symbols) { return watchTradesForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<Trade> watchTradesForSymbols(List<String> symbols, Long since) { return watchTradesForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
     public List<Trade> watchTradesForSymbols(List<String> symbols, Long since, Long limit) { return watchTradesForSymbols(symbols, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Trade>> watchTradesForSymbolsAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        return super.watchTradesForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Trade::new));
+        return super.watchTradesForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<List<Trade>> watchTradesForSymbolsAsync(List<String> symbols) { return watchTradesForSymbolsAsync(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<Trade>> watchTradesForSymbolsAsync(List<String> symbols, Long since) { return watchTradesForSymbolsAsync(symbols, since, (Long) null, (Map<String, Object>) null); }
@@ -322,13 +315,12 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public Ticker watchMarkPrice(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchMarkPrice((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return new Ticker(res);
+        return Helpers.joinTyped(super.watchMarkPrice((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public Ticker watchMarkPrice(String symbol) { return watchMarkPrice(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Ticker> watchMarkPriceAsync(String symbol, Map<String, Object> params) {
-        return super.watchMarkPrice((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(Ticker::new);
+        return super.watchMarkPrice((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<Ticker> watchMarkPriceAsync(String symbol) { return watchMarkPriceAsync(symbol, (Map<String, Object>) null); }
 
@@ -362,15 +354,14 @@ public class Okx extends OkxCore {
 
     @SuppressWarnings("unchecked")
     public List<Order> watchOrdersForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchOrdersForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
-        return toTypedList(res, Order::new);
+        return Helpers.joinTyped(super.watchOrdersForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
     }
     public List<Order> watchOrdersForSymbols(List<String> symbols) { return watchOrdersForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<Order> watchOrdersForSymbols(List<String> symbols, Long since) { return watchOrdersForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
     public List<Order> watchOrdersForSymbols(List<String> symbols, Long since, Long limit) { return watchOrdersForSymbols(symbols, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Order>> watchOrdersForSymbolsAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        return super.watchOrdersForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> toTypedList(res, Order::new));
+        return super.watchOrdersForSymbols((Object) symbols, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>()));
     }
     public CompletableFuture<List<Order>> watchOrdersForSymbolsAsync(List<String> symbols) { return watchOrdersForSymbolsAsync(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<Order>> watchOrdersForSymbolsAsync(List<String> symbols, Long since) { return watchOrdersForSymbolsAsync(symbols, since, (Long) null, (Map<String, Object>) null); }
