@@ -28,10 +28,14 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+# `dropJavaThinWrappers.py` is gone: the separate `<X>.java extends <X>Core`
+# wrapper layer no longer exists. `build/javaCoreSurface.ts --migrate` emits the
+# typed public surface straight into the core and renames it to `<X>.java`, and
+# it emits the already-converted `Helpers.joinTyped` form for every name in
+# TYPED_CORES / PREDICTION_TYPED_CORES, so there is nothing left to strip.
 STEPS = [
     'generateJavaTypedCoreHelpers.py',
     'typeJavaCores.py',
-    'dropJavaThinWrappers.py',
 ]
 
 
