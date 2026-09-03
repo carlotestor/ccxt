@@ -618,7 +618,7 @@ const PREDICTION_TYPE_MAP: Record<string, string> = {
     'TradingFeeInterface': 'PredictionTradingFee',
     'OpenInterest': 'PredictionOpenInterest',
 };
-function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
+export function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
     return rest.map((m) => {
         if (m.isArray && m.elementType && PREDICTION_TYPE_MAP[m.elementType]) {
             const elem = PREDICTION_TYPE_MAP[m.elementType];
@@ -634,11 +634,11 @@ function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
 // Exchange.ts, so the shared restMethods list (parsed from Exchange.ts) misses them. Parse the
 // prediction base and add the methods NOT already present. Every prediction Core extends
 // PredictionExchange, so super.<method>() resolves on all — safe to share across the exchanges.
-const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
+export const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
 // Exchange-specific prediction methods that are NOT on any base (e.g. limitless.redeem returns a
 // plain dict / Object and only exists on limitless). Only their own exchange's wrapper gets them,
 // so super.<method>() resolves. Declared explicitly to avoid wrapping internal exchange helpers.
-const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
+export const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
     'limitless': [{
         name: 'redeem',
         javaReturnType: 'Object', isArray: false, elementType: null,
@@ -655,7 +655,7 @@ const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
 // method whose super.<method>() resolves nowhere — and would re-expose the symbol-based surface
 // (closePosition, fetchGreeks, ...) prediction deliberately drops. Exclude them from the wrappers,
 // matching javaTranspiler's PredictionExchange injection.
-function predictionTierExcludeNames(): Set<string> {
+export function predictionTierExcludeNames(): Set<string> {
     const src = fs.readFileSync(TS_BASE_FILE, 'utf8').split('\n');
     const es = src.findIndex(l => l.startsWith('export default class Exchange extends BaseExchange'));
     const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;

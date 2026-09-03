@@ -46,8 +46,12 @@
 
 import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
-import { parseMethodsFromTS, capitalize, camelCase, type MethodInfo, type ParamInfo, ZERO_REQUIRED_TYPED_WHITELIST, WATCH_ZERO_ARG_WHITELIST } from './generateJavaWrappers.js';
-import { TYPED_CORES } from './javaTypedCores.js';
+import { parseMethodsFromTS, capitalize, camelCase, type MethodInfo, type ParamInfo, ZERO_REQUIRED_TYPED_WHITELIST, WATCH_ZERO_ARG_WHITELIST, toPredictionMethods, predictionTierExcludeNames, PREDICTION_BASE_TS } from './generateJavaWrappers.js';
+import { TYPED_CORES, PREDICTION_TYPED_CORES } from './javaTypedCores.js';
+
+// Which typed-core table the surface currently emits against. Set per tier by
+// main(); the prediction tier has its own families (PredictionOrder, ...).
+let ACTIVE_TYPED_CORES: Record<string, string> = TYPED_CORES;
 
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 
@@ -77,7 +81,7 @@ function delegate(methodName: string, allParams: ParamInfo[]): string {
 }
 
 function isCoreTyped(m: MethodInfo): boolean {
-    const fam = (TYPED_CORES as Record<string, string>)[m.name];
+    const fam = ACTIVE_TYPED_CORES[m.name];
     if (fam === undefined) return false;
     if (fam !== m.javaReturnType) {
         console.warn(`javaCoreSurface: TYPED_CORES['${m.name}'] = ${fam} but surface type is ${m.javaReturnType}; emitting the converting form`);
@@ -198,10 +202,13 @@ function genLoadMarkets(): string {
     ].join('\n');
 }
 
-export function buildSurface(methods: MethodInfo[]): string {
+export function buildSurface(methods: MethodInfo[], withLoadMarkets = true, table: Record<string, string> = TYPED_CORES): string {
+    ACTIVE_TYPED_CORES = table;
     const out: string[] = [SURFACE_BEGIN, ''];
-    out.push(genLoadMarkets());
-    out.push('');
+    if (withLoadMarkets) {
+        out.push(genLoadMarkets());
+        out.push('');
+    }
     for (const m of methods) {
         out.push(genMethodSurface(m));
         out.push('');
@@ -233,27 +240,177 @@ export function injectSurface(path: string, surface: string): boolean {
 
 const isWsApi = (m: MethodInfo) => m.name.endsWith('Ws');
 
+/**
+ * Split a comma-separated Java argument list at top level, respecting nested
+ * (), [], {}, <> is NOT tracked (generics never appear in a call argument list
+ * without parens) and string / char literals.
+ */
+function splitArgs(s: string): string[] | null {
+    const out: string[] = [];
+    let depth = 0, angle = 0, inStr: string | null = null, buf = '';
+    for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (inStr) {
+            buf += ch;
+            if (ch === '\\') { buf += s[++i]; continue; }
+            if (ch === inStr) inStr = null;
+            continue;
+        }
+        if (ch === '"' || ch === '\'') { inStr = ch; buf += ch; continue; }
+        if (ch === '(' || ch === '[' || ch === '{') depth++;
+        else if (ch === ')' || ch === ']' || ch === '}') depth--;
+        // Generic argument lists: `new java.util.HashMap<String, Object>()`
+        // contains a top-level-looking comma that is NOT an argument separator.
+        // Only treat `<` as an opener when it directly follows an identifier.
+        else if (ch === '<' && /[A-Za-z0-9_]/.test(buf.slice(-1))) angle++;
+        else if (ch === '>' && angle > 0) angle--;
+        if (depth < 0) return null;
+        if (ch === ',' && depth === 0 && angle === 0) { out.push(buf); buf = ''; }
+        else buf += ch;
+    }
+    if (depth !== 0 || angle !== 0 || inStr) return null;
+    if (buf.trim().length) out.push(buf);
+    return out;
+}
+
+/**
+ * Cast every argument of an internal `this.<surfaceName>(...)` call to (Object).
+ *
+ * Once the typed surface lives in the same class, an internal call whose
+ * arguments happen to be assignable to the typed parameter list (a `String`
+ * literal, a `Map` from `this.extend(...)`) would bind to the typed sync facade
+ * and get a unified type where the transpiled body expects
+ * `CompletableFuture<Object>`. Casting to `(Object)` pins the call back onto the
+ * varargs core. This is the Java analogue of C#'s `castCoreArgCallSites`.
+ */
+export function castCoreArgCallSites(src: string, names: Set<string>): string {
+    let out = '';
+    let i = 0;
+    while (i < src.length) {
+        const m = /this\.([A-Za-z0-9_]+)\s*\(/.exec(src.slice(i));
+        if (!m) { out += src.slice(i); break; }
+        const start = i + m.index;
+        const openIdx = start + m[0].length;      // just past '('
+        out += src.slice(i, openIdx);
+        i = openIdx;
+        if (!names.has(m[1])) continue;
+        // find matching close paren
+        let depth = 1, j = openIdx, inStr: string | null = null;
+        for (; j < src.length && depth > 0; j++) {
+            const ch = src[j];
+            if (inStr) {
+                if (ch === '\\') { j++; continue; }
+                if (ch === inStr) inStr = null;
+                continue;
+            }
+            if (ch === '"' || ch === '\'') { inStr = ch; continue; }
+            if (ch === '(' || ch === '[' || ch === '{') depth++;
+            else if (ch === ')' || ch === ']' || ch === '}') depth--;
+        }
+        if (depth !== 0) continue;
+        const inner = src.slice(openIdx, j - 1);
+        if (!inner.trim()) continue;                       // zero-arg: already routed
+        const args = splitArgs(inner);
+        if (!args) continue;
+        const casted = args.map(a => a.trim().startsWith('(Object)') ? a : ` (Object) (${a.trim()})`).join(',');
+        out += casted + ')';
+        i = j;
+    }
+    return out;
+}
+
 function isMainEntry(metaUrl: string): boolean {
     if (!metaUrl.startsWith('file:')) return false;
     const modulePath = fileURLToPath(metaUrl);
     return process.argv[1] === modulePath || process.argv[1] === modulePath.replace('.js', '');
 }
 
+const WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
+const PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
+const API_FOLDER = './java/lib/src/main/java/io/github/ccxt/api/';
+
+/**
+ * Rename `<X>Core.java` -> `<X>.java` (deleting the old thin wrapper), and
+ * retarget the `api/<X>Api` aliases that extend a core.
+ */
+function migrate(folder: string, only: string[]): number {
+    let n = 0;
+    for (const f of fs.readdirSync(folder).filter(x => x.endsWith('Core.java'))) {
+        const base = f.slice(0, -'Core.java'.length);
+        if (only.length && !only.includes(base.toLowerCase())) continue;
+        const corePath = folder + f;
+        const wrapperPath = folder + base + '.java';
+        let src = fs.readFileSync(corePath, 'utf-8');
+        src = src.split(base + 'Core').join(base);
+        if (fs.existsSync(wrapperPath)) fs.unlinkSync(wrapperPath);
+        fs.writeFileSync(wrapperPath, src, 'utf-8');
+        fs.unlinkSync(corePath);
+        n++;
+    }
+    return n;
+}
+
+function retargetApiAliases(): number {
+    if (!fs.existsSync(API_FOLDER)) return 0;
+    let n = 0;
+    for (const f of fs.readdirSync(API_FOLDER).filter(x => x.endsWith('.java'))) {
+        const p = API_FOLDER + f;
+        const src = fs.readFileSync(p, 'utf-8');
+        const next = src.replace(/\b(\w+)Core\b/g, '$1');
+        if (next !== src) { fs.writeFileSync(p, next, 'utf-8'); n++; }
+    }
+    return n;
+}
+
 function main() {
-    const only = process.argv.slice(2).filter(a => !a.startsWith('-')).map(s => s.toLowerCase());
+    const args = process.argv.slice(2);
+    const doMigrate = args.includes('--migrate');
+    const only = args.filter(a => !a.startsWith('-')).map(s => s.toLowerCase());
+
     const methods = parseMethodsFromTS();
     const restMethods = methods.filter(m => !m.isWatch && !isWsApi(m));
-    const surface = buildSurface(restMethods);
+    const wsMethods = methods.filter(m => m.isWatch || isWsApi(m));
+    const surfaceNames = new Set(methods.map(m => camelCase(m.name)).concat(['loadMarkets']));
 
-    const coreFiles = fs.readdirSync(EXCHANGES_FOLDER)
-        .filter(f => f.endsWith('Core.java'))
-        .filter(f => only.length === 0 || only.includes(f.replace('Core.java', '').toLowerCase()));
+    // Prediction tier: same shape, but the unified families are the dedicated
+    // Prediction* types, Exchange-tier names no prediction venue implements are
+    // dropped, and PredictionExchange-only names are added.
+    const baseNames = new Set(methods.map(m => m.name));
+    const predictionBaseOnly = fs.existsSync(PREDICTION_BASE_TS)
+        ? parseMethodsFromTS(PREDICTION_BASE_TS).filter(m => !m.isWatch && !isWsApi(m) && !baseNames.has(m.name))
+        : [];
+    const predictionExclude = predictionTierExcludeNames();
+    const predictionMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnly);
 
-    let written = 0;
-    for (const f of coreFiles) {
-        if (injectSurface(EXCHANGES_FOLDER + f, surface)) written++;
+    const predictionNames = new Set(predictionMethods.map(m => camelCase(m.name)).concat([...surfaceNames]));
+
+    const tiers: Array<[string, MethodInfo[], boolean, Record<string, string>, Set<string>]> = [
+        [EXCHANGES_FOLDER, restMethods, true, TYPED_CORES, surfaceNames],
+        [WS_FOLDER, wsMethods, false, TYPED_CORES, surfaceNames],
+        [PREDICTION_FOLDER, predictionMethods, true, PREDICTION_TYPED_CORES, predictionNames],
+    ];
+
+    let touched = 0, cores = 0;
+    for (const [folder, tierMethods, withLoadMarkets, table, names] of tiers) {
+        if (!fs.existsSync(folder)) continue;
+        const surface = buildSurface(tierMethods, withLoadMarkets, table);
+        for (const f of fs.readdirSync(folder).filter(x => x.endsWith('Core.java'))) {
+            if (only.length && !only.includes(f.replace('Core.java', '').toLowerCase())) continue;
+            const p = folder + f;
+            // Pin every internal call on a surface name back onto the varargs core.
+            fs.writeFileSync(p, castCoreArgCallSites(fs.readFileSync(p, 'utf-8'), names), 'utf-8');
+            cores++;
+            if (injectSurface(p, surface)) touched++;
+        }
     }
-    console.log(`javaCoreSurface: ${restMethods.length} REST surface methods -> ${coreFiles.length} core(s), ${written} rewritten`);
+    console.log(`javaCoreSurface: REST ${restMethods.length} / WS ${wsMethods.length} surface methods -> ${cores} core(s), ${touched} rewritten`);
+
+    if (doMigrate) {
+        let renamed = 0;
+        for (const [folder] of tiers) if (fs.existsSync(folder)) renamed += migrate(folder, only);
+        const aliases = retargetApiAliases();
+        console.log(`javaCoreSurface: renamed ${renamed} core(s) to the plain class name, retargeted ${aliases} api alias file(s)`);
+    }
 }
 
 if (isMainEntry(import.meta.url)) {
