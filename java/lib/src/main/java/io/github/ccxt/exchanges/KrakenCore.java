@@ -1175,7 +1175,7 @@ public class KrakenCore extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1225,7 +1225,7 @@ public class KrakenCore extends KrakenApi
                 orderbook = this.safeValue(result, wsName, orderbook);
             }
             return this.parseOrderBook(orderbook, symbol);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1290,7 +1290,7 @@ public class KrakenCore extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1330,7 +1330,7 @@ public class KrakenCore extends KrakenApi
                 Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1937,7 +1937,7 @@ public class KrakenCore extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1964,7 +1964,7 @@ public class KrakenCore extends KrakenApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -4290,7 +4290,7 @@ final Object finalId = id;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.transfer(code, amount, "spot", "swap", parameters)).join();
+            return io.github.ccxt.TypedCores.fromTransferEntry((this.transfer(code, amount, "spot", "swap", parameters)).join());
         });
 
     }

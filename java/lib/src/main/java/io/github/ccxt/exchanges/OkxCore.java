@@ -3100,7 +3100,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3161,7 +3161,7 @@ public class OkxCore extends OkxApi
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(first, "ts");
             return this.parseOrderBook(first, symbol, timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -3308,7 +3308,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3370,7 +3370,7 @@ public class OkxCore extends OkxApi
             //
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3427,7 +3427,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3463,7 +3463,7 @@ public class OkxCore extends OkxApi
             Object response = (this.publicGetPublicMarkPrice(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -4099,7 +4099,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4224,7 +4224,7 @@ public class OkxCore extends OkxApi
             //     }
             //
             return this.parseBalanceByType(marketType, response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -8610,7 +8610,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8658,7 +8658,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -8880,7 +8880,7 @@ public class OkxCore extends OkxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object accounts = (this.fetchAccountsAsync()).join();
+            Object accounts = io.github.ccxt.TypedCores.fromAccountList((this.fetchAccountsAsync()).join());
             Object length = Helpers.getArrayLength(accounts);
             Object selectedAccount = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
@@ -9031,7 +9031,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.CrossBorrowRates> fetchCrossBorrowRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9067,7 +9067,7 @@ public class OkxCore extends OkxApi
                 }
             }
             return rates;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toCrossBorrowRates);
 
     }
 
@@ -9887,7 +9887,7 @@ public class OkxCore extends OkxApi
      * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
      * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9952,7 +9952,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 
@@ -10137,7 +10137,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10200,7 +10200,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data");
             return this.parseDepositWithdrawFees(data, codes);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -10840,7 +10840,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OptionChain> fetchOptionChain(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10884,7 +10884,7 @@ public class OkxCore extends OkxApi
             //
             Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOptionChain(result, null, "instId");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOptionChain);
 
     }
 
@@ -11279,7 +11279,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertCurrencies(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Currencies> fetchConvertCurrencies(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11344,7 +11344,7 @@ public class OkxCore extends OkxApi
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toCurrencies);
 
     }
 

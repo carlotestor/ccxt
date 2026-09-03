@@ -1251,7 +1251,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1300,7 +1300,7 @@ public class ToobitCore extends ToobitApi
             //
             Object timestamp = this.safeInteger(response, "t");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1556,7 +1556,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1612,7 +1612,7 @@ public class ToobitCore extends ToobitApi
             //        ...
             //
             return this.parseTickers(response, symbols, parameters);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1665,7 +1665,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1697,7 +1697,7 @@ public class ToobitCore extends ToobitApi
             //        },
             //
             return this.parseLastPrices(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLastPrices);
 
     }
 
@@ -1727,7 +1727,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1762,7 +1762,7 @@ public class ToobitCore extends ToobitApi
             //        }, ...
             //
             return this.parseBidsAsksCustom(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1803,7 +1803,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1835,7 +1835,7 @@ public class ToobitCore extends ToobitApi
             //        },...
             //
             return this.parseFundingRates(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -1952,7 +1952,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1975,7 +1975,7 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateGetApiV1Account()).join();
             }
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -3053,7 +3053,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3104,7 +3104,7 @@ public class ToobitCore extends ToobitApi
             Object fee = this.parseTradingFee(entry, market);
             Helpers.addElementToObject(result, Helpers.GetValue(market, "symbol"), fee);
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 

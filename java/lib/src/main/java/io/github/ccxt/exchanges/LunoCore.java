@@ -801,7 +801,7 @@ public class LunoCore extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -823,7 +823,7 @@ public class LunoCore extends LunoApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -838,7 +838,7 @@ public class LunoCore extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -863,7 +863,7 @@ public class LunoCore extends LunoApi
             }
             Object timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1148,7 +1148,7 @@ public class LunoCore extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1174,7 +1174,7 @@ public class LunoCore extends LunoApi
                 Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1691,7 +1691,7 @@ public class LunoCore extends LunoApi
                 put( "min_row", finalEntry );
                 put( "max_row", LunoCore.this.sum(finalEntry, finalLimit) );
             }};
-            return (this.fetchLedger(code, since, limit, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromLedgerEntryList((this.fetchLedger(code, since, limit, this.extend(request, parameters))).join());
         });
 
     }
@@ -2026,7 +2026,7 @@ public class LunoCore extends LunoApi
      * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFee> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2053,7 +2053,7 @@ public class LunoCore extends LunoApi
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(response, "fee"));
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
             return this.assignDefaultDepositWithdrawFees(result, currency);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFee);
 
     }
 

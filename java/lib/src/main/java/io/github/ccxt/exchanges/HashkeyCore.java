@@ -1409,7 +1409,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1446,7 +1446,7 @@ public class HashkeyCore extends HashkeyApi
             //
             Object timestamp = this.safeInteger(response, "t");
             return this.parseOrderBook(response, symbol, timestamp, "b", "a");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1874,7 +1874,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1888,7 +1888,7 @@ public class HashkeyCore extends HashkeyApi
             symbols = this.marketSymbols(symbols);
             Object response = (this.publicGetQuoteV1Ticker24hr(parameters)).join();
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1955,7 +1955,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {string} [params.symbol] the id of the market to fetch last price for
      * @returns {object} a dictionary of lastprices structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1979,7 +1979,7 @@ public class HashkeyCore extends HashkeyApi
             //     ]
             //
             return this.parseLastPrices(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLastPrices);
 
     }
 
@@ -2009,7 +2009,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2066,7 +2066,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -4204,7 +4204,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4227,7 +4227,7 @@ public class HashkeyCore extends HashkeyApi
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -4756,7 +4756,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4772,7 +4772,7 @@ public class HashkeyCore extends HashkeyApi
             Object data = this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -4905,7 +4905,7 @@ final Object finalI = i;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                response = (this.fetchTradingFees(parameters)).join();
+                response = io.github.ccxt.TypedCores.fromTradingFees((this.fetchTradingFees(parameters)).join());
                 return this.safeDict(response, symbol);
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -4929,7 +4929,7 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4971,7 +4971,7 @@ final Object finalI = i;
                 Helpers.addElementToObject(result, ((String)Helpers.GetValue(parsedFee, "symbol")), parsedFee);
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 

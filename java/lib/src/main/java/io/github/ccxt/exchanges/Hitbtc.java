@@ -104,12 +104,11 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public MarginModes fetchMarginModes(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarginModes(symbols, params));
-        return new MarginModes(res);
+        return Helpers.joinTyped(super.fetchMarginModes(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginModes> fetchMarginModesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchMarginModes(symbols, params).thenApply(MarginModes::new);
+        return super.fetchMarginModes(symbols, params);
     }
     public MarginModes fetchMarginModes(String[] symbols, Map<String, Object> params) { return fetchMarginModes(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<MarginModes> fetchMarginModesAsync(String[] symbols, Map<String, Object> params) { return fetchMarginModesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -128,56 +127,51 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public CrossBorrowRates fetchCrossBorrowRates(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchCrossBorrowRates(params));
-        return new CrossBorrowRates(res);
+        return Helpers.joinTyped(super.fetchCrossBorrowRates(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<CrossBorrowRates> fetchCrossBorrowRatesAsync(Map<String, Object> params) {
-        return super.fetchCrossBorrowRates(params).thenApply(CrossBorrowRates::new);
+        return super.fetchCrossBorrowRates(params);
     }
 
     @SuppressWarnings("unchecked")
     public IsolatedBorrowRates fetchIsolatedBorrowRates(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchIsolatedBorrowRates(params));
-        return new IsolatedBorrowRates(res);
+        return Helpers.joinTyped(super.fetchIsolatedBorrowRates(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<IsolatedBorrowRates> fetchIsolatedBorrowRatesAsync(Map<String, Object> params) {
-        return super.fetchIsolatedBorrowRates(params).thenApply(IsolatedBorrowRates::new);
+        return super.fetchIsolatedBorrowRates(params);
     }
 
     @SuppressWarnings("unchecked")
     public LeverageTiers fetchLeverageTiers(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLeverageTiers(symbols, params));
-        return new LeverageTiers(res);
+        return Helpers.joinTyped(super.fetchLeverageTiers(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLeverageTiers(symbols, params).thenApply(LeverageTiers::new);
+        return super.fetchLeverageTiers(symbols, params);
     }
     public LeverageTiers fetchLeverageTiers(String[] symbols, Map<String, Object> params) { return fetchLeverageTiers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(String[] symbols, Map<String, Object> params) { return fetchLeverageTiersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public FundingRates fetchFundingRates(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingRates(symbols, params));
-        return new FundingRates(res);
+        return Helpers.joinTyped(super.fetchFundingRates(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRates> fetchFundingRatesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchFundingRates(symbols, params).thenApply(FundingRates::new);
+        return super.fetchFundingRates(symbols, params);
     }
     public FundingRates fetchFundingRates(String[] symbols, Map<String, Object> params) { return fetchFundingRates(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<FundingRates> fetchFundingRatesAsync(String[] symbols, Map<String, Object> params) { return fetchFundingRatesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public FundingRates fetchFundingIntervals(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingIntervals(symbols, params));
-        return new FundingRates(res);
+        return Helpers.joinTyped(super.fetchFundingIntervals(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchFundingIntervals(symbols, params).thenApply(FundingRates::new);
+        return super.fetchFundingIntervals(symbols, params);
     }
     public FundingRates fetchFundingIntervals(String[] symbols, Map<String, Object> params) { return fetchFundingIntervals(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(String[] symbols, Map<String, Object> params) { return fetchFundingIntervalsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -230,12 +224,11 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public Leverages fetchLeverages(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLeverages(symbols, params));
-        return new Leverages(res);
+        return Helpers.joinTyped(super.fetchLeverages(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Leverages> fetchLeveragesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLeverages(symbols, params).thenApply(Leverages::new);
+        return super.fetchLeverages(symbols, params);
     }
     public Leverages fetchLeverages(String[] symbols, Map<String, Object> params) { return fetchLeverages(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<Leverages> fetchLeveragesAsync(String[] symbols, Map<String, Object> params) { return fetchLeveragesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -314,12 +307,11 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public OpenInterests fetchOpenInterests(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOpenInterests(symbols, params));
-        return new OpenInterests(res);
+        return Helpers.joinTyped(super.fetchOpenInterests(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchOpenInterests(symbols, params).thenApply(OpenInterests::new);
+        return super.fetchOpenInterests(symbols, params);
     }
     public OpenInterests fetchOpenInterests(String[] symbols, Map<String, Object> params) { return fetchOpenInterests(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(String[] symbols, Map<String, Object> params) { return fetchOpenInterestsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -408,56 +400,51 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public Balances fetchBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchBalance(params));
-        return new Balances(res);
+        return Helpers.joinTyped(super.fetchBalance(params));
     }
     public Balances fetchBalance() { return fetchBalance((Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balances> fetchBalanceAsync(Map<String, Object> params) {
-        return super.fetchBalance(params).thenApply(Balances::new);
+        return super.fetchBalance(params);
     }
     public CompletableFuture<Balances> fetchBalanceAsync() { return fetchBalanceAsync((Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Balance fetchPartialBalance(Object part, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPartialBalance(part, params));
-        return new Balance(res);
+        return Helpers.joinTyped(super.fetchPartialBalance(part, params));
     }
     public Balance fetchPartialBalance(Object part) { return fetchPartialBalance(part, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchPartialBalanceAsync(Object part, Map<String, Object> params) {
-        return super.fetchPartialBalance(part, params).thenApply(Balance::new);
+        return super.fetchPartialBalance(part, params);
     }
     public CompletableFuture<Balance> fetchPartialBalanceAsync(Object part) { return fetchPartialBalanceAsync(part, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Balance fetchFreeBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFreeBalance(params));
-        return new Balance(res);
+        return Helpers.joinTyped(super.fetchFreeBalance(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchFreeBalanceAsync(Map<String, Object> params) {
-        return super.fetchFreeBalance(params).thenApply(Balance::new);
+        return super.fetchFreeBalance(params);
     }
 
     @SuppressWarnings("unchecked")
     public Balance fetchUsedBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchUsedBalance(params));
-        return new Balance(res);
+        return Helpers.joinTyped(super.fetchUsedBalance(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchUsedBalanceAsync(Map<String, Object> params) {
-        return super.fetchUsedBalance(params).thenApply(Balance::new);
+        return super.fetchUsedBalance(params);
     }
 
     @SuppressWarnings("unchecked")
     public Balance fetchTotalBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTotalBalance(params));
-        return new Balance(res);
+        return Helpers.joinTyped(super.fetchTotalBalance(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchTotalBalanceAsync(Map<String, Object> params) {
-        return super.fetchTotalBalance(params).thenApply(Balance::new);
+        return super.fetchTotalBalance(params);
     }
 
     @SuppressWarnings("unchecked")
@@ -473,25 +460,23 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public DepositWithdrawFees fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFees(codes, params));
-        return new DepositWithdrawFees(res);
+        return Helpers.joinTyped(super.fetchDepositWithdrawFees(codes, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(List<String> codes, Map<String, Object> params) {
-        return super.fetchDepositWithdrawFees(codes, params).thenApply(DepositWithdrawFees::new);
+        return super.fetchDepositWithdrawFees(codes, params);
     }
     public DepositWithdrawFees fetchDepositWithdrawFees(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFees(codes == null ? null : java.util.Arrays.asList(codes), params); }
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFeesAsync(codes == null ? null : java.util.Arrays.asList(codes), params); }
 
     @SuppressWarnings("unchecked")
     public DepositWithdrawFee fetchDepositWithdrawFee(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFee(code, params));
-        return new DepositWithdrawFee(res);
+        return Helpers.joinTyped(super.fetchDepositWithdrawFee(code, params));
     }
     public DepositWithdrawFee fetchDepositWithdrawFee(String code) { return fetchDepositWithdrawFee(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code, Map<String, Object> params) {
-        return super.fetchDepositWithdrawFee(code, params).thenApply(DepositWithdrawFee::new);
+        return super.fetchDepositWithdrawFee(code, params);
     }
     public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code) { return fetchDepositWithdrawFeeAsync(code, (Map<String, Object>) null); }
 
@@ -543,12 +528,11 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public OrderBooks fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderBooks(symbols, limit, params));
-        return new OrderBooks(res);
+        return Helpers.joinTyped(super.fetchOrderBooks(symbols, limit, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OrderBooks> fetchOrderBooksAsync(List<String> symbols, Long limit, Map<String, Object> params) {
-        return super.fetchOrderBooks(symbols, limit, params).thenApply(OrderBooks::new);
+        return super.fetchOrderBooks(symbols, limit, params);
     }
     public OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooks(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
     public CompletableFuture<OrderBooks> fetchOrderBooksAsync(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
@@ -775,13 +759,12 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public OptionChain fetchOptionChain(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOptionChain(code, params));
-        return new OptionChain(res);
+        return Helpers.joinTyped(super.fetchOptionChain(code, params));
     }
     public OptionChain fetchOptionChain(String code) { return fetchOptionChain(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OptionChain> fetchOptionChainAsync(String code, Map<String, Object> params) {
-        return super.fetchOptionChain(code, params).thenApply(OptionChain::new);
+        return super.fetchOptionChain(code, params);
     }
     public CompletableFuture<OptionChain> fetchOptionChainAsync(String code) { return fetchOptionChainAsync(code, (Map<String, Object>) null); }
 
@@ -890,34 +873,31 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public LastPrices fetchLastPrices(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLastPrices(symbols, params));
-        return new LastPrices(res);
+        return Helpers.joinTyped(super.fetchLastPrices(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<LastPrices> fetchLastPricesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLastPrices(symbols, params).thenApply(LastPrices::new);
+        return super.fetchLastPrices(symbols, params);
     }
     public LastPrices fetchLastPrices(String[] symbols, Map<String, Object> params) { return fetchLastPrices(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<LastPrices> fetchLastPricesAsync(String[] symbols, Map<String, Object> params) { return fetchLastPricesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public TradingFees fetchTradingFees(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTradingFees(params));
-        return new TradingFees(res);
+        return Helpers.joinTyped(super.fetchTradingFees(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<TradingFees> fetchTradingFeesAsync(Map<String, Object> params) {
-        return super.fetchTradingFees(params).thenApply(TradingFees::new);
+        return super.fetchTradingFees(params);
     }
 
     @SuppressWarnings("unchecked")
     public Currencies fetchConvertCurrencies(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchConvertCurrencies(params));
-        return new Currencies(res);
+        return Helpers.joinTyped(super.fetchConvertCurrencies(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Currencies> fetchConvertCurrenciesAsync(Map<String, Object> params) {
-        return super.fetchConvertCurrencies(params).thenApply(Currencies::new);
+        return super.fetchConvertCurrencies(params);
     }
 
     @SuppressWarnings("unchecked")
@@ -1116,12 +1096,11 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public Tickers fetchBidsAsks(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchBidsAsks(symbols, params));
-        return new Tickers(res);
+        return Helpers.joinTyped(super.fetchBidsAsks(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Tickers> fetchBidsAsksAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchBidsAsks(symbols, params).thenApply(Tickers::new);
+        return super.fetchBidsAsks(symbols, params);
     }
     public Tickers fetchBidsAsks(String[] symbols, Map<String, Object> params) { return fetchBidsAsks(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<Tickers> fetchBidsAsksAsync(String[] symbols, Map<String, Object> params) { return fetchBidsAsksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -1139,26 +1118,24 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public Tickers fetchMarkPrices(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarkPrices(symbols, params));
-        return new Tickers(res);
+        return Helpers.joinTyped(super.fetchMarkPrices(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Tickers> fetchMarkPricesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchMarkPrices(symbols, params).thenApply(Tickers::new);
+        return super.fetchMarkPrices(symbols, params);
     }
     public Tickers fetchMarkPrices(String[] symbols, Map<String, Object> params) { return fetchMarkPrices(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<Tickers> fetchMarkPricesAsync(String[] symbols, Map<String, Object> params) { return fetchMarkPricesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public OrderBook fetchL3OrderBook(String symbol, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchL3OrderBook(symbol, limit, params));
-        return new OrderBook(res);
+        return Helpers.joinTyped(super.fetchL3OrderBook(symbol, limit, params));
     }
     public OrderBook fetchL3OrderBook(String symbol) { return fetchL3OrderBook(symbol, (Long) null, (Map<String, Object>) null); }
     public OrderBook fetchL3OrderBook(String symbol, Long limit) { return fetchL3OrderBook(symbol, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol, Long limit, Map<String, Object> params) {
-        return super.fetchL3OrderBook(symbol, limit, params).thenApply(OrderBook::new);
+        return super.fetchL3OrderBook(symbol, limit, params);
     }
     public CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol) { return fetchL3OrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol, Long limit) { return fetchL3OrderBookAsync(symbol, limit, (Map<String, Object>) null); }
@@ -1180,14 +1157,13 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public OrderBook fetchOrderBook(String symbol, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderBook(symbol, limit, params));
-        return new OrderBook(res);
+        return Helpers.joinTyped(super.fetchOrderBook(symbol, limit, params));
     }
     public OrderBook fetchOrderBook(String symbol) { return fetchOrderBook(symbol, (Long) null, (Map<String, Object>) null); }
     public OrderBook fetchOrderBook(String symbol, Long limit) { return fetchOrderBook(symbol, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OrderBook> fetchOrderBookAsync(String symbol, Long limit, Map<String, Object> params) {
-        return super.fetchOrderBook(symbol, limit, params).thenApply(OrderBook::new);
+        return super.fetchOrderBook(symbol, limit, params);
     }
     public CompletableFuture<OrderBook> fetchOrderBookAsync(String symbol) { return fetchOrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<OrderBook> fetchOrderBookAsync(String symbol, Long limit) { return fetchOrderBookAsync(symbol, limit, (Map<String, Object>) null); }
@@ -1311,14 +1287,13 @@ public class Hitbtc extends HitbtcCore {
 
     @SuppressWarnings("unchecked")
     public Tickers fetchTickers(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTickers(symbols, params));
-        return new Tickers(res);
+        return Helpers.joinTyped(super.fetchTickers(symbols, params));
     }
     public Tickers fetchTickers() { return fetchTickers((List<String>) null, (Map<String, Object>) null); }
     public Tickers fetchTickers(List<String> symbols) { return fetchTickers(symbols, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Tickers> fetchTickersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchTickers(symbols, params).thenApply(Tickers::new);
+        return super.fetchTickers(symbols, params);
     }
     public CompletableFuture<Tickers> fetchTickersAsync() { return fetchTickersAsync((List<String>) null, (Map<String, Object>) null); }
     public CompletableFuture<Tickers> fetchTickersAsync(List<String> symbols) { return fetchTickersAsync(symbols, (Map<String, Object>) null); }

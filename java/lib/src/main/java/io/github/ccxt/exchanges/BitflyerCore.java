@@ -542,7 +542,7 @@ public class BitflyerCore extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -573,7 +573,7 @@ public class BitflyerCore extends BitflyerApi
             //     ]
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -587,7 +587,7 @@ public class BitflyerCore extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -604,7 +604,7 @@ public class BitflyerCore extends BitflyerApi
             }};
             Object orderbook = (this.publicGetGetboard(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "size");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 

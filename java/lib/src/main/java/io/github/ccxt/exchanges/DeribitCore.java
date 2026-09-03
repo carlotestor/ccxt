@@ -1401,7 +1401,7 @@ public class DeribitCore extends DeribitApi
      * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1470,7 +1470,7 @@ public class DeribitCore extends DeribitApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -1727,7 +1727,7 @@ public class DeribitCore extends DeribitApi
      * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1827,7 +1827,7 @@ public class DeribitCore extends DeribitApi
                 }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2117,7 +2117,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2242,7 +2242,7 @@ public class DeribitCore extends DeribitApi
                 Helpers.addElementToObject(parsedFees, symbol, fee);
             }
             return parsedFees;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -2256,7 +2256,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2321,7 +2321,7 @@ public class DeribitCore extends DeribitApi
             Object orderbook = this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp);
             Helpers.addElementToObject(orderbook, "nonce", nonce);
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -3895,7 +3895,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3931,7 +3931,7 @@ public class DeribitCore extends DeribitApi
             //
             Object data = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "currency");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -4553,7 +4553,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OptionChain> fetchOptionChain(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4603,7 +4603,7 @@ public class DeribitCore extends DeribitApi
             //
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOptionChain(result, "base_currency", "instrument_name");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOptionChain);
 
     }
 

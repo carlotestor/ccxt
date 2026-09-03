@@ -521,7 +521,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -563,7 +563,7 @@ public class IndodaxCore extends IndodaxApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -577,7 +577,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -594,7 +594,7 @@ public class IndodaxCore extends IndodaxApi
             }};
             Object orderbook = (this.publicGetApiDepthPair(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buy", "sell");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -695,7 +695,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -736,7 +736,7 @@ public class IndodaxCore extends IndodaxApi
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
             }
             return this.filterByArray(parsedTickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1350,7 +1350,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFee> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1379,7 +1379,7 @@ public class IndodaxCore extends IndodaxApi
             Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "fee", 0);
             Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "percentage", false);
             return this.assignDefaultDepositWithdrawFees(result, currency);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFee);
 
     }
 

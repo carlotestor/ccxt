@@ -3020,7 +3020,7 @@ public class DeriveCore extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3089,7 +3089,7 @@ public class DeriveCore extends DeriveApi
             //
             Object result = this.safeList(response, "result");
             return this.parseBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 

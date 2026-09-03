@@ -1726,7 +1726,7 @@ public class LighterCore extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1782,7 +1782,7 @@ public class LighterCore extends LighterApi
             //
             Object result = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "remaining_base_amount");
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1976,7 +1976,7 @@ public class LighterCore extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1993,7 +1993,7 @@ public class LighterCore extends LighterApi
             Object swapTickers = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tickers = this.arrayConcat(spotTickers, swapTickers);
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2162,7 +2162,7 @@ public class LighterCore extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2198,7 +2198,7 @@ public class LighterCore extends LighterApi
                 }
             }
             return this.parseFundingRates(result, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -2213,7 +2213,7 @@ public class LighterCore extends LighterApi
      * @param {string} [params.type] 'spot', 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2316,7 +2316,7 @@ public class LighterCore extends LighterApi
                 }
             }
             return this.safeBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -4126,7 +4126,7 @@ public class LighterCore extends LighterApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "direction", 1 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromMarginModification((this.setMargin(symbol, amount, this.extend(request, parameters))).join());
         });
 
     }
@@ -4149,7 +4149,7 @@ public class LighterCore extends LighterApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "direction", 0 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromMarginModification((this.setMargin(symbol, amount, this.extend(request, parameters))).join());
         });
 
     }

@@ -770,7 +770,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -816,7 +816,7 @@ public class BlofinCore extends BlofinApi
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(first, "ts");
             return this.parseOrderBook(first, symbol, timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -951,7 +951,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -966,7 +966,7 @@ public class BlofinCore extends BlofinApi
             Object response = (this.publicGetMarketTickers(parameters)).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1521,7 +1521,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1548,7 +1548,7 @@ public class BlofinCore extends BlofinApi
                 response = (this.privateGetAccountBalance(this.extend(request, parameters))).join();
             }
             return this.parseBalanceByType(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -3052,7 +3052,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3116,7 +3116,7 @@ public class BlofinCore extends BlofinApi
             //
             Object leverages = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLeverages(leverages, symbols, "instId");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverages);
 
     }
 

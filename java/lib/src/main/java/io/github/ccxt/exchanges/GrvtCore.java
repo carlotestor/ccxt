@@ -1212,7 +1212,7 @@ public class GrvtCore extends GrvtApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1255,7 +1255,7 @@ public class GrvtCore extends GrvtApi
             Object timestamp = this.parse8601(this.safeString(result, "event_time"));
             Object marketId = this.safeString(result, "instrument");
             return this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1647,7 +1647,7 @@ public class GrvtCore extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1688,7 +1688,7 @@ public class GrvtCore extends GrvtApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -2983,7 +2983,7 @@ public class GrvtCore extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3008,7 +3008,7 @@ public class GrvtCore extends GrvtApi
             //
             Object results = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLeverages(results, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverages);
 
     }
 
@@ -3092,7 +3092,7 @@ public class GrvtCore extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3117,7 +3117,7 @@ public class GrvtCore extends GrvtApi
             //
             Object results = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLeverages(results, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toMarginModes);
 
     }
 

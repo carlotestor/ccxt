@@ -646,7 +646,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object response = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return this.safeDict(response, symbol, new java.util.HashMap<String, Object>() {{}});
         }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
@@ -661,7 +661,7 @@ public class CexCore extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -706,7 +706,7 @@ public class CexCore extends CexApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTickers(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -850,7 +850,7 @@ public class CexCore extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -887,7 +887,7 @@ public class CexCore extends CexApi
             Object orderBook = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(orderBook, "timestamp");
             return this.parseOrderBook(orderBook, Helpers.GetValue(market, "symbol"), timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -997,7 +997,7 @@ public class CexCore extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1021,7 +1021,7 @@ public class CexCore extends CexApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object fees = this.safeDict(data, "tradingFee", new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFees(fees, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -1129,7 +1129,7 @@ public class CexCore extends CexApi
      * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1181,7 +1181,7 @@ public class CexCore extends CexApi
                 accountBalance = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             }
             return this.parseBalance(accountBalance);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 

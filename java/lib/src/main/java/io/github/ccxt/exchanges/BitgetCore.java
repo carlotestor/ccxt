@@ -4706,7 +4706,7 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4776,7 +4776,7 @@ final Object finalMinNotional = minNotional;
             Object asksKey = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? "a" : "asks";
             Object timestamp = this.safeInteger(data, "ts");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, bidsKey, asksKey);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -5161,7 +5161,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5335,7 +5335,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -5752,7 +5752,7 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.margin] set to true for spot margin
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5877,7 +5877,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(result, symbol, fee);
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -6182,7 +6182,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6335,7 +6335,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseBalance(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -11117,7 +11117,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11204,7 +11204,7 @@ final Object finalMinNotional = minNotional;
             symbols = this.marketSymbols(symbols);
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -11218,7 +11218,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingIntervals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingIntervals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11233,7 +11233,7 @@ final Object finalMinNotional = minNotional;
                 put( "method", "publicMixGetV2MixMarketCurrentFundRate" );
             }}, parameters);
             return (this.fetchFundingRates(symbols, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -12270,7 +12270,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12313,7 +12313,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -13721,7 +13721,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertCurrencies(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Currencies> fetchConvertCurrencies(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13788,7 +13788,7 @@ final Object finalMinNotional = minNotional;
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toCurrencies);
 
     }
 

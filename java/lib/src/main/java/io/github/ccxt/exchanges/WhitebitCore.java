@@ -1060,7 +1060,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1115,7 +1115,7 @@ public class WhitebitCore extends WhitebitApi
             //    }
             //
             return this.parseDepositWithdrawFees(response, codes);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -1235,7 +1235,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1286,7 +1286,7 @@ public class WhitebitCore extends WhitebitApi
     }});
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -1879,7 +1879,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2004,7 +2004,7 @@ public class WhitebitCore extends WhitebitApi
                 Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2018,7 +2018,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2059,7 +2059,7 @@ public class WhitebitCore extends WhitebitApi
             //
             Object timestamp = this.safeTimestamp(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2868,7 +2868,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             // Fetch both open and closed orders in parallel
-            var openOrdersclosedOrdersVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters))))).join();
+            var openOrdersclosedOrdersVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchOpenOrders(symbol, since, limit, parameters).thenApply(io.github.ccxt.TypedCores::fromOrderList), this.fetchClosedOrders(symbol, since, limit, parameters).thenApply(io.github.ccxt.TypedCores::fromOrderList))))).join();
             var openOrders = ((java.util.List<Object>) openOrdersclosedOrdersVariable).get(0);
             var closedOrders = ((java.util.List<Object>) openOrdersclosedOrdersVariable).get(1);
             Object allOrders = this.arrayConcat(openOrders, closedOrders);
@@ -2982,7 +2982,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3037,7 +3037,7 @@ public class WhitebitCore extends WhitebitApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -4298,7 +4298,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object response = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object response = io.github.ccxt.TypedCores.fromFundingRates((this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return this.safeValue(response, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
@@ -4313,7 +4313,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4372,7 +4372,7 @@ public class WhitebitCore extends WhitebitApi
             //
             Object data = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 

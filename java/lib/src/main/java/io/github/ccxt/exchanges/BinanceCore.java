@@ -5726,7 +5726,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.subType] 'linear' or 'inverse'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6008,7 +6008,7 @@ public class BinanceCore extends BinanceApi
             //     ]
             //
             return this.parseBalanceCustom(response, type, marginMode, isPortfolioMargin);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -6027,7 +6027,7 @@ public class BinanceCore extends BinanceApi
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6110,7 +6110,7 @@ public class BinanceCore extends BinanceApi
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(response, "lastUpdateId", "u"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -6441,7 +6441,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6485,7 +6485,7 @@ public class BinanceCore extends BinanceApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBidsAsks() does not support "), type), " markets yet")) ;
             }
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -6501,7 +6501,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of lastprices structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6537,7 +6537,7 @@ public class BinanceCore extends BinanceApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLastPrices() does not support "), type), " markets yet")) ;
             }
             return this.parseLastPrices(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLastPrices);
 
     }
 
@@ -6600,7 +6600,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6659,7 +6659,7 @@ public class BinanceCore extends BinanceApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
             }
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -6750,7 +6750,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6786,7 +6786,7 @@ public class BinanceCore extends BinanceApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkPrices() does not support "), type), " markets yet")) ;
             }
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -12773,7 +12773,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12828,7 +12828,7 @@ public class BinanceCore extends BinanceApi
             //    ]
             //
             return this.parseDepositWithdrawFees(response, codes, "coin");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -13101,7 +13101,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13307,7 +13307,7 @@ public class BinanceCore extends BinanceApi
                 return result;
             }
             throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees() is not supported for "), type), " markets")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -13536,7 +13536,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13567,7 +13567,7 @@ public class BinanceCore extends BinanceApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRates() supports linear and inverse contracts only")) ;
             }
             return this.parseFundingRates(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -14331,7 +14331,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -14416,7 +14416,7 @@ public class BinanceCore extends BinanceApi
             //     ]
             //
             return this.parseLeverageTiers(response, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -15365,7 +15365,7 @@ final Object finalMarket = market;
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -15418,7 +15418,7 @@ final Object finalMarket = market;
                 leverages = response;
             }
             return this.parseLeverages(leverages, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverages);
 
     }
 
@@ -16612,7 +16612,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", symbol );
             }};
-            Object borrowRates = (this.fetchIsolatedBorrowRates(this.extend(request, parameters))).join();
+            Object borrowRates = io.github.ccxt.TypedCores.fromIsolatedBorrowRates((this.fetchIsolatedBorrowRates(this.extend(request, parameters))).join());
             return this.safeDict(borrowRates, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toIsolatedBorrowRate);
 
@@ -16630,7 +16630,7 @@ final Object finalMarket = market;
      * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.IsolatedBorrowRates> fetchIsolatedBorrowRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16671,7 +16671,7 @@ final Object finalMarket = market;
             //    ]
             //
             return this.parseIsolatedBorrowRates(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toIsolatedBorrowRates);
 
     }
 
@@ -18023,7 +18023,7 @@ final Object finalMarket = market;
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18061,7 +18061,7 @@ final Object finalMarket = market;
                 assets = response;
             }
             return this.parseMarginModes(assets, symbols, "symbol", "swap");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toMarginModes);
 
     }
 
@@ -18100,7 +18100,7 @@ final Object finalMarket = market;
                 response = (this.fapiPrivateGetSymbolConfig(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                Object fetchMarginModesResponse = (this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object fetchMarginModesResponse = io.github.ccxt.TypedCores.fromMarginModes((this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 return Helpers.GetValue(fetchMarginModesResponse, symbol);
             } else
             {
@@ -18342,7 +18342,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertCurrencies(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Currencies> fetchConvertCurrencies(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18402,7 +18402,7 @@ final Object finalMarket = market;
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toCurrencies);
 
     }
 
@@ -18768,7 +18768,7 @@ final Object finalMarket = market;
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingIntervals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingIntervals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18813,7 +18813,7 @@ final Object finalMarket = market;
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 

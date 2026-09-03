@@ -449,7 +449,7 @@ public class MyriadCore extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionEvent> fetchEvent(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -467,7 +467,7 @@ public class MyriadCore extends MyriadApi
             Object eventVar = this.parseMarketToEvent(response, market);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionEvent);
 
     }
 
@@ -685,7 +685,7 @@ public class MyriadCore extends MyriadApi
      * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -754,7 +754,7 @@ public class MyriadCore extends MyriadApi
                 ((java.util.List<Object>)result).add(this.parsePredictionPosition(Helpers.GetValue(data, i)));
             }
             return this.filterByArray(result, "outcome", outcomes, false);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionPositionList);
 
     }
 
@@ -1029,7 +1029,7 @@ public class MyriadCore extends MyriadApi
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1053,7 +1053,7 @@ public class MyriadCore extends MyriadApi
                 throw new NotSupported((String)Helpers.add(this.id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
             }
             return (this.createAmmOrder(outcome, type, side, amount, price, this.omit(rest, new java.util.ArrayList<Object>(java.util.Arrays.asList("enableAmm", "enableAmmOrders"))))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -1292,7 +1292,7 @@ public class MyriadCore extends MyriadApi
      * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object outcome, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> editOrder(Object id, Object outcome, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1301,9 +1301,9 @@ public class MyriadCore extends MyriadApi
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadOutcome(outcome)).join();
-            (this.cancelOrder(id, outcome, parameters)).join();
+            io.github.ccxt.TypedCores.fromPredictionOrder((this.cancelOrder(id, outcome, parameters)).join());
             return (this.createOrderbookOrder(outcome, type, side, amount, price, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -1404,7 +1404,7 @@ public class MyriadCore extends MyriadApi
      * @param {object} [params] extra parameters passed through to createAmmOrder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> createMarketBuyOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1417,7 +1417,7 @@ public class MyriadCore extends MyriadApi
                 put( "costDenominated", true );
             }});
             return (this.createOrder(outcome, "market", "buy", cost, null, request)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -1927,7 +1927,7 @@ public class MyriadCore extends MyriadApi
      * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1995,7 +1995,7 @@ public class MyriadCore extends MyriadApi
                 market = (this.loadOutcome(outcome)).join();
             }
             return this.parsePredictionOrder(wrapper, ((Object)market));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -2063,7 +2063,7 @@ public class MyriadCore extends MyriadApi
      * @param {string} [params.networkId] the order-book network id fallback for any supplied raw order data
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2140,7 +2140,7 @@ public class MyriadCore extends MyriadApi
             //     }
             //
             return this.parsePredictionOrders(wrappers);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -2154,7 +2154,7 @@ public class MyriadCore extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2196,7 +2196,7 @@ public class MyriadCore extends MyriadApi
                 market = (this.loadOutcome(outcome)).join();
             }
             return this.parsePredictionOrder(response, ((Object)market));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -2213,7 +2213,7 @@ public class MyriadCore extends MyriadApi
      * @param {string} [params.status] 'open', 'filled', 'cancelled' or 'expired'
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2294,7 +2294,7 @@ public class MyriadCore extends MyriadApi
             // outcome ids — and filter by the requested outcome client-side
             Object orders = this.parsePredictionOrders(data);
             return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -2309,7 +2309,7 @@ public class MyriadCore extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2322,7 +2322,7 @@ public class MyriadCore extends MyriadApi
                 put( "status", "open" );
             }};
             return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -2337,7 +2337,7 @@ public class MyriadCore extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2350,7 +2350,7 @@ public class MyriadCore extends MyriadApi
                 put( "status", "filled" );
             }};
             return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -2365,7 +2365,7 @@ public class MyriadCore extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchCanceledOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2378,7 +2378,7 @@ public class MyriadCore extends MyriadApi
                 put( "status", "cancelled" );
             }};
             return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -2407,7 +2407,7 @@ public class MyriadCore extends MyriadApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "filled" );
             }};
-            Object orders = (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
+            Object orders = io.github.ccxt.TypedCores.fromPredictionOrderList((this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join());
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object ordersLength = Helpers.getArrayLength(orders);
             for (var i = 0; Helpers.isLessThan(i, ordersLength); i++)
@@ -2465,7 +2465,7 @@ public class MyriadCore extends MyriadApi
      * @param {int} [params.decimals] for USDC and USDT it's 6, default is 18 for USD1
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2504,7 +2504,7 @@ public class MyriadCore extends MyriadApi
             Helpers.addElementToObject(account, "total", balanceString);
             Helpers.addElementToObject(result, currency, account);
             return this.safeBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -3096,7 +3096,7 @@ final Object finalNetworkId = networkId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3249,7 +3249,7 @@ final Object finalNetworkId = networkId;
                 put( "nonce", null );
             }};
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderBook);
 
     }
 
@@ -3464,7 +3464,7 @@ final Object finalNetworkId = networkId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3527,7 +3527,7 @@ final Object finalNetworkId = networkId;
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionTickers);
 
     }
 
@@ -3667,7 +3667,7 @@ final Object finalNetworkId = networkId;
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvents(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3798,7 +3798,7 @@ final Object finalNetworkId = networkId;
             // the client-side pass — raw markets don't carry a matching event-level tags field
             Object postParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("tags")));
             return this.applyEventFetchParams(result, postParams, queries);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionEventList);
 
     }
 
@@ -4087,7 +4087,7 @@ final Object finalNetworkId = networkId;
 
             // the order book channel streams deltas only, so seed the live book from the REST snapshot
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object snapshot = (this.fetchOrderBook(outcome, limit)).join();
+            Object snapshot = io.github.ccxt.TypedCores.fromPredictionOrderBook((this.fetchOrderBook(outcome, limit)).join());
             Object orderbook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
@@ -4658,9 +4658,9 @@ final Object finalNetworkId = networkId;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object positions = (this.fetchPositions(null, (Object) new java.util.HashMap<String, Object>() {{
+            Object positions = io.github.ccxt.TypedCores.fromPredictionPositionList((this.fetchPositions(null, (Object) new java.util.HashMap<String, Object>() {{
                 put( "address", trader );
-            }})).join();
+            }})).join());
             Object balances = new java.util.HashMap<String, Object>() {{}};
             Object positionsLength = Helpers.getArrayLength(positions);
             for (var i = 0; Helpers.isLessThan(i, positionsLength); i++)

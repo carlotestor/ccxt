@@ -945,7 +945,7 @@ public class LbankCore extends LbankApi
             Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object responseForSwap = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+                Object responseForSwap = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join());
                 return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
             }
             Object request = new java.util.HashMap<String, Object>() {{
@@ -990,7 +990,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1073,7 +1073,7 @@ public class LbankCore extends LbankApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1088,7 +1088,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1176,7 +1176,7 @@ public class LbankCore extends LbankApi
                 return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
             }
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1690,7 +1690,7 @@ public class LbankCore extends LbankApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object responseForSwap = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object responseForSwap = io.github.ccxt.TypedCores.fromFundingRates((this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join());
             return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
         }).thenApply(io.github.ccxt.TypedCores::toFundingRate);
 
@@ -1705,7 +1705,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1746,7 +1746,7 @@ public class LbankCore extends LbankApi
             // }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -1760,7 +1760,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1821,7 +1821,7 @@ public class LbankCore extends LbankApi
                 throw new NullResponse((String)Helpers.add(this.id, " fetchBalance() returned empty response")) ;
             }
             return balanceResult;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -1863,9 +1863,9 @@ public class LbankCore extends LbankApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object market = this.market(symbol);
-            Object result = (this.fetchTradingFees(this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Object result = io.github.ccxt.TypedCores.fromTradingFees((this.fetchTradingFees(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "category", Helpers.GetValue(market, "id") );
-            }}))).join();
+            }}))).join());
             return this.safeDict(result, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toTradingFeeInterface);
 
@@ -1879,7 +1879,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1900,7 +1900,7 @@ public class LbankCore extends LbankApi
                 Helpers.addElementToObject(result, ((String)symbol), fee);
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -3392,7 +3392,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3423,7 +3423,7 @@ public class LbankCore extends LbankApi
                 response = (this.fetchPublicDepositWithdrawFees(codes, parameters)).join();
             }
             return response;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 

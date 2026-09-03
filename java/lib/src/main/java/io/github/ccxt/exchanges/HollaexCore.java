@@ -644,7 +644,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBooks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBooks> fetchOrderBooks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -668,7 +668,7 @@ public class HollaexCore extends HollaexApi
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp));
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBooks);
 
     }
 
@@ -682,7 +682,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -720,7 +720,7 @@ public class HollaexCore extends HollaexApi
             Object orderbook = this.safeValue(response, Helpers.GetValue(market, "id"));
             Object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -773,7 +773,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -802,7 +802,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1000,7 +1000,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1060,7 +1060,7 @@ public class HollaexCore extends HollaexApi
     }});
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -1192,7 +1192,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1216,7 +1216,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -2354,7 +2354,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2399,7 +2399,7 @@ public class HollaexCore extends HollaexApi
             //
             Object coins = this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
             return this.parseDepositWithdrawFees(coins, codes, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 

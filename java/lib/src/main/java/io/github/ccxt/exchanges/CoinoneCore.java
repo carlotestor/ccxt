@@ -650,7 +650,7 @@ public class CoinoneCore extends CoinoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -662,7 +662,7 @@ public class CoinoneCore extends CoinoneApi
             }
             Object response = (this.v2PrivatePostAccountBalance(parameters)).join();
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -676,7 +676,7 @@ public class CoinoneCore extends CoinoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -722,7 +722,7 @@ public class CoinoneCore extends CoinoneApi
             //
             Object timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "qty");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -736,7 +736,7 @@ public class CoinoneCore extends CoinoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -799,7 +799,7 @@ public class CoinoneCore extends CoinoneApi
             //
             Object data = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 

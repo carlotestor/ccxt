@@ -843,7 +843,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -903,7 +903,7 @@ public class AlpacaCore extends AlpacaApi
             Object rawOrderbook = this.safeDict(orderbooks, id, new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, Helpers.GetValue(market, "symbol"), timestamp, "b", "a", "p", "s");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1060,7 +1060,7 @@ public class AlpacaCore extends AlpacaApi
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return this.safeDict(tickers, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
@@ -1076,7 +1076,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1190,7 +1190,7 @@ public class AlpacaCore extends AlpacaApi
                 ((java.util.List<Object>)results).add(ticker);
             }
             return this.filterByArray(results, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2440,7 +2440,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2500,7 +2500,7 @@ public class AlpacaCore extends AlpacaApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 

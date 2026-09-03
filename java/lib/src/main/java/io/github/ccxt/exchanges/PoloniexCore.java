@@ -1379,7 +1379,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1464,7 +1464,7 @@ public class PoloniexCore extends PoloniexApi
             //     ]
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1596,7 +1596,7 @@ public class PoloniexCore extends PoloniexApi
             }};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+                Object tickers = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join());
                 return this.safeDict(tickers, symbol);
             }
             Object response = (this.publicGetMarketsSymbolTicker24h(this.extend(request, parameters))).join();
@@ -2998,7 +2998,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3073,7 +3073,7 @@ public class PoloniexCore extends PoloniexApi
             //     ]
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -3085,7 +3085,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3116,7 +3116,7 @@ public class PoloniexCore extends PoloniexApi
     }});
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -3131,7 +3131,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3211,7 +3211,7 @@ public class PoloniexCore extends PoloniexApi
                 put( "datetime", PoloniexCore.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -3640,7 +3640,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3688,7 +3688,7 @@ public class PoloniexCore extends PoloniexApi
                 Helpers.addElementToObject(data, ((String)currencyId), Helpers.GetValue(entry, ((String)currencyId)));
             }
             return this.parseDepositWithdrawFees(data, codes);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 

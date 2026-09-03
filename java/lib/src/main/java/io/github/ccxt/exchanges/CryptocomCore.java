@@ -1143,7 +1143,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1202,7 +1202,7 @@ public class CryptocomCore extends CryptocomApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1226,7 +1226,7 @@ public class CryptocomCore extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return this.safeValue(tickers, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
@@ -1518,7 +1518,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1561,7 +1561,7 @@ public class CryptocomCore extends CryptocomApi
             Object orderBook = this.safeValue(data, 0);
             Object timestamp = this.safeInteger(orderBook, "t");
             return this.parseOrderBook(orderBook, symbol, timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1597,7 +1597,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1652,7 +1652,7 @@ public class CryptocomCore extends CryptocomApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -3439,7 +3439,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3454,7 +3454,7 @@ public class CryptocomCore extends CryptocomApi
             Object data = this.safeValue(response, "result");
             Object currencyMap = this.safeList(data, "currency_map");
             return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -4369,7 +4369,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4397,7 +4397,7 @@ public class CryptocomCore extends CryptocomApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFees(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 

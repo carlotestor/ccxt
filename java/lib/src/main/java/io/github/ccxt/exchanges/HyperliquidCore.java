@@ -1206,7 +1206,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1316,7 +1316,7 @@ public class HyperliquidCore extends HyperliquidApi
             Helpers.addElementToObject(result, "timestamp", timestamp);
             Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
             return this.safeBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -1330,7 +1330,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1376,7 +1376,7 @@ public class HyperliquidCore extends HyperliquidApi
             }};
             Object timestamp = this.safeInteger(response, "time");
             return this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "px", "sz");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1392,7 +1392,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1450,7 +1450,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1471,7 +1471,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            Object rates = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object rates = io.github.ccxt.TypedCores.fromFundingRates((this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join());
             Object rate = this.safeDict(rates, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(rate, null)))
             {
@@ -1491,7 +1491,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1543,7 +1543,7 @@ public class HyperliquidCore extends HyperliquidApi
                 ((java.util.List<Object>)result).add(data);
             }
             return this.parseFundingRates(result, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -5695,7 +5695,7 @@ final Object finalClientOrderId = clientOrderId;
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5709,7 +5709,7 @@ final Object finalClientOrderId = clientOrderId;
             symbols = this.marketSymbols(symbols);
             Object swapMarkets = (this.fetchSwapMarkets()).join();
             return this.parseOpenInterests(swapMarkets, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 
@@ -5732,7 +5732,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 (this.loadMarkets()).join();
             }
-            Object ois = (this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object ois = io.github.ccxt.TypedCores.fromOpenInterests((this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return Helpers.GetValue(ois, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toOpenInterest);
 

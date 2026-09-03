@@ -1993,7 +1993,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object parameters = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
             }};
-            Object response = (this.fetchBalance((Object)(parameters))).join();
+            Object response = io.github.ccxt.TypedCores.fromBalances((this.fetchBalance((Object)(parameters))).join());
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeValue(this.balance, type, new java.util.HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))

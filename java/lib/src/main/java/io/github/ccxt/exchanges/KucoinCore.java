@@ -3048,7 +3048,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFee> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3095,7 +3095,7 @@ public class KucoinCore extends KucoinApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseDepositWithdrawFee(data, currency);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFee);
 
     }
 
@@ -3503,7 +3503,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.method] *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3564,7 +3564,7 @@ public class KucoinCore extends KucoinApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3665,7 +3665,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3680,7 +3680,7 @@ public class KucoinCore extends KucoinApi
             Object response = (this.publicGetMarkPriceAllSymbols(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -4290,7 +4290,7 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountType, "contract")))
             {
-                return (this.fetchContractDepositAddress(code, parameters)).join();
+                return io.github.ccxt.TypedCores.fromDepositAddress((this.fetchContractDepositAddress(code, parameters)).join());
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(uta) || Helpers.isTrue((Helpers.isEqual(accountType, "uta")))) || Helpers.isTrue((Helpers.isEqual(accountType, "unified")))))
             {
                 return (super.fetchDepositAddress(code, this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -4521,7 +4521,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4673,7 +4673,7 @@ public class KucoinCore extends KucoinApi
             Object orderbook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", Helpers.subtract(level, 2), Helpers.subtract(level, 1));
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "sequence"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -9797,7 +9797,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10016,7 +10016,7 @@ public class KucoinCore extends KucoinApi
                 returnType = this.safeBalance(result);
             }
             return returnType;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -11785,7 +11785,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11817,7 +11817,7 @@ public class KucoinCore extends KucoinApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "currency");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -13572,7 +13572,7 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(uta))
             {
-                Object result = (this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object result = io.github.ccxt.TypedCores.fromLeverageTiers((this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 return this.safeList(result, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             Object request = new java.util.HashMap<String, Object>() {{
@@ -13665,7 +13665,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13742,7 +13742,7 @@ final Object finalMarket = market;
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -13755,7 +13755,7 @@ final Object finalMarket = market;
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13794,7 +13794,7 @@ final Object finalMarket = market;
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 

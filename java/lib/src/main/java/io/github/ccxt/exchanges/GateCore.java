@@ -2922,7 +2922,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2989,7 +2989,7 @@ public class GateCore extends GateApi
             //    ]
             //
             return this.parseFundingRates(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -3275,7 +3275,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3301,7 +3301,7 @@ public class GateCore extends GateApi
             //    }
             //
             return this.parseTradingFees(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -3441,7 +3441,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3473,7 +3473,7 @@ public class GateCore extends GateApi
             //    ]
             //
             return this.parseDepositWithdrawFees(response, codes, "currency");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -3667,7 +3667,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3798,7 +3798,7 @@ public class GateCore extends GateApi
             Object result = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
             Helpers.addElementToObject(result, "nonce", nonce);
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -4006,7 +4006,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4053,7 +4053,7 @@ public class GateCore extends GateApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option")) ;
             }
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -4088,7 +4088,7 @@ public class GateCore extends GateApi
      * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4396,7 +4396,7 @@ public class GateCore extends GateApi
             }
             Object returnResult = ((Helpers.isTrue(isolated))) ? result : this.safeBalance(result);
             return returnResult;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -4846,9 +4846,9 @@ public class GateCore extends GateApi
             //          }
             //      ]
             //
-            Object response = (this.fetchMyTrades(symbol, since, limit, new java.util.HashMap<String, Object>() {{
+            Object response = io.github.ccxt.TypedCores.fromTradeList((this.fetchMyTrades(symbol, since, limit, new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
-            }})).join();
+            }})).join());
             return response;
         }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
@@ -8212,7 +8212,7 @@ final Object finalRebate = rebate;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8337,7 +8337,7 @@ final Object finalRebate = rebate;
             //    ]
             //
             return this.parseLeverageTiers(response, symbols, "name");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -10298,7 +10298,7 @@ final Object finalI = i;
      * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10323,7 +10323,7 @@ final Object finalI = i;
                 response = (this.publicMarginGetCurrencyPairs(parameters)).join(); // deprecated
             }
             return this.parseLeverages(this.toArray(response), symbols, marketIdRequest, "spot");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverages);
 
     }
 
@@ -10421,7 +10421,7 @@ final Object finalI = i;
      * @param {int} [params.expiration] unix timestamp of the expiration time
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OptionChain> fetchOptionChain(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10479,7 +10479,7 @@ final Object finalI = i;
             //     ]
             //
             return this.parseOptionChain(this.toArray(response), null, "name");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOptionChain);
 
     }
 

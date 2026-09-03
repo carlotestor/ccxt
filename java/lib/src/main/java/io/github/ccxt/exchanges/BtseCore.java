@@ -1035,7 +1035,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1072,7 +1072,7 @@ public class BtseCore extends BtseApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1203,7 +1203,7 @@ public class BtseCore extends BtseApi
      * @param {string} [params.wallet] futures wallet name, CROSS@ by default, or ISOLATED@ followed by the market id with -USDT appended
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1250,7 +1250,7 @@ public class BtseCore extends BtseApi
                 response = (this.privateGetFuturesApiV23UserWallet(this.extend(request, parameters))).join();
             }
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -1327,7 +1327,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1425,7 +1425,7 @@ public class BtseCore extends BtseApi
                 Helpers.addElementToObject(result, symbolKey, tiersList);
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -1450,7 +1450,7 @@ public class BtseCore extends BtseApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
-            Object result = (this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object result = io.github.ccxt.TypedCores.fromLeverageTiers((this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return Helpers.GetValue(result, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toLeverageTierList);
 
@@ -1465,7 +1465,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1479,7 +1479,7 @@ public class BtseCore extends BtseApi
             Object response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1643,7 +1643,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1665,7 +1665,7 @@ public class BtseCore extends BtseApi
                 }
             }
             return this.parseOpenInterests(rows, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 
@@ -1734,7 +1734,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1756,7 +1756,7 @@ public class BtseCore extends BtseApi
                 }
             }
             return this.parseFundingRates(rows, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -3314,7 +3314,7 @@ public class BtseCore extends BtseApi
      * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3365,7 +3365,7 @@ public class BtseCore extends BtseApi
     }});
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 

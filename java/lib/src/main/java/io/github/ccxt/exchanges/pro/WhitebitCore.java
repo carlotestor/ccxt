@@ -949,9 +949,9 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object response = (this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object response = io.github.ccxt.TypedCores.fromBalances((this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "type", type );
-            }}))).join();
+            }}))).join());
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))

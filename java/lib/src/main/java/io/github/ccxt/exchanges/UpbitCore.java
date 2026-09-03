@@ -771,7 +771,7 @@ public class UpbitCore extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -795,7 +795,7 @@ public class UpbitCore extends UpbitApi
             //                  "modified":  false    }   ]
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -810,7 +810,7 @@ public class UpbitCore extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBooks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBooks> fetchOrderBooks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -890,7 +890,7 @@ public class UpbitCore extends UpbitApi
     }});
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBooks);
 
     }
 
@@ -905,16 +905,16 @@ public class UpbitCore extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object orderbooks = (this.fetchOrderBooks(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            Object orderbooks = io.github.ccxt.TypedCores.fromOrderBooks((this.fetchOrderBooks(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join());
             return this.safeValue(orderbooks, symbol);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -991,7 +991,7 @@ public class UpbitCore extends UpbitApi
      * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1077,7 +1077,7 @@ public class UpbitCore extends UpbitApi
             //                     "timestamp":  1542883543813  } ]
             //
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1126,7 +1126,7 @@ public class UpbitCore extends UpbitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return this.safeValue(tickers, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
@@ -1362,7 +1362,7 @@ public class UpbitCore extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/?id=trading-fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1390,7 +1390,7 @@ public class UpbitCore extends UpbitApi
                 }
             }
             return response;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 

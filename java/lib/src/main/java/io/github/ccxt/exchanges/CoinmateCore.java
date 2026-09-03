@@ -601,7 +601,7 @@ public class CoinmateCore extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -613,7 +613,7 @@ public class CoinmateCore extends CoinmateApi
             }
             Object response = (this.privatePostBalances(parameters)).join();
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -627,7 +627,7 @@ public class CoinmateCore extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -647,7 +647,7 @@ public class CoinmateCore extends CoinmateApi
             Object orderbook = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeTimestamp(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -707,7 +707,7 @@ public class CoinmateCore extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -749,7 +749,7 @@ public class CoinmateCore extends CoinmateApi
                 Helpers.addElementToObject(result, Helpers.GetValue(market, "symbol"), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 

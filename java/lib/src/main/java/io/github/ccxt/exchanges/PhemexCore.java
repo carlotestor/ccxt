@@ -1500,7 +1500,7 @@ public class PhemexCore extends PhemexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1561,7 +1561,7 @@ public class PhemexCore extends PhemexApi
             Object orderbook = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(result, "sequence"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1975,7 +1975,7 @@ public class PhemexCore extends PhemexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2014,7 +2014,7 @@ public class PhemexCore extends PhemexApi
             }
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(result, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2532,7 +2532,7 @@ public class PhemexCore extends PhemexApi
      * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2714,7 +2714,7 @@ public class PhemexCore extends PhemexApi
                 return this.parseSwapBalance(response);
             }
             return this.parseSpotBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -5381,7 +5381,7 @@ public class PhemexCore extends PhemexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5483,7 +5483,7 @@ public class PhemexCore extends PhemexApi
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object riskLimits = this.safeList(data, "riskLimits");
             return this.parseLeverageTiers(riskLimits, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 

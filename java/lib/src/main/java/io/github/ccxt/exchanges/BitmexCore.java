@@ -1248,7 +1248,7 @@ public class BitmexCore extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1310,7 +1310,7 @@ public class BitmexCore extends BitmexApi
             //     ]
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -1324,7 +1324,7 @@ public class BitmexCore extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1370,7 +1370,7 @@ public class BitmexCore extends BitmexApi
             Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
             Helpers.addElementToObject(result, "asks", this.sortBy(Helpers.GetValue(result, "asks"), 0));
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2038,7 +2038,7 @@ public class BitmexCore extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2064,7 +2064,7 @@ public class BitmexCore extends BitmexApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3005,7 +3005,7 @@ public class BitmexCore extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3018,7 +3018,7 @@ public class BitmexCore extends BitmexApi
             }
             Object leverages = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions(symbols, parameters)).join());
             return this.parseLeverages(leverages, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverages);
 
     }
 
@@ -3388,7 +3388,7 @@ public class BitmexCore extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3417,7 +3417,7 @@ public class BitmexCore extends BitmexApi
             symbols = this.marketSymbols(symbols);
             Object result = this.parseFundingRates(filteredResponse);
             return this.filterByArray(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -3790,7 +3790,7 @@ public class BitmexCore extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3832,7 +3832,7 @@ public class BitmexCore extends BitmexApi
             //    ]
             //
             return this.parseDepositWithdrawFees(assets, codes, "asset");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -3845,7 +3845,7 @@ public class BitmexCore extends BitmexApi
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3874,7 +3874,7 @@ public class BitmexCore extends BitmexApi
             //
             symbols = this.marketSymbols(symbols);
             return this.parseOpenInterests(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 

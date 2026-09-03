@@ -203,7 +203,7 @@ public class BinanceCore extends BinanceApi
             if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 Object eventParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit")));
-                Object events = (this.fetchEvents(eventParams)).join();
+                Object events = io.github.ccxt.TypedCores.fromPredictionEventList((this.fetchEvents(eventParams)).join());
                 Object eventsLength = Helpers.getArrayLength(events);
                 Object queryMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
@@ -425,7 +425,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvents(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -532,7 +532,7 @@ public class BinanceCore extends BinanceApi
             // title uses different words than the query
             Object postParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("tags", "l1Category", "l2Category")));
             return this.applyEventFetchParams(result, postParams, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionEventList);
 
     }
 
@@ -619,17 +619,17 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionEvent> fetchEvent(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object events = (this.fetchEvents(this.extend(new java.util.HashMap<String, Object>() {{
+            Object events = io.github.ccxt.TypedCores.fromPredictionEventList((this.fetchEvents(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "eventId", id );
-            }}, parameters))).join();
+            }}, parameters))).join());
             return this.safeDict(events, 0);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionEvent);
 
     }
 
@@ -1018,7 +1018,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1057,7 +1057,7 @@ final Object finalMarketSymbol = marketSymbol;
                 Helpers.addElementToObject(result, symbolKey, ticker);
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionTickers);
 
     }
 
@@ -1071,7 +1071,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1099,7 +1099,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderBook);
 
     }
 
@@ -1112,7 +1112,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.type] 'CeDefi', 'FUNDING', or 'SPOT'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1151,7 +1151,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }
             }
             return this.safeBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -1275,7 +1275,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1356,7 +1356,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since);
             return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -1376,7 +1376,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1466,7 +1466,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since);
             return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -1480,7 +1480,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1571,7 +1571,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }
             }
             return filtered;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionPositionList);
 
     }
 
@@ -2041,7 +2041,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2150,7 +2150,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "fee", null );
                 put( "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             }}, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -2165,7 +2165,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2175,7 +2175,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -2189,16 +2189,16 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.cancelOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(outcome), (Object)(parameters))).join();
+            Object orders = io.github.ccxt.TypedCores.fromPredictionOrderList((this.cancelOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(outcome), (Object)(parameters))).join());
             return this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -2212,7 +2212,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2291,7 +2291,7 @@ final Object finalMarketSymbol = marketSymbol;
                 ((java.util.List<Object>)orders).add(this.safePredictionOrder(order));
             }
             return orders;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 

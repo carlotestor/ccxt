@@ -962,7 +962,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1016,7 +1016,7 @@ public class PacificaCore extends PacificaApi
             Helpers.addElementToObject(result, "timestamp", timestamp);
             Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
             return this.safeBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -1279,7 +1279,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1344,7 +1344,7 @@ public class PacificaCore extends PacificaApi
             }};
             Object timestamp = this.safeInteger(data, "t");
             return this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1357,7 +1357,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1388,7 +1388,7 @@ public class PacificaCore extends PacificaApi
             //
             Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(result, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -2617,7 +2617,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2664,7 +2664,7 @@ public class PacificaCore extends PacificaApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3622,7 +3622,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3636,7 +3636,7 @@ public class PacificaCore extends PacificaApi
             symbols = this.marketSymbols(symbols);
             Object swapMarkets = (this.fetchSwapMarkets()).join();
             return this.parseOpenInterests(swapMarkets, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 
@@ -3660,7 +3660,7 @@ public class PacificaCore extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ois = (this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object ois = io.github.ccxt.TypedCores.fromOpenInterests((this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return Helpers.GetValue(ois, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toOpenInterest);
 

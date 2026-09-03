@@ -953,9 +953,9 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object messageHash = messageHash3;
             Object marketType = marketType3;
             final Object finalMarketType = marketType;
-            Object response = (this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object response = io.github.ccxt.TypedCores.fromBalances((this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "type", finalMarketType );
-            }}))).join();
+            }}))).join());
             Object type = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? "spot" : "contract";
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new java.util.HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache

@@ -935,9 +935,9 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object response = (this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object response = io.github.ccxt.TypedCores.fromBalances((this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "type", type );
-            }}))).join();
+            }}))).join());
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeValue(this.balance, type, new java.util.HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))

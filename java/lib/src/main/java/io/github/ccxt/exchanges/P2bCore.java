@@ -468,7 +468,7 @@ public class P2bCore extends P2bApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -507,7 +507,7 @@ public class P2bCore extends P2bApi
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseTickers(result, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -643,7 +643,7 @@ public class P2bCore extends P2bApi
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -691,7 +691,7 @@ public class P2bCore extends P2bApi
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeIntegerProduct(response, "current_time", 1000);
             return this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -923,7 +923,7 @@ public class P2bCore extends P2bApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -953,7 +953,7 @@ public class P2bCore extends P2bApi
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseBalance(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 

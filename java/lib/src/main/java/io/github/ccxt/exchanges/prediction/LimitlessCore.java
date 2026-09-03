@@ -715,7 +715,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionEvent> fetchEvent(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -735,7 +735,7 @@ public class LimitlessCore extends LimitlessApi
             Object eventVar = this.parseEvent(wrapped);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionEvent);
 
     }
 
@@ -1367,7 +1367,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1443,7 +1443,7 @@ public class LimitlessCore extends LimitlessApi
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionTickers);
 
     }
 
@@ -1527,7 +1527,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1611,7 +1611,7 @@ public class LimitlessCore extends LimitlessApi
                 put( "nonce", null );
             }};
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderBook);
 
     }
 
@@ -1794,7 +1794,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1842,7 +1842,7 @@ public class LimitlessCore extends LimitlessApi
             // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
             // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
             return this.parsePredictionOrders(this.toArray(response), null, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -1857,7 +1857,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1875,7 +1875,7 @@ public class LimitlessCore extends LimitlessApi
                 put( "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList("LIVE")) );
             }});
             return (this.fetchOrders(outcome, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -1890,7 +1890,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1908,7 +1908,7 @@ public class LimitlessCore extends LimitlessApi
                 put( "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList("MATCHED")) );
             }});
             return (this.fetchOrders(outcome, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -2073,7 +2073,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2091,7 +2091,7 @@ public class LimitlessCore extends LimitlessApi
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order "), id)) ;
             }
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -2421,7 +2421,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> createOrder(Object outcome, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -2609,7 +2609,7 @@ public class LimitlessCore extends LimitlessApi
                 Helpers.addElementToObject(parsedOrder, "status", "open");
             }
             return parsedOrder;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -2783,7 +2783,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2809,7 +2809,7 @@ public class LimitlessCore extends LimitlessApi
                 Helpers.addElementToObject(order, "status", "canceled");
             }
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -2870,7 +2870,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2895,7 +2895,7 @@ public class LimitlessCore extends LimitlessApi
                 throw new OrderNotFound((String)feedback) ;
             }
             return this.parsePredictionOrders(canceled);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -3251,7 +3251,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3367,7 +3367,7 @@ public class LimitlessCore extends LimitlessApi
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionPositionList);
 
     }
 
@@ -3474,7 +3474,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvents(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3608,7 +3608,7 @@ public class LimitlessCore extends LimitlessApi
             }}, parameters);
             Object postParams = this.omit(searchParams, new java.util.ArrayList<Object>(java.util.Arrays.asList("tags")));
             return this.applyEventFetchParams(result, postParams, queries);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionEventList);
 
     }
 

@@ -749,7 +749,7 @@ public class DeepcoinCore extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -789,7 +789,7 @@ public class DeepcoinCore extends DeepcoinApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrderBook(data, symbol, null, "bids", "asks", 0, 1);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -924,7 +924,7 @@ public class DeepcoinCore extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -948,7 +948,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object response = (this.publicGetDeepcoinMarketTickers(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1163,7 +1163,7 @@ public class DeepcoinCore extends DeepcoinApi
      * @param {string} [params.type] "spot" or "swap", the market type for the balance
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1183,7 +1183,7 @@ public class DeepcoinCore extends DeepcoinApi
             }};
             Object response = (this.privateGetDeepcoinAccountBalances(this.extend(request, parameters))).join();
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -3374,7 +3374,7 @@ public class DeepcoinCore extends DeepcoinApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3430,7 +3430,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rates = this.safeList(data, "current_fund_rates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(rates, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 

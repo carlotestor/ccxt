@@ -1367,7 +1367,7 @@ public class WooCore extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1431,7 +1431,7 @@ public class WooCore extends WooApi
     }});
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -2695,7 +2695,7 @@ public class WooCore extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2739,7 +2739,7 @@ public class WooCore extends WooApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -3097,7 +3097,7 @@ public class WooCore extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3133,7 +3133,7 @@ public class WooCore extends WooApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseBalance(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -4330,7 +4330,7 @@ public class WooCore extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4366,7 +4366,7 @@ public class WooCore extends WooApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(rows, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -5251,7 +5251,7 @@ public class WooCore extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertCurrencies(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Currencies> fetchConvertCurrencies(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5316,7 +5316,7 @@ public class WooCore extends WooApi
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toCurrencies);
 
     }
 

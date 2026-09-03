@@ -98,7 +98,7 @@ public class Exchange extends BaseExchange {
     public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrdersAsync(Object... args) { return fetchOpenOrders(args); }
     public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrdersAsync(Object... args) { return fetchClosedOrders(args); }
     public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrdersAsync(Object... args) { return fetchCanceledOrders(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchTickersAsync(Object... args) { return fetchTickers(args); }
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickersAsync(Object... args) { return fetchTickers(args); }
     public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsAsync(Object... args) { return fetchPositions(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchOrdersWsAsync(Object... args) { return fetchOrdersWs(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchMyTradesWsAsync(Object... args) { return fetchMyTradesWs(args); }
@@ -274,7 +274,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -282,7 +282,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchBidsAsks() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -297,7 +297,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
                 (this.loadMarkets()).join();
                 Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
-                Object tickers = (this.fetchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object tickers = io.github.ccxt.TypedCores.fromTickers((this.fetchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 Object ticker = this.safeDict(tickers, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
                 {
@@ -314,7 +314,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -322,7 +322,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -361,7 +361,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchL3OrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchL3OrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -369,7 +369,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new BadRequest((String)Helpers.add(this.id, " fetchL3OrderBook() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1092,7 +1092,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1100,7 +1100,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1116,7 +1116,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             {
                 try
                 {
-                    Object orderBook = (this.fetchOrderBook(symbol, limit, parameters)).join();
+                    Object orderBook = io.github.ccxt.TypedCores.fromOrderBook((this.fetchOrderBook(symbol, limit, parameters)).join());
                     return orderBook;
                 } catch(Exception e)
                 {
@@ -1151,7 +1151,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenInterests"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenInterests"), false))))
             {
-                Object openInterests = (this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object openInterests = io.github.ccxt.TypedCores.fromOpenInterests((this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 return this.safeDict(openInterests, symbol);
             } else
             {
@@ -1168,7 +1168,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object orderbook = (this.fetchOrderBook(symbol, limit, parameters)).join();
+            Object orderbook = io.github.ccxt.TypedCores.fromOrderBook((this.fetchOrderBook(symbol, limit, parameters)).join());
             return this.extend(orderbook, new java.util.HashMap<String, Object>() {{
                 put( "asks", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "asks")), 0) );
                 put( "bids", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "bids")), 0, true) );
@@ -1305,7 +1305,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
                 (this.loadMarkets()).join();
                 Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
-                Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object tickers = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 Object ticker = this.safeDict(tickers, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
                 {
@@ -1333,7 +1333,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1341,7 +1341,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2149,7 +2149,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
             }
-            Object fees = (this.fetchTradingFees(parameters)).join();
+            Object fees = io.github.ccxt.TypedCores.fromTradingFees((this.fetchTradingFees(parameters)).join());
             return this.safeDict(fees, symbol);
         }).thenApply(io.github.ccxt.TypedCores::toTradingFeeInterface);
 

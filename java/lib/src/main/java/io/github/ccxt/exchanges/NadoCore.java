@@ -1513,7 +1513,7 @@ public class NadoCore extends NadoApi
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1555,7 +1555,7 @@ public class NadoCore extends NadoApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseBalance(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -2110,7 +2110,7 @@ public class NadoCore extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2136,7 +2136,7 @@ public class NadoCore extends NadoApi
             //
             Object tickers = this.toArray(response);
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2157,7 +2157,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             Object ticker = this.safeDict(tickers, symbol);
             if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
             {
@@ -2309,7 +2309,7 @@ public class NadoCore extends NadoApi
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2350,7 +2350,7 @@ public class NadoCore extends NadoApi
                 ((java.util.List<Object>)rates).add(this.safeDict(response, ticker, new java.util.HashMap<String, Object>() {{}}));
             }
             return this.parseFundingRates(rates, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -2417,7 +2417,7 @@ public class NadoCore extends NadoApi
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2458,7 +2458,7 @@ public class NadoCore extends NadoApi
                 ((java.util.List<Object>)interests).add(this.safeDict(response, ticker, new java.util.HashMap<String, Object>() {{}}));
             }
             return this.parseOpenInterests(interests, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 
@@ -2472,7 +2472,7 @@ public class NadoCore extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2505,7 +2505,7 @@ public class NadoCore extends NadoApi
             //
             Object timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 

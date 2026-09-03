@@ -3182,7 +3182,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "type", finalType );
                 put( "uta", uta );
             }};
-            Object response = (this.fetchBalance((Object)(parameters))).join();
+            Object response = io.github.ccxt.TypedCores.fromBalances((this.fetchBalance((Object)(parameters))).join());
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeValue(this.balance, type, new java.util.HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
@@ -3504,9 +3504,9 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object positions = (this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "uta", uta );
-            }}))).join();
+            }}))).join());
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
             Object cache = this.positions;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)

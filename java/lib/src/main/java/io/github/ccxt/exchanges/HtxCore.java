@@ -3109,7 +3109,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3232,7 +3232,7 @@ public class HtxCore extends HtxApi
             Object rawTickers = this.safeList2(response, "data", "ticks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tickers = this.parseTickers(rawTickers, symbols, parameters);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3247,7 +3247,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3285,7 +3285,7 @@ public class HtxCore extends HtxApi
             Object tick = this.safeValue(response, "tick", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(tick, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLastPrices(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLastPrices);
 
     }
 
@@ -3322,7 +3322,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3416,7 +3416,7 @@ public class HtxCore extends HtxApi
                 return result;
             }
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -4539,7 +4539,7 @@ public class HtxCore extends HtxApi
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4836,7 +4836,7 @@ public class HtxCore extends HtxApi
                 result = this.safeBalance(result);
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -8807,7 +8807,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.IsolatedBorrowRates> fetchIsolatedBorrowRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8849,7 +8849,7 @@ public class HtxCore extends HtxApi
             //
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseIsolatedBorrowRates(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toIsolatedBorrowRates);
 
     }
 
@@ -9144,7 +9144,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9200,7 +9200,7 @@ public class HtxCore extends HtxApi
             //
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -10328,7 +10328,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10371,7 +10371,7 @@ public class HtxCore extends HtxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLeverageTiers(data, symbols, "contract_code");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -10553,7 +10553,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10597,7 +10597,7 @@ public class HtxCore extends HtxApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 
@@ -11175,7 +11175,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11225,7 +11225,7 @@ public class HtxCore extends HtxApi
             //
             Object data = this.safeList(response, "data");
             return this.parseDepositWithdrawFees(data, codes, "currency");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 

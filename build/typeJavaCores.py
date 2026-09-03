@@ -146,6 +146,31 @@ def type_async_aliases(path, table):
     return n
 
 
+HEADER_RE = re.compile(r'^\s*public java\.util\.concurrent\.CompletableFuture<(.+?)> (\w+)\((.*)\)\s*$', re.M)
+
+
+def declared_family(java_decl):
+    """Inverse of java_type(): 'java.util.List<io.github.ccxt.types.Order>' -> 'List<Order>'."""
+    m = re.fullmatch(r'java\.util\.List<io\.github\.ccxt\.types\.(\w+)>', java_decl)
+    if m:
+        return 'List<%s>' % m.group(1)
+    m = re.fullmatch(r'io\.github\.ccxt\.types\.(\w+)', java_decl)
+    if m:
+        return m.group(1)
+    return None
+
+
+def enclosing_family(src, pos):
+    """Family the method enclosing `pos` is declared to return, or None if untyped.
+
+    Emitted methods never nest, so the nearest preceding CompletableFuture header
+    is the enclosing declaration."""
+    last = None
+    for m in HEADER_RE.finditer(src, 0, pos):
+        last = m
+    return declared_family(last.group(1)) if last else None
+
+
 def wrap_typed_core_consumers(path, table):
     """Second pass: wrap non-tail calls to typed cores in the reverse helper.
 
@@ -163,40 +188,51 @@ def wrap_typed_core_consumers(path, table):
     the surrounding untyped code expects.
 
     Only `.join()`ed call sites are rewritten: a bare `return this.X(...)` is a tail
-    call whose type is already the method's declared type."""
-    lines = open(path).read().split('\n')
+    call whose type is already the method's declared type.
+
+    The call may span several lines -- the transpiler emits inline HashMap literals
+    as multi-line `new java.util.HashMap<String, Object>() {{ put(...); }}` blocks --
+    so parens are balanced over the whole file text, not per line. The hand-written
+    `XAsync(...)` aliases on the bases are retyped together with X, so a joined
+    `this.XAsync(...)` consumer is wrapped exactly like `this.X(...)`."""
+    src = open(path).read()
     names = sorted(table)
     n = 0
-    for idx, line in enumerate(lines):
-        if '(this.' not in line or ')).join()' not in line:
-            continue                      # cheap reject: most lines cannot match
-        for name in names:
-            fam = table[name]
-            helper_name = (('from%sList' % fam[5:-1]) if fam.startswith('List<')
-                           else ('from%s' % fam))
-            needle = '(this.' + name + '('
+    for name in names:
+        fam = table[name]
+        helper_name = (('from%sList' % fam[5:-1]) if fam.startswith('List<')
+                       else ('from%s' % fam))
+        prefix = 'io.github.ccxt.TypedCores.%s(' % helper_name
+        for needle in ('(this.' + name + '(', '(this.' + name + 'Async('):
             start = 0
             while True:
-                i = line.find(needle, start)
+                i = src.find(needle, start)
                 if i < 0:
                     break
-                if line[max(0, i - 7):i] == 'return ':
-                    start = i + len(needle)
-                    continue
+                if src[max(0, i - 7):i] == 'return ':
+                    # A tail `return (this.X(...)).join();` is only type-correct when the
+                    # enclosing method is typed to the SAME family: its own
+                    # `.thenApply(toT)` is then idempotent. Any other enclosing type
+                    # (untyped Object, or a different family whose toU would be handed a T
+                    # and project it a second time) needs the inverse just like a
+                    # non-tail consumer.
+                    if enclosing_family(src, i) == fam:
+                        start = i + len(needle)
+                        continue
                 # already wrapped by a previous run -- the pass must be idempotent
                 # because the transpile pipeline may be re-run over an emitted tree.
-                if line[:i].endswith('io.github.ccxt.TypedCores.%s(' % helper_name):
+                if src[:i].endswith(prefix):
                     start = i + len(needle)
                     continue
-                # balance the argument parens within THIS line, skipping string
+                # balance the argument parens (across lines), skipping string
                 # literals, so a sibling call in the same expression is never
                 # swallowed (a lazy `[^;]*?` matcher corrupted
                 # promiseAll(a(...), b(...)) here).
                 j = i + len(needle)
                 depth = 1
                 in_str = False
-                while j < len(line) and depth:
-                    c = line[j]
+                while j < len(src) and depth:
+                    c = src[j]
                     if in_str:
                         if c == '\\':
                             j += 1
@@ -209,17 +245,85 @@ def wrap_typed_core_consumers(path, table):
                     elif c == ')':
                         depth -= 1
                     j += 1
-                if depth or not line.startswith(')).join()', j - 1):
+                if depth or not src.startswith(')).join()', j - 1):
                     start = i + len(needle)
                     continue
                 end = j - 1 + len(')).join()')
-                prefix = 'io.github.ccxt.TypedCores.%s(' % helper_name
-                line = line[:i] + prefix + line[i:end] + ')' + line[end:]
+                src = src[:i] + prefix + src[i:end] + ')' + src[end:]
                 n += 1
                 start = i + len(prefix) + (end - i) + 1
-        lines[idx] = line
     if n:
-        open(path, 'w').write('\n'.join(lines))
+        open(path, 'w').write(src)
+    return n
+
+
+def detype_bare_futures(path, table):
+    """Third pass: a typed future handed to untyped plumbing without being joined.
+
+        Object fetchFunctions = new ArrayList<Object>(Arrays.asList(
+            this.fetchPositions(null, params), this.fetchPositions(null, params2)));
+        Object promises = (Helpers.promiseAll(fetchFunctions)).join();
+
+    `promiseAll` resolves each element with `f.get()` and hands the TYPED value to
+    code that indexes it as a raw List<Map> and appends elements to a WS cache. No
+    `.join()` means the consumer pass above cannot see it. Rewrite the future itself:
+
+        this.fetchPositions(null, params).thenApply(io.github.ccxt.TypedCores::fromPositionList)
+
+    Tail `return this.X(...)` is left alone (the enclosing declaration carries the
+    type) and anything already chained (`.join()`, `.thenApply(...)`) is skipped, so
+    the pass is idempotent."""
+    src = open(path).read()
+    n = 0
+    for name in sorted(table):
+        fam = table[name]
+        helper_name = (('from%sList' % fam[5:-1]) if fam.startswith('List<')
+                       else ('from%s' % fam))
+        for callee in (name, name + 'Async'):
+            pat = re.compile(r'(?<![\w.])this\.' + callee + r'\(')
+            pos = 0
+            while True:
+                m = pat.search(src, pos)
+                if not m:
+                    break
+                i = m.start()
+                pre = src[:i].rstrip()
+                if pre.endswith('return') or pre.endswith('return ('):
+                    pos = m.end()
+                    continue
+                j = m.end()
+                depth = 1
+                in_str = False
+                while j < len(src) and depth:
+                    c = src[j]
+                    if in_str:
+                        if c == '\\':
+                            j += 1
+                        elif c == '"':
+                            in_str = False
+                    elif c == '"':
+                        in_str = True
+                    elif c == '(':
+                        depth += 1
+                    elif c == ')':
+                        depth -= 1
+                    j += 1
+                if depth:
+                    pos = m.end()
+                    continue
+                rest = src[j:]
+                if rest.startswith(').join()') or rest.startswith('.'):
+                    pos = m.end()
+                    continue
+                if not (rest.startswith(')') or rest.startswith(',')):
+                    pos = m.end()
+                    continue
+                ins = '.thenApply(io.github.ccxt.TypedCores::%s)' % helper_name
+                src = src[:j] + ins + src[j:]
+                n += 1
+                pos = j + len(ins)
+    if n:
+        open(path, 'w').write(src)
     return n
 
 
@@ -248,6 +352,9 @@ def main():
     n_w = (sum(wrap_typed_core_consumers(p, tc) for p in crypto)
            + sum(wrap_typed_core_consumers(p, pc) for p in pred))
     print('consuming call sites wrapped in from*: %d' % n_w)
+    n_b = (sum(detype_bare_futures(p, tc) for p in crypto)
+           + sum(detype_bare_futures(p, pc) for p in pred))
+    print('bare typed futures chained through from*: %d' % n_b)
 
     print('crypto tier    : %d methods typed across %d files (%d names in table)'
           % (n_c, len(crypto), len(tc)))

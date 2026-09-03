@@ -996,7 +996,7 @@ public class TokocryptoCore extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1057,7 +1057,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object orderbook = this.parseOrderBook(data, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "lastUpdateId"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1448,7 +1448,7 @@ public class TokocryptoCore extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1468,7 +1468,7 @@ public class TokocryptoCore extends TokocryptoApi
                 return this.parseTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(response)), symbols);
             }
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1524,7 +1524,7 @@ public class TokocryptoCore extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1537,7 +1537,7 @@ public class TokocryptoCore extends TokocryptoApi
             }
             Object response = (this.binanceGetTickerBookTicker(parameters)).join();
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1693,7 +1693,7 @@ public class TokocryptoCore extends TokocryptoApi
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1734,7 +1734,7 @@ public class TokocryptoCore extends TokocryptoApi
             //     }
             //
             return this.parseBalanceCustom(response, type, marginMode);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 

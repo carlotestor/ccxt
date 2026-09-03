@@ -1878,7 +1878,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1944,7 +1944,7 @@ public class MexcCore extends MexcApi
                 Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "version"));
             }
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2392,7 +2392,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2462,7 +2462,7 @@ public class MexcCore extends MexcApi
                 tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList(tickers));
             }
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2679,7 +2679,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2715,7 +2715,7 @@ public class MexcCore extends MexcApi
                 tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList(tickers));
             }
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3845,7 +3845,7 @@ public class MexcCore extends MexcApi
             } else
             {
                 Helpers.addElementToObject(request, "states", state);
-                return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+                return io.github.ccxt.TypedCores.fromOrderList((this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join());
             }
         });
 
@@ -4698,7 +4698,7 @@ public class MexcCore extends MexcApi
      * @param {string} [params.symbols] // required for margin, market id's separated by commas
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4837,7 +4837,7 @@ public class MexcCore extends MexcApi
             //     }
             //
             return this.customParseBalance(response, marketType);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -5449,7 +5449,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5509,7 +5509,7 @@ public class MexcCore extends MexcApi
             //
             Object data = this.safeList(response, "data");
             return this.parseLeverageTiers(data, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -6942,7 +6942,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6984,7 +6984,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //    ]
             //
             return this.parseDepositWithdrawFees(response, codes, "coin");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 

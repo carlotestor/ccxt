@@ -423,7 +423,7 @@ public class ApexCore extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -436,7 +436,7 @@ public class ApexCore extends ApexApi
             Object response = (this.privateGetV3AccountBalance(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseBalance(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -916,7 +916,7 @@ public class ApexCore extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -930,7 +930,7 @@ public class ApexCore extends ApexApi
             Object response = (this.publicGetV3DataAllTickerInfo(parameters)).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1014,7 +1014,7 @@ public class ApexCore extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1066,7 +1066,7 @@ public class ApexCore extends ApexApi
             Object orderbook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "u"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 

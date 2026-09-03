@@ -1329,7 +1329,7 @@ public class WoofiproCore extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1362,7 +1362,7 @@ public class WoofiproCore extends WoofiproApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(rows, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -1479,7 +1479,7 @@ public class WoofiproCore extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1534,7 +1534,7 @@ public class WoofiproCore extends WoofiproApi
                 ((java.util.List<Object>)result).add(this.parseTicker(ticker));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1624,7 +1624,7 @@ public class WoofiproCore extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1671,7 +1671,7 @@ public class WoofiproCore extends WoofiproApi
                 ((java.util.List<Object>)result).add(this.parseOpenInterest(interest));
             }
             return this.filterByArray(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 
@@ -1894,7 +1894,7 @@ public class WoofiproCore extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1950,7 +1950,7 @@ public class WoofiproCore extends WoofiproApi
     }});
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -1964,7 +1964,7 @@ public class WoofiproCore extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2005,7 +2005,7 @@ public class WoofiproCore extends WoofiproApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -3286,7 +3286,7 @@ public class WoofiproCore extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3314,7 +3314,7 @@ public class WoofiproCore extends WoofiproApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseBalance(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -3781,7 +3781,7 @@ public class WoofiproCore extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3809,7 +3809,7 @@ public class WoofiproCore extends WoofiproApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarginModes(rows, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toMarginModes);
 
     }
 
@@ -3833,7 +3833,7 @@ public class WoofiproCore extends WoofiproApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object marginModes = (this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object marginModes = io.github.ccxt.TypedCores.fromMarginModes((this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join());
             Object marginMode = this.safeDict(marginModes, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
             {

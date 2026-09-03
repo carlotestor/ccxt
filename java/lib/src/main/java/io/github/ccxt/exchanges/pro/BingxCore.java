@@ -1419,10 +1419,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object messageHash = messageHash3;
             Object type = type3;
             final Object finalType = type;
-            Object response = (this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object response = io.github.ccxt.TypedCores.fromBalances((this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "subType", subType );
-            }}))).join();
+            }}))).join());
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeValue(this.balance, type, new java.util.HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
@@ -1546,10 +1546,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object positions = (this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "type", type );
                 put( "subType", "linear" );
-            }}))).join();
+            }}))).join());
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             Object cache = this.positions;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)

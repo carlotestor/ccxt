@@ -104,12 +104,11 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public MarginModes fetchMarginModes(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarginModes(symbols, params));
-        return new MarginModes(res);
+        return Helpers.joinTyped(super.fetchMarginModes(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginModes> fetchMarginModesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchMarginModes(symbols, params).thenApply(MarginModes::new);
+        return super.fetchMarginModes(symbols, params);
     }
     public MarginModes fetchMarginModes(String[] symbols, Map<String, Object> params) { return fetchMarginModes(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<MarginModes> fetchMarginModesAsync(String[] symbols, Map<String, Object> params) { return fetchMarginModesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -128,56 +127,51 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public CrossBorrowRates fetchCrossBorrowRates(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchCrossBorrowRates(params));
-        return new CrossBorrowRates(res);
+        return Helpers.joinTyped(super.fetchCrossBorrowRates(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<CrossBorrowRates> fetchCrossBorrowRatesAsync(Map<String, Object> params) {
-        return super.fetchCrossBorrowRates(params).thenApply(CrossBorrowRates::new);
+        return super.fetchCrossBorrowRates(params);
     }
 
     @SuppressWarnings("unchecked")
     public IsolatedBorrowRates fetchIsolatedBorrowRates(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchIsolatedBorrowRates(params));
-        return new IsolatedBorrowRates(res);
+        return Helpers.joinTyped(super.fetchIsolatedBorrowRates(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<IsolatedBorrowRates> fetchIsolatedBorrowRatesAsync(Map<String, Object> params) {
-        return super.fetchIsolatedBorrowRates(params).thenApply(IsolatedBorrowRates::new);
+        return super.fetchIsolatedBorrowRates(params);
     }
 
     @SuppressWarnings("unchecked")
     public LeverageTiers fetchLeverageTiers(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLeverageTiers(symbols, params));
-        return new LeverageTiers(res);
+        return Helpers.joinTyped(super.fetchLeverageTiers(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLeverageTiers(symbols, params).thenApply(LeverageTiers::new);
+        return super.fetchLeverageTiers(symbols, params);
     }
     public LeverageTiers fetchLeverageTiers(String[] symbols, Map<String, Object> params) { return fetchLeverageTiers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(String[] symbols, Map<String, Object> params) { return fetchLeverageTiersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public FundingRates fetchFundingRates(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingRates(symbols, params));
-        return new FundingRates(res);
+        return Helpers.joinTyped(super.fetchFundingRates(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRates> fetchFundingRatesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchFundingRates(symbols, params).thenApply(FundingRates::new);
+        return super.fetchFundingRates(symbols, params);
     }
     public FundingRates fetchFundingRates(String[] symbols, Map<String, Object> params) { return fetchFundingRates(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<FundingRates> fetchFundingRatesAsync(String[] symbols, Map<String, Object> params) { return fetchFundingRatesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public FundingRates fetchFundingIntervals(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingIntervals(symbols, params));
-        return new FundingRates(res);
+        return Helpers.joinTyped(super.fetchFundingIntervals(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchFundingIntervals(symbols, params).thenApply(FundingRates::new);
+        return super.fetchFundingIntervals(symbols, params);
     }
     public FundingRates fetchFundingIntervals(String[] symbols, Map<String, Object> params) { return fetchFundingIntervals(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(String[] symbols, Map<String, Object> params) { return fetchFundingIntervalsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -230,12 +224,11 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public Leverages fetchLeverages(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLeverages(symbols, params));
-        return new Leverages(res);
+        return Helpers.joinTyped(super.fetchLeverages(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Leverages> fetchLeveragesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLeverages(symbols, params).thenApply(Leverages::new);
+        return super.fetchLeverages(symbols, params);
     }
     public Leverages fetchLeverages(String[] symbols, Map<String, Object> params) { return fetchLeverages(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<Leverages> fetchLeveragesAsync(String[] symbols, Map<String, Object> params) { return fetchLeveragesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -314,12 +307,11 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public OpenInterests fetchOpenInterests(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOpenInterests(symbols, params));
-        return new OpenInterests(res);
+        return Helpers.joinTyped(super.fetchOpenInterests(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchOpenInterests(symbols, params).thenApply(OpenInterests::new);
+        return super.fetchOpenInterests(symbols, params);
     }
     public OpenInterests fetchOpenInterests(String[] symbols, Map<String, Object> params) { return fetchOpenInterests(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(String[] symbols, Map<String, Object> params) { return fetchOpenInterestsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -408,56 +400,51 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public Balances fetchBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchBalance(params));
-        return new Balances(res);
+        return Helpers.joinTyped(super.fetchBalance(params));
     }
     public Balances fetchBalance() { return fetchBalance((Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balances> fetchBalanceAsync(Map<String, Object> params) {
-        return super.fetchBalance(params).thenApply(Balances::new);
+        return super.fetchBalance(params);
     }
     public CompletableFuture<Balances> fetchBalanceAsync() { return fetchBalanceAsync((Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Balance fetchPartialBalance(Object part, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPartialBalance(part, params));
-        return new Balance(res);
+        return Helpers.joinTyped(super.fetchPartialBalance(part, params));
     }
     public Balance fetchPartialBalance(Object part) { return fetchPartialBalance(part, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchPartialBalanceAsync(Object part, Map<String, Object> params) {
-        return super.fetchPartialBalance(part, params).thenApply(Balance::new);
+        return super.fetchPartialBalance(part, params);
     }
     public CompletableFuture<Balance> fetchPartialBalanceAsync(Object part) { return fetchPartialBalanceAsync(part, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Balance fetchFreeBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFreeBalance(params));
-        return new Balance(res);
+        return Helpers.joinTyped(super.fetchFreeBalance(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchFreeBalanceAsync(Map<String, Object> params) {
-        return super.fetchFreeBalance(params).thenApply(Balance::new);
+        return super.fetchFreeBalance(params);
     }
 
     @SuppressWarnings("unchecked")
     public Balance fetchUsedBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchUsedBalance(params));
-        return new Balance(res);
+        return Helpers.joinTyped(super.fetchUsedBalance(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchUsedBalanceAsync(Map<String, Object> params) {
-        return super.fetchUsedBalance(params).thenApply(Balance::new);
+        return super.fetchUsedBalance(params);
     }
 
     @SuppressWarnings("unchecked")
     public Balance fetchTotalBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTotalBalance(params));
-        return new Balance(res);
+        return Helpers.joinTyped(super.fetchTotalBalance(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchTotalBalanceAsync(Map<String, Object> params) {
-        return super.fetchTotalBalance(params).thenApply(Balance::new);
+        return super.fetchTotalBalance(params);
     }
 
     @SuppressWarnings("unchecked")
@@ -473,25 +460,23 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public DepositWithdrawFees fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFees(codes, params));
-        return new DepositWithdrawFees(res);
+        return Helpers.joinTyped(super.fetchDepositWithdrawFees(codes, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(List<String> codes, Map<String, Object> params) {
-        return super.fetchDepositWithdrawFees(codes, params).thenApply(DepositWithdrawFees::new);
+        return super.fetchDepositWithdrawFees(codes, params);
     }
     public DepositWithdrawFees fetchDepositWithdrawFees(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFees(codes == null ? null : java.util.Arrays.asList(codes), params); }
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFeesAsync(codes == null ? null : java.util.Arrays.asList(codes), params); }
 
     @SuppressWarnings("unchecked")
     public DepositWithdrawFee fetchDepositWithdrawFee(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFee(code, params));
-        return new DepositWithdrawFee(res);
+        return Helpers.joinTyped(super.fetchDepositWithdrawFee(code, params));
     }
     public DepositWithdrawFee fetchDepositWithdrawFee(String code) { return fetchDepositWithdrawFee(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code, Map<String, Object> params) {
-        return super.fetchDepositWithdrawFee(code, params).thenApply(DepositWithdrawFee::new);
+        return super.fetchDepositWithdrawFee(code, params);
     }
     public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code) { return fetchDepositWithdrawFeeAsync(code, (Map<String, Object>) null); }
 
@@ -543,12 +528,11 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public OrderBooks fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderBooks(symbols, limit, params));
-        return new OrderBooks(res);
+        return Helpers.joinTyped(super.fetchOrderBooks(symbols, limit, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OrderBooks> fetchOrderBooksAsync(List<String> symbols, Long limit, Map<String, Object> params) {
-        return super.fetchOrderBooks(symbols, limit, params).thenApply(OrderBooks::new);
+        return super.fetchOrderBooks(symbols, limit, params);
     }
     public OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooks(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
     public CompletableFuture<OrderBooks> fetchOrderBooksAsync(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
@@ -775,13 +759,12 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public OptionChain fetchOptionChain(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOptionChain(code, params));
-        return new OptionChain(res);
+        return Helpers.joinTyped(super.fetchOptionChain(code, params));
     }
     public OptionChain fetchOptionChain(String code) { return fetchOptionChain(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OptionChain> fetchOptionChainAsync(String code, Map<String, Object> params) {
-        return super.fetchOptionChain(code, params).thenApply(OptionChain::new);
+        return super.fetchOptionChain(code, params);
     }
     public CompletableFuture<OptionChain> fetchOptionChainAsync(String code) { return fetchOptionChainAsync(code, (Map<String, Object>) null); }
 
@@ -890,34 +873,31 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public LastPrices fetchLastPrices(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLastPrices(symbols, params));
-        return new LastPrices(res);
+        return Helpers.joinTyped(super.fetchLastPrices(symbols, params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<LastPrices> fetchLastPricesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLastPrices(symbols, params).thenApply(LastPrices::new);
+        return super.fetchLastPrices(symbols, params);
     }
     public LastPrices fetchLastPrices(String[] symbols, Map<String, Object> params) { return fetchLastPrices(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<LastPrices> fetchLastPricesAsync(String[] symbols, Map<String, Object> params) { return fetchLastPricesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public TradingFees fetchTradingFees(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTradingFees(params));
-        return new TradingFees(res);
+        return Helpers.joinTyped(super.fetchTradingFees(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<TradingFees> fetchTradingFeesAsync(Map<String, Object> params) {
-        return super.fetchTradingFees(params).thenApply(TradingFees::new);
+        return super.fetchTradingFees(params);
     }
 
     @SuppressWarnings("unchecked")
     public Currencies fetchConvertCurrencies(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchConvertCurrencies(params));
-        return new Currencies(res);
+        return Helpers.joinTyped(super.fetchConvertCurrencies(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Currencies> fetchConvertCurrenciesAsync(Map<String, Object> params) {
-        return super.fetchConvertCurrencies(params).thenApply(Currencies::new);
+        return super.fetchConvertCurrencies(params);
     }
 
     @SuppressWarnings("unchecked")
@@ -1041,14 +1021,13 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public PredictionOrderBook fetchOrderBook(String symbol, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderBook(symbol, limit, params));
-        return new PredictionOrderBook(res);
+        return Helpers.joinTyped(super.fetchOrderBook(symbol, limit, params));
     }
     public PredictionOrderBook fetchOrderBook(String symbol) { return fetchOrderBook(symbol, (Long) null, (Map<String, Object>) null); }
     public PredictionOrderBook fetchOrderBook(String symbol, Long limit) { return fetchOrderBook(symbol, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol, Long limit, Map<String, Object> params) {
-        return super.fetchOrderBook(symbol, limit, params).thenApply(PredictionOrderBook::new);
+        return super.fetchOrderBook(symbol, limit, params);
     }
     public CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol) { return fetchOrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol, Long limit) { return fetchOrderBookAsync(symbol, limit, (Map<String, Object>) null); }
@@ -1066,15 +1045,14 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.editOrder(id, symbol, type, side, amount, price, params));
-        return new PredictionOrder(res);
+        return Helpers.joinTyped(super.editOrder(id, symbol, type, side, amount, price, params));
     }
     public PredictionOrder editOrder(String id, String symbol, String type, String side) { return editOrder(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
     public PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount) { return editOrder(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     public PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price) { return editOrder(id, symbol, type, side, amount, price, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.editOrder(id, symbol, type, side, amount, price, params).thenApply(PredictionOrder::new);
+        return super.editOrder(id, symbol, type, side, amount, price, params);
     }
     public CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side) { return editOrderAsync(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount) { return editOrderAsync(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
@@ -1093,14 +1071,13 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public List<PredictionPosition> fetchPositions(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositions(symbols, params));
-        return toTypedList(res, PredictionPosition::new);
+        return Helpers.joinTyped(super.fetchPositions(symbols, params));
     }
     public List<PredictionPosition> fetchPositions() { return fetchPositions((List<String>) null, (Map<String, Object>) null); }
     public List<PredictionPosition> fetchPositions(List<String> symbols) { return fetchPositions(symbols, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<PredictionPosition>> fetchPositionsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchPositions(symbols, params).thenApply(res -> toTypedList(res, PredictionPosition::new));
+        return super.fetchPositions(symbols, params);
     }
     public CompletableFuture<List<PredictionPosition>> fetchPositionsAsync() { return fetchPositionsAsync((List<String>) null, (Map<String, Object>) null); }
     public CompletableFuture<List<PredictionPosition>> fetchPositionsAsync(List<String> symbols) { return fetchPositionsAsync(symbols, (Map<String, Object>) null); }
@@ -1120,14 +1097,13 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public PredictionTickers fetchTickers(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTickers(symbols, params));
-        return new PredictionTickers(res);
+        return Helpers.joinTyped(super.fetchTickers(symbols, params));
     }
     public PredictionTickers fetchTickers() { return fetchTickers((List<String>) null, (Map<String, Object>) null); }
     public PredictionTickers fetchTickers(List<String> symbols) { return fetchTickers(symbols, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionTickers> fetchTickersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchTickers(symbols, params).thenApply(PredictionTickers::new);
+        return super.fetchTickers(symbols, params);
     }
     public CompletableFuture<PredictionTickers> fetchTickersAsync() { return fetchTickersAsync((List<String>) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionTickers> fetchTickersAsync(List<String> symbols) { return fetchTickersAsync(symbols, (Map<String, Object>) null); }
@@ -1136,65 +1112,60 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public PredictionOrder fetchOrder(String id, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrder(id, symbol, params));
-        return new PredictionOrder(res);
+        return Helpers.joinTyped(super.fetchOrder(id, symbol, params));
     }
     public PredictionOrder fetchOrder(String id) { return fetchOrder(id, (String) null, (Map<String, Object>) null); }
     public PredictionOrder fetchOrder(String id, String symbol) { return fetchOrder(id, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> fetchOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.fetchOrder(id, symbol, params).thenApply(PredictionOrder::new);
+        return super.fetchOrder(id, symbol, params);
     }
     public CompletableFuture<PredictionOrder> fetchOrderAsync(String id) { return fetchOrderAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> fetchOrderAsync(String id, String symbol) { return fetchOrderAsync(id, symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createOrder(symbol, type, side, amount, price, params));
-        return new PredictionOrder(res);
+        return Helpers.joinTyped(super.createOrder(symbol, type, side, amount, price, params));
     }
     public PredictionOrder createOrder(String symbol, String type, String side, Double amount) { return createOrder(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     public PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price) { return createOrder(symbol, type, side, amount, price, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.createOrder(symbol, type, side, amount, price, params).thenApply(PredictionOrder::new);
+        return super.createOrder(symbol, type, side, amount, price, params);
     }
     public CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount) { return createOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketOrderWithCost(symbol, side, cost, params));
-        return new PredictionOrder(res);
+        return Helpers.joinTyped(super.createMarketOrderWithCost(symbol, side, cost, params));
     }
     public PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost) { return createMarketOrderWithCost(symbol, side, cost, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost, Map<String, Object> params) {
-        return super.createMarketOrderWithCost(symbol, side, cost, params).thenApply(PredictionOrder::new);
+        return super.createMarketOrderWithCost(symbol, side, cost, params);
     }
     public CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost) { return createMarketOrderWithCostAsync(symbol, side, cost, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketBuyOrderWithCost(symbol, cost, params));
-        return new PredictionOrder(res);
+        return Helpers.joinTyped(super.createMarketBuyOrderWithCost(symbol, cost, params));
     }
     public PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost) { return createMarketBuyOrderWithCost(symbol, cost, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCostAsync(String symbol, Double cost, Map<String, Object> params) {
-        return super.createMarketBuyOrderWithCost(symbol, cost, params).thenApply(PredictionOrder::new);
+        return super.createMarketBuyOrderWithCost(symbol, cost, params);
     }
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCostAsync(String symbol, Double cost) { return createMarketBuyOrderWithCostAsync(symbol, cost, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketSellOrderWithCost(symbol, cost, params));
-        return new PredictionOrder(res);
+        return Helpers.joinTyped(super.createMarketSellOrderWithCost(symbol, cost, params));
     }
     public PredictionOrder createMarketSellOrderWithCost(String symbol, Double cost) { return createMarketSellOrderWithCost(symbol, cost, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createMarketSellOrderWithCostAsync(String symbol, Double cost, Map<String, Object> params) {
-        return super.createMarketSellOrderWithCost(symbol, cost, params).thenApply(PredictionOrder::new);
+        return super.createMarketSellOrderWithCost(symbol, cost, params);
     }
     public CompletableFuture<PredictionOrder> createMarketSellOrderWithCostAsync(String symbol, Double cost) { return createMarketSellOrderWithCostAsync(symbol, cost, (Map<String, Object>) null); }
 
@@ -1211,28 +1182,26 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public PredictionOrder cancelOrder(String id, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelOrder(id, symbol, params));
-        return new PredictionOrder(res);
+        return Helpers.joinTyped(super.cancelOrder(id, symbol, params));
     }
     public PredictionOrder cancelOrder(String id) { return cancelOrder(id, (String) null, (Map<String, Object>) null); }
     public PredictionOrder cancelOrder(String id, String symbol) { return cancelOrder(id, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.cancelOrder(id, symbol, params).thenApply(PredictionOrder::new);
+        return super.cancelOrder(id, symbol, params);
     }
     public CompletableFuture<PredictionOrder> cancelOrderAsync(String id) { return cancelOrderAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol) { return cancelOrderAsync(id, symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<PredictionOrder> cancelOrders(List<String> ids, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelOrders(ids, symbol, params));
-        return toTypedList(res, PredictionOrder::new);
+        return Helpers.joinTyped(super.cancelOrders(ids, symbol, params));
     }
     public List<PredictionOrder> cancelOrders(List<String> ids) { return cancelOrders(ids, (String) null, (Map<String, Object>) null); }
     public List<PredictionOrder> cancelOrders(List<String> ids, String symbol) { return cancelOrders(ids, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<PredictionOrder>> cancelOrdersAsync(List<String> ids, String symbol, Map<String, Object> params) {
-        return super.cancelOrders(ids, symbol, params).thenApply(res -> toTypedList(res, PredictionOrder::new));
+        return super.cancelOrders(ids, symbol, params);
     }
     public CompletableFuture<List<PredictionOrder>> cancelOrdersAsync(List<String> ids) { return cancelOrdersAsync(ids, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<List<PredictionOrder>> cancelOrdersAsync(List<String> ids, String symbol) { return cancelOrdersAsync(ids, symbol, (Map<String, Object>) null); }
@@ -1251,8 +1220,7 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public List<PredictionOrder> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrders(symbol, since, limit, params));
-        return toTypedList(res, PredictionOrder::new);
+        return Helpers.joinTyped(super.fetchOrders(symbol, since, limit, params));
     }
     public List<PredictionOrder> fetchOrders() { return fetchOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<PredictionOrder> fetchOrders(String symbol) { return fetchOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -1260,7 +1228,7 @@ public class Opinion extends OpinionCore {
     public List<PredictionOrder> fetchOrders(String symbol, Long since, Long limit) { return fetchOrders(symbol, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<PredictionOrder>> fetchOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, PredictionOrder::new));
+        return super.fetchOrders(symbol, since, limit, params);
     }
     public CompletableFuture<List<PredictionOrder>> fetchOrdersAsync() { return fetchOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<PredictionOrder>> fetchOrdersAsync(String symbol) { return fetchOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -1286,8 +1254,7 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public List<PredictionOrder> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOpenOrders(symbol, since, limit, params));
-        return toTypedList(res, PredictionOrder::new);
+        return Helpers.joinTyped(super.fetchOpenOrders(symbol, since, limit, params));
     }
     public List<PredictionOrder> fetchOpenOrders() { return fetchOpenOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<PredictionOrder> fetchOpenOrders(String symbol) { return fetchOpenOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -1295,7 +1262,7 @@ public class Opinion extends OpinionCore {
     public List<PredictionOrder> fetchOpenOrders(String symbol, Long since, Long limit) { return fetchOpenOrders(symbol, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchOpenOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, PredictionOrder::new));
+        return super.fetchOpenOrders(symbol, since, limit, params);
     }
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrdersAsync() { return fetchOpenOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrdersAsync(String symbol) { return fetchOpenOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -1304,8 +1271,7 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public List<PredictionOrder> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchClosedOrders(symbol, since, limit, params));
-        return toTypedList(res, PredictionOrder::new);
+        return Helpers.joinTyped(super.fetchClosedOrders(symbol, since, limit, params));
     }
     public List<PredictionOrder> fetchClosedOrders() { return fetchClosedOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<PredictionOrder> fetchClosedOrders(String symbol) { return fetchClosedOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -1313,7 +1279,7 @@ public class Opinion extends OpinionCore {
     public List<PredictionOrder> fetchClosedOrders(String symbol, Long since, Long limit) { return fetchClosedOrders(symbol, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchClosedOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, PredictionOrder::new));
+        return super.fetchClosedOrders(symbol, since, limit, params);
     }
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrdersAsync() { return fetchClosedOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrdersAsync(String symbol) { return fetchClosedOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -1322,8 +1288,7 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public List<PredictionOrder> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchCanceledOrders(symbol, since, limit, params));
-        return toTypedList(res, PredictionOrder::new);
+        return Helpers.joinTyped(super.fetchCanceledOrders(symbol, since, limit, params));
     }
     public List<PredictionOrder> fetchCanceledOrders() { return fetchCanceledOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public List<PredictionOrder> fetchCanceledOrders(String symbol) { return fetchCanceledOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -1331,7 +1296,7 @@ public class Opinion extends OpinionCore {
     public List<PredictionOrder> fetchCanceledOrders(String symbol, Long since, Long limit) { return fetchCanceledOrders(symbol, since, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<PredictionOrder>> fetchCanceledOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchCanceledOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, PredictionOrder::new));
+        return super.fetchCanceledOrders(symbol, since, limit, params);
     }
     public CompletableFuture<List<PredictionOrder>> fetchCanceledOrdersAsync() { return fetchCanceledOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<PredictionOrder>> fetchCanceledOrdersAsync(String symbol) { return fetchCanceledOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
@@ -1368,23 +1333,21 @@ public class Opinion extends OpinionCore {
 
     @SuppressWarnings("unchecked")
     public List<PredictionEvent> fetchEvents(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchEvents(params));
-        return toTypedList(res, PredictionEvent::new);
+        return Helpers.joinTyped(super.fetchEvents(params));
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<PredictionEvent>> fetchEventsAsync(Map<String, Object> params) {
-        return super.fetchEvents(params).thenApply(res -> toTypedList(res, PredictionEvent::new));
+        return super.fetchEvents(params);
     }
 
     @SuppressWarnings("unchecked")
     public PredictionEvent fetchEvent(String id, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchEvent(id, params));
-        return new PredictionEvent(res);
+        return Helpers.joinTyped(super.fetchEvent(id, params));
     }
     public PredictionEvent fetchEvent(String id) { return fetchEvent(id, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionEvent> fetchEventAsync(String id, Map<String, Object> params) {
-        return super.fetchEvent(id, params).thenApply(PredictionEvent::new);
+        return super.fetchEvent(id, params);
     }
     public CompletableFuture<PredictionEvent> fetchEventAsync(String id) { return fetchEventAsync(id, (Map<String, Object>) null); }
 

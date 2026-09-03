@@ -406,7 +406,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList(defaultPortfolio, parameters));
             }
-            Object accounts = (this.fetchAccountsAsync()).join();
+            Object accounts = io.github.ccxt.TypedCores.fromAccountList((this.fetchAccountsAsync()).join());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);
@@ -1887,7 +1887,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1915,7 +1915,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 Helpers.addElementToObject(tickers, symbol, this.parseTicker(quote, this.safeMarket(marketId)));
             }
             return this.filterByArray(tickers, "symbol", symbols, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2004,7 +2004,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2041,7 +2041,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             //    ]
             //
             return this.parseBalance(balances);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 

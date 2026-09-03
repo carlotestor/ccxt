@@ -1170,7 +1170,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object parameters = new java.util.HashMap<String, Object>() {{
                 put( "type", "swap" );
             }};
-            Object response = (this.fetchBalance((Object)(parameters))).join();
+            Object response = io.github.ccxt.TypedCores.fromBalances((this.fetchBalance((Object)(parameters))).join());
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);

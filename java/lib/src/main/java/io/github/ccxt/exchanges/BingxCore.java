@@ -2068,7 +2068,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2185,7 +2185,7 @@ public class BingxCore extends BingxApi
             Object result = this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
             Helpers.addElementToObject(result, "nonce", nonce);
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2262,7 +2262,7 @@ public class BingxCore extends BingxApi
      * @param {string} [params.subType] "linear" or "inverse" (default is linear)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2289,7 +2289,7 @@ public class BingxCore extends BingxApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -2737,7 +2737,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2811,7 +2811,7 @@ public class BingxCore extends BingxApi
             //
             Object tickers = this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2870,7 +2870,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2934,7 +2934,7 @@ public class BingxCore extends BingxApi
             //
             Object tickers = this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3060,7 +3060,7 @@ public class BingxCore extends BingxApi
      * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3102,7 +3102,7 @@ public class BingxCore extends BingxApi
                 }
             }
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -6243,7 +6243,7 @@ public class BingxCore extends BingxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", 1 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromMarginModification((this.setMargin(symbol, amount, this.extend(request, parameters))).join());
         });
 
     }
@@ -6257,7 +6257,7 @@ public class BingxCore extends BingxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", 2 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return io.github.ccxt.TypedCores.fromMarginModification((this.setMargin(symbol, amount, this.extend(request, parameters))).join());
         });
 
     }
@@ -6616,7 +6616,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6640,7 +6640,7 @@ public class BingxCore extends BingxApi
                 }
             }
             return depositWithdrawFees;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 

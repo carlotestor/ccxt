@@ -1080,7 +1080,7 @@ public class BullishCore extends BullishApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1117,7 +1117,7 @@ public class BullishCore extends BullishApi
             //
             Object timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1573,13 +1573,13 @@ public class BullishCore extends BullishApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(method, "fetchOHLCV")))
                     {
-                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, parameters)).join();
+                        return io.github.ccxt.TypedCores.fromOHLCVList((this.fetchOHLCV(((String)symbol), timeframe, since, limit, parameters)).join());
                     } else if (Helpers.isTrue(Helpers.isEqual(method, "fetchFundingRateHistory")))
                     {
-                        return (this.fetchFundingRateHistory(symbol, since, limit, parameters)).join();
+                        return io.github.ccxt.TypedCores.fromFundingRateHistoryList((this.fetchFundingRateHistory(symbol, since, limit, parameters)).join());
                     } else
                     {
-                        return (this.fetchTrades(((String)symbol), since, limit, parameters)).join();
+                        return io.github.ccxt.TypedCores.fromTradeList((this.fetchTrades(((String)symbol), since, limit, parameters)).join());
                     }
                 } catch(Exception e)
                 {
@@ -2974,7 +2974,7 @@ public class BullishCore extends BullishApi
      * @param {string} [params.code] unified currency code, default is undefined
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3013,7 +3013,7 @@ public class BullishCore extends BullishApi
                 //
                 return this.parseBalance(response);
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 

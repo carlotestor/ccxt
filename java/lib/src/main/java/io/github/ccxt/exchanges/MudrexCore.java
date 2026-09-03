@@ -526,7 +526,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -559,7 +559,7 @@ public class MudrexCore extends MudrexApi
                 Helpers.addElementToObject(resultTickers, symbol, this.parseTicker(t, m));
             }
             return this.filterByArrayTickers(resultTickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -750,7 +750,7 @@ public class MudrexCore extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency to query the balance for
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -794,7 +794,7 @@ public class MudrexCore extends MudrexApi
             }
             Helpers.addElementToObject(response, "currency", currency);
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 

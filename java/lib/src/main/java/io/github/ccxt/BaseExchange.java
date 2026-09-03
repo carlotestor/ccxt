@@ -3846,7 +3846,7 @@ public class BaseExchange {
     // fetchTickers/fetchPositions) now live in Exchange.java, since BaseExchange no
     // longer declares those methods. The *Ws variants below stay because their target
     // methods (fetchOrdersWs, ...) remain on BaseExchange.
-    public java.util.concurrent.CompletableFuture<Object> fetchBalanceAsync(Object... args) { return fetchBalance(args); }
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalanceAsync(Object... args) { return fetchBalance(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchTimeAsync(Object... args) { return fetchTime(args); }
     public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Status> fetchStatusAsync(Object... args) { return fetchStatus(args); }
     public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Account>> fetchAccountsAsync(Object... args) { return fetchAccounts(args); }
@@ -5123,7 +5123,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarginModes"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarginModes"), false))))
             {
-                Object marginModes = (this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object marginModes = io.github.ccxt.TypedCores.fromMarginModes((this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 return this.safeDict(marginModes, symbol);
             } else
             {
@@ -5133,7 +5133,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5141,7 +5141,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchMarginModes () is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toMarginModes);
 
     }
 
@@ -5267,25 +5267,25 @@ public Object describe()
         throw new NotSupported((String)Helpers.add(this.id, " parseOrder() is not supported yet")) ;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.CrossBorrowRates> fetchCrossBorrowRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchCrossBorrowRates() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toCrossBorrowRates);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.IsolatedBorrowRates> fetchIsolatedBorrowRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchIsolatedBorrowRates() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toIsolatedBorrowRates);
 
     }
 
@@ -5295,7 +5295,7 @@ public Object describe()
         throw new NotSupported((String)Helpers.add(this.id, " parseMarketLeverageTiers() is not supported yet")) ;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5303,7 +5303,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchLeverageTiers() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -5355,7 +5355,7 @@ public Object describe()
         return this.parseOHLCV(ohlcv, market);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5363,11 +5363,11 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRates() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingIntervals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingIntervals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5375,7 +5375,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchFundingIntervals() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -5479,7 +5479,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchLeverages"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchLeverages"), false))))
             {
-                Object leverages = (this.fetchLeverages(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object leverages = io.github.ccxt.TypedCores.fromLeverages((this.fetchLeverages(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 return this.safeDict(leverages, symbol);
             } else
             {
@@ -5489,7 +5489,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5497,7 +5497,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchLeverages() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverages);
 
     }
 
@@ -5625,7 +5625,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5633,7 +5633,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterests() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterests);
 
     }
 
@@ -9250,14 +9250,14 @@ public Object describe()
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -9288,48 +9288,48 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPartialBalance(Object part, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balance> fetchPartialBalance(Object part, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object balance = (this.fetchBalance(parameters)).join();
+            Object balance = io.github.ccxt.TypedCores.fromBalances((this.fetchBalance(parameters)).join());
             return Helpers.GetValue(balance, part);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalance);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFreeBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balance> fetchFreeBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("free", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalance);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchUsedBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balance> fetchUsedBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("used", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalance);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTotalBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balance> fetchTotalBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("total", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalance);
 
     }
 
@@ -9371,7 +9371,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9379,11 +9379,11 @@ public Object describe()
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchDepositWithdrawFees() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFee> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9393,9 +9393,9 @@ public Object describe()
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchDepositWithdrawFee() is not supported yet")) ;
             }
-            Object fees = (this.fetchDepositWithdrawFees(new java.util.ArrayList<Object>(java.util.Arrays.asList(code)), parameters)).join();
+            Object fees = io.github.ccxt.TypedCores.fromDepositWithdrawFees((this.fetchDepositWithdrawFees(new java.util.ArrayList<Object>(java.util.Arrays.asList(code)), parameters)).join());
             return this.safeValue(fees, code);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFee);
 
     }
 
@@ -9422,7 +9422,7 @@ public Object describe()
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchCrossBorrowRate() is not supported yet")) ;
             }
-            Object borrowRates = (this.fetchCrossBorrowRates(parameters)).join();
+            Object borrowRates = io.github.ccxt.TypedCores.fromCrossBorrowRates((this.fetchCrossBorrowRates(parameters)).join());
             Object rate = this.safeValue(borrowRates, code);
             if (Helpers.isTrue(Helpers.isEqual(rate, null)))
             {
@@ -9444,7 +9444,7 @@ public Object describe()
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchIsolatedBorrowRate() is not supported yet")) ;
             }
-            Object borrowRates = (this.fetchIsolatedBorrowRates(parameters)).join();
+            Object borrowRates = io.github.ccxt.TypedCores.fromIsolatedBorrowRates((this.fetchIsolatedBorrowRates(parameters)).join());
             Object rate = this.safeDict(borrowRates, symbol);
             if (Helpers.isTrue(Helpers.isEqual(rate, null)))
             {
@@ -9715,7 +9715,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBooks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBooks> fetchOrderBooks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9724,7 +9724,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchOrderBooks() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBooks);
 
     }
 
@@ -10073,14 +10073,14 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OptionChain> fetchOptionChain(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchOptionChain() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOptionChain);
 
     }
 
@@ -10612,7 +10612,7 @@ public Object describe()
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
                 }
-                Object tiers = (this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
+                Object tiers = io.github.ccxt.TypedCores.fromLeverageTiers((this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join());
                 return this.safeValue(tiers, symbol);
             } else
             {
@@ -11075,7 +11075,7 @@ public Object describe()
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(false, parameters));
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11083,18 +11083,18 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchLastPrices() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLastPrices);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFees() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -11109,14 +11109,14 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertCurrencies(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Currencies> fetchConvertCurrencies(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchConvertCurrencies() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toCurrencies);
 
     }
 
@@ -11174,7 +11174,7 @@ public Object describe()
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports contract markets only")) ;
                 }
-                Object rates = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object rates = io.github.ccxt.TypedCores.fromFundingRates((this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 Object rate = this.safeValue(rates, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(rate, null)))
                 {
@@ -11206,7 +11206,7 @@ public Object describe()
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingInterval() supports contract markets only")) ;
                 }
-                Object rates = (this.fetchFundingIntervals(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object rates = io.github.ccxt.TypedCores.fromFundingRates((this.fetchFundingIntervals(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 Object rate = this.safeValue(rates, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(rate, null)))
                 {

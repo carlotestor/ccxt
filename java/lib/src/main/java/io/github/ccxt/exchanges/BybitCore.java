@@ -3543,7 +3543,7 @@ public class BybitCore extends BybitApi
      * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3656,7 +3656,7 @@ public class BybitCore extends BybitApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object tickerList = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickerList, parsedSymbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3671,7 +3671,7 @@ public class BybitCore extends BybitApi
      * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3679,7 +3679,7 @@ public class BybitCore extends BybitApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchTickers(symbols, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3930,7 +3930,7 @@ public class BybitCore extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4013,7 +4013,7 @@ public class BybitCore extends BybitApi
                 Helpers.addElementToObject(Helpers.GetValue(tickerList, i), "timestamp", timestamp); // will be removed inside the parser
             }
             return this.parseFundingRates(tickerList, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -4488,7 +4488,7 @@ public class BybitCore extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4559,7 +4559,7 @@ public class BybitCore extends BybitApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(result, "ts");
             return this.parseOrderBook(result, symbol, timestamp, "b", "a");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -4759,7 +4759,7 @@ public class BybitCore extends BybitApi
      * @param {string} [params.type] wallet type, ['spot', 'swap', 'funding']
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4940,7 +4940,7 @@ public class BybitCore extends BybitApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -10040,7 +10040,7 @@ public class BybitCore extends BybitApi
      * @param {string} [params.type] market type, ['swap', 'option', 'spot']
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10089,7 +10089,7 @@ public class BybitCore extends BybitApi
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFees);
 
     }
 
@@ -10170,7 +10170,7 @@ public class BybitCore extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10216,7 +10216,7 @@ public class BybitCore extends BybitApi
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(rows, codes, "coin");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toDepositWithdrawFees);
 
     }
 
@@ -10952,7 +10952,7 @@ public class BybitCore extends BybitApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10980,7 +10980,7 @@ public class BybitCore extends BybitApi
             }}, parameters))).join();
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverageTiers);
 
     }
 
@@ -11279,7 +11279,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OptionChain> fetchOptionChain(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11338,7 +11338,7 @@ final Object finalMarket = market;
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object resultList = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOptionChain(resultList, null, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOptionChain);
 
     }
 
@@ -11517,7 +11517,7 @@ final Object finalMarket = market;
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertCurrencies(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Currencies> fetchConvertCurrencies(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11619,7 +11619,7 @@ final Object finalMarket = market;
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toCurrencies);
 
     }
 

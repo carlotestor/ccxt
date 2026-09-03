@@ -442,7 +442,7 @@ final Object finalTokenId = tokenId;
      * @param {int} [params.limit] max number of events to fetch (paginated server-side; defaults to options.maxFetchEventsResults, 100)
      * @returns {object[]} an array of event structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvents(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -546,7 +546,7 @@ final Object finalTokenId = tokenId;
             }
             this.populateOutcomes();
             return this.applyEventFetchParams(parsedEvents, parameters, queries);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionEventList);
 
     }
 
@@ -559,7 +559,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionEvent> fetchEvent(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -583,7 +583,7 @@ final Object finalTokenId = tokenId;
             Object eventVar = this.parseEvent(data);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionEvent);
 
     }
 
@@ -834,7 +834,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -879,7 +879,7 @@ final Object finalTokenId = tokenId;
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionTickers);
 
     }
 
@@ -893,7 +893,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -925,7 +925,7 @@ final Object finalTokenId = tokenId;
             Object timestamp = this.safeInteger(result, "timestamp");
             Object orderbook = this.parseOrderBook(result, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderBook);
 
     }
 
@@ -1207,7 +1207,7 @@ final Object finalTokenId = tokenId;
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> createOrder(Object outcome, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1304,7 +1304,7 @@ final Object finalTokenId = tokenId;
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object orderData = this.safeDict(result, "orderData", new java.util.HashMap<String, Object>() {{}});
             return this.parsePredictionOrder(orderData, ((Object)outcomeObj));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -1318,7 +1318,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1341,7 +1341,7 @@ final Object finalTokenId = tokenId;
                 put( "status", status );
                 put( "info", response );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -1438,7 +1438,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1460,7 +1460,7 @@ final Object finalTokenId = tokenId;
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -1474,7 +1474,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1493,7 +1493,7 @@ final Object finalTokenId = tokenId;
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object orderData = this.safeDict(result, "orderData", new java.util.HashMap<String, Object>() {{}});
             return this.parsePredictionOrder(orderData, outcomeObj);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrder);
 
     }
 
@@ -1508,7 +1508,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1522,7 +1522,7 @@ final Object finalTokenId = tokenId;
                 put( "status", "1" );
             }};
             return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -1537,7 +1537,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1551,7 +1551,7 @@ final Object finalTokenId = tokenId;
                 put( "status", "2,3,4,5" );
             }};
             return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionOrderList);
 
     }
 
@@ -1704,7 +1704,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1726,7 +1726,7 @@ final Object finalTokenId = tokenId;
                 Helpers.addElementToObject(rawBalance, "symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -1768,7 +1768,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1821,7 +1821,7 @@ final Object finalTokenId = tokenId;
                 }
             }
             return filtered;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPredictionPositionList);
 
     }
 
@@ -2208,7 +2208,7 @@ final Object finalTokenId = tokenId;
 
             // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object snapshot = (this.fetchOrderBook(outcome, limit)).join();
+            Object snapshot = io.github.ccxt.TypedCores.fromPredictionOrderBook((this.fetchOrderBook(outcome, limit)).join());
             Object orderbook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);

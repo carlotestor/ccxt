@@ -1275,7 +1275,7 @@ public class WeexCore extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1356,7 +1356,7 @@ public class WeexCore extends WeexApi
                 response = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
             }
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1371,7 +1371,7 @@ public class WeexCore extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1410,7 +1410,7 @@ public class WeexCore extends WeexApi
                 ((java.util.List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
             }
             return this.filterByArrayTickers(results, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1524,7 +1524,7 @@ public class WeexCore extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprice structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1555,7 +1555,7 @@ public class WeexCore extends WeexApi
             //     ]
             //
             return this.parseLastPrices(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLastPrices);
 
     }
 
@@ -1646,7 +1646,7 @@ public class WeexCore extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1675,7 +1675,7 @@ public class WeexCore extends WeexApi
             //     ]
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1690,7 +1690,7 @@ public class WeexCore extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1737,7 +1737,7 @@ public class WeexCore extends WeexApi
             Object orderbook = this.parseOrderBook(response, symbol);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2191,7 +2191,7 @@ public class WeexCore extends WeexApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2231,7 +2231,7 @@ public class WeexCore extends WeexApi
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -2356,7 +2356,7 @@ public class WeexCore extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2428,7 +2428,7 @@ public class WeexCore extends WeexApi
                 }
             }
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -4752,7 +4752,7 @@ public class WeexCore extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4766,7 +4766,7 @@ public class WeexCore extends WeexApi
             symbols = this.marketSymbols(symbols);
             Object response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toMarginModes);
 
     }
 
@@ -4879,7 +4879,7 @@ public class WeexCore extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4893,7 +4893,7 @@ public class WeexCore extends WeexApi
             symbols = this.marketSymbols(symbols);
             Object response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseLeverages(this.toArray(response), symbols, "symbol", "swap");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverages);
 
     }
 

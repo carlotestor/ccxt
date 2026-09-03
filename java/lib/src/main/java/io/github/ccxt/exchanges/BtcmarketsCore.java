@@ -786,7 +786,7 @@ public class BtcmarketsCore extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -798,7 +798,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             }
             Object response = (this.privateGetAccountsMeBalances(parameters)).join();
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -879,7 +879,7 @@ public class BtcmarketsCore extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -915,7 +915,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "snapshotId"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 

@@ -1823,7 +1823,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1873,7 +1873,7 @@ public class AsterCore extends AsterApi
             //
             Object timestamp = this.safeInteger(response, "T");
             return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2045,7 +2045,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2099,7 +2099,7 @@ public class AsterCore extends AsterApi
             //     ]
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2114,7 +2114,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of lastprices structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2166,7 +2166,7 @@ public class AsterCore extends AsterApi
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArray(results, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLastPrices);
 
     }
 
@@ -2204,7 +2204,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2244,7 +2244,7 @@ public class AsterCore extends AsterApi
             //        }, ...
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2362,7 +2362,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2390,7 +2390,7 @@ public class AsterCore extends AsterApi
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -2403,7 +2403,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingIntervals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingIntervals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2432,7 +2432,7 @@ public class AsterCore extends AsterApi
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toFundingRates);
 
     }
 
@@ -2525,7 +2525,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2547,7 +2547,7 @@ public class AsterCore extends AsterApi
                 data = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseBalance(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toBalances);
 
     }
 
@@ -3776,7 +3776,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3807,7 +3807,7 @@ public class AsterCore extends AsterApi
             //     ]
             //
             return this.parseLeverages(this.toArray(response), symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toLeverages);
 
     }
 
@@ -3870,7 +3870,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3903,7 +3903,7 @@ public class AsterCore extends AsterApi
             //
             //
             return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toMarginModes);
 
     }
 
