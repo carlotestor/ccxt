@@ -1,30 +1,38 @@
-// SHARED CONTRACT for the Java typed-cores work (ccxt/ccxt#30066 Java analogue).
-// Written by the orchestrator. Both implementation slices code against THIS file.
+// Closed allowlist for the Java typed cores (ccxt/ccxt#30066 Java analogue).
 //
-// Java analogue of build/csharpTranspiler.ts TYPED_CORES / PREDICTION_TYPED_CORES.
+// THIS TABLE IS DERIVED. Do not hand-edit it:
 //
-// A name may appear here only if ALL hold (closed set, iterate to fixed point):
+//     python3 build/javaTypedCoresClosedSet.py            # report the fixed point
+//     python3 build/javaTypedCoresClosedSet.py --write    # rewrite TYPED_CORES / PREDICTION_TYPED_CORES
+//     python3 build/javaTypedCoresClosedSet.py --check    # CI: non-zero if the tables drifted
+//
+// A name is typed on a tier only if ALL hold (each rule is measured from the
+// generated java/lib tree; the tiers are coupled by rule 4, so the script
+// iterates until it drops 0 names):
 //  1. every wrapper that converts it does so via `new T(res)` / toTypedList(res, T::new)
-//     (NOT a bare cast) -- a cast-only wrapper must never be typed;
-//  2. the family T has a mechanically invertible `T(Object raw)` constructor
-//     (see build/generateJavaTypedCoreHelpers.py -- it PARSES the constructors);
-//  3. every declaration of the name across base + all exchanges agrees on T
-//     (Java generics are invariant: CompletableFuture<Ticker> is NOT a
-//      CompletableFuture<Object>, so this is all-or-nothing per name, exactly
-//      like C# CS0508);
-//  4. any intra-core call site that is not a tail `return this.X(...)` is
-//     wrapped by the reverse helper, so a typed value never lands in an
-//     untyped Object local.
+//     with ONE family T (a bare cast, or two families, excludes the name);
+//  2. T is invertible: build/generateJavaTypedCoreHelpers.py --capabilities lists it.
+//     Every generated type retains `public final Object __raw`, so from* hands back
+//     the exact payload (dictionary containers such as Tickers / Balances / OrderBook
+//     included -- a lossy field-set rebuild is NOT an inverse);
+//  3. every declaration of the name on the tier is in the transpiled
+//     `CompletableFuture<..> name(..) { return supplyAsync(..); }` shape that
+//     build/typeJavaCores.py can retype. BaseExchange.fetchMarkets / fetchCurrencies
+//     are hand-written and therefore excluded (Java generics are invariant, exactly
+//     like C# CS0508, so one untypeable declaration excludes the whole name);
+//  4. a name declared on the shared BaseExchange is inherited by BOTH Exchange and
+//     PredictionExchange and must resolve to the same family on both tiers
+//     (fetchSpotTickers: Tickers vs PredictionTickers -> typed on neither);
+//  5. no hand-written code above the TRANSPILED marker consumes the value
+//     (loadMarkets -> setMarkets expects raw maps);
+//  6. policy: watch* (live cache identity), parse* (inputs to further transpiled
+//     logic), *Ws, and the runtime-shape opt-outs listed in the script
+//     (fetchDepositAddressesByNetwork / fetchDepositAddress / fetchAllGreeks declare
+//     List<T> but return dicts; prediction cancelAllOrders on myriad returns
+//     {cancelled_count, market_ids_affected}).
 //
-// Deliberately EXCLUDED (mirrors #30066, reasons are language-independent):
-//  - watch*  : the core hands back the live cache instance whose identity matters.
-//  - parse*  : results are inputs to further transpiled logic, not terminal.
-//  - non-invertible dictionary-like containers: Tickers, Balances, Currencies,
-//    FundingRates, TradingFees, LeverageTiers, OptionChain, MarginModes,
-//    Leverages, OpenInterests, CrossBorrowRates, IsolatedBorrowRates,
-//    DepositWithdrawFees, LastPrices, MarketInterface, OrderBook, OrderBooks.
-//    Their constructors splat into Map<String,T> and cannot be inverted, so a
-//    consuming call site would read null silently.
+// Every non-tail consumer of a typed core is wrapped in the inverse by
+// build/typeJavaCores.py; build/auditJavaTypedCoreLeaks.py proves there is none left.
 
 export const REVERSIBLE_FAMILIES: string[] = [];   // filled by the helper generator's --capabilities output
 
