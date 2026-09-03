@@ -535,7 +535,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return io.github.ccxt.TypedCores.fromTicker((this.watchTicker(symbol, parameters)).join());
+            return (this.watchTicker(symbol, parameters)).join();
         }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
