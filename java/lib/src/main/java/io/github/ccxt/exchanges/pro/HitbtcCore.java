@@ -847,7 +847,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -874,7 +874,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOHLCVList);
 
     }
 
@@ -977,7 +977,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1011,7 +1011,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 

@@ -591,7 +591,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
      * @param {string[]} [params.codes] market codes to filter orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -627,7 +627,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 

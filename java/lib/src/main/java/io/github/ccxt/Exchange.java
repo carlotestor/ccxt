@@ -1879,7 +1879,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1889,7 +1889,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchOrders() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 

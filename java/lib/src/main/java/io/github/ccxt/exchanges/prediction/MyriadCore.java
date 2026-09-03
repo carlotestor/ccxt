@@ -4429,7 +4429,7 @@ final Object finalNetworkId = networkId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4449,7 +4449,7 @@ final Object finalNetworkId = networkId;
                 ((java.util.List<Object>)result).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(candle, 0), Helpers.GetValue(candle, 1), Helpers.GetValue(candle, 2), Helpers.GetValue(candle, 3), Helpers.GetValue(candle, 4), Helpers.GetValue(candle, 5))));
             }
             return this.filterBySinceLimit(result, since, limit, 0, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOHLCVList);
 
     }
 

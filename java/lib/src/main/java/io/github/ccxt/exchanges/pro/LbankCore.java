@@ -149,7 +149,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -182,7 +182,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOHLCVList);
 
     }
 
@@ -636,7 +636,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -673,7 +673,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 

@@ -142,6 +142,8 @@ export const TYPED_CORES: Record<string, string> = {
     // detype), so build/javaTranspiler.ts wraps their call sites in
     // BaseTest.detypeForComparison on the ws-test path only (detypeWsTypedCoreCalls).
     'watchMyTrades': 'List<Trade>',
+    'watchOHLCV': 'List<OHLCV>',
+    'watchOrders': 'List<Order>',
     'watchTicker': 'Ticker',
     'watchTrades': 'List<Trade>',
 };
@@ -209,6 +211,10 @@ export const PREDICTION_TYPED_CORES: Record<string, string> = {
     'setMargin': 'MarginModification',
     'transfer': 'TransferEntry',
     'withdraw': 'Transaction',
+    // watchOHLCV is declared on the shared crypto BaseExchange and overridden by
+    // MyriadCore (candles built from the trade stream); Java generics are invariant, so
+    // the prediction override must carry the same family as the shared declaration.
+    'watchOHLCV': 'List<OHLCV>',
 };
 
 // ---------------------------------------------------------------------------

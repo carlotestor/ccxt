@@ -442,7 +442,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -477,7 +477,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 

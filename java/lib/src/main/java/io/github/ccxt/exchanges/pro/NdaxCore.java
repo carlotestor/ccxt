@@ -249,7 +249,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -289,7 +289,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOHLCVList);
 
     }
 

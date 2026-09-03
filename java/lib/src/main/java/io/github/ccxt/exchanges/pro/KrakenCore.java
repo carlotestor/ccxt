@@ -968,7 +968,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1001,7 +1001,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, "timestamp", true);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOHLCVList);
 
     }
 
@@ -1566,7 +1566,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @param {object} [params] maximum number of orderic to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1578,7 +1578,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             return (this.watchPrivate("orders", symbol, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "snap_orders", true );
             }}))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
