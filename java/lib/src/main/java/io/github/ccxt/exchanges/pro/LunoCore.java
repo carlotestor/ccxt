@@ -179,7 +179,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -207,7 +207,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             Object request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

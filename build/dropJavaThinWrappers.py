@@ -51,7 +51,20 @@ def load_tables():
         i = s.index('export const ' + name)
         j = s.index('};', i)
         return dict(re.findall(r"'(\w+)':\s*'([^']+)'", s[i:j]))
-    return tbl('TYPED_CORES'), tbl('PREDICTION_TYPED_CORES')
+    return tbl('TYPED_CORES'), tbl('PREDICTION_TYPED_CORES'), snapshot_names()
+
+
+def snapshot_names():
+    """SNAPSHOT_CORES: watch* cores typed to the live ws structure (WsOrderBook) that
+    the core now copies itself. Their public wrapper type (OrderBook) differs from
+    the core type, so the wrapper KEEPS its `new OrderBook(res)` conversion -- the
+    OrderBook(Object) constructor already accepts a WsOrderBook -- and only the
+    `joinUnwrapped(CompletableFuture<Object>)` call, which no longer compiles
+    against the typed future, is swapped for the generic joinTyped."""
+    s = open(TABLE).read()
+    i = s.index('export const SNAPSHOT_CORES')
+    j = s.index('};', i)
+    return re.findall(r"'(\w+)':\s*\{", s[i:j])
 
 
 def base_of(fam):
@@ -95,15 +108,33 @@ def process(path, table, stats):
     return 0
 
 
+def process_snapshot(path, names, stats):
+    s = open(path).read()
+    orig = s
+    for name in names:
+        pat = r'Helpers\.joinUnwrapped\(super\.' + name + r'\('
+        s, n = re.subn(pat, 'Helpers.joinTyped(super.%s(' % name, s)
+        stats['snapshot-join-retyped'] += n
+    if s != orig:
+        open(path, 'w').write(s)
+        return 1
+    return 0
+
+
 def main():
-    tc, pc = load_tables()
-    stats = {'sync-conversion-removed': 0, 'async-conversion-removed': 0}
+    tc, pc, snap = load_tables()
+    stats = {'sync-conversion-removed': 0, 'async-conversion-removed': 0, 'snapshot-join-retyped': 0}
     files = 0
     for p in glob.glob(ROOT + '/exchanges/**/*.java', recursive=True):
         if p.endswith('Core.java'):
             continue
         table = pc if '/prediction/' in p else tc
-        files += process(p, table, stats)
+        touched = process(p, table, stats)
+        if '/prediction/' not in p:
+            # snapshot cores are crypto-tier only (PredictionExchange re-declares
+            # watchOrderBook untyped)
+            touched |= process_snapshot(p, snap, stats)
+        files += touched
     print('rewrote %d wrapper files' % files)
     for k, v in sorted(stats.items()):
         print('  %-26s %d' % (k, v))

@@ -315,7 +315,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -337,7 +337,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), limit, interval));
             Object orderbook = (this.subscribe(name, messageHash, request, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

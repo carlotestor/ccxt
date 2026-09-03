@@ -256,7 +256,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
      * @param {int} [params.speed] 100 (default), 500, or 1000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -283,7 +283,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             }};
             Object orderbook = (this.subscribePublic(name, "orderbooks", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

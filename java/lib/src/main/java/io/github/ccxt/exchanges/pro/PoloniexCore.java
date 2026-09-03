@@ -622,7 +622,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -640,7 +640,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             Object orderbook = (this.subscribe(name, name, false, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

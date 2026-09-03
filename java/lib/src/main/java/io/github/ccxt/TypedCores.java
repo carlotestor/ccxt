@@ -3169,6 +3169,22 @@ public final class TypedCores {
         return out;
     }
 
+    // ---- snapshot cores ----
+
+    /**
+     * Snapshot of a live ws order book. The core hands back the book the WsClient
+     * thread keeps applying deltas to; a caller holding it would see updates it
+     * must not see, so the copy moves onto the core return. Pass-through for
+     * anything that is not a WsOrderBook (a not-supported stub throws before
+     * reaching here; a plain map is handed back unchanged).
+     */
+    public static io.github.ccxt.ws.WsOrderBook toOrderBookSnapshot(Object raw) {
+        if (raw instanceof io.github.ccxt.ws.WsOrderBook book) {
+            return book.copy();
+        }
+        return null;
+    }
+
     // ---- runtime dispatcher ----
 
     /**

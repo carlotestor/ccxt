@@ -282,6 +282,29 @@ def emit(inv, parsed):
     L.append('')
     for name in inv:
         L.extend(emit_family(name, parsed[name]))
+    # ---- snapshot cores (build/javaTypedCores.ts SNAPSHOT_CORES) ----
+    # A watch* order-book core hands back the LIVE ws book that the WsClient thread
+    # keeps mutating. The wrapper used to snapshot it (`new OrderBook(res)` copies the
+    # sides); once the core is typed the snapshot has to live on the core itself.
+    # Java analogue of C#'s BaseExchange.ToOrderBookSnapshot (ccxt/ccxt#30110).
+    # Idempotent by contract: a core whose tail is itself a typed watchOrderBook
+    # override joins an already-copied book, and copying twice is harmless.
+    L.append('    // ---- snapshot cores ----')
+    L.append('')
+    L.append('    /**')
+    L.append('     * Snapshot of a live ws order book. The core hands back the book the WsClient')
+    L.append('     * thread keeps applying deltas to; a caller holding it would see updates it')
+    L.append('     * must not see, so the copy moves onto the core return. Pass-through for')
+    L.append('     * anything that is not a WsOrderBook (a not-supported stub throws before')
+    L.append('     * reaching here; a plain map is handed back unchanged).')
+    L.append('     */')
+    L.append('    public static io.github.ccxt.ws.WsOrderBook toOrderBookSnapshot(Object raw) {')
+    L.append('        if (raw instanceof io.github.ccxt.ws.WsOrderBook book) {')
+    L.append('            return book.copy();')
+    L.append('        }')
+    L.append('        return null;')
+    L.append('    }')
+    L.append('')
     # dispatcher
     L.append('    // ---- runtime dispatcher ----')
     L.append('')

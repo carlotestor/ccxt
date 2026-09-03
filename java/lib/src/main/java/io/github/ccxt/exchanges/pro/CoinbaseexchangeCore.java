@@ -451,7 +451,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -494,7 +494,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object authentication = this.authenticate();
             Object orderbook = (this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 
@@ -507,7 +507,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -540,7 +540,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object authentication = this.authenticate();
             Object orderbook = (this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

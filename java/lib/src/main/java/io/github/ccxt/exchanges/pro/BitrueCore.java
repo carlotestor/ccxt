@@ -363,7 +363,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         }}, market);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -406,7 +406,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             }};
             Object request = this.deepExtend(message, parameters);
             return (this.watch(((String)url), messageHash, request, messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

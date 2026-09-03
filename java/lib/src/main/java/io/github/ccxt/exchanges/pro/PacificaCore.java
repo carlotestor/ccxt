@@ -520,7 +520,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -553,7 +553,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

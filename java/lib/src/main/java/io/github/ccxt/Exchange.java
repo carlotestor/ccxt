@@ -373,7 +373,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -381,7 +381,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 
@@ -1131,7 +1131,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1139,7 +1139,7 @@ public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closeP
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

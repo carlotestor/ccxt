@@ -234,7 +234,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -251,7 +251,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             }
             Object orderbook = (this.watchPublic("book_depth", market, messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 
@@ -286,7 +286,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -317,7 +317,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             }
             Object orderbook = (this.watchPublicMultiple("book_depth", markets, messageHashes, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

@@ -745,7 +745,7 @@ final Object finalTradeId = tradeId;
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -769,7 +769,7 @@ final Object finalTradeId = tradeId;
             Object request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

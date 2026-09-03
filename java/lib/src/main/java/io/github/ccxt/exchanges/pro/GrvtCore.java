@@ -611,7 +611,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -624,7 +624,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             }
             symbol = this.symbol(symbol);
             return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 
@@ -639,7 +639,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -689,7 +689,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             }};
             Object orderbook = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

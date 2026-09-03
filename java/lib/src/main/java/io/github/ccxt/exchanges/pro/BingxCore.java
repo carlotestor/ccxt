@@ -647,7 +647,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -710,7 +710,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             Object orderbook = (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscriptionArgs)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

@@ -656,7 +656,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -677,7 +677,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             }
             Object orderbook = (this.subscribe(name, "public", "watchOrderBook", market, null, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

@@ -607,10 +607,26 @@ public class BaseTest {
             // dispatch path stays representation-agnostic.
             CompletableFuture<Object> typedInner = (CompletableFuture<Object>) result;
             return CompletableFuture.supplyAsync(
-                () -> detypeForComparison(typedInner.join()), isolatedJoinPool);
+                () -> detypeForComparison(resolveLiveWsStructure(exchange, typedInner.join())), isolatedJoinPool);
         }
 
-        return CompletableFuture.completedFuture(detypeForComparison(result));
+        return CompletableFuture.completedFuture(detypeForComparison(resolveLiveWsStructure(exchange, result)));
+    }
+
+    /**
+     * A typed watch* order-book core (build/javaTypedCores.ts SNAPSHOT_CORES) hands
+     * back a defensive {@code copy()} of the live book: a Java caller can race the
+     * WsClient thread, JS cannot. The {@code parsedResponse} static ws fixtures
+     * assert the state after EVERY frame was replayed, so re-resolve the live book
+     * the copy was taken from. Java analogue of C#'s resolveLiveWsStructure
+     * (ccxt/ccxt#30110). Anything that is not a ws order book passes through.
+     */
+    public static Object resolveLiveWsStructure(Object exchange, Object value) {
+        if (!(value instanceof io.github.ccxt.ws.WsOrderBook book) || !(exchange instanceof BaseExchange ex)) {
+            return value;
+        }
+        Object live = Helpers.GetValue(ex.orderbooks, book.symbol);
+        return (live != null) ? live : value;
     }
 
     /**

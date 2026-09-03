@@ -65,7 +65,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -91,7 +91,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
                 put( "limit", limit );
             }})).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 

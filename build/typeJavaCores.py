@@ -46,16 +46,38 @@ def load_tables():
         i = s.index('export const ' + name)
         j = s.index('};', i)
         return dict(re.findall(r"'(\w+)':\s*'([^']+)'", s[i:j]))
-    return tbl('TYPED_CORES'), tbl('PREDICTION_TYPED_CORES')
+    return tbl('TYPED_CORES'), tbl('PREDICTION_TYPED_CORES'), snapshot_tbl()
+
+
+def snapshot_tbl():
+    """SNAPSHOT_CORES: name -> (fully qualified java type, `Class::helper` reference).
+    Entries are `'name': { type: '...', helper: '...' }` and only their two string
+    fields are read."""
+    s = open(TABLE).read()
+    i = s.index('export const SNAPSHOT_CORES')
+    j = s.index('};', i)
+    return {
+        m.group(1): (m.group(2), m.group(3))
+        for m in re.finditer(r"'(\w+)':\s*\{\s*type:\s*'([^']+)',\s*helper:\s*'([^']+)'\s*\}", s[i:j])
+    }
+
+
+# Snapshot cores are spliced into the crypto table as a pseudo-family string
+# `snapshot:<name>` so type_file / wrap_typed_core_consumers need no second code path.
+SNAPSHOT = {}
 
 
 def java_type(fam):
+    if fam.startswith('snapshot:'):
+        return SNAPSHOT[fam[9:]][0]
     if fam.startswith('List<'):
         return 'java.util.List<io.github.ccxt.types.%s>' % fam[5:-1]
     return 'io.github.ccxt.types.%s' % fam
 
 
 def helper(fam):
+    if fam.startswith('snapshot:'):
+        return SNAPSHOT[fam[9:]][1]
     if fam.startswith('List<'):
         return 'io.github.ccxt.TypedCores::to%sList' % fam[5:-1]
     return 'io.github.ccxt.TypedCores::to%s' % fam
@@ -180,6 +202,10 @@ def wrap_typed_core_consumers(path, table):
             continue                      # cheap reject: most lines cannot match
         for name in names:
             fam = table[name]
+            if fam.startswith('snapshot:'):
+                # a WsOrderBook already is the map the untyped code reads; there is
+                # no from* inverse and none is needed
+                continue
             helper_name = (('from%sList' % fam[5:-1]) if fam.startswith('List<')
                            else ('from%s' % fam))
             needle = '(this.' + name + '('
@@ -232,7 +258,10 @@ def wrap_typed_core_consumers(path, table):
 
 
 def main():
-    tc, pc = load_tables()
+    tc, pc, snap = load_tables()
+    SNAPSHOT.update(snap)
+    for name in snap:
+        tc[name] = 'snapshot:' + name
     report = {}
 
     crypto = [os.path.join(ROOT, 'Exchange.java'),

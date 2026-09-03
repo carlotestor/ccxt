@@ -160,6 +160,22 @@ export const TYPED_CORES: Record<string, string> = {
     'watchTradesForSymbols': 'List<Trade>',
 };
 
+// watch* cores whose public shape is a SNAPSHOT of a live ws structure rather than a
+// re-materialised unified type. The core hands back the WsOrderBook the WsClient thread
+// keeps mutating; the wrapper's `new OrderBook(res)` was the copy that kept the caller off
+// the live book, so once the core is typed the copy moves onto the core return
+// (TypedCores.toOrderBookSnapshot -> WsOrderBook.copy()). Java analogue of C#'s
+// SNAPSHOT_CORES (ccxt/ccxt#30110). Excluded from the ws-test detype pass on purpose:
+// a WsOrderBook already IS a java.util.Map, so the transpiled structure test reads it
+// directly, and the `parsedResponse` static ws fixtures resolve the live book by symbol.
+// Only the crypto tier: PredictionExchange re-declares watchOrderBook untyped.
+// Consumers: 22 venue watchOrderBook cores tail into watchOrderBookForSymbols -- both
+// names carry the same type, so the tail is a plain join (copied once, in the callee).
+export const SNAPSHOT_CORES: Record<string, { type: string; helper: string }> = {
+    'watchOrderBook': { type: 'io.github.ccxt.ws.WsOrderBook', helper: 'io.github.ccxt.TypedCores::toOrderBookSnapshot' },
+    'watchOrderBookForSymbols': { type: 'io.github.ccxt.ws.WsOrderBook', helper: 'io.github.ccxt.TypedCores::toOrderBookSnapshot' },
+};
+
 export const PREDICTION_TYPED_CORES: Record<string, string> = {
     // 'cancelAllOrders' is NOT typed on the prediction tier: kalshi, limitless and
     // polymarket declare `Promise<PredictionOrder[]>`, but myriad declares

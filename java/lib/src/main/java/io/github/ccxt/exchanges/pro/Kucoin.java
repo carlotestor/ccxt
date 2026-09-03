@@ -338,7 +338,7 @@ public class Kucoin extends KucoinCore {
 
     @SuppressWarnings("unchecked")
     public OrderBook watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchOrderBookForSymbols((Object) symbols, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
+        Object res = Helpers.joinTyped(super.watchOrderBookForSymbols((Object) symbols, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
         return new OrderBook(res);
     }
     public OrderBook watchOrderBookForSymbols(List<String> symbols) { return watchOrderBookForSymbols(symbols, (Long) null, (Map<String, Object>) null); }
@@ -896,7 +896,7 @@ public class Kucoin extends KucoinCore {
 
     @SuppressWarnings("unchecked")
     public OrderBook watchOrderBook(String symbol, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.watchOrderBook((Object) symbol, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
+        Object res = Helpers.joinTyped(super.watchOrderBook((Object) symbol, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
         return new OrderBook(res);
     }
     public OrderBook watchOrderBook(String symbol) { return watchOrderBook(symbol, (Long) null, (Map<String, Object>) null); }

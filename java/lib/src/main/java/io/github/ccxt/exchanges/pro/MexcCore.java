@@ -850,7 +850,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.ws.WsOrderBook> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -883,7 +883,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             }
             orderbook = this.requireValue(orderbook, "watchOrderBook() orderbook is required");
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBookSnapshot);
 
     }
 
