@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Submit the carlotestor triage review for ccxt/ccxt#30326."""
+import json
+import subprocess
+
+N = 30326
+SHA = "b82af99cb2231f8df4412979acde24b35487a0ec"
+
+body = """## Summary
+
+Draft flag-accuracy sweep on `ts/src/modetrade.ts`. I checked each claim against the implementation at `b82af99` — all six changes hold up:
+
+- **`createOrder.trailing: true -> false`** — `has['createTrailingAmountOrder']` and `has['createTrailingPercentOrder']` are already `false`, and `createOrderRequest` never builds a trailing field. The only mention of `trailingAmount` / `trailingPercent` / `trailingTriggerPrice` in the whole file is the `omit()` at line 1779 in `editOrder`, i.e. they are stripped, never sent.
+- **`createOrder.leverage: true -> false`** — no `leverage` param is read in `createOrderRequest`; leverage is only reachable through `setLeverage()` (line 2785) / `v1PrivatePostClientLeverage`. The `// todo implement` comment said as much.
+- **`createOrder.iceberg: true -> false`** — `iceberg` appears nowhere in the request path; `visible_quantity` only shows up inside response doc-comments (lines 2055, 2145), never assigned on a request.
+- **`fetchOrders: undefined -> {...}`** — `fetchOrders` is a real override at line 2090 and `has['fetchOrders']` is `true`, so `undefined` was the wrong side of the mismatch. The key set added here (`marginMode`, `limit`, `daysBack`, `untilDays`, `trigger`, `trailing`, `symbolRequired`) is an exact match for the `fetchOrders` format in `ts/src/test/Exchange/test.features.ts`, so `assertStructure` will accept it, and `symbolRequired: false` agrees with the `symbol !== undefined` guard at line 2104.
+- **`spot: { extends: 'default' } -> undefined`** — consistent with `has['spot'] = false` / `has['swap'] = true`. `featuresGenerator` funnels both the absent-key and the `undefined`-value case to the same result (`featuresMapper` returns `undefined` at `Exchange.ts:4169`), and `test.features.ts` `continue`s on `undefined`, so this is behaviour-preserving rather than just cosmetic. The same shape already ships in `grvt`, `bydfi`, `paradex`, `pacifica`, `krakenfutures` and `pro/aster`.
+- **JSDoc** — `params.cost` is genuinely never read anywhere in the order path (`createMarketBuyOrderWithCost` is `false` and the venue has no spot markets, so "spot market buy only" was doubly wrong), and `algoType` is read via `safeString` at line 1534 and compared to `'POSITIONAL_TP_SL'` at line 1560, so `{string}` is the correct type.
+
+Two non-blocking notes inline.
+
+### CI
+
+The single red `live-tests` shard is a Go `fetchOHLCV` panic (`go/v4/modetrade.go:1746` -> `fetchOHLCVBody`, via `PanicOnError`) — a live-venue path this diff does not touch. All six `build` lanes are green. Not attributable to this change.
+
+Merge gate: \U0001F7E2
+Merge probability: 94%"""
+
+inline_limit = """`limit: 500` is correct for the plain `v1PrivateGetOrders` branch, but this block also declares `trigger: true`, and the algo branch caps lower: `maxLimit = (isTrigger === true) ? 100 : 500` at line 2096, which is the value handed to `fetchPaginatedCallIncremental`. A consumer reading `features.swap.linear.fetchOrders.limit` will over-request by 5x on trigger fetches. This isn't introduced here (`fetchOpenOrders` and `fetchClosedOrders` carry the same 500), so it's fine to leave as-is for consistency — just noting the number is only accurate on the non-trigger path."""
+
+inline_jsdoc = """Right call on the type. Since this JSDoc block is the one being corrected: `createOrderRequest` also reads `reduceOnly` / `reduce_only` (line 1518), `timeInForce` (1537), `postOnly` (1538) and `childOrders` (1535), and none of them are documented — house style asks that every `params.*` you actually read be listed. Minor on this same line: `'STOP'or` is missing the space before `or`."""
+
+payload = {
+    "commit_id": SHA,
+    "event": "COMMENT",
+    "body": body,
+    "comments": [
+        {
+            "path": "ts/src/modetrade.ts",
+            "side": "RIGHT",
+            "start_side": "RIGHT",
+            "start_line": 354,
+            "line": 357,
+            "body": inline_limit,
+        },
+        {
+            "path": "ts/src/modetrade.ts",
+            "side": "RIGHT",
+            "line": 1625,
+            "body": inline_jsdoc,
+        },
+    ],
+}
+
+with open("/tmp/review_payload.json", "w") as fh:
+    json.dump(payload, fh)
+
+res = subprocess.run(
+    ["gh", "api", "--method", "POST",
+     "repos/ccxt/ccxt/pulls/%d/reviews" % N,
+     "--input", "/tmp/review_payload.json"],
+    capture_output=True, text=True,
+)
+
+out = []
+out.append("rc=%s" % res.returncode)
+out.append("stderr=%s" % res.stderr[:3000])
+try:
+    parsed = json.loads(res.stdout)
+    out.append("review_id=%s" % parsed.get("id"))
+    out.append("state=%s" % parsed.get("state"))
+    out.append("commit_id=%s" % parsed.get("commit_id"))
+    out.append("html_url=%s" % parsed.get("html_url"))
+    if "errors" in parsed:
+        out.append("errors=%s" % json.dumps(parsed["errors"]))
+    if "message" in parsed:
+        out.append("message=%s" % parsed["message"])
+except Exception as exc:
+    out.append("parse_error=%s" % exc)
+    out.append("stdout=%s" % res.stdout[:3000])
+
+with open("/tmp/out8.txt", "w") as fh:
+    fh.write("\n".join(out) + "\n")
