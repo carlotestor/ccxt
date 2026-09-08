@@ -1,0 +1,58 @@
+$ gh api --method POST repos/ccxt/ccxt/issues/30329/labels -f 'labels[]=enhancement' -f 'labels[]=ws' --jq '[.[].name]'
+rc=0
+["enhancement","ws"]
+
+
+---
+$ gh api --method POST repos/ccxt/ccxt/pulls/30329/reviews --input /tmp/review_30329.json --jq '{id,state,event:.state}'
+rc=0
+{"event":"COMMENTED","id":5147550008,"state":"COMMENTED"}
+
+
+---
+REVIEW_ID=5147550008
+$ python3 /root/workspace/ccxt-new-item-monitor/pr_body_reaction.py 30329 +1
+rc=0
+added +1 on #30329
+
+
+---
+$ python3 /root/workspace/ccxt-new-item-monitor/detect.py --mark-processed 30329 --kind pr --head-sha c8ec1e60528b1527d23ce7c633f46314cb646c03
+rc=0
+{
+  "repo": "ccxt/ccxt",
+  "action": "mark-processed",
+  "kind": "pr",
+  "marked": [
+    30329
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",
+  "watermarks": {
+    "last_pr_number": 30329,
+    "last_issue_number": 30311
+  },
+  "processed_counts": {
+    "prs": 500,
+    "issues": 71
+  },
+  "new_prs": [],
+  "new_issues": []
+}
+
+[ok] marked pr [30329] processed
+
+---
+$ gh api repos/ccxt/ccxt/pulls/30329/comments --jq '[.[]|select(.user.login=="carlotestor")]|length'
+rc=0
+4
+
+
+---
+$ gh pr view 30329 --repo ccxt/ccxt --json labels --jq '[.labels[].name]'
+rc=0
+["enhancement","ws"]
+
+
+---
