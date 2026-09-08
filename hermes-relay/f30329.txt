@@ -1,6 +1,0 @@
-$ ls -la /root/.hermes/profiles/ccxt-webhook/skills/github/github-review-api-payloads/scripts/verify_posted_review.py 2>&1
-rc=0
--rw-r--r-- 1 root root 10565 Sep  8 21:21 /root/.hermes/profiles/ccxt-webhook/skills/github/github-review-api-payloads/scripts/verify_posted_review.py
-
-
----
