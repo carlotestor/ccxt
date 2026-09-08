@@ -1,0 +1,51 @@
+post_rc=0
+status_201=True
+comment_url=https://github.com/ccxt/ccxt/pull/30321#issuecomment-5592616132
+stderr=
+--- body posted ---
+## Merge digest
+
+The hand-written PHP and C# ws clients now close the transport after the keepalive timeout raises `RequestTimeout`, matching the TS fix in #30293.
+
+| File | Δ | What |
+| --- | ---: | --- |
+| `cs/ccxt/ws/Client.cs` | +11/−0 | `PingLoop` awaits `Close()` |
+| `php/pro/Client.php` | +10/−0 | `on_ping_interval` calls `close()` |
+| `php/pro/test/base/test_client_keepalive_timeout.php` | +193/−0 | keepalive timeout regression test |
+| `cs/tests/ClientKeepAliveTimeoutTest.cs` | +181/−0 | keepalive timeout regression test |
+| `cs/tests/Program.cs` | +7/−0 | `--baseTests --ws` wiring |
+| `php/pro/test/base/tests_init.php` | +3/−0 | test registration |
+
+```mermaid
+flowchart LR
+  lock["lock"]
+  Close["Close"]
+  PingLoop["PingLoop"]
+  KeepAliveProbeServer["KeepAliveProbeServer"]
+  PingLoop --> Close
+  KeepAliveProbeServer --> lock
+  lock --> KeepAliveProbeServer
+```
+
+`cs/ccxt/ws/Client.cs`
+
+```csharp
+@@ -241,6 +241,17 @@
++                        await this.Close();
+```
+mark_rc=0
+mark_stdout={
+  "repo": "ccxt/ccxt",
+  "action": "mark-digested",
+  "marked": [
+    30321
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",
+  "new_prs": [],
+  "new_issues": []
+}
+
+mark_stderr=[ok] marked [30321] digested
+
