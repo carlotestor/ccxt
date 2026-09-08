@@ -1,0 +1,217 @@
+===== cwd: /root/workspace/ccxt / HEAD: 67ea77b05be =====
+
+===== subscribePrivate + subscribePublic (master copy, lines 110-180) =====
+ 110|      * @ignore
+ 111|      * @method
+ 112|      * @description Connects to a websocket channel
+ 113|      * @param {string} name name of the channel
+ 114|      * @param {string[]} symbols CCXT market symbols
+ 115|      * @param {object} [params] extra parameters specific to the krakenfutures api
+ 116|      * @returns {object} data from the websocket stream
+ 117|      */
+ 118|     async subscribePublic (name: string, symbols: string[], params = {}) {
+ 119|         if (this.markets === undefined) {
+ 120|             await this.loadMarkets ();
+ 121|         }
+ 122|         const url = this.urls['api']['ws'];
+ 123|         const subscribe: Dict = {
+ 124|             'event': 'subscribe',
+ 125|             'feed': name,
+ 126|         };
+ 127|         const marketIds: Str[] = [];
+ 128|         let messageHash = name;
+ 129|         if (symbols === undefined) {
+ 130|             symbols = [];
+ 131|         }
+ 132|         for (let i = 0; i < symbols.length; i++) {
+ 133|             const symbol = symbols[i];
+ 134|             marketIds.push (this.marketId (symbol));
+ 135|         }
+ 136|         const length = symbols.length;
+ 137|         if (length === 1) {
+ 138|             const market = this.market (marketIds[0]);
+ 139|             messageHash = messageHash + ':' + market['symbol'];
+ 140|         }
+ 141|         subscribe['product_ids'] = marketIds;
+ 142|         const request = this.extend (subscribe, params);
+ 143|         return await this.watch (url, messageHash, request, messageHash);
+ 144|     }
+ 145| 
+ 146|     /**
+ 147|      * @ignore
+ 148|      * @method
+ 149|      * @description Connects to a websocket channel
+ 150|      * @param {string} name name of the channel
+ 151|      * @param {string} messageHash unique identifier for the message
+ 152|      * @param {object} [params] extra parameters specific to the krakenfutures api
+ 153|      * @returns {object} data from the websocket stream
+ 154|      */
+ 155|     async subscribePrivate (name: string, messageHash: string, params = {}) {
+ 156|         if (this.markets === undefined) {
+ 157|             await this.loadMarkets ();
+ 158|         }
+ 159|         await this.authenticate ();
+ 160|         const url = this.urls['api']['ws'];
+ 161|         const subscribe: Dict = {
+ 162|             'event': 'subscribe',
+ 163|             'feed': name,
+ 164|             'api_key': this.apiKey,
+ 165|             'original_challenge': this.options['challenge'],
+ 166|             'signed_challenge': this.options['signedChallenge'],
+ 167|         };
+ 168|         const request = this.extend (subscribe, params);
+ 169|         return await this.watch (url, messageHash, request, messageHash);
+ 170|     }
+ 171| 
+ 172|     /**
+ 173|      * @method
+ 174|      * @name krakenfutures#watchTicker
+ 175|      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ 176|      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
+ 177|      * @param {string} symbol unified symbol of the market to fetch the ticker for
+ 178|      * @param {object} [params] extra parameters specific to the exchange API endpoint
+ 179|      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ 180|      */
+
+===== handleMessage feed routing (lines 1660-1700) =====
+1660|             this.handleErrorMessage (client, message);
+1661|         } else if (event === 'pong') {
+1662|             client.lastPong = this.milliseconds ();
+1663|         } else if (event === undefined) {
+1664|             const feed = this.safeString (message, 'feed');
+1665|             const methods: Dict = {
+1666|                 'ticker': this.handleTicker,
+1667|                 'ticker_lite': this.handleBidAsk,
+1668|                 'trade': this.handleTrade,
+1669|                 'trade_snapshot': this.handleTrade,
+1670|                 // 'heartbeat': this.handleStatus,
+1671|                 'book': this.handleOrderBook,
+1672|                 'book_snapshot': this.handleOrderBookSnapshot,
+1673|                 'open_orders_verbose': this.handleOrder,
+1674|                 'open_orders_verbose_snapshot': this.handleOrderSnapshot,
+1675|                 'fills': this.handleMyTrades,
+1676|                 'fills_snapshot': this.handleMyTrades,
+1677|                 'open_orders': this.handleOrder,
+1678|                 'open_orders_snapshot': this.handleOrderSnapshot,
+1679|                 'balances': this.handleBalance,
+1680|                 'balances_snapshot': this.handleBalance,
+1681|                 'open_positions': this.handlePositions,
+1682|             };
+1683|             const method = this.safeValue (methods, feed);
+1684|             if (method !== undefined) {
+1685|                 method.call (this, client, message);
+1686|             }
+1687|         }
+1688|     }
+1689| 
+1690|     handleAuthenticate (client: Client, message: any) {
+1691|         /**
+1692|          * @ignore
+1693|          * @method
+1694|          * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
+1695|          */
+1696|         //
+1697|         //    {
+1698|         //        "event": "challenge",
+1699|         //        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+1700|         //    }
+
+===== PROOF: 'let X = false; [ X, params ] = handleOptionAndParams' pattern in ts/src/pro/** =====
+ts/src/pro/binance.ts:802:        [ watchOrderBookRate, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
+ts/src/pro/binance.ts:804:        [ rpi, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'rpi', false);
+ts/src/pro/binance.ts:955:        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderBookWs', 'returnRateLimits', false);
+ts/src/pro/binance.ts:1280:        [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
+ts/src/pro/binance.ts:1365:        [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
+ts/src/pro/binance.ts:1672:        [ stock, params ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock');
+ts/src/pro/binance.ts:1705:        [ stock, params ] = this.handleOptionAndParams (params, 'watchOHLCVForSymbols', 'stock', false);
+ts/src/pro/binance.ts:1991:        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchTickerWs', 'returnRateLimits', false);
+ts/src/pro/binance.ts:1995:        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickerWs', 'method', 'ticker.book');
+ts/src/pro/binance.ts:2034:        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
+ts/src/pro/binance.ts:2161:        [ channelName, params ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'name', 'markPrice');
+ts/src/pro/binance.ts:2187:        [ stock, params ] = this.handleOptionAndParams (params, 'watchTickers', 'stock', false);
+ts/src/pro/binance.ts:2200:        [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'miniTicker');
+ts/src/pro/binance.ts:2227:        [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+ts/src/pro/binance.ts:2245:        [ channelName, params ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'name', 'markPrice');
+ts/src/pro/binance.ts:2315:        [ stock, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'stock', false);
+ts/src/pro/binance.ts:3032:        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
+ts/src/pro/binance.ts:3137:        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
+ts/src/pro/binance.ts:3306:        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'returnRateLimits', false);
+ts/src/pro/binance.ts:3311:        [ method, params ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'method', 'account.status');
+--- count of that helper across ts/src/pro:
+27
+
+===== PROOF: emitted Go for a boolean handleOptionAndParams destructure =====
+923:	watchOrderBookRateparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "watchOrderBookRate", "100")
+927:	rpiparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "rpi", false)
+1125:	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBookWs", "returnRateLimits", false)
+1504:	nameparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
+1606:	nameparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
+1966:	stockparamsVariable := this.HandleOptionAndParams(params, "watchOHLCV", "stock")
+--- Go var decl style around one such call (binance pro):
+920-		streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
+921-	}
+922-	var watchOrderBookRate any = nil
+923:	watchOrderBookRateparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "watchOrderBookRate", "100")
+924-	watchOrderBookRate = ccxt.GetValue(watchOrderBookRateparamsVariable, 0)
+925-	params = ccxt.GetValue(watchOrderBookRateparamsVariable, 1)
+926-	var rpi any = nil
+927:	rpiparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "rpi", false)
+928-	rpi = ccxt.GetValue(rpiparamsVariable, 0)
+929-	params = ccxt.GetValue(rpiparamsVariable, 1)
+930-	if ccxt.IsTrue(ccxt.IsTrue(rpi) && ccxt.IsTrue(ccxt.IsEqual(typeVar, "future"))) {
+931-		name = "rpiDepth"
+--
+1122-	var requestId any = this.RequestId(url)
+1123-	var messageHash string = ccxt.ToString(requestId)
+1124-	var returnRateLimits any = false
+1125:	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBookWs", "returnRateLimits", false)
+1126-	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+1127-	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+1128-	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
+1129-	params = this.Omit(params, "test")
+--
+1501-		streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
+1502-	}
+1503-	var name any = nil
+1504:	nameparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
+1505-	name = ccxt.GetValue(nameparamsVariable, 0)
+1506-	params = ccxt.GetValue(nameparamsVariable, 1)
+1507-	params = this.Omit(params, "callerMethodName")
+1508-	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
+--
+1603-		streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
+1604-	}
+1605-	var name any = nil
+1606:	nameparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
+1607-	name = ccxt.GetValue(nameparamsVariable, 0)
+1608-	params = ccxt.GetValue(nameparamsVariable, 1)
+1609-	params = this.Omit(params, "callerMethodName")
+1610-	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
+--
+
+===== PROOF: emitted Python for same pattern (pro/binance.py) =====
+752:        watchOrderBookRate, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100')
+754:        rpi, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'rpi', False)
+892:        returnRateLimits, params = self.handle_option_and_params(params, 'fetchOrderBookWs', 'returnRateLimits', False)
+1171:        name, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
+1246:        name, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
+1534:        stock, params = self.handle_option_and_params(params, 'watchOHLCV', 'stock')
+1563:        stock, params = self.handle_option_and_params(params, 'watchOHLCVForSymbols', 'stock', False)
+1823:        returnRateLimits, params = self.handle_option_and_params(params, 'fetchTickerWs', 'returnRateLimits', False)
+
+===== current krakenfutures pro generated dumps exist? =====
+-rw-r--r-- 1 root root 75550 Sep  7 23:08 go/v4/pro/krakenfutures.go
+-rw-r--r-- 1 root root 78035 Aug 25 11:02 php/pro/krakenfutures.php
+-rw-r--r-- 1 root root 67885 Aug 25 11:02 python/ccxt/pro/krakenfutures.py
+
+===== does krakenfutures pro currently use handleOptionAndParams anywhere? =====
+503:        [ account, params ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
+
+===== 'orders' messageHash users elsewhere in file (unWatch etc) =====
+447:        let messageHash = 'orders';
+761:            const messageHash = 'orders';
+838:                        client.resolve (orders, 'orders');
+896:        const orders = this.safeValue (message, 'orders', []);
+912:            client.resolve (this.orders, 'orders');
+
+===== DONE =====
