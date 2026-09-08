@@ -1,0 +1,376 @@
+===== modetrade fetchOrders + fetchOpenOrders + fetchClosedOrders (2060-2240) =====
+2060:        //         "fee_asset": "BTC",
+2061:        //         "client_order_id": 1,
+2062:        //         "average_executed_price": 0.67772,
+2063:        //         "created_time": 1653563963000,
+2064:        //         "updated_time": 1653564213000,
+2065:        //         "realized_pnl": 123
+2066:        //     }
+2067:        // }
+2068:        //
+2069:        const orders = this.safeDict (response, 'data', response);
+2070:        return this.parseOrder (orders as Dict, market);
+2071:    }
+2072:
+2073:    /**
+2074:     * @method
+2075:     * @name modetrade#fetchOrders
+2076:     * @description fetches information on multiple orders made by the user
+2077:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+2078:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+2079:     * @param {string} symbol unified market symbol of the market orders were made in
+2080:     * @param {int} [since] the earliest time in ms to fetch orders for
+2081:     * @param {int} [limit] the maximum number of order structures to retrieve
+2082:     * @param {object} [params] extra parameters specific to the exchange API endpoint
+2083:     * @param {boolean} [params.trigger] whether the order is a stop/algo order
+2084:     * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
+2085:     * @param {string} [params.side] 'buy' or 'sell'
+2086:     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+2087:     * @param {int} params.until timestamp in ms of the latest order to fetch
+2088:     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+2089:     */
+2090:    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+2091:        if (this.markets === undefined) {
+2092:            await this.loadMarkets ();
+2093:        }
+2094:        let paginate = false;
+2095:        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
+2096:        const maxLimit = (isTrigger === true) ? 100 : 500;
+2097:        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+2098:        if (paginate) {
+2099:            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
+2100:        }
+2101:        let request: Dict = {};
+2102:        let market: Market = undefined;
+2103:        params = this.omit (params, [ 'stop', 'trigger' ]);
+2104:        if (symbol !== undefined) {
+2105:            market = this.market (symbol);
+2106:            request['symbol'] = market['id'];
+2107:        }
+2108:        if (since !== undefined) {
+2109:            request['start_t'] = since;
+2110:        }
+2111:        if (limit !== undefined) {
+2112:            request['size'] = limit;
+2113:        } else {
+2114:            request['size'] = maxLimit;
+2115:        }
+2116:        if (isTrigger === true) {
+2117:            request['algo_type'] = 'STOP';
+2118:        }
+2119:        [ request, params ] = this.handleUntilOption ('end_t', request, params);
+2120:        let response = undefined;
+2121:        if (isTrigger === true) {
+2122:            response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
+2123:        } else {
+2124:            response = await this.v1PrivateGetOrders (this.extend (request, params));
+2125:        }
+2126:        //
+2127:        //     {
+2128:        //         "success": true,
+2129:        //         "timestamp": 1702989203989,
+2130:        //         "data": {
+2131:        //             "meta": {
+2132:        //                 "total": 9,
+2133:        //                 "records_per_page": 25,
+2134:        //                 "current_page": 1
+2135:        //             },
+2136:        //             "rows": [{
+2137:        //                 "order_id": 78151,
+2138:        //                 "user_id": 12345,
+2139:        //                 "price": 0.67772,
+2140:        //                 "type": "LIMIT",
+2141:        //                 "quantity": 20,
+2142:        //                 "amount": 10,
+2143:        //                 "executed_quantity": 20,
+2144:        //                 "total_executed_quantity": 20,
+2145:        //                 "visible_quantity": 1,
+2146:        //                 "symbol": "PERP_BTC_USDC",
+2147:        //                 "side": "BUY",
+2148:        //                 "status": "FILLED",
+2149:        //                 "total_fee": 0.5,
+2150:        //                 "fee_asset": "BTC",
+2151:        //                 "client_order_id": 1,
+2152:        //                 "average_executed_price": 0.67772,
+2153:        //                 "created_time": 1653563963000,
+2154:        //                 "updated_time": 1653564213000,
+2155:        //                 "realized_pnl": 123
+2156:        //             }]
+2157:        //         }
+2158:        //     }
+2159:        //
+2160:        const data = this.safeValue (response, 'data', response);
+2161:        const orders = this.safeList (data, 'rows', []);
+2162:        return this.parseOrders (orders, market, since, limit);
+2163:    }
+2164:
+2165:    /**
+2166:     * @method
+2167:     * @name modetrade#fetchOpenOrders
+2168:     * @description fetches information on multiple orders made by the user
+2169:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+2170:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+2171:     * @param {string} symbol unified market symbol of the market orders were made in
+2172:     * @param {int} [since] the earliest time in ms to fetch orders for
+2173:     * @param {int} [limit] the maximum number of order structures to retrieve
+2174:     * @param {object} [params] extra parameters specific to the exchange API endpoint
+2175:     * @param {boolean} [params.trigger] whether the order is a stop/algo order
+2176:     * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
+2177:     * @param {string} [params.side] 'buy' or 'sell'
+2178:     * @param {int} params.until timestamp in ms of the latest order to fetch
+2179:     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+2180:     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+2181:     */
+2182:    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+2183:        if (this.markets === undefined) {
+2184:            await this.loadMarkets ();
+2185:        }
+2186:        const extendedParams = this.extend (params, { 'status': 'INCOMPLETE' });
+2187:        return await this.fetchOrders (symbol, since, limit, extendedParams);
+2188:    }
+2189:
+2190:    /**
+2191:     * @method
+2192:     * @name modetrade#fetchClosedOrders
+2193:     * @description fetches information on multiple orders made by the user
+2194:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+2195:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+2196:     * @param {string} symbol unified market symbol of the market orders were made in
+2197:     * @param {int} [since] the earliest time in ms to fetch orders for
+2198:     * @param {int} [limit] the maximum number of order structures to retrieve
+2199:     * @param {object} [params] extra parameters specific to the exchange API endpoint
+2200:     * @param {boolean} [params.trigger] whether the order is a stop/algo order
+2201:     * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
+2202:     * @param {string} [params.side] 'buy' or 'sell'
+2203:     * @param {int} params.until timestamp in ms of the latest order to fetch
+2204:     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+2205:     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+2206:     */
+2207:    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+2208:        if (this.markets === undefined) {
+2209:            await this.loadMarkets ();
+2210:        }
+2211:        const extendedParams = this.extend (params, { 'status': 'COMPLETED' });
+2212:        return await this.fetchOrders (symbol, since, limit, extendedParams);
+2213:    }
+2214:
+2215:    /**
+2216:     * @method
+2217:     * @name modetrade#fetchOrderTrades
+2218:     * @description fetch all the trades made from a single order
+2219:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
+2220:     * @param {string} id order id
+2221:     * @param {string} symbol unified market symbol
+2222:     * @param {int} [since] the earliest time in ms to fetch trades for
+2223:     * @param {int} [limit] the maximum number of trades to retrieve
+2224:     * @param {object} [params] extra parameters specific to the exchange API endpoint
+2225:     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+2226:     */
+2227:    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+2228:        if (this.markets === undefined) {
+2229:            await this.loadMarkets ();
+2230:        }
+2231:        let market: Market = undefined;
+2232:        if (symbol !== undefined) {
+2233:            market = this.market (symbol);
+2234:        }
+2235:        const request: Dict = {
+2236:            'oid': id,
+2237:        };
+2238:        const response = await this.v1PrivateGetOrderOidTrades (this.extend (request, params));
+2239:        //
+2240:        // {
+
+===== base featuresGenerator (4120-4215) =====
+4120:        this.initThrottler ();
+4121:    }
+4122:
+4123:    featuresGenerator () {
+4124:        //
+4125:        // in the exchange-specific features can be something like this, where we support 'string' aliases too:
+4126:        //
+4127:        //     {
+4128:        //         'my' : {
+4129:        //             'createOrder' : {...},
+4130:        //         },
+4131:        //         'swap': {
+4132:        //             'linear': {
+4133:        //                 'extends': my',
+4134:        //             },
+4135:        //         },
+4136:        //     }
+4137:        //
+4138:        if (this.features === undefined) {
+4139:            return;
+4140:        }
+4141:        // reconstruct
+4142:        const initialFeatures = this.features;
+4143:        this.features = {};
+4144:        const unifiedMarketTypes = [ 'spot', 'swap', 'future', 'option' ];
+4145:        const subTypes = [ 'linear', 'inverse' ];
+4146:        // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+4147:        for (let i = 0; i < unifiedMarketTypes.length; i++) {
+4148:            const marketType = unifiedMarketTypes[i];
+4149:            // if marketType is not filled for this exchange, don't add that in `features`
+4150:            if (!(marketType in initialFeatures)) {
+4151:                this.features[marketType] = undefined;
+4152:            } else {
+4153:                if (marketType === 'spot') {
+4154:                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType);
+4155:                } else {
+4156:                    this.features[marketType] = {};
+4157:                    for (let j = 0; j < subTypes.length; j++) {
+4158:                        const subType = subTypes[j];
+4159:                        this.features[marketType][subType] = this.featuresMapper (initialFeatures, marketType, subType);
+4160:                    }
+4161:                }
+4162:            }
+4163:        }
+4164:    }
+4165:
+4166:    featuresMapper (initialFeatures: any, marketType: Str, subType: Str = undefined) {
+4167:        let featuresObj = (subType !== undefined) ? initialFeatures[marketType as string][subType] : initialFeatures[marketType as string];
+4168:        // if exchange does not have that market-type (eg. future>inverse)
+4169:        if (featuresObj === undefined) {
+4170:            return undefined;
+4171:        }
+4172:        const extendsStr = this.safeString (featuresObj, 'extends');
+4173:        if (extendsStr !== undefined) {
+4174:            featuresObj = this.omit (featuresObj, 'extends');
+4175:            const extendObj = this.featuresMapper (initialFeatures, extendsStr);
+4176:            featuresObj = this.deepExtend (extendObj, featuresObj);
+4177:        }
+4178:        //
+4179:        // ### corrections ###
+4180:        //
+4181:        // createOrder
+4182:        if ('createOrder' in featuresObj) {
+4183:            const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
+4184:            featuresObj['createOrder']['stopLoss'] = value;
+4185:            featuresObj['createOrder']['takeProfit'] = value;
+4186:            if (marketType === 'spot') {
+4187:                // default 'hedged': false
+4188:                featuresObj['createOrder']['hedged'] = false;
+4189:                // default 'leverage': false
+4190:                if (!('leverage' in featuresObj['createOrder'])) {
+4191:                    featuresObj['createOrder']['leverage'] = false;
+4192:                }
+4193:            }
+4194:            // default 'GTC' to true
+4195:            if (this.safeBool (featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
+4196:                featuresObj['createOrder']['timeInForce']['GTC'] = true;
+4197:            }
+4198:        }
+4199:        // other methods
+4200:        const keys = Object.keys (featuresObj);
+4201:        for (let i = 0; i < keys.length; i++) {
+4202:            const key = keys[i];
+4203:            const featureBlock = featuresObj[key];
+4204:            if (!this.inArray (key, [ 'sandbox' ]) && featureBlock !== undefined) {
+4205:                // default "symbolRequired" to false to all methods (except `createOrder`)
+4206:                if (!('symbolRequired' in featureBlock)) {
+4207:                    featureBlock['symbolRequired'] = this.inArray (key, [ 'createOrder', 'createOrders', 'fetchOHLCV' ]);
+4208:                }
+4209:            }
+4210:        }
+4211:        return featuresObj;
+4212:    }
+4213:
+4214:    featureValue (symbol: string, methodName: Str = undefined, paramName: Str = undefined, defaultValue: any = undefined): any {
+4215:        /**
+
+===== SIBLING woofipro features block =====
+woofipro lines: 3548
+334:            'features': {
+335:                'default': {
+336:                    'sandbox': true,
+337:                    'createOrder': {
+338:                        'marginMode': false,
+339:                        'triggerPrice': true,
+340:                        'triggerPriceType': undefined,
+341:                        'triggerDirection': false,
+342:                        'stopLossPrice': false, // todo by triggerPrice
+343:                        'takeProfitPrice': false, // todo by triggerPrice
+344:                        'attachedStopLossTakeProfit': undefined,
+345:                        'timeInForce': {
+346:                            'IOC': true,
+347:                            'FOK': true,
+348:                            'PO': true,
+349:                            'GTD': false,
+350:                        },
+351:                        'hedged': false,
+352:                        'trailing': true,
+353:                        'leverage': true, // todo implement
+354:                        'marketBuyByCost': false,
+355:                        'marketBuyRequiresPrice': false,
+356:                        'selfTradePrevention': false,
+357:                        'iceberg': true, // todo implement
+358:                    },
+359:                    'createOrders': {
+360:                        'max': 10,
+361:                    },
+362:                    'fetchMyTrades': {
+363:                        'marginMode': false,
+364:                        'limit': 500,
+365:                        'daysBack': undefined,
+366:                        'untilDays': 100000,
+367:                        'symbolRequired': false,
+368:                    },
+369:                    'fetchOrder': {
+370:                        'marginMode': false,
+371:                        'trigger': true,
+372:                        'trailing': false,
+373:                        'symbolRequired': false,
+374:                    },
+375:                    'fetchOpenOrders': {
+376:                        'marginMode': false,
+377:                        'limit': 500,
+378:                        'trigger': true,
+379:                        'trailing': false,
+380:                        'symbolRequired': false,
+381:                    },
+382:                    'fetchOrders': undefined,
+383:                    'fetchClosedOrders': {
+384:                        'marginMode': false,
+385:                        'limit': 500,
+386:                        'daysBack': undefined,
+387:                        'daysBackCanceled': undefined,
+388:                        'untilDays': 100000,
+389:                        'trigger': true,
+390:                        'trailing': false,
+391:                        'symbolRequired': false,
+392:                    },
+393:                    'fetchOHLCV': {
+394:                        'limit': 1000,
+395:                    },
+396:                },
+397:                'spot': {
+398:                    'extends': 'default',
+399:                },
+400:                'forDerivatives': {
+401:                    'extends': 'default',
+402:                    'createOrder': {
+403:                        // todo: implementation needs unification
+404:                        'triggerPriceType': undefined,
+405:                        'attachedStopLossTakeProfit': {
+406:                            // todo: implementation needs unification
+407:                            'triggerPriceType': undefined,
+408:                            'price': false,
+409:                        },
+410:                    },
+411:                },
+412:                'swap': {
+413:                    'linear': {
+414:                        'extends': 'forDerivatives',
+415:                    },
+416:                    'inverse': undefined,
+417:                },
+418:                'future': {
+419:                    'linear': undefined,
+420:                    'inverse': undefined,
+421:                },
+422:            },
+423:            'commonCurrencies': {},
+
+===== DONE out4 =====
+18927 /tmp/out4.txt
