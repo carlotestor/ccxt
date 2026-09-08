@@ -1,0 +1,240 @@
+=== repo head ===
+67ea77b05be
+2026-09-08T16:22:34+01:00
+
+=== safeOrder: IOC / timeInForce derivation ===
+4990:                timeInForce = 'IOC';
+7860:        const ioc = timeInForce === 'IOC';
+7893:        const ioc = timeInForce === 'IOC';
+8075:        const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
+
+=== safeOrder: postOnly/timeInForce block (context) ===
+4986-        let postOnly = this.safeValue (order, 'postOnly');
+4987-        // timeInForceHandling
+4988-        if (timeInForce === undefined) {
+4989-            if (!isTriggerOrSLTpOrder && (this.safeString (order, 'type') === 'market')) {
+4990:                timeInForce = 'IOC';
+4991-            }
+4992-            // allow postOnly override
+4993-            if (postOnly === true) {
+4994-                timeInForce = 'PO';
+4995-            }
+4996-        } else if (postOnly === undefined) {
+4997-            // timeInForce is not undefined here
+4998-            postOnly = timeInForce === 'PO';
+4999-        }
+5000-        const timestamp = this.safeInteger (order, 'timestamp');
+5001-        const lastUpdateTimestamp = this.safeInteger (order, 'lastUpdateTimestamp');
+5002-        let datetime = this.safeString (order, 'datetime');
+5003-        if (datetime === undefined) {
+5004-            datetime = this.iso8601 (timestamp);
+
+=== safeOrder: stopPrice / trigger / tp / sl ===
+4221:         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
+4286:        const splited = paramName.split ('.'); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+4788:        const isTriggerOrSLTpOrder = ((this.safeString (order, 'triggerPrice') !== undefined || (this.safeString (order, 'stopLossPrice') !== undefined)) || (this.safeString (order, 'takeProfitPrice') !== undefined));
+5006:        const triggerPrice = this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
+5007:        const takeProfitPrice = this.parseNumber (this.safeString (order, 'takeProfitPrice'));
+5008:        const stopLossPrice = this.parseNumber (this.safeString (order, 'stopLossPrice'));
+5029:            'stopPrice': triggerPrice,  // ! deprecated, use triggerPrice instead
+5030:            'triggerPrice': triggerPrice,
+5031:            'takeProfitPrice': takeProfitPrice,
+5032:            'stopLossPrice': stopLossPrice,
+7098:                'triggerPrice': takeProfit,
+7103:                'triggerPrice': stopLoss,
+7107:        const takeProfitPriceType = this.safeString (params, 'takeProfitPriceType');
+7111:        const stopLossPriceType = this.safeString (params, 'stopLossPriceType');
+7117:        if (takeProfitPriceType !== undefined) {
+7118:            params['takeProfit']['priceType'] = takeProfitPriceType;
+7129:        if (stopLossPriceType !== undefined) {
+7130:            params['stopLoss']['priceType'] = stopLossPriceType;
+7138:        params = this.omit (params, [ 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ]);
+7781:        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+7782:        let triggerPriceStr: Str = undefined;
+7783:        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+7784:        let stopLossPriceStr: Str = undefined;
+7785:        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+7786:        let takeProfitPriceStr: Str = undefined;
+7788:        if (triggerPrice !== undefined) {
+7790:                params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+7792:            triggerPriceStr = this.priceToPrecision (symbol, parseFloat (triggerPrice));
+7794:        if (stopLossPrice !== undefined) {
+7796:                params = this.omit (params, 'stopLossPrice');
+7798:            stopLossPriceStr = this.priceToPrecision (symbol, parseFloat (stopLossPrice));
+7800:        if (takeProfitPrice !== undefined) {
+7802:                params = this.omit (params, 'takeProfitPrice');
+7804:            takeProfitPriceStr = this.priceToPrecision (symbol, parseFloat (takeProfitPrice));
+7806:        return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params ];
+9464:         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+9465:         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+9511:    async createStopLimitOrderWs (symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params = {}) {
+9515:        const query = this.extend (params, { 'stopPrice': triggerPrice });
+9519:    async createStopLossOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, stopLossPrice: Num = undefined, params = {}): Promise<Order> {
+
+=== precedent: boolean || assigned to a const in ts/src exchanges ===
+ts/src/alpaca.ts:1810:                const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (amount, '0'));
+ts/src/alpaca.ts:1945:            const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));
+ts/src/binance.ts:3431:        const isDemoEnv = (demoMode === true) || (sandboxMode === true);
+ts/src/binance.ts:3952:        const cross = (type === 'margin') || (marginMode === 'cross');
+ts/src/binance.ts:5557:            const isFutureOrSwap = (market['swap'] === true) || (market['future'] === true);
+ts/src/binance.ts:6784:        const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
+ts/src/binance.ts:10588:        const isSpotOrMargin = (type === 'spot') || (type === 'margin');
+ts/src/binance.ts:13055:        const userDataStream = (path === 'userDataStream') || (path === 'listenKey') || (path === 'userListenToken');
+ts/src/bingx.ts:1527:        const isMakerSide = (isBuyerMaker === true) || (m === true);
+ts/src/bingx.ts:7111:            const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
+ts/src/bitfinex.ts:1793:        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
+ts/src/bitfinex.ts:4012:        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
+ts/src/bitget.ts:2420:                    const isolated = (isolatedBase === 'YES') || (isolatedQuote === 'YES');
+ts/src/bitget.ts:6237:        const isPlanOrder = (trigger === true) || (trailing === true);
+ts/src/bitget.ts:6238:        const isContract = (market['swap'] === true) || (market['future'] === true);
+--- count ---
+ts/src/alpaca.ts:2
+ts/src/binance.ts:6
+ts/src/bingx.ts:2
+ts/src/bitfinex.ts:2
+ts/src/bitget.ts:3
+ts/src/bitmex.ts:7
+ts/src/bitrue.ts:1
+ts/src/bitvavo.ts:5
+ts/src/blofin.ts:1
+ts/src/btse.ts:2
+ts/src/bybit.ts:12
+ts/src/bydfi.ts:3
+ts/src/coinex.ts:2
+ts/src/gate.ts:6
+ts/src/htx.ts:10
+ts/src/hyperliquid.ts:3
+ts/src/kucoin.ts:2
+ts/src/lbank.ts:1
+ts/src/okx.ts:4
+ts/src/phemex.ts:8
+
+=== mudrex.ts: parseOrder + callers ===
+55:                'fetchOpenOrders': true,
+742:            return this.parseOrder (riskData, market);
+754:            'order_type': (side === 'buy') ? 'LONG' : 'SHORT',
+773:        data['order_type'] = request['order_type'];
+775:        return this.parseOrder (data, market);
+811:        return this.parseOrder (data, market);
+814:    parseOrderStatus (status: Str): Str {
+831:    override parseOrder (order: Dict, market: Market = undefined): Order {
+835:        const rawSide = this.safeStringUpper (order, 'order_type');
+837:        if (rawSide === 'LONG') {
+839:        } else if (rawSide === 'SHORT') {
+853:        const status = this.parseOrderStatus (this.safeStringLower (order, 'status'));
+907:        return this.parseOrder (data, market);
+920:    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+933:        return this.parseOrder (data, market);
+971:            orders.push (this.parseOrder (rows[i], market));
+987:    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+993:     * @name mudrex#fetchOpenOrders
+1002:    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+1105:        // open positions use "order_type", closed positions (history) use "position_type"
+1106:        const rawSide = this.safeStringUpper2 (position, 'order_type', 'position_type');
+1108:        if (rawSide === 'LONG') {
+1110:        } else if (rawSide === 'SHORT') {
+1193:            const orderType = this.safeStringUpper (params, 'order_type', 'LIMIT');
+1194:            request['order_type'] = orderType;
+1200:            params = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
+1299:        const side = this.safeStringLower2 (trade, 'side', 'order_type');
+
+=== mudrex.ts lines 820-900 ===
+            'partially_filled': 'open',
+            'filled': 'closed',
+            'completed': 'closed',
+            'cancelled': 'canceled',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    override parseOrder (order: Dict, market: Market = undefined): Order {
+        const oms = this.safeString (order, 'symbol');
+        market = this.safeMarket (oms, market);
+        const oid = this.safeString2 (order, 'order_id', 'id');
+        const rawSide = this.safeStringUpper (order, 'order_type');
+        let side: Str = undefined;
+        if (rawSide === 'LONG') {
+            side = 'buy';
+        } else if (rawSide === 'SHORT') {
+            side = 'sell';
+        }
+        const trig = this.safeStringUpper (order, 'trigger_type');
+        let typ: Str = undefined;
+        if (trig === 'MARKET') {
+            typ = 'market';
+        } else if (trig === 'LIMIT') {
+            typ = 'limit';
+        }
+        let ts = this.parse8601 (this.safeString (order, 'created_at'));
+        if (ts === undefined) {
+            ts = this.milliseconds ();
+        }
+        const status = this.parseOrderStatus (this.safeStringLower (order, 'status'));
+        const sym = market['symbol'];
+        return this.safeOrder ({
+            'info': order,
+            'id': oid,
+            'clientOrderId': undefined,
+            'timestamp': ts,
+            'datetime': this.iso8601 (ts),
+            'lastTradeTimestamp': undefined,
+            'symbol': sym,
+            'type': typ,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': this.safeNumber2 (order, 'price', 'order_price'),
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': this.safeNumber2 (order, 'quantity', 'amount'),
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': [],
+            'fees': [],
+            'lastUpdateTimestamp': undefined,
+            'reduceOnly': this.safeBool (order, 'reduce_only'),
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name mudrex#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+
+=== CI CHECKS pr 30328 ===
+build	pass	43s	https://github.com/ccxt/ccxt/actions/runs/34279264268/job/102239807629	
+build	pass	34s	https://github.com/ccxt/ccxt/actions/runs/34279264269/job/102239807772	
+build	pass	47s	https://github.com/ccxt/ccxt/actions/runs/34279264274/job/102239807467	
+build	pass	1m41s	https://github.com/ccxt/ccxt/actions/runs/34279264276/job/102239807220	
+build	pass	48s	https://github.com/ccxt/ccxt/actions/runs/34279264295/job/102239807401	
+build	pass	1m14s	https://github.com/ccxt/ccxt/actions/runs/34279264336/job/102239807614	
+live-tests	pass	1m0s	https://github.com/ccxt/ccxt/actions/runs/34279264268/job/102240358774	
+live-tests	pass	56s	https://github.com/ccxt/ccxt/actions/runs/34279264274/job/102240060244	
+live-tests	pass	25s	https://github.com/ccxt/ccxt/actions/runs/34279264295/job/102240066641	
+live-tests	pass	48s	https://github.com/ccxt/ccxt/actions/runs/34279264336/job/102240208421	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34279264292/job/102239807120	
+live-tests	pass	43s	https://github.com/ccxt/ccxt/actions/runs/34279264269/job/102240310436	
+live-tests	pending	0	https://github.com/ccxt/ccxt/actions/runs/34279264276/job/102240340825	
+windows	skipping	0	https://github.com/ccxt/ccxt/actions/runs/34279264268/job/102240361261	
+--- rc=0 ---
+13480 /tmp/probe_30328.txt
