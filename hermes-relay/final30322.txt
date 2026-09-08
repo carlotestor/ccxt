@@ -1,0 +1,14 @@
+MATCH bytes=1288
+[ok] marked [30322] digested
+{
+  "repo": "ccxt/ccxt",
+  "action": "mark-digested",
+  "marked": [
+    30322
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",
+  "new_prs": [],
+  "new_issues": []
+}
