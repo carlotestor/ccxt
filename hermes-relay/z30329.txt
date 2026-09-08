@@ -1,8 +1,0 @@
-g30329.txt: rc=0 
-c30329.txt: rc=0 
-p30329.txt: rc=0 
-v30329.txt: rc=0 
-r30329.txt: rc=0 
-f30329.txt: rc=0 
-f2_30329.txt: rc=0 
-g2_30329.txt: rc=0 
