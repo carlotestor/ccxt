@@ -1,0 +1,47 @@
+{
+  "mermaid": "flowchart LR\n  rust_yml[\"rust.yml\"]\n  _gitignore[\".gitignore\"]\n  run_tests[\"run-tests\"]\n  _gitignore --> rust_yml\n  run_tests --> rust_yml",
+  "dot": "digraph G {\n  rankdir=LR;\n  graph [bgcolor=\"white\"];\n  node [shape=box, style=\"rounded,filled\", fillcolor=\"#eef4ff\", color=\"#3b5bdb\", fontname=\"Helvetica\", fontsize=11];\n  edge [color=\"#495057\", arrowsize=0.8];\n  rust_yml [label=\"rust.yml\"];\n  _gitignore [label=\".gitignore\"];\n  run_tests [label=\"run-tests\"];\n  _gitignore -> rust_yml;\n  run_tests -> rust_yml;\n}",
+  "image_url": "https://mermaid.ink/img/eyJjb2RlIjoiZmxvd2NoYXJ0IExSXG4gIHJ1c3RfeW1sW1wicnVzdC55bWxcIl1cbiAgX2dpdGlnbm9yZVtcIi5naXRpZ25vcmVcIl1cbiAgcnVuX3Rlc3RzW1wicnVuLXRlc3RzXCJdXG4gIF9naXRpZ25vcmUgLS0-IHJ1c3RfeW1sXG4gIHJ1bl90ZXN0cyAtLT4gcnVzdF95bWwiLCJtZXJtYWlkIjp7InRoZW1lIjoibmV1dHJhbCJ9fQ",
+  "png": "",
+  "nodes": {
+    "rust_yml": "rust.yml",
+    "_gitignore": ".gitignore",
+    "run_tests": "run-tests"
+  },
+  "edges": [
+    {
+      "from": "_gitignore",
+      "to": "rust_yml"
+    },
+    {
+      "from": "run_tests",
+      "to": "rust_yml"
+    }
+  ],
+  "removed_edges": [],
+  "files": [
+    {
+      "file": ".github/workflows/rust.yml",
+      "additions": 21,
+      "deletions": 9,
+      "status": "modified"
+    },
+    {
+      "file": "run-tests.js",
+      "additions": 4,
+      "deletions": 1,
+      "status": "modified"
+    },
+    {
+      "file": ".gitignore",
+      "additions": 3,
+      "deletions": 0,
+      "status": "modified"
+    }
+  ],
+  "salient": {
+    "file": ".github/workflows/rust.yml",
+    "lang": "",
+    "diff": "@@ -99,12 +99,14 @@\n-        run: npm run buildRust --tests\n+        run: |\n+          cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust\n+          cp rust/target/debug/ti-rust rust/tests.bin\n-        if: env.important_modified == 'true'\n+        if: github.ref == 'refs/heads/master' && env.important_modified == 'true'\n-          cargo test --jobs 1 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base\n-          cargo test --jobs 1 --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust cargo_test_gate\n+          cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base\n+          cargo test --jobs 2 --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust cargo_test_gate"
+  }
+}
