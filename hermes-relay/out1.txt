@@ -1,0 +1,88 @@
+===== PR VIEW =====
+{"additions":14,"author":{"id":"MDQ6VXNlcjc5NDAxOTM5","is_bot":false,"login":"rayBastard","name":"Roman Cuhari"},"body":"createOrder trailing/leverage/iceberg were declared true but none is implemented; spot features block declared on a swap-only venue. Added the missing fetchOrders discovery block, removed the unread params.cost JSDoc line and fixed the algoType param type.","deletions":9,"files":[{"path":"ts/src/modetrade.ts","additions":14,"deletions":9}],"headRefOid":"b82af99cb2231f8df4412979acde24b35487a0ec","isDraft":true,"labels":[{"id":"MDU6TGFiZWw2MDQ4ODY5NjQ=","name":"bug","description":"","color":"D93A0F"}],"state":"OPEN","title":"chore(modetrade): correct features flags to match implementation"}
+
+===== CLASSIFY GENERATED =====
+{
+  "generated": [],
+  "source": [
+    {
+      "path": "ts/src/modetrade.ts",
+      "why": "source-of-truth / not a generated dump"
+    }
+  ],
+  "unknown": [],
+  "close": false,
+  "reason": "no generated files",
+  "generated_paths": [],
+  "source_paths": [
+    "ts/src/modetrade.ts"
+  ]
+}
+
+===== PRIOR carlotestor REVIEWS COUNT =====
+0
+
+===== PRIOR carlotestor COMMENTS COUNT =====
+0
+
+===== FILES WITH PATCHES =====
+FILE: ts/src/modetrade.ts
+STATUS: modified
+PATCH:
+@@ -319,12 +319,12 @@ export default class modetrade extends Exchange {
+                             'GTD': false,
+                         },
+                         'hedged': false,
+-                        'trailing': true,
+-                        'leverage': true, // todo implement
++                        'trailing': false,
++                        'leverage': false,
+                         'marketBuyByCost': false,
+                         'marketBuyRequiresPrice': false,
+                         'selfTradePrevention': false,
+-                        'iceberg': true, // todo implement
++                        'iceberg': false,
+                     },
+                     'createOrders': {
+                         'max': 10,
+@@ -349,7 +349,15 @@ export default class modetrade extends Exchange {
+                         'trailing': false,
+                         'symbolRequired': false,
+                     },
+-                    'fetchOrders': undefined,
++                    'fetchOrders': {
++                        'marginMode': false,
++                        'limit': 500,
++                        'daysBack': undefined,
++                        'untilDays': 100000,
++                        'trigger': true,
++                        'trailing': false,
++                        'symbolRequired': false,
++                    },
+                     'fetchClosedOrders': {
+                         'marginMode': false,
+                         'limit': 500,
+@@ -364,9 +372,7 @@ export default class modetrade extends Exchange {
+                         'limit': 1000,
+                     },
+                 },
+-                'spot': {
+-                    'extends': 'default',
+-                },
++                'spot': undefined,
+                 'forDerivatives': {
+                     'extends': 'default',
+                     'createOrder': {
+@@ -1616,8 +1622,7 @@ export default class modetrade extends Exchange {
+      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+-     * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
+-     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
++     * @param {string} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
+      * @param {string} [params.clientOrderId] a unique id for the order
+      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+      */
+
+===== DONE =====
+4020 /tmp/out1.txt
