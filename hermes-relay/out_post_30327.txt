@@ -1,0 +1,30 @@
+=== verifier argparse choices (so the gate is called correctly) ===
+91:    ap.add_argument("--repo", required=True, help="owner/repo")
+92:    ap.add_argument("--pr", required=True, type=int)
+93:    ap.add_argument("--review-id", required=True, type=int,
+94-                    help="numeric REST id from the POST response .id")
+95:    ap.add_argument("--local", help="the review payload JSON file passed to --input")
+96:    ap.add_argument("--login", default="carlotestor")
+97:    ap.add_argument("--expect-event",
+98-                    choices=["APPROVED", "COMMENTED", "CHANGES_REQUESTED"])
+99:    ap.add_argument("--expect-inline", type=int)
+100:    ap.add_argument("--max-head-reviews", type=int, default=1,
+101-                    help="allowed reviews by --login against this review's commit_id")
+102:    ap.add_argument("--max-issue-comments", type=int, default=0,
+103-                    help="allowed top-level issue comments by --login (review path posts none)")
+104:    ap.add_argument("--require-substring", action="append", default=[],
+105-                    help="repeatable; must appear verbatim in the remote body")
+106-    args = ap.parse_args()
+107-
+
+
+=== POST review ===
+rc=0
+stderr=
+review_id=5146802055
+state=APPROVED
+commit_id=61079a7c3ecdde7bd68795c74959aa573a4c9e9b
+user=carlotestor
+html_url=https://github.com/ccxt/ccxt/pull/30327#pullrequestreview-5146802055
+
+=== END ===
