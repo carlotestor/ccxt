@@ -1,0 +1,82 @@
+
+===== restore PR transpile.ts =====
+(empty == tree matches PR head)
+
+===== transpile python+php (quiet) =====
+python_exit=0
+Transpiling from /root/worktrees/review-30330/examples/ts/watchPositionsForSymbols.ts (<computed> → <computed> @ pipez.js:48)
+Transpiled successfully. (<computed> → <computed> → <computed> @ pipez.js:48)
+php_exit=0
+Transpiling from /root/worktrees/review-30330/examples/ts/watchPositionsForSymbols.ts (<computed> → <computed> @ pipez.js:48)
+Transpiled successfully. (<computed> → <computed> → <computed> @ pipez.js:48)
+
+===== AFTER: the 4 sites named in issue #30200 =====
+            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
+                '70004': 'We are unable to accept orders as the transaction is currently suspended',
+        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
+        # the actual response format is not the same as the documented one
+
+===== AFTER: same 4 sites in PHP =====
+            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
+                '70004' => 'We are unable to accept orders as the transaction is currently suspended',
+        throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
+
+===== AFTER: py_compile (sync+async, 4 exchanges) =====
+py_compile all_ok=yes
+
+===== AFTER: php -l =====
+No syntax errors detected in php/hitbtc.php
+No syntax errors detected in php/bitbank.php
+No syntax errors detected in php/kraken.php
+No syntax errors detected in php/bigone.php
+
+===== AFTER: stranded ' as X' surviving on PYTHON CODE lines (must be empty) =====
+python/ccxt/hitbtc.py:986:            networkCode = networkCode.upper() if (networkCode is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
+python/ccxt/hitbtc.py:1798:        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+python/ccxt/bitbank.py:598:        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+python/ccxt/kraken.py:1184:        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+python/ccxt/kraken.py:1451:                id = self.safe_string(trade, 6)  # artificially added as per  #1794
+python/ccxt/bigone.py:1319:        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+python/ccxt/bigone.py:1536:        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+---(end stranded)---
+
+===== regenerated-tree size (how much CI would move) =====
+22
+ 22 files changed, 146 insertions(+), 146 deletions(-)
+
+===== EDGE: 'as const' anywhere in ts/src? (lowercase, NOT in PR primitive list) =====
+count=0
+
+===== EDGE: 'as undefined' / 'as null' / 'as void' on code =====
+origin/master:ts/src/bitget.ts:5358:     * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+origin/master:ts/src/blofin.ts:2606:     * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
+origin/master:ts/src/okx.ts:8669:     * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
+
+===== EDGE: the single 'code' hit from pass2 (type.ts:240 context) =====
+
+export {
+    isNumber
+    , isInteger
+    , isArray
+    , isObject
+    , isString
+    , isStringCoercible
+    , isDictionary as isDict
+    , hasProps
+    , prop
+    , asFloat
+    , asInteger
+    , safeFloat
+    , safeInteger
+
+===== EDGE: is ts/src/base/functions/type.ts transpiled by build/transpile.ts? =====
+(no hit above => not a transpile input)
+
+===== EDGE: lowercase type ALIASES declared in types.ts (would a real cast use one?) =====
+2:export type int = number;
+413:export interface fetchEventsParams {
+1008:export type safeInputType = any;
+(empty => every declared type is capitalised, matching the PR's [A-Z] arm)
+
+===== DONE =====
+4231 /tmp/p3_30330.txt
