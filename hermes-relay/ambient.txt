@@ -1,0 +1,31 @@
+=== 1. test.keepAliveTimeout provenance ===
+3537f2b8 ts/src/pro/test/base/test.keepAliveTimeout.ts: EXISTS
+master   ts/src/pro/test/base/test.keepAliveTimeout.ts: EXISTS
+is that file part of PR 30275 diff? False
+  added/edited by 98a94aa9 @ 2026-09-08T08:09:35Z :: fix(pro): close the socket when the keepalive timeout fires so the abandoned connection stops feedin
+
+=== 2. master-side runs of the same workflow ===
+[Automated changes] GO files d5d047ec completed  skipped      2026-09-08T09:05:37Z
+[Automated changes] GO files d5d047ec completed  skipped      2026-09-08T09:05:37Z
+[Automated changes] GO files d5d047ec completed  skipped      2026-09-08T09:05:37Z
+[Automated changes] GO files d5d047ec completed  skipped      2026-09-08T09:05:37Z
+[Automated changes] GO files d5d047ec completed  skipped      2026-09-08T09:05:37Z
+[Automated changes] GO files d5d047ec completed  skipped      2026-09-08T09:05:37Z
+[Automated changes] GO files d5d047ec completed  skipped      2026-09-08T09:05:37Z
+[Automated changes] Python f 3eb13427 completed  skipped      2026-09-08T09:02:49Z
+[Automated changes] Python f 3eb13427 completed  cancelled    2026-09-08T09:02:49Z
+[Automated changes] Python f 3eb13427 completed  cancelled    2026-09-08T09:02:49Z
+[Automated changes] Python f 3eb13427 completed  cancelled    2026-09-08T09:02:49Z
+[Automated changes] Python f 3eb13427 completed  cancelled    2026-09-08T09:02:49Z
+
+=== 3. same failure on unrelated PRs? ===
+PR #30321  build: 7 run(s), 1 failing  (fix(pro): close the socket when the php and cs keepa)
+    rust keepAliveTimeout lines: 4 ; "reading 'block'" lines: 3
+    SAME FAILURE: 2026-09-08T09:26:55.8572901Z [35mTranspiling WS base test from [33m./ts/src/pro/test/base/test.keepAliveTimeout.ts[35m[39m [90m(transpileBaseTestsWs @ rustTranspiler.ts:7904)
+PR #30320  build: 7 run(s), 2 failing  (chore(build): batch 3 merge-gate-green small fixes ()
+    rust keepAliveTimeout lines: 4 ; "reading 'block'" lines: 3
+    SAME FAILURE: 2026-09-08T09:01:56.4226375Z [35mTranspiling WS base test from [33m./ts/src/pro/test/base/test.keepAliveTimeout.ts[35m[39m [90m(transpileBaseTestsWs @ rustTranspiler.ts:7904)
+PR #30315  build: 0 run(s), 0 failing  (fix(toobit): word the parseOrder comment so the tran)
+PR #30314  build: 7 run(s), 0 failing  (fix(pro): synchronize Go ArrayCache polling and clea)
+PR #30300  build: 7 run(s), 0 failing  (perf(pro): optimize native ArrayCache updates and sl)
+PR #30297  build: 0 run(s), 0 failing  (feat: order router)
