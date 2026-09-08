@@ -1,0 +1,34 @@
+LABELS rc=0 out=["bug"] err=
+REVIEW rc=0
+REVIEW status_head=HTTP/2.0 200 OK
+REVIEW stderr=
+REVIEW id=5148026904 state=APPROVED inline_expected=2
+CREATED=True
+REACTION rc=0 out=added +1 on #30330 err=
+MARK rc=0 out={
+  "repo": "ccxt/ccxt",
+  "action": "mark-processed",
+  "kind": "pr",
+  "marked": [
+    30330
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/ err=[ok] marked pr [30330] processed
+VERIFY_REVIEWS=[{"commit_id":"8afa118521cf9a9f7060577a70a6887b8a14cea5","id":5148026904,"state":"APPROVED"}]
+VERIFY_INLINE=[{"line":809,"path":"build/transpile.ts"},{"line":809,"path":"build/transpile.ts"}]
+VERIFY_LABELS=["bug"]
+SIBLINGS rc=0 out={
+  "repo": "ccxt/ccxt",
+  "source": "find_skipped_sibling_prs",
+  "checked_at": "2026-09-08T23:24:54Z",
+  "min_age_hours": 1.0,
+  "max_age_hours": 24.0,
+  "skipped": [],
+  "counts": {
+    "open_seen": 9,
+    "in_window": 7,
+    "skipped": 0,
+    "skipped_total": 0
+  }
+} err=
