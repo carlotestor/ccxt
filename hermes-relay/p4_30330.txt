@@ -1,0 +1,69 @@
+
+===== RISK: are the lowercase type aliases (int / safeInputType / fetchEventsParams) ever CAST targets? =====
+as_int_casts=0
+(0 => no such cast exists today; risk is latent/forward-looking only)
+
+===== RISK: is lowercase 'int' actually used as a TS type elsewhere (annotations/generics)? =====
+origin/master:ts/src/alpaca.ts:2130:    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+origin/master:ts/src/apex.ts:1916:    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+origin/master:ts/src/apex.ts:2042:    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+origin/master:ts/src/aster.ts:3072:    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+origin/master:ts/src/aster.ts:4484:    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+origin/master:ts/src/backpack.ts:2402:    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+origin/master:ts/src/base/Exchange.ts:424:    lastRestRequestTimestamp: int;
+origin/master:ts/src/base/Exchange.ts:3954:    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<{}> {
+origin/master:ts/src/base/Exchange.ts:7017:    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
+origin/master:ts/src/bigone.ts:2403:    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+(shows whether 'int' is a live type name a future cast could use)
+
+===== RESIDUAL: bybit 'as OCO' thrown message on master TS =====
+origin/master:ts/src/bybit.ts:4337:                    throw new InvalidOrder (this.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination');
+
+===== CI: does any workflow fail on a dirty tree after transpile? (diff/verify gates) =====
+---(end ci gate)---
+
+===== transpile bybit with PR regex =====
+exit=0
+
+===== AFTER: bybit OCO message in python (PR head) =====
+        :param float [params.takeProfitLimitPrice]: The limit price for a takeprofit order(only when used in OCO combination with stopLossPrice)
+                    raise InvalidOrder(self.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using combination')
+
+===== AFTER: bybit py_compile =====
+bybit sync OK
+bybit async OK
+
+===== SANITY: simulate a hypothetical 'x as int' cast through both regexes =====
+"const a = b as int;"
+   old -> "const a = b;"
+   new -> "const a = b as int;"
+"const a = b as any;"
+   old -> "const a = b;"
+   new -> "const a = b;"
+"const a = b as Trade[];"
+   old -> "const a = b;"
+   new -> "const a = b;"
+"const a = b as string[];"
+   old -> "const a = b;"
+   new -> "const a = b;"
+"const a = b as Dictionary<string>;"
+   old -> "const a = b;"
+   new -> "const a = b;"
+"const a = b as safeInputType;"
+   old -> "const a = b;"
+   new -> "const a = b as safeInputType;"
+"// ordered as timestamp"
+   old -> "// ordered"
+   new -> "// ordered as timestamp"
+"throw new Error (\"same as toNetwork\");"
+   old -> "throw new Error (\"same\");"
+   new -> "throw new Error (\"same as toNetwork\");"
+"const a = b as Endpoint<Dict | List>;"
+   old -> "const a = b;"
+   new -> "const a = b;"
+"// parses numbers as strings"
+   old -> "// parses numbers"
+   new -> "// parses numbers as strings"
+
+===== DONE =====
+3919 /tmp/p4_30330.txt
