@@ -1,0 +1,62 @@
+=== MASTER handleOrder messageHash + resolves ===
+447:        let messageHash = 'orders';
+761:            const messageHash = 'orders';
+770:                client.resolve (orders, messageHash);
+771:                client.resolve (orders, messageHash + ':' + symbol);
+812:                client.resolve (orders, messageHash + ':' + symbol);
+813:                client.resolve (orders, messageHash);
+838:                        client.resolve (orders, 'orders');
+839:                        client.resolve (orders, 'orders:' + currentOrder['symbol']);
+912:            client.resolve (this.orders, 'orders');
+917:                client.resolve (this.orders, messageHash);
+
+=== MASTER subscribePrivate extend order (params overrides feed?) ===
+ 160|         const url = this.urls['api']['ws'];
+ 161|         const subscribe: Dict = {
+ 162|             'event': 'subscribe',
+ 163|             'feed': name,
+ 164|             'api_key': this.apiKey,
+ 165|             'original_challenge': this.options['challenge'],
+ 166|             'signed_challenge': this.options['signedChallenge'],
+ 167|         };
+ 168|         const request = this.extend (subscribe, params);
+ 169|         return await this.watch (url, messageHash, request, messageHash);
+ 170|     }
+
+=== base handleOptionAndParams: does it omit the key from params? ===
+6856:    handleOptionAndParams (params: object, methodName: Str, optionName: string, defaultValue?: any): [any, Dict];
+6857-    /* eslint-enable no-unused-vars */
+6858:    handleOptionAndParams (params: object, methodName: Str, optionName: string, defaultValue: any = undefined): [any, Dict] {
+6859-        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+6860-        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
+6861-        // check if params contain the key
+6862-        let value = this.safeValue2 (params, optionName, defaultOptionName);
+6863-        if (value !== undefined) {
+6864-            params = this.omit (params, [ optionName, defaultOptionName ]);
+6865-        } else {
+6866-            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+6867-            [ methodName, params ] = this.handleParamString (params, 'callerMethodName', methodName);
+6868-            // check if exchange has properties for this method
+6869-            const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
+6870-            if (exchangeWideMethodOptions !== undefined) {
+6871-                // check if the option is defined inside this method's props
+6872-                value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+6873-            }
+6874-            if (value === undefined) {
+6875-                // if it's still undefined, check if global exchange-wide option exists
+6876-                value = this.safeValue2 (this.options, optionName, defaultOptionName);
+6877-            }
+6878-            // if it's still undefined, use the default value
+6879-            value = (value !== undefined) ? value : defaultValue;
+6880-        }
+
+=== does krakenfutures options define 'verbose' or 'watchOrders'? ===
+ts/src/pro/krakenfutures.ts:37:                'watchOrders': true,
+ts/src/pro/krakenfutures.ts:51:                'ordersLimit': 1000,
+ts/src/pro/krakenfutures.ts:754:            const limit = this.safeInteger (this.options, 'ordersLimit');
+ts/src/pro/krakenfutures.ts:897:        const limit = this.safeInteger (this.options, 'ordersLimit');
+
+=== Client.resolve on an unawaited hash = no-op? ===
+
+=== ws static fixture list contains krakenfutures? ===
+binance.json bingx.json bitget.json bitvavo.json bybit.json coinbase.json cryptocom.json deribit.json gate.json htx.json hyperliquid.json kraken.json kucoin.json kucoinfutures.json okx.json paradex.json phemex.json poloniex.json toobit.json upbit.json whitebit.json 
