@@ -1,0 +1,219 @@
+===== createOrderRequest (1498-1640) =====
+1498:    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+1499:        if (side === undefined) {
+1500:            throw new ArgumentsRequired (this.id + ' requires a side argument');
+1501:        }
+1502:        if (type === undefined) {
+1503:            throw new ArgumentsRequired (this.id + ' requires a type argument');
+1504:        }
+1505:        /**
+1506:         * @method
+1507:         * @ignore
+1508:         * @name modetrade#createOrderRequest
+1509:         * @description helper function to build the request
+1510:         * @param {string} symbol unified symbol of the market to create an order in
+1511:         * @param {string} type 'market' or 'limit'
+1512:         * @param {string} side 'buy' or 'sell'
+1513:         * @param {float} amount how much you want to trade in units of the base currency
+1514:         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+1515:         * @param {object} [params] extra parameters specific to the exchange API endpoint
+1516:         * @returns {object} request to be sent to the exchange
+1517:         */
+1518:        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+1519:        const orderType = type.toUpperCase ();
+1520:        const market = this.market (symbol);
+1521:        if (side === undefined) {
+1522:            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+1523:        }
+1524:        const orderSide = side.toUpperCase ();
+1525:        const request: Dict = {
+1526:            'symbol': market['id'],
+1527:            'side': orderSide,
+1528:        };
+1529:        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+1530:        const stopLoss = this.safeValue (params, 'stopLoss');
+1531:        const takeProfit = this.safeValue (params, 'takeProfit');
+1532:        const hasStopLoss = stopLoss !== undefined;
+1533:        const hasTakeProfit = takeProfit !== undefined;
+1534:        const algoType = this.safeString (params, 'algoType');
+1535:        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (params, 'childOrders') !== undefined);
+1536:        const isMarket = orderType === 'MARKET';
+1537:        const timeInForce = this.safeStringLower (params, 'timeInForce');
+1538:        const postOnly = this.isPostOnly (isMarket, undefined, params);
+1539:        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+1540:        const priceKey = isConditional ? 'price' : 'order_price';
+1541:        const typeKey = isConditional ? 'type' : 'order_type';
+1542:        request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+1543:        if (!isConditional) {
+1544:            if (postOnly) {
+1545:                request['order_type'] = 'POST_ONLY';
+1546:            } else if (timeInForce === 'fok') {
+1547:                request['order_type'] = 'FOK';
+1548:            } else if (timeInForce === 'ioc') {
+1549:                request['order_type'] = 'IOC';
+1550:            }
+1551:        }
+1552:        if (reduceOnly === true) {
+1553:            request['reduce_only'] = reduceOnly;
+1554:        }
+1555:        if (price !== undefined) {
+1556:            request[priceKey] = this.priceToPrecision (symbol, price);
+1557:        }
+1558:        if (isMarket && !isConditional) {
+1559:            request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+1560:        } else if (algoType !== 'POSITIONAL_TP_SL') {
+1561:            request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+1562:        }
+1563:        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+1564:        if (clientOrderId !== undefined) {
+1565:            request['client_order_id'] = clientOrderId;
+1566:        }
+1567:        if (triggerPrice !== undefined) {
+1568:            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+1569:            request['algo_type'] = 'STOP';
+1570:        } else if (hasStopLoss || hasTakeProfit) {
+1571:            request['algo_type'] = 'TP_SL';
+1572:            const outterOrder: Dict = {
+1573:                'symbol': market['id'],
+1574:                'reduce_only': false,
+1575:                'algo_type': 'POSITIONAL_TP_SL',
+1576:                'child_orders': [],
+1577:            };
+1578:            const childOrders = outterOrder['child_orders'];
+1579:            const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
+1580:            if (hasStopLoss) {
+1581:                const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
+1582:                const stopLossOrder: Dict = {
+1583:                    'side': closeSide,
+1584:                    'algo_type': 'TP_SL',
+1585:                    'trigger_price': this.priceToPrecision (symbol, stopLossPrice),
+1586:                    'type': 'LIMIT',
+1587:                    'reduce_only': true,
+1588:                };
+1589:                childOrders.push (stopLossOrder);
+1590:            }
+1591:            if (hasTakeProfit) {
+1592:                const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
+1593:                const takeProfitOrder: Dict = {
+1594:                    'side': closeSide,
+1595:                    'algo_type': 'TP_SL',
+1596:                    'trigger_price': this.priceToPrecision (symbol, takeProfitPrice),
+1597:                    'type': 'LIMIT',
+1598:                    'reduce_only': true,
+1599:                };
+1600:                childOrders.push (takeProfitOrder);
+1601:            }
+1602:            request['child_orders'] = [ outterOrder ];
+1603:        }
+1604:        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
+1605:        return this.extend (request, params);
+1606:    }
+1607:
+1608:    /**
+1609:     * @method
+1610:     * @name modetrade#createOrder
+1611:     * @description create a trade order
+1612:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+1613:     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
+1614:     * @param {string} symbol unified symbol of the market to create an order in
+1615:     * @param {string} type 'market' or 'limit'
+1616:     * @param {string} side 'buy' or 'sell'
+1617:     * @param {float} amount how much of currency you want to trade in units of base currency
+1618:     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+1619:     * @param {object} [params] extra parameters specific to the exchange API endpoint
+1620:     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+1621:     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+1622:     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+1623:     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+1624:     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+1625:     * @param {string} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
+1626:     * @param {string} [params.clientOrderId] a unique id for the order
+1627:     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+1628:     */
+1629:    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+1630:        if (this.markets === undefined) {
+1631:            await this.loadMarkets ();
+1632:        }
+1633:        const market = this.market (symbol);
+1634:        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+1635:        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+1636:        const stopLoss = this.safeValue (params, 'stopLoss');
+1637:        const takeProfit = this.safeValue (params, 'takeProfit');
+1638:        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+1639:        let response = undefined;
+1640:        if (isConditional) {
+
+===== grep cost in file =====
+192:                            'public/funding_rate/{symbol}': { 'cost': 0.33 } as Endpoint<Dict>,
+579:                'cost': {
+742:                'cost': feeCost,
+786:        const feeCost = this.safeString (fee, 'cost');
+788:            fee['cost'] = feeCost;
+790:        const cost = Precise.stringMul (price, amount);
+806:            'cost': cost,
+1391:        const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
+1401:        const remaining = Precise.stringSub (cost, filled);
+1443:            'cost': cost,
+1446:                'cost': fee,
+2806:        //     "cost_position": -139329.358492,
+2900:        //         "cost_position": -139329.358492,
+2955:        //             "cost_position": -139329.358492,
+
+===== fetchOrders / fetchOpenOrders / fetchClosedOrders defs =====
+2012:    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+2090:    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+2182:    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+2207:    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+
+===== BASE: features handling in Exchange.ts =====
+Exchange.ts lines: 10298
+339:    features!: Dictionary<Dictionary<any> | undefined>;
+4085:        this.featuresGenerator ();
+4123:    featuresGenerator () {
+4125:        // in the exchange-specific features can be something like this, where we support 'string' aliases too:
+4138:        if (this.features === undefined) {
+4142:        const initialFeatures = this.features;
+4143:        this.features = {};
+4149:            // if marketType is not filled for this exchange, don't add that in `features`
+4151:                this.features[marketType] = undefined;
+4154:                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType);
+4156:                    this.features[marketType] = {};
+4159:                        this.features[marketType][subType] = this.featuresMapper (initialFeatures, marketType, subType);
+4166:    featuresMapper (initialFeatures: any, marketType: Str, subType: Str = undefined) {
+4167:        let featuresObj = (subType !== undefined) ? initialFeatures[marketType as string][subType] : initialFeatures[marketType as string];
+4169:        if (featuresObj === undefined) {
+4172:        const extendsStr = this.safeString (featuresObj, 'extends');
+4174:            featuresObj = this.omit (featuresObj, 'extends');
+4175:            const extendObj = this.featuresMapper (initialFeatures, extendsStr);
+4176:            featuresObj = this.deepExtend (extendObj, featuresObj);
+4182:        if ('createOrder' in featuresObj) {
+4183:            const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
+4184:            featuresObj['createOrder']['stopLoss'] = value;
+4185:            featuresObj['createOrder']['takeProfit'] = value;
+4188:                featuresObj['createOrder']['hedged'] = false;
+4190:                if (!('leverage' in featuresObj['createOrder'])) {
+4191:                    featuresObj['createOrder']['leverage'] = false;
+4195:            if (this.safeBool (featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
+4196:                featuresObj['createOrder']['timeInForce']['GTC'] = true;
+4200:        const keys = Object.keys (featuresObj);
+4203:            const featureBlock = featuresObj[key];
+4211:        return featuresObj;
+4220:         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
+4236:         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
+4241:        // if exchange does not yet have features manually implemented
+4242:        if (this.features === undefined) {
+4248:        // if marketType (e.g. 'option') does not exist in features
+4249:        if (!(marketType in this.features)) {
+4250:            return defaultValue; // unsupported marketType, check "exchange.features" for details
+4253:        if (this.features[marketType] === undefined) {
+4256:        let methodsContainer = this.features[marketType];
+4262:            if (!(subType in this.features[marketType])) {
+4263:                return defaultValue; // unsupported subType, check "exchange.features" for details
+4266:            if (this.features[marketType][subType] === undefined) {
+4269:            methodsContainer = this.features[marketType][subType];
+4276:            return defaultValue; // unsupported method, check "exchange.features" for details');
+4290:            return defaultValue; // unsupported paramName, check "exchange.features" for details');
+4303:                return defaultValue; // unsupported subKey, check "exchange.features" for details
+
+===== DONE out3 =====
+13812 /tmp/out3.txt
