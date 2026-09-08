@@ -1,0 +1,54 @@
+=== PRIOR REVIEW GATE LINES ===
+review 5121230525 [COMMENTED] on ce745c47 -> gate=['🟢'] (body 3405 chars)
+   TAIL: ### Findings (in scope, non-blocking) | **1. `watchTradesForSymbols` termination.** The loop bound changed from `now < ends` to `(now < ends || returnedSymbols.length < symbols.length)`. `idle` only flips when a *single* `watchTradesForSymbols` call exceeds `maxIdleTime` (5000 ms), so on a venue where one symbol streams briskly and another is quiet, every iteration returns well under 5 s — `idle` stays `false`, the coverage condition stays `true`, and the 15 s `ends` budget becomes advisory. This is the shape that already forced `watchTradesForSymbols.java` into `skip-tests.json` for several exchanges. A bounded maximum would keep the intent without the open-ended tail. | **2. Hardcoded `12000` limit.** `fetchTrades (symbol, undefined, 12000)` now goes to every exchange. This PR clamps two venues (`kalshi` → 1000, `limitless` → 100), but that is a per-exchange allowlist: any other exchan
+review 5121846034 [CHANGES_REQUESTED] on 0f372e67 -> gate=['🔴'] (body 3759 chars)
+   TAIL: | `npx tsc --noEmit` | ✅ exit 0 | | | → Python | ✅ `exchange.sort_by(exchange.array_concat(trades, []), 'timestamp')` | | | → PHP | ✅ `$exchange->sort_by($exchange->array_concat($trades, []), 'timestamp')` | | | → Go | ✅ `exchange.SortBy(exchange.ArrayConcat(trades, []any{}), "timestamp")` | | Semantics match the intent: Python's `array_concat` is `a + b` (a fresh list) and `sort_by` returns `sorted(...)`, so the caller's `trades` is left untouched — I verified the original array is unmodified after the call. `arrayConcat` is defined in `ts/src/base/Exchange.ts:486` and present in the C# and Go bases (`Exchange.BaseMethods.cs`, `exchange_generated.go`), so all five backends resolve it. | Worth noting the defensive copy may not be needed at all — `sortBy` in `ts/src/base/functions/generic.ts:118` sorts in place and returns the array, but Python's `sorted()` and the other ports already cop
+review 5138575125 [COMMENTED] on 326b02c0 -> gate=['🟢'] (body 2824 chars)
+   TAIL: |---|---| | | Python `sort_by` (`base/exchange.py:1157`) | `sorted(...)` — already returns a new list | | | PHP `sort_by` (`Exchange.php:890`) | `usort` on a by-value array param — caller unaffected | | | C# `sortBy` (`Exchange.Generic.cs:10`) | `OrderBy(...).ToList()` — already non-mutating | | | Java `sortBy` (`base/Generic.java:46`) | `new ArrayList<>(lst)` before `sort` | | | Rust `sort_by` (`exchange_stubs.rs:1886`) | takes `Value` by value, `Arc::try_unwrap`/clone | | So Go and JS were the two outliers and both are now fixed; the `sideSequence` heuristic gets a stable locally-sorted view in every language. | One thing worth being deliberate about, since this is now a base-level behaviour change rather than a test-local one: `sortBy` is called on hot paths (`parseOrderBook` in `ts/src/base/Exchange.ts:6051-6052`, `ts/src/pro/bybit.ts:670-671`, `pro/luno.ts:234-235`, and the trade-so
+review 5138661309 [COMMENTED] on 326b02c0 -> gate=['🟢'] (body 3724 chars)
+   TAIL: ### One non-blocking note: `Symbol.species` on the cache subclasses | `Array.prototype.slice` runs `ArraySpeciesCreate`, so `sortBy` on a `BaseCache`/`OrderBookSide` subclass now allocates a **subclass** instance rather than a plain array: | ``` | sortBy(new ArrayCache(3)) -> ctor: ArrayCache, maxSize: 3   // species-created, maxSize re-derived | ``` | That is the same `ArraySpeciesCreate` cost `Cache.ts:24-28` deliberately avoids for `splice`; measured ~1.7x on `ArrayCache` n=500 vs master's in-place sort (~9x vs a plain array of the same length). | **This is currently unreachable, so I am not asking for a change.** `filterBySinceLimit` → `toArray` normalizes caches to a plain `Array` before the sort (verified: `filterBySinceLimit(cache).constructor.name === 'Array'`), which covers the `pro/backpack`, `pro/blofin` and `pro/lbank` callers; `pro/hashkey` sorts the raw `safeList` payload, 
+
+=== CHECK RUNS AT HEAD ===
+live-tests     in_progress  None       id=102029533828
+live-tests     in_progress  None       id=102029423749
+live-tests     completed    failure    id=102029271464
+windows        completed    skipped    id=102029200101
+live-tests     completed    failure    id=102029198834
+live-tests     completed    failure    id=102029156259
+live-tests     completed    failure    id=102029118425
+live-tests     completed    skipped    id=102029024961
+build          completed    success    id=102028470792
+build          completed    failure    id=102028470343
+build          completed    success    id=102028470178
+build          completed    success    id=102028469899
+build          completed    success    id=102028469878
+build          completed    success    id=102028469798
+build          completed    success    id=102028469500
+
+failing runs: 5
+
+=== LOG TAIL: build id=102028470343 ===
+(937 log lines)
+  2026-09-08T10:35:34.9533112Z   CACHE_ON_FAILURE: false
+  2026-09-08T10:35:36.5014057Z   CACHE_ON_FAILURE: false
+  2026-09-08T10:35:49.2186577Z   CACHE_ON_FAILURE: false
+  2026-09-08T10:35:49.2652163Z   CACHE_ON_FAILURE: false
+  2026-09-08T10:35:50.1294859Z   CACHE_ON_FAILURE: false
+  2026-09-08T10:35:51.1592594Z   CACHE_ON_FAILURE: false
+  2026-09-08T10:35:54.6257659Z   CACHE_ON_FAILURE: false
+  2026-09-08T10:36:00.6709192Z   CACHE_ON_FAILURE: false
+  2026-09-08T10:36:43.9561595Z [36m[22m[1mTranspiling error hierarchy → [33m./rust/ccxt-base/src/exchange_errors.rs[36m[22m[39m [90m(transpileErrorHierarchy @ rustTranspiler.ts:7387)[39m
+  2026-09-08T10:36:51.5045430Z [ast-transpiler] underlying error: TypeError: Cannot read properties of undefined (reading 'block')
+  2026-09-08T10:36:51.5067658Z [31m[rust] Error transpiling WS test test.keepAliveTimeout: Lang: Rust Error: Lang: Rust Error: Lang: Rust Error: Cannot read properties of undefined (reading 'block') at 1512:1731 node: "[
+  2026-09-08T10:36:51.5098556Z [31m                                                        import { RequestTimeout } from '../../../base/errors.js';[39m
+  2026-09-08T10:36:51.5146203Z [31m                                                                const errors: any[] = [];[39m
+  2026-09-08T10:36:51.5150377Z [31m                                                                const client = new WsClient (url, noop, (c: any, e: any) => { errors.push (e); }, (c: any, e: any) => { closes.push (e); }
+  2026-09-08T10:36:51.5182307Z [31m                                                                assert (errors.length === 1 && errors[0] instanceof RequestTimeout, 'onError must be raised exactly once with the RequestT
+  2026-09-08T10:36:51.5201496Z [31m                                                                assert (client.error === undefined, 'no error must be recorded on a healthy socket');[39m
+  2026-09-08T10:36:56.9139490Z [33m  - ws: test.keepAliveTimeout — Lang: Rust Error: Lang: Rust Error: Lang: Rust Error: Cannot read properties of undefined (reading 'block') at 1512:1731 node: "[39m [90m(reportDroppedT
+  2026-09-08T10:36:56.9394199Z             throw new Error(
+  2026-09-08T10:36:56.9396014Z Error: [rust] 1 test(s) failed to transpile and would be silently dropped from the suite. Fix the transpiler, or add an explicit reviewed entry to the allow-list in reportDroppedTests(). Drop
+  2026-09-08T10:36:57.0920730Z ##[error]Process completed with exit code 1.
+
+=== SAME LANE ON MASTER TIP (ambient check) ===
+master d5d047ec: {"live-tests": "skipped", "build": "skipped", "windows": "skipped"}
