@@ -1,0 +1,8 @@
+{
+  "rc": 0,
+  "stderr": "",
+  "review_id": 5147102922,
+  "state": "COMMENTED",
+  "user": "carlotestor",
+  "html_url": "https://github.com/ccxt/ccxt/pull/30328#pullrequestreview-5147102922"
+}
