@@ -1,0 +1,46 @@
+=== A) PR HEAD transpile.ts (already generated) ===
+python/ccxt/alpaca.py:1861:51: E211 [*] Whitespace before '('
+python/ccxt/alpaca.py:1872:47: E211 [*] Whitespace before '('
+python/ccxt/alpaca.py:1876:51: E211 [*] Whitespace before '('
+Found 3 errors.
+[*] 3 potentially fixable with the --fix option.
+A_E211_COUNT=3
+
+=== B) revert ONLY build/transpile.ts to master, re-transpile same TS ===
+patch present after revert (want 0): 0
+[32m[22m[1m{ force: true }[22m[39m [90m(<computed> → <computed> → <computed> @ pipez.js:48)[39m
+[36mTranspiling from [33malpaca.ts[36m [36mto[36m [33m[Python][36m[39m [90m(<computed> → <computed> @ pipez.js:48)[39m
+[32m[22m[1mTranspiled successfully.[22m[39m [90m(<computed> → <computed> → <computed> @ pipez.js:48)[39m
+B_E211_COUNT=0
+
+=== ROOT-CAUSE: odd-quote comments inside alpaca parseTransaction ===
+1951:            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+--- the E225-relevant source lines ---
+            const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));
+            timestamp = this.parse8601 (this.safeString (transaction, 'date') + 'T00:00:00Z');
+            datetime = this.iso8601 (timestamp);
+            type = isIncoming ? 'deposit' : 'withdrawal';
+            amount = this.parseNumber (Precise.stringAbs (netAmount));
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            const activityCurrencyId = this.safeString2 (transaction, 'symbol', 'asset');
+            if (activityCurrencyId !== undefined) {
+                code = this.safeCurrencyCode (activityCurrencyId);
+            } else if ((activityType === 'CSD') || (activityType === 'CSW')) {
+                code = 'USD';
+            } else {
+                code = this.safeCurrencyCode (undefined, currency);
+            }
+
+=== CI: does any workflow run check-python-style / ruff? ===
+.github/workflows/release.yml:109:        run: npm run check-python-syntax
+.github/workflows/python.yml:82:      run: npm run check-python-syntax
+--- run-tests / build scripts that chain it ---
+package.json:156:    "check-python-style": "ruff check ./python/ccxt",
+
+=== how many ts/src files carry an odd-quote line comment (blast radius) ===
+39
+
+BYTES:
+2506 /tmp/ab_30331.txt
