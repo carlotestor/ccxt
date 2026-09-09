@@ -1,0 +1,141 @@
+=== 1. STATE CHECK ===
+processed_prs_count: 500
+30335_processed: False
+head_sha_recorded: None
+last5_processed: [30327, 30328, 30329, 30330, 30331]
+
+=== 2. PR VIEW ===
+{"additions":113,"author":"app/dependabot","deletions":91,"files":[{"additions":112,"deletions":90,"path":"examples/ts/nextjs-page-router/package-lock.json"},{"additions":1,"deletions":1,"path":"examples/ts/nextjs-page-router/package.json"}],"head":"82e003101ca1c6e8887f3134eef840796c4fa879","isDraft":false,"labels":["dependencies","javascript"],"state":"OPEN","title":"chore(deps): bump next from 16.2.11 to 16.3.3 in /examples/ts/nextjs-page-router"}
+
+=== 3. GENERATED-FILE CLASSIFIER ===
+{
+  "generated": [],
+  "source": [
+    {
+      "path": "examples/ts/nextjs-page-router/package-lock.json",
+      "why": "source-of-truth / not a generated dump"
+    },
+    {
+      "path": "examples/ts/nextjs-page-router/package.json",
+      "why": "source-of-truth / not a generated dump"
+    }
+  ],
+  "unknown": [],
+  "close": false,
+  "reason": "no generated files",
+  "generated_paths": [],
+  "source_paths": [
+    "examples/ts/nextjs-page-router/package-lock.json",
+    "examples/ts/nextjs-page-router/package.json"
+  ]
+}
+
+=== 4. IDEMPOTENCY: carlotestor reviews / comments ===
+reviews_by_carlotestor: 0
+comments_by_carlotestor: 0
+
+=== 5. DIFF (package.json only, bounded) ===
+{"filename":"examples/ts/nextjs-page-router/package.json","patch":"@@ -10,7 +10,7 @@\n   },\n   \"dependencies\": {\n     \"ccxt\": \"^4.1.56\",\n-    \"next\": \"16.2.11\",\n+    \"next\": \"16.3.3\",\n     \"react\": \"^18\",\n     \"react-dom\": \"^18\"\n   },"}
+
+=== 6. LOCKFILE SUMMARY (name/version lines only) ===
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/env/-/env-16.2.11.tgz",
+-      "integrity": "sha512-0do5A3BJ2gxWr0ZCMcD6BhW+e595jyxdTl3rXTS6lOtD8ektMiW6CO+EPwt1Eca1DBnm90r/7GdiKWBKxH++DA=="
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/env/-/env-16.3.3.tgz",
++      "integrity": "sha512-U2eYQRwXj+dsqxV79zFqExDdatnNY/ZWc2nsJU1p/OgT7fd3dXwlF6OjYaFQCfMoeTA19PWq+wVmYgimVA+V+g==",
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-16.2.11.tgz",
+-      "integrity": "sha512-wryL4pjKmDwGv2ox6+GZDFxvmtSRLqApBR8kL1j4+vhB7Z5vJC/zAnXpiR9Xkfzl0AS8WLMnsuGV/UKI67/rrw==",
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-16.3.3.tgz",
++      "integrity": "sha512-8Hiv32QJPwdV6KYJ8meR9SBA061tQqnIKTJDocvOXlEQqib0xMFpzArosuffFUUc0sslbh7QQ8a3Yey1QV8EIw==",
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-16.2.11.tgz",
+-      "integrity": "sha512-aZl2j4f/fLyjQvOhv0Oe9UaMAQHolYpKhctsoYzplSumKJKPUmgjcf6545aBtysLTcu994TREd0+pSgNE4ohmg==",
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-16.3.3.tgz",
++      "integrity": "sha512-A1lgKgwVchRYmSe467zdwhxT9040dd8lH+o65sL5Jet8fjB4kegw/rDyPIpYVRb6jAqwXFOJpjIXJLxQKLiE3A==",
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-gnu/-/swc-linux-arm64-gnu-16.2.11.tgz",
+-      "integrity": "sha512-5jEriyEnH/LWFy27L2ZG0XaLlyEJIjhsImEsiS9P563PKEVp2BVups/xfOucIrsvVntp11oNcZwjHvaDPYVB5g==",
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-gnu/-/swc-linux-arm64-gnu-16.3.3.tgz",
++      "integrity": "sha512-bf0FIssMFueU2dm7vQEWWxk0c8UjKTdW0yzuh0sQsD8pf1+KCLDdaqhYZNMYGmXwEOiHAUzgBKudovIlcvvBjg==",
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-musl/-/swc-linux-arm64-musl-16.2.11.tgz",
+-      "integrity": "sha512-eIjcpx2fnnFSSkZDbTxy74KnokUXDjfoLClpWelfgHLf621aTqswhwXQ7GkD5K5rplrS6LZ/Bj+mVuvzluBOEg==",
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-musl/-/swc-linux-arm64-musl-16.3.3.tgz",
++      "integrity": "sha512-W7viwCk9JY/cAkdz/A273rd5bb3RgT/IHwR7Upv90tunjBWNtAAhGhoecHh+teRNRSinuAFmE+l7fwZ4YKkrXg==",
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-gnu/-/swc-linux-x64-gnu-16.2.11.tgz",
+-      "integrity": "sha512-8WgzpaWMs46qJT9kiV47cje86L0x/Mu9t8/Gwj+pnbgW3rETVfCnaScPjlYUwNScpOozdcIMHWmAvuZJUonR2w==",
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-gnu/-/swc-linux-x64-gnu-16.3.3.tgz",
++      "integrity": "sha512-0W46zw1N3ODpI6n0GeivHvvob1pooozgZVqy65k0mh4/7vr+FbY9+WpHzNVXjHipJf/A3FDheBG19H1s5A25rA==",
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-musl/-/swc-linux-x64-musl-16.2.11.tgz",
+-      "integrity": "sha512-I3UgPds7G4ZYnTb/H+5GBGuUT2DhAk6j0mL6A4s63RjFs74wB2hOWP0vaxsK+3NJraExt3eYEPQ/UtT0x/64Nw==",
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-musl/-/swc-linux-x64-musl-16.3.3.tgz",
++      "integrity": "sha512-H4mBso8ZTMBPtdT0PN0pBx2ayTvQuTuvS6qT13d77yVFJXAPCxkyIhLTmdMaGTJs0krQYI/qpzdHijCeihXhbg==",
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/swc-win32-arm64-msvc/-/swc-win32-arm64-msvc-16.2.11.tgz",
+-      "integrity": "sha512-n89CjtcThnjrwgJMAiI5xbqwLY51zvwC9tSlArmVndAJLYVl9T9UAdlkXTmZvE++idoXe8KdglQlhNRdUp1c6g==",
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/swc-win32-arm64-msvc/-/swc-win32-arm64-msvc-16.3.3.tgz",
++      "integrity": "sha512-cTMUJpcEGmeywofCUfhR+rSsoE33+rVPnPEYNTNdLNlsOeEg/vktOsKUSTb28vUGqD2jkm4Zaskcwn7OCI6FQg==",
+-      "version": "16.2.11",
+-      "resolved": "https://registry.npmjs.org/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-16.2.11.tgz",
+-      "integrity": "sha512-md8CLNggS1Dx9pUgApzps5uAf+N8GN9xywzmNx9vHAWo94HtBwCCqkSnhIrdfQe83Dhz8Lfo/20Nb1Zxal092w==",
++      "version": "16.3.3",
++      "resolved": "https://registry.npmjs.org/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-16.3.3.tgz",
++      "integrity": "sha512-2VR4cTBzHXaBjnGsuH6GyJjENzQOmHeAh11uY1iUhjm3j5dEUrVJuUj+VL78jaGi/Dik8xS76zEj18BsFhlVZQ==",
+-      "version": "0.5.15",
+-      "resolved": "https://registry.npmjs.org/@swc/helpers/-/helpers-0.5.15.tgz",
+-      "integrity": "sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==",
++      "version": "0.5.23",
++      "resolved": "https://registry.npmjs.org/@swc/helpers/-/helpers-0.5.23.tgz",
++      "integrity": "sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==",
+
+=== 7. LOCKFILE CHANGED PACKAGE PATHS ===
+"node_modules/next"
+"node_modules/@next/env"
+"node_modules/@next/eslint-plugin-next"
+"node_modules/@next/swc-darwin-arm64"
+"node_modules/@next/swc-darwin-x64"
+"node_modules/@next/swc-linux-arm64-gnu"
+"node_modules/@next/swc-linux-arm64-musl"
+"node_modules/@next/swc-linux-x64-gnu"
+"node_modules/@next/swc-linux-x64-musl"
+"node_modules/@next/swc-win32-arm64-msvc"
+"node_modules/@next/swc-win32-x64-msvc"
+"node_modules/@swc/helpers"
+
+=== 8. HUNK HEADERS for package.json (for inline line numbers) ===
+1:@@ -10,7 +10,7 @@
+2:   },
+3:   "dependencies": {
+4:     "ccxt": "^4.1.56",
+5:-    "next": "16.2.11",
+6:+    "next": "16.3.3",
+7:     "react": "^18",
+8:     "react-dom": "^18"
+9:   },
+
+=== 9. CI CHECKS ===
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467081/job/102347682129	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467140/job/102347682240	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467160/job/102347682336	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467164/job/102347682702	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467248/job/102347682220	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467334/job/102347682778	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467411/job/102347683122	
+
+=== 10. EXAMPLES DIR CONTEXT (is it in CI / workspaces?) ===
+--- workspaces field of root package.json ---
+workspaces: None
+
+=== DONE ===
+8129 /tmp/ctx_30335.txt
