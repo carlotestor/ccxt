@@ -1,3 +1,0 @@
-OK   docs/playground/package-lock.json:909  ->  -    "node_modules/monaco-editor": {
-OK   docs/playground/package-lock.json:879  ->  -    "node_modules/dompurify": {
-OK   docs/playground/package.json:16  ->  +    "next": "^15.5.24",
