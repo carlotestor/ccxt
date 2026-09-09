@@ -1,0 +1,148 @@
+=== A. npm registry: next 16.3.3 exists + peerDeps ===
+version: 16.3.3
+peerDependencies: {
+ "sass": "^1.3.0",
+ "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+ "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+ "@playwright/test": "^1.51.1",
+ "@opentelemetry/api": "^1.1.0",
+ "babel-plugin-react-compiler": "*"
+}
+peerDependenciesMeta: {
+ "sass": {
+  "optional": true
+ },
+ "@playwright/test": {
+  "optional": true
+ },
+ "@opentelemetry/api": {
+  "optional": true
+ },
+ "babel-plugin-react-compiler": {
+  "optional": true
+ }
+}
+engines: {'node': '>=20.9.0'}
+deprecated: None
+
+=== A2. npm registry: next 16.2.11 peerDeps (old) + dist-tags ===
+version: 16.2.11
+peerDependencies: {
+ "sass": "^1.3.0",
+ "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+ "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+ "@playwright/test": "^1.51.1",
+ "@opentelemetry/api": "^1.1.0",
+ "babel-plugin-react-compiler": "*"
+}
+dist-tags: {
+ "next-11": "11.1.4",
+ "next-12-2-6": "12.2.6",
+ "next-14-1": "14.1.1",
+ "rc": "15.0.0-rc.1",
+ "next-13": "13.5.11",
+ "next-12-3-2": "12.3.7",
+ "beta": "16.0.0-beta.0",
+ "next-14": "14.2.35",
+ "next-15-3": "15.3.9",
+ "next-15-2": "15.2.9",
+ "next-15-0": "15.1.12",
+ "next-15-0-0": "15.0.8",
+ "preview": "16.3.0-preview.10",
+ "backport": "15.5.25",
+ "latest": "16.3.4",
+ "canary": "16.4.0-canary.22"
+}
+16.3.x published: ['16.3.1-canary.4', '16.3.1-canary.5', '16.3.1-canary.7', '16.3.1-canary.8', '16.3.1-canary.9', '16.3.2', '16.3.3', '16.3.4']
+
+=== B. GitHub advisories cited in PR body ===
+--- GHSA-p293-qw3h-jr36 ---
+{"cvss_severity":9,"ghsa_id":"GHSA-p293-qw3h-jr36","published_at":"2026-09-08T20:51:40Z","severity":"critical","summary":"Next.js: Unauthenticated Remote Code Execution on windows-hosted servers","vulns":[{"patched":"15.5.24","pkg":"next","vulnerable":"\u003e= 13.4.0, \u003c 15.5.24"},{"patched":"16.3.3","pkg":"next","vulnerable":"\u003e= 16.0.0, \u003c 16.3.3"}]}
+--- GHSA-2xp9-vwfh-vxw4 ---
+{"cvss_severity":null,"ghsa_id":"GHSA-2xp9-vwfh-vxw4","published_at":"2026-09-08T21:21:12Z","severity":"critical","summary":"Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used","vulns":[{"patched":"15.5.24","pkg":"next","vulnerable":"\u003e= 10.0.0, \u003c 15.5.24"},{"patched":"16.3.3","pkg":"next","vulnerable":"\u003e= 16.0.0, \u003c 16.3.3"}]}
+
+=== C. Lockfile at PR head: react/next resolution + lockfileVersion ===
+lockfileVersion: 2
+'' -> version: 0.1.0 | deps: {"ccxt": "^4.1.56", "next": "16.3.3", "react": "^18", "react-dom": "^18"} | peer: null
+'node_modules/next' -> version: 16.3.3 | deps: {"@next/env": "16.3.3", "@swc/helpers": "0.5.23", "baseline-browser-mapping": "^2.9.19", "caniuse-lite": "^1.0.30001579", "postcss": "8.5.23", "styled-jsx": "5. | peer: {"@opentelemetry/api": "^1.1.0", "@playwright/test": "^1.51.1", "babel-plugin-react-compiler": "*", "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0", "react-dom": "^18.2.0 || 19.0.0-rc-de6
+'node_modules/react' -> version: 18.2.0 | deps: {"loose-envify": "^1.1.0"} | peer: null
+'node_modules/react-dom' -> version: 18.2.0 | deps: {"loose-envify": "^1.1.0", "scheduler": "^0.23.0"} | peer: {"react": "^18.2.0"}
+'node_modules/@swc/helpers' -> version: 0.5.23 | deps: {"tslib": "^2.8.0"} | peer: null
+'node_modules/@next/env' -> version: 16.3.3 | deps: null | peer: null
+root dependencies: {
+ "ccxt": "^4.1.56",
+ "next": "16.3.3",
+ "react": "^18",
+ "react-dom": "^18"
+}
+total package entries: 394
+resolved hosts: ['registry.npmjs.org']
+
+=== C2. package.json at PR head (full) ===
+{
+  "name": "nextjs-page-router",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "ccxt": "^4.1.56",
+    "next": "16.3.3",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.3",
+    "js-yaml": "^4.3.1",
+    "postcss": "^8.5.23",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "$postcss",
+    "sharp": "^0.35.0",
+    "minimatch@^9.0.0": "9.0.7"
+  }
+}
+
+=== D. dependabot config covering this dir ===
+# .github/dependabot.yml
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/go/v4"
+    schedule:
+      interval: "weekly"
+
+=== E. Is examples/ referenced by CI workflows? ===
+["cs.yml","deploy-playground.yml","docs-fumadocs.yml","go-app.yml","java.yml","js.yml","mcp-release.yml","mcp.yml","php.yml","post-release.yml","python.yml","release-js-only.yml","release-short.yml","release.yml","rust.yml","test-env.yml"]
+-- grep local checkout for nextjs example refs --
+/root/workspace/ccxt/package.json
+-- exit of grep: 0 --
+
+=== F. other open dependabot PRs on same dir ===
+30335 chore(deps): bump next from 16.2.11 to 16.3.3 in /examples/ts/nextjs-page-router
+30334 chore(deps): bump sharp from 0.35.3 to 0.35.4 in /examples/ts/nextjs-page-router
+
+=== G. CI checks now ===
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467081/job/102347682129	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467411/job/102347683122	
+live-tests	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467140/job/102348035824	
+build	pass	53s	https://github.com/ccxt/ccxt/actions/runs/34314467140/job/102347682240	
+build	pass	41s	https://github.com/ccxt/ccxt/actions/runs/34314467164/job/102347682702	
+live-tests	pass	45s	https://github.com/ccxt/ccxt/actions/runs/34314467164/job/102347957711	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467160/job/102347682336	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467248/job/102347682220	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314467334/job/102347682778	
+
+=== DONE ===
+5957 /tmp/ver_30335.txt
