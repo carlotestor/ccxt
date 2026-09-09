@@ -1,0 +1,2 @@
+out_30332.txt: rc=0 
+post_result_30332.txt: rc=0 
