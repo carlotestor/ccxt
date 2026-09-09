@@ -1,0 +1,198 @@
+=== PLAYGROUND package.json AT HEAD ===
+{
+  "name": "ccxt-playground",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive multi-language playground for the CCXT cryptocurrency library",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "setup-runtimes": "bash scripts/setup-runtimes.sh"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "ccxt": "^4.5.66",
+    "next": "^15.5.24",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "undici": "^7.29.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "^5.8.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.23",
+    "dompurify": "^3.4.0",
+    "sharp": "0.35.0"
+  }
+}
+
+=== LOCK AT HEAD: does monaco-editor / dompurify / marked survive? ===
+lockfileVersion 3
+total packages entries: 73
+node_modules/monaco-editor                 ABSENT
+node_modules/dompurify                     ABSENT
+node_modules/marked                        ABSENT
+node_modules/@types/trusted-types          ABSENT
+node_modules/next                          version=15.5.24 peer=None optional=None
+node_modules/@monaco-editor/react          version=4.7.0 peer=None optional=None
+node_modules/@monaco-editor/loader         version=1.7.0 peer=None optional=None
+root deps: {"@monaco-editor/react": "^4.7.0", "ccxt": "^4.5.66", "next": "^15.5.24", "react": "^19.1.0", "react-dom": "^19.1.0", "undici": "^7.29.0"}
+@monaco-editor/react peerDependencies: {"monaco-editor": ">= 0.25.0 < 1", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"}
+@monaco-editor/react dependencies: {"@monaco-editor/loader": "^1.5.0"}
+next peerDependencies: {"@opentelemetry/api": "^1.1.0", "@playwright/test": "^1.51.1", "babel-plugin-react-compiler": "*", "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0", "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0", "sass": "^1.3.0"}
+next peerDependenciesMeta keys: ['@opentelemetry/api', '@playwright/test', 'babel-plugin-react-compiler', 'sass']
+
+=== BASE LOCK (master) same probe ===
+lockfileVersion 3
+total packages entries: 77
+node_modules/monaco-editor                 version=0.56.0 peer=True optional=None
+node_modules/dompurify                     version=3.4.13 peer=True optional=None
+node_modules/marked                        version=14.0.0 peer=True optional=None
+node_modules/@types/trusted-types          version=2.0.7 peer=True optional=True
+node_modules/next                          version=15.5.21 peer=None optional=None
+
+=== NPM REGISTRY: next 15.5.24 exists? ===
+version 15.5.24
+dist.tarball https://registry.npmjs.org/next/-/next-15.5.24.tgz
+integrity sha512-Y+xn8EQCoC3ZbsFPyzE+tE8XOdrWeUdUF7NeXbmg9DsgAxl5UYxlsrvgVESHTyTGigoTa1bCUrxn70F5bqt0Gw==
+
+=== DONE ===
+===== docs/playground/package-lock.json (+53 -83) =====
+-- ADDED ENTRIES (0) --
+-- REMOVED ENTRIES (4) --
+-    "node_modules/@types/trusted-types": {
+-    "node_modules/dompurify": {
+-    "node_modules/marked": {
+-    "node_modules/monaco-editor": {
+-- ANCHOR TABLE (rows touching removals/peer/optional/version) --
+HUNK            @@ -10,7 +10,7 @@
+L13             -        "next": "^15.5.21",
+        R13     +        "next": "^15.5.24",
+HUNK            @@ -557,15 +557,15 @@
+L559    R559         "node_modules/@next/env": {
+L560            -      "version": "15.5.21",
+L561            -      "resolved": "https://registry.npmjs.org/@next/env/-/env-15.5.21.tgz",
+        R560    +      "version": "15.5.24",
+        R561    +      "resolved": "https://registry.npmjs.org/@next/env/-/env-15.5.24.tgz",
+L565    R565         "node_modules/@next/swc-darwin-arm64": {
+L566            -      "version": "15.5.21",
+L567            -      "resolved": "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-15.5.21.tgz",
+        R566    +      "version": "15.5.24",
+        R567    +      "resolved": "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-15.5.24.tgz",
+HUNK            @@ -579,9 +579,9 @@
+L581    R581         "node_modules/@next/swc-darwin-x64": {
+L582            -      "version": "15.5.21",
+L583            -      "resolved": "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-15.5.21.tgz",
+        R582    +      "version": "15.5.24",
+        R583    +      "resolved": "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-15.5.24.tgz",
+HUNK            @@ -595,12 +595,15 @@
+L597    R597         "node_modules/@next/swc-linux-arm64-gnu": {
+L598            -      "version": "15.5.21",
+L599            -      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-gnu/-/swc-linux-arm64-gnu-15.5.21.tgz",
+        R598    +      "version": "15.5.24",
+        R599    +      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-gnu/-/swc-linux-arm64-gnu-15.5.24.tgz",
+        R604    +      "libc": [
+        R605    +        "glibc"
+L605    R608           "optional": true,
+HUNK            @@ -611,12 +614,15 @@
+L613    R616         "node_modules/@next/swc-linux-arm64-musl": {
+L614            -      "version": "15.5.21",
+L615            -      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-musl/-/swc-linux-arm64-musl-15.5.21.tgz",
+        R617    +      "version": "15.5.24",
+        R618    +      "resolved": "https://registry.npmjs.org/@next/swc-linux-arm64-musl/-/swc-linux-arm64-musl-15.5.24.tgz",
+        R623    +      "libc": [
+L621    R627           "optional": true,
+HUNK            @@ -627,12 +633,15 @@
+L629    R635         "node_modules/@next/swc-linux-x64-gnu": {
+L630            -      "version": "15.5.21",
+L631            -      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-gnu/-/swc-linux-x64-gnu-15.5.21.tgz",
+        R636    +      "version": "15.5.24",
+        R637    +      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-gnu/-/swc-linux-x64-gnu-15.5.24.tgz",
+        R642    +      "libc": [
+        R643    +        "glibc"
+L637    R646           "optional": true,
+HUNK            @@ -643,12 +652,15 @@
+L645    R654         "node_modules/@next/swc-linux-x64-musl": {
+L646            -      "version": "15.5.21",
+L647            -      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-musl/-/swc-linux-x64-musl-15.5.21.tgz",
+        R655    +      "version": "15.5.24",
+        R656    +      "resolved": "https://registry.npmjs.org/@next/swc-linux-x64-musl/-/swc-linux-x64-musl-15.5.24.tgz",
+        R661    +      "libc": [
+L653    R665           "optional": true,
+HUNK            @@ -659,9 +671,9 @@
+L661    R673         "node_modules/@next/swc-win32-arm64-msvc": {
+L662            -      "version": "15.5.21",
+L663            -      "resolved": "https://registry.npmjs.org/@next/swc-win32-arm64-msvc/-/swc-win32-arm64-msvc-15.5.21.tgz",
+        R674    +      "version": "15.5.24",
+        R675    +      "resolved": "https://registry.npmjs.org/@next/swc-win32-arm64-msvc/-/swc-win32-arm64-msvc-15.5.24.tgz",
+HUNK            @@ -675,9 +687,9 @@
+L677    R689         "node_modules/@next/swc-win32-x64-msvc": {
+L678            -      "version": "15.5.21",
+L679            -      "resolved": "https://registry.npmjs.org/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-15.5.21.tgz",
+        R690    +      "version": "15.5.24",
+        R691    +      "resolved": "https://registry.npmjs.org/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-15.5.24.tgz",
+HUNK            @@ -781,14 +793,6 @@
+L784            -    "node_modules/@types/trusted-types": {
+L785            -      "version": "2.0.7",
+L789            -      "optional": true,
+L790            -      "peer": true
+L792    R796         "node_modules/bufferutil": {
+L793    R797           "version": "4.1.0",
+HUNK            @@ -876,47 +880,13 @@
+L879            -    "node_modules/dompurify": {
+L880            -      "version": "3.4.13",
+L884            -      "peer": true,
+L885            -      "optionalDependencies": {
+L889    R883         "node_modules/fflate": {
+L890    R884           "version": "0.8.3",
+L894    R888           "optional": true
+L896            -    "node_modules/marked": {
+L897            -      "version": "14.0.0",
+L901            -      "peer": true,
+L909            -    "node_modules/monaco-editor": {
+L910            -      "version": "0.56.0",
+L914            -      "peer": true,
+L920    R890         "node_modules/nanoid": {
+L921    R891           "version": "3.3.18",
+HUNK            @@ -936,12 +906,12 @@
+L938    R908         "node_modules/next": {
+L939            -      "version": "15.5.21",
+L940            -      "resolved": "https://registry.npmjs.org/next/-/next-15.5.21.tgz",
+        R909    +      "version": "15.5.24",
+        R910    +      "resolved": "https://registry.npmjs.org/next/-/next-15.5.24.tgz",
+L944            -        "@next/env": "15.5.21",
+        R914    +        "@next/env": "15.5.24",
+HUNK            @@ -954,15 +924,15 @@
+L956    R926           "optionalDependencies": {
+L957            -        "@next/swc-darwin-arm64": "15.5.21",
+L958            -        "@next/swc-darwin-x64": "15.5.21",
+L959            -        "@next/swc-linux-arm64-gnu": "15.5.21",
+L960            -        "@next/swc-linux-arm64-musl": "15.5.21",
+L961            -        "@next/swc-linux-x64-gnu": "15.5.21",
+L962            -        "@next/swc-linux-x64-musl": "15.5.21",
+L963            -        "@next/swc-win32-arm64-msvc": "15.5.21",
+L964            -        "@next/swc-win32-x64-msvc": "15.5.21",
+        R927    +        "@next/swc-darwin-arm64": "15.5.24",
+        R928    +        "@next/swc-darwin-x64": "15.5.24",
+        R929    +        "@next/swc-linux-arm64-gnu": "15.5.24",
+        R930    +        "@next/swc-linux-arm64-musl": "15.5.24",
+        R931    +        "@next/swc-linux-x64-gnu": "15.5.24",
+        R932    +        "@next/swc-linux-x64-musl": "15.5.24",
+        R933    +        "@next/swc-win32-arm64-msvc": "15.5.24",
+        R934    +        "@next/swc-win32-x64-msvc": "15.5.24",
+L967    R937           "peerDependencies": {
+
+===== docs/playground/package.json (+1 -1) =====
+-- ADDED ENTRIES (0) --
+-- REMOVED ENTRIES (0) --
+-- ANCHOR TABLE (rows touching removals/peer/optional/version) --
+HUNK            @@ -13,7 +13,7 @@
+L16             -    "next": "^15.5.21",
+        R16     +    "next": "^15.5.24",
+
