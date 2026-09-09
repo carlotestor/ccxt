@@ -1,0 +1,85 @@
+=== git head of shared clone ===
+545e5f86493
+?? aggregate.py
+?? analyze.py
+?? chrome-fleet-memory-findings.md
+?? docs/website/probe-blog.mts
+?? duty-adspower-walk.sh
+
+=== regexAll definition + call sites (count) ===
+18
+--- lines ---
+911:    regexAll (text: string, array: any[]) {
+1477:        let python3Body = this.regexAll (js, this.getPythonRegexes ())
+1518:        let python2Body = this.regexAll (py, this.getPython2Regexes ())
+1528:        return this.regexAll (php, this.getPHPSyncRegexes ())
+1656:        allVariables = allVariables.map ((error:any) => this.regexAll (error, this.getCommonRegexes ()))
+1685:        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
+1711:        args.js = this.regexAll (args.js, this.getCommonRegexes ())
+1795:        const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
+2128:                signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+2646:        js = this.regexAll (js, [
+2747:        js = this.regexAll (js, [
+2759:        python2Body = this.regexAll (python2Body, [
+2992:        ts = this.regexAll (ts, [
+2999:            return this.regexAll (cont, allDefinedFunctions.map( fName => {
+3207:        allFiles = allFiles.map( file => this.regexAll (file, [
+3215:        allFiles = allFiles.map( file => this.regexAll(file, this.getPreTranspilationRegexes()));
+3549:                    return this.regexAll (body, [
+3575:                    return this.regexAll (body, regexes);
+
+=== where getPythonRegexes result is used ===
+355:    getPythonRegexes () {
+591:    getPHPRegexes () {
+831:    getBaseMethods () {
+843:        return this.getBaseMethods ()
+847:        return this.getBaseMethods ()
+1001:        // getBaseMethods) are interpolated as regex source, so they are never skipped, and
+1477:        let python3Body = this.regexAll (js, this.getPythonRegexes ())
+1674:        const phpRegexes = this.getPHPRegexes ()
+2558:        const convertMethods = methodNames.concat (this.getBaseMethods ())
+
+=== existing FUNCTION callbacks in regex arrays (arrow/function as 2nd element) ===
+
+=== grep for callbacks passed to regexAll arrays: pattern '/, *(' ===
+
+=== transpileJavaScriptToPythonAndPHP entry: what text is fed ===
+252:    // immediately by transpileJavaScriptToPythonAndPHP() so the caller splits exactly the
+931:    createPythonClassDeclaration (className: string, baseClass: string) {
+950:    createPythonClassHeader (imports: any[], bodyAsString: string) {
+955:    createPythonClassImports (baseClass: string, className: string, async = false) {
+978:    createPythonClass (className: string, baseClass: string, body: any, methods: any[], async = false) {
+990:        let header = this.createPythonClassHeader (imports, bodyAsString)
+1019:        header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
+1039:        const imports = this.createPythonClassImports (baseClass, className, async)
+1058:        // regular pro files get these imports from transpileWS's createPythonClassHeader,
+1421:        // same index-then-skip gate as createPythonClass: a rename can only fire where the
+1477:        let python3Body = this.regexAll (js, this.getPythonRegexes ())
+1480:            python3Body = python3Body.replace (/$\s*$/gm, '')
+1484:        python3Body = python3Body.replace(/         \*/g, '')
+1486:        const strippedPython3BodyWithoutComments = python3Body.replace (/^[\s]+#.+$/gm, '')
+1489:            python3Body += '\n        pass'
+1492:        python3Body = python3Body.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
+1497:        while (orderedDictMatches = orderedDictRegex.exec (python3Body)) {
+1499:            python3Body = python3Body.replace (orderedDictRegex, '\.ordered([' + replaced + '])')
+1503:        python3Body = python3Body.replace (/def (\w+)/g, (match, group1) => 'def ' + unCamelCase (group1))
+1507:            python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+1510:        return python3Body
+1708:    transpileJavaScriptToPythonAndPHP (args:any) {
+1714:        let python3Body = ''
+1718:            python3Body = this.transpileJavaScriptToPython3 (args)
+1720:            python2Body = this.transpilePython3ToPython2 (python3Body)
+1736:        return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
+1811:    transpileClass (contents: string) {
+1825:            python2:      this.buildPython ? this.createPythonClass (className, baseClass, python2,  methodNames, sync) : '',
+1826:            python3:      this.buildPython ? this.createPythonClass (className, baseClass, python3,  methodNames, async) : '',
+1878:                const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
+2358:            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+2378:                python3.push (python3Body);
+2655:        const { python3Body } = this.transpileJavaScriptToPythonAndPHP ({ js })
+2694:            const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
+2699:                fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+2757:        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+3005:        // let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
+BYTES:
+5766 /tmp/out2_30331.txt
