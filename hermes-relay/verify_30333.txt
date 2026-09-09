@@ -1,0 +1,106 @@
+=== lockfileVersion: 3 ===
+=== HEAD node_modules/hono ===
+{
+ "version": "4.13.7",
+ "resolved": "https://registry.npmjs.org/hono/-/hono-4.13.7.tgz",
+ "integrity": "sha512-c8/gF9ac8Y78/agExVocyLevgR+JlpNB444Py0FSX8pJoPdYUfUzRcXtYEYGwt6l19qIlVZPN5Mfsw9jFShmQQ==",
+ "license": "MIT",
+ "engines": {
+  "node": ">=16.9.0"
+ }
+}
+=== PARENTS REQUIRING hono ===
+node_modules/@hono/node-server                               peerDependencies     ^4
+node_modules/@modelcontextprotocol/sdk                       dependencies         ^4.11.4
+=== ROOT PACKAGE ENTRY DEPS ===
+{
+ "dependencies": {
+  "@modelcontextprotocol/sdk": "^1.29.0",
+  "ccxt": "^4.5.75",
+  "zod": "^3.25.76"
+ },
+ "devDependencies": {
+  "@types/node": "^22.20.1",
+  "tsx": "^4.20.0",
+  "typescript": "^5.8.0"
+ }
+}
+=== NPM REGISTRY CROSS-CHECK hono@4.13.7 ===
+registry integrity : sha512-c8/gF9ac8Y78/agExVocyLevgR+JlpNB444Py0FSX8pJoPdYUfUzRcXtYEYGwt6l19qIlVZPN5Mfsw9jFShmQQ==
+lockfile integrity : sha512-c8/gF9ac8Y78/agExVocyLevgR+JlpNB444Py0FSX8pJoPdYUfUzRcXtYEYGwt6l19qIlVZPN5Mfsw9jFShmQQ==
+INTEGRITY MATCH    : True
+registry tarball   : https://registry.npmjs.org/hono/-/hono-4.13.7.tgz
+lockfile resolved  : https://registry.npmjs.org/hono/-/hono-4.13.7.tgz
+TARBALL MATCH      : True
+registry engines   : {"node": ">=16.9.0"}
+lockfile engines   : {"node": ">=16.9.0"}
+deprecated         : None
+registry deps      : null
+=== hono USAGE IN mcp/ SOURCE (code search) ===
+4
+--- mcp/ tree ---
+mcp/.npmignore
+mcp/DESIGN.md
+mcp/README.md
+mcp/mcpb
+mcp/mcpb/manifest.json
+mcp/package-lock.json
+mcp/package.json
+mcp/plugin
+mcp/plugin/.claude-plugin
+mcp/plugin/.claude-plugin/plugin.json
+mcp/plugin/README.md
+mcp/plugin/skills
+mcp/plugin/skills/ccxt-mcp
+mcp/scripts
+mcp/scripts/build-doc-manifest.mjs
+mcp/scripts/build-mcpb.mjs
+mcp/scripts/sync-versions.mjs
+mcp/server.json
+mcp/test
+mcp/test/helpers
+mcp/test/helpers/fake-ccxt.ts
+mcp/test/integration
+mcp/test/integration/server.test.ts
+mcp/test/integration/stdio.test.ts
+mcp/test/integration/watch.test.ts
+mcp/test/schema
+mcp/test/schema/server-json.test.ts
+mcp/test/schema/tools.test.ts
+mcp/test/unit
+mcp/test/unit/config.test.ts
+mcp/test/unit/errors.test.ts
+mcp/test/unit/format.test.ts
+mcp/test/unit/introspect.test.ts
+mcp/test/unit/markets.test.ts
+mcp/test/unit/redact.test.ts
+mcp/test/unit/safety.test.ts
+mcp/ts
+mcp/ts/ccxt-loader.ts
+mcp/ts/config.ts
+mcp/ts/errors.ts
+mcp/ts/factory.ts
+mcp/ts/format.ts
+mcp/ts/introspect.ts
+mcp/ts/journal.ts
+mcp/ts/logging.ts
+mcp/ts/markets.ts
+mcp/ts/pools.ts
+mcp/ts/redact.ts
+mcp/ts/safety.ts
+mcp/ts/server.ts
+mcp/ts/shims
+mcp/ts/shims/ccxt.d.ts
+mcp/ts/subscriptions.ts
+mcp/ts/tools
+mcp/ts/tools/common.ts
+mcp/ts/tools/funds.ts
+mcp/ts/tools/index.ts
+mcp/ts/tools/market.ts
+mcp/ts/tools/read.ts
+mcp/ts/tools/trade.ts
+mcp/ts/tools/watch.ts
+mcp/ts/tools/write-common.ts
+mcp/ts/types.ts
+mcp/tsconfig.json
+
