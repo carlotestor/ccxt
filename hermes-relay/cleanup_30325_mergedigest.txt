@@ -1,3 +1,0 @@
-gather_30325_mergedigest.txt: rc=0 
-postresult_30325_mergedigest.txt: rc=0 
-markresult_30325_mergedigest.txt: rc=0 
