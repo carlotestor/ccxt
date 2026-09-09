@@ -1,0 +1,23 @@
+rc=0 remote_len=1479 local_len=1478
+exact=False
+equal_after_one_trailing_nl=True
+rstrip_equal=True
+delta_repr='\n'
+starts_with_header=True
+mermaid_fence=True
+json_fence=True
+table_rows=1
+sharp_pin=True
+VERDICT_ok=True
+mark_rc=0 out={
+  "repo": "ccxt/ccxt",
+  "action": "mark-digested",
+  "marked": [
+    30334
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json" err=[ok] marked [30334] digested
+state=tail [30321, 30324, 30332, 30333, 30335, 30334]
+has30334 True
+carlotestor_comments=["https://github.com/ccxt/ccxt/pull/30334#issuecomment-5596268684"]
