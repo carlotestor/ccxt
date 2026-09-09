@@ -1,0 +1,21 @@
+=== mark-digested ===
+[ok] marked [30337] digested
+{
+  "repo": "ccxt/ccxt",
+  "action": "mark-digested",
+  "marked": [
+    30337
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",
+  "new_prs": [],
+  "new_issues": []
+}
+mark_rc=0
+=== state: is 30337 in digested_merges ===
+type list
+has30337 True
+=== live comment readback ===
+[{"head":"## Merge digest\n","id":5597450973,"len":1063}]
+=== END ===
