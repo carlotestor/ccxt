@@ -1,0 +1,128 @@
+=== node/npm versions ===
+v22.23.1
+10.9.8
+
+=== HEAD: npm ci --dry-run --ignore-scripts ===
+npm error code EUSAGE
+npm error
+npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+npm error
+npm error Missing: monaco-editor@0.56.0 from lock file
+npm error Missing: dompurify@3.4.15 from lock file
+npm error Missing: marked@14.0.0 from lock file
+npm error Missing: @types/trusted-types@2.0.7 from lock file
+npm error
+npm error Clean install a project
+npm error
+npm error Usage:
+npm error npm ci
+npm error
+npm error Options:
+npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+npm error [--no-bin-links] [--no-fund] [--dry-run]
+npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+npm error
+npm error aliases: clean-install, ic, install-clean, isntall-clean
+npm error
+npm error Run "npm help ci" for more info
+npm error A complete log of this run can be found in: /root/.npm/_logs/2026-09-09T05_30_14_943Z-debug-0.log
+HEAD_NPM_CI_EXIT=1
+
+=== BASE: npm ci --dry-run --ignore-scripts ===
+add ws 8.21.0
+add undici-types 6.21.0
+add undici 7.29.0
+add typescript 5.9.3
+add tslib 2.8.1
+add styled-jsx 5.1.6
+add state-local 1.0.7
+add source-map-js 1.2.1
+add sharp 0.35.0
+add semver 7.8.5
+add scheduler 0.27.0
+add react-dom 19.2.7
+add react 19.2.7
+add postcss 8.5.23
+add picocolors 1.1.1
+add node-gyp-build 4.8.4
+add next 15.5.21
+add nanoid 3.3.18
+add monaco-editor 0.56.0
+add marked 14.0.0
+add fflate 0.8.3
+add dompurify 3.4.13
+add detect-libc 2.1.2
+add csstype 3.2.3
+add client-only 0.0.1
+add ccxt 4.5.71
+add caniuse-lite 1.0.30001793
+add bufferutil 4.1.0
+add @types/trusted-types 2.0.7
+add @types/react-dom 19.2.3
+add @types/react 19.2.16
+add @types/node 22.19.19
+add @swc/helpers 0.5.15
+add @scure/starknet 2.2.0
+add @scure/base 2.2.0
+add @noble/hashes 2.2.0
+add @noble/curves 2.2.0
+add @next/swc-win32-x64-msvc 15.5.21
+add @next/swc-win32-arm64-msvc 15.5.21
+add @next/swc-linux-x64-musl 15.5.21
+add @next/swc-linux-x64-gnu 15.5.21
+add @next/swc-linux-arm64-musl 15.5.21
+add @next/swc-linux-arm64-gnu 15.5.21
+add @next/swc-darwin-x64 15.5.21
+add @next/swc-darwin-arm64 15.5.21
+add @next/env 15.5.21
+add @monaco-editor/react 4.7.0
+add @monaco-editor/loader 1.7.0
+add @img/sharp-win32-x64 0.35.0
+add @img/sharp-win32-ia32 0.35.0
+add @img/sharp-win32-arm64 0.35.0
+add @img/sharp-webcontainers-wasm32 0.35.0
+add @img/sharp-wasm32 0.35.0
+add @img/sharp-linuxmusl-x64 0.35.0
+add @img/sharp-linuxmusl-arm64 0.35.0
+add @img/sharp-linux-x64 0.35.0
+add @img/sharp-linux-s390x 0.35.0
+add @img/sharp-linux-riscv64 0.35.0
+add @img/sharp-linux-ppc64 0.35.0
+add @img/sharp-linux-arm64 0.35.0
+add @img/sharp-linux-arm 0.35.0
+add @img/sharp-libvips-linuxmusl-x64 1.3.0
+add @img/sharp-libvips-linuxmusl-arm64 1.3.0
+add @img/sharp-libvips-linux-x64 1.3.0
+add @img/sharp-libvips-linux-s390x 1.3.0
+add @img/sharp-libvips-linux-riscv64 1.3.0
+add @img/sharp-libvips-linux-ppc64 1.3.0
+add @img/sharp-libvips-linux-arm64 1.3.0
+add @img/sharp-libvips-linux-arm 1.3.0
+add @img/sharp-libvips-darwin-x64 1.3.0
+add @img/sharp-libvips-darwin-arm64 1.3.0
+add @img/sharp-freebsd-wasm32 0.35.0
+add @img/sharp-darwin-x64 0.35.0
+add @img/sharp-darwin-arm64 0.35.0
+add @img/colour 1.1.0
+add @emnapi/runtime 1.11.2
+
+added 76 packages in 120ms
+BASE_NPM_CI_EXIT=0
+
+=== HEAD: npm ls monaco-editor (tree check, dry state) ===
+ccxt-playground@0.1.0 /tmp/npmci_30337/head
+└── (empty)
+
+exit=1
+
+=== ADVISORY DETAILS (GitHub API) ===
+--- GHSA-p293-qw3h-jr36 ---
+{"cvss":9,"severity":"critical","summary":"Next.js: Unauthenticated Remote Code Execution on windows-hosted servers","vectors":"CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H","vulnerable":[{"patched":"15.5.24","pkg":"next","range":"\u003e= 13.4.0, \u003c 15.5.24"},{"patched":"16.3.3","pkg":"next","range":"\u003e= 16.0.0, \u003c 16.3.3"}]}
+--- GHSA-2xp9-vwfh-vxw4 ---
+{"cvss":null,"severity":"critical","summary":"Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used","vectors":null,"vulnerable":[{"patched":"15.5.24","pkg":"next","range":"\u003e= 10.0.0, \u003c 15.5.24"},{"patched":"16.3.3","pkg":"next","range":"\u003e= 16.0.0, \u003c 16.3.3"}]}
+
+=== DONE ===
