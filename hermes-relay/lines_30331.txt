@@ -1,0 +1,80 @@
+head: 992d5e92864708b2864220f55c325137714fbe7e
+
+=== lines 536-545 (hunk 1) ===
+536|            [ /console\.log\s/g, 'print' ],
+537|            [ /process\.exit\s+/g, 'sys.exit' ],
+538|            [ /(while \(.*\)) {/, '$1\:' ], // While loops replace bracket with :
+539|            // PEP8 E225: collapse "name (" → "name(" for calls, but not inside string
+540|            // literals (thrown messages keep prose parentheticals like "parameter (…").
+541|            [ /([^:+=\/\*\s-'"]+) \(/g, (matched: string, id: string, offset: number, whole: string) => this.isInsideQuotedString (whole, offset) ? matched : (id + '(') ],
+542|            [ /\sand\(/g, ' and (' ],
+543|            [ /\sor\(/g, ' or (' ],
+544|            [ /\snot\(/g, ' not (' ],
+545|            [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
+
+=== lines 906-950 (hunk 2: helper) ===
+906|        ].join ("\n");
+907|    }
+908|
+909|
+910|    // True when `offset` sits inside a single-, double-, or triple-quoted string.
+911|    // Used by the Python E225 rule so prose parentheticals in thrown messages keep
+912|    // their space before "(" while real calls outside quotes still collapse.
+913|    isInsideQuotedString (text: string, offset: number) {
+914|        let i = 0
+915|        while (i < offset) {
+916|            const ch = text[i]
+917|            if (ch === "'" || ch === '"') {
+918|                const quote = ch
+919|                const triple = text.startsWith (quote + quote + quote, i)
+920|                if (triple) {
+921|                    i += 3
+922|                    while (i < text.length) {
+923|                        if (text.startsWith (quote + quote + quote, i)) {
+924|                            if (offset < i + 3) return true
+925|                            i += 3
+926|                            break
+927|                        }
+928|                        i += 1
+929|                    }
+930|                    continue
+931|                }
+932|                i += 1
+933|                while (i < text.length) {
+934|                    if (text[i] === '\\') { i += 2; continue }
+935|                    if (text[i] === quote) {
+936|                        if (offset < i + 1) return true
+937|                        i += 1
+938|                        break
+939|                    }
+940|                    i += 1
+941|                }
+942|                continue
+943|            }
+944|            i += 1
+945|        }
+946|        return false
+947|    }
+948|
+949|    // ------------------------------------------------------------------------
+950|    // a helper to apply an array of regexes and substitutions to text
+
+=== lines 954-966 (hunk 3: regexAll) ===
+954|        for (const i in array) {
+955|            let regex = array[i][0]
+956|            let replaceStringOrCallback = array[i][1]
+957|            const flags = (typeof regex === 'string') ? 'g' : undefined
+958|            regex = new RegExp (regex, flags)
+959|            // Pass string replacements and callbacks through to String.replace.
+960|            // Callbacks receive the full (match, ...groups, offset, input) signature so
+961|            // rules can inspect surrounding text (e.g. skip matches inside quotes).
+962|            text = text.replace (regex, replaceStringOrCallback)
+963|        }
+964|        return text
+965|    }
+966|
+
+=== confirm check-python-syntax script ===
+cd python && tox -e qa && cd ..
+BYTES:
+3454 /tmp/lines_30331.txt
