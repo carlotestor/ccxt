@@ -1,0 +1,25 @@
+=== carlotestor REVIEWS on 30337 ===
+{"body_head":"## Summary\n\nDependabot bump of `next` **15.5.21 → 15.5.24** in `docs/playground`, picking up two *critical* upstream adv","body_len":3449,"commit_id":"debfd9bc408c793597209a3c4be1fa56ac6bd463","id":5150153941,"state":"COMMENTED","submitted_at":"2026-09-09T05:34:06Z"}
+
+=== carlotestor INLINE review comments ===
+{"body_head":"Dropping `node_modules/monaco-editor` breaks `npm ci`. It is a **non-optional** peer of `@","id":3964977897,"line":909,"path":"docs/playground/package-lock.json","pull_request_review_id":5150153941,"side":"LEFT"}
+{"body_head":"Same class of problem for `dompurify` (and `marked` / `@types/trusted-types` just below): ","id":3964977901,"line":879,"path":"docs/playground/package-lock.json","pull_request_review_id":5150153941,"side":"LEFT"}
+{"body_head":"The manifest change itself is correct and is the part worth keeping — 15.5.24 is the first","id":3964977905,"line":16,"path":"docs/playground/package.json","pull_request_review_id":5150153941,"side":"RIGHT"}
+=== inline COUNT ===
+3
+=== review COUNT ===
+1
+
+=== does the posted body contain the gate + probability lines? ===
+7:### 🔴 The regenerated lockfile is out of sync with `package.json` — `npm ci` fails
+9:Beyond the version bump, this lockfile also **drops four peer entries** that master has: `monaco-editor@0.56.0`, `dompurify@3.4.13`, `marked@14.0.0` and `@types/trusted-types@2.0.7` (77 → 73 `packages` entries; the PR adds no entries). That is not cosmetic — `monaco-editor` is a **non-optional** peer of `@monaco-editor/react@4.7.0`, which `docs/playground` depends on directly and loads in `components/Editor.tsx`.
+11:`docs/playground/Dockerfile` installs with `npm ci`, which by design fails on lockfile drift. Checking out this head and running it:
+14:npm error `npm ci` can only install packages when your package.json and
+16:npm error Missing: monaco-editor@0.56.0 from lock file
+24:| lockfile | `npm ci` |
+30:Regenerating the lock from this PR's own `package.json` with npm 11 restores all four entries (78 entries, `monaco-editor` / `dompurify` / `marked` / `@types/trusted-types` all `peer: true`) **and** still resolves `next` to ≥ 15.5.24 — so the security goal survives a correct regeneration. The likely cause is Dependabot resolving with an npm version that omits peer entries; the `overrides` block (`dompurify`, `postcss`, `sharp`) makes this app more sensitive to that than a plain dependency tree.
+32:Worth noting the repo CI here is green: nothing in `.github/workflows` runs `npm ci` on `docs/playground` for a pull request — `deploy-playground.yml` only triggers on `push` to `master` under `paths: docs/playground/**`. So the failure would not appear on this PR; it would surface at **deploy time on master**, taking the playground deploy down rather than a PR check. That is why I would not merge this as-is despite the passing checks.
+36:Merge gate: 🔴
+37:Merge probability: 94%
+
+=== DONE ===
