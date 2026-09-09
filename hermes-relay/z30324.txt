@@ -1,3 +1,0 @@
-rc=0
-names=["ctx_30333.txt","ctx_30335.txt","g30332.txt","g30334.txt","v30332.txt"]
-err=
