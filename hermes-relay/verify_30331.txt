@@ -1,0 +1,19 @@
+=== carlotestor reviews on 30331 ===
+{"body_len":3349,"commit_id":"992d5e92864708b2864220f55c325137714fbe7e","id":5148903007,"state":"COMMENTED","submitted_at":"2026-09-09T01:49:56Z"}
+
+=== inline review comments by carlotestor ===
+{"id":3963908972,"line":541,"path":"build/transpile.ts","pull_request_review_id":5148903007,"snippet":"This collapses real calls it should not. `isInsideQuotedString` counts","start_line":null}
+{"id":3963908977,"line":947,"path":"build/transpile.ts","pull_request_review_id":5148903007,"snippet":"Two issues in this helper. (1) It ignores `//` and `/* */`, which is t","start_line":913}
+{"id":3963908980,"line":962,"path":"build/transpile.ts","pull_request_review_id":5148903007,"snippet":"This part is a good simplification — the previous branch wrapped callb","start_line":null}
+
+=== inline count ===
+3
+
+=== LABELS: apply bug (fix + repairs broken behaviour) ===
+["bug"]
+
+=== gate is RED -> clear any carlotestor thumbs-up on PR body ===
+no +1 on #30331
+reaction rc=0
+BYTES:
+1010 /tmp/verify_30331.txt
