@@ -1,0 +1,64 @@
+=== TOP-LEVEL ISSUE COMMENTS BY carlotestor ===
+$ gh api repos/ccxt/ccxt/issues/30333/comments --jq .[]|select(.user.login=="carlotestor")|{id,created_at,body:.body[0:600]}
+rc=0
+{"body":"## Merge digest\n\nBumps `hono` 4.13.3 → 4.13.7 in the MCP server lockfile, picking up the `hono/jsx` boundary-component XSS fix (GHSA-hxh3-vqpv-xpqv).\n\n| File | Δ | What |\n| --- | ---: | --- |\n| `mcp/package-lock.json` | +3/−3 | `hono` pin 4.13.3 → 4.13.7 |\n\n```mermaid\nflowchart LR\n  empty[\"no call graph\"]\n```\n\n`mcp/package-lock.json`\n\n```json\n@@ -1208,9 +1208,9 @@\n-      \"version\": \"4.13.3\",\n-      \"resolved\": \"https://registry.npmjs.org/hono/-/hono-4.13.3.tgz\",\n-      \"integrity\": \"sha512-r8AO2mYHoLxSHkgafNeC/BXyb2vWRxD3jem4Ts+ptav8oTG5FIRifAjuJEmZI4bSvvc2ns0GxmIYiZnHqN3mMw==\",\n+      \"versio","created_at":"2026-09-09T05:23:51Z","id":5596265245}
+
+=== LABELS (add-only; expect dependencies,javascript already there) ===
+$ gh pr view 30333 --repo ccxt/ccxt
+rc=0
+dependencies,javascript
+
+=== PR-BODY THUMBS UP (gate green) ===
+$ python3 /root/workspace/ccxt-new-item-monitor/pr_body_reaction.py 30333 +1
+rc=0
+added +1 on #30333
+
+=== VERIFY REACTION ON PR BODY ===
+$ gh api repos/ccxt/ccxt/issues/30333/reactions --jq [.[]|{user:.user.login,content}]
+rc=0
+[{"content":"+1","user":"carlotestor"}]
+
+=== MARK PROCESSED ===
+$ python3 /root/workspace/ccxt-new-item-monitor/detect.py --mark-processed 30333 --kind pr
+rc=0
+{
+  "repo": "ccxt/ccxt",
+  "action": "mark-processed",
+  "kind": "pr",
+  "marked": [
+    30333
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",
+  "watermarks": {
+    "last_pr_number": 30335,
+    "last_issue_number": 30311
+  },
+  "processed_counts": {
+    "prs": 500,
+    "issues": 71
+  },
+  "new_prs": [],
+  "new_issues": []
+}
+stderr: [ok] marked pr [30333] processed
+
+=== SIBLING CATCH-UP ===
+$ python3 /root/workspace/ccxt-new-item-monitor/find_skipped_sibling_prs.py --exclude 30333
+rc=0
+{
+  "repo": "ccxt/ccxt",
+  "source": "find_skipped_sibling_prs",
+  "checked_at": "2026-09-09T05:26:37Z",
+  "min_age_hours": 1.0,
+  "max_age_hours": 24.0,
+  "skipped": [],
+  "counts": {
+    "open_seen": 10,
+    "in_window": 7,
+    "skipped": 0,
+    "skipped_total": 0
+  }
+}
+
