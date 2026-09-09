@@ -1,0 +1,38 @@
+=== REVIEW POST ===
+rc: 0
+status: HTTP/2.0 200 OK
+stderr: 
+CREATED_201: False
+BODY (first 3000): HTTP/2.0 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset, Warning
+Cache-Control: private, max-age=60, s-maxage=60
+Content-Security-Policy: default-src 'none'
+Content-Type: application/json; charset=utf-8
+Date: Wed, 09 Sep 2026 05:26:21 GMT
+Etag: W/"f5210c9414229a4ec3020ab546d8a593651cca6d01c1bce5b2cdd047937bd584"
+Github-Authentication-Token-Expiration: 2027-06-30 21:00:00 UTC
+Referrer-Policy: origin-when-cross-origin, strict-origin-when-cross-origin
+Server: github.com
+Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+Vary: Accept, Authorization, Cookie, X-GitHub-OTP,Accept-Encoding, Accept, X-Requested-With
+X-Accepted-Oauth-Scopes: 
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-Github-Api-Version-Selected: 2022-11-28
+X-Github-Edge-Region: fra
+X-Github-Media-Type: github.v3; format=json
+X-Github-Request-Id: AA23:14A140:1A43C91:19C7130:6AA0EDFB
+X-Oauth-Scopes: read:org, repo, workflow
+X-Ratelimit-Limit: 5000
+X-Ratelimit-Remaining: 4862
+X-Ratelimit-Reset: 1788934752
+X-Ratelimit-Resource: core
+X-Ratelimit-Used: 138
+X-Xss-Protection: 0
+
+{"id":5150106610,"node_id":"PRR_kwDOBXBrws8AAAABMvhj8g","user":{"login":"carlotestor","id":89560945,"node_id":"MDQ6VXNlcjg5NTYwOTQ1","avatar_url":"https://avatars.githubusercontent.com/u/89560945?u=74eec26244ad5ee418371b57477fc282be6e547c&v=4","gravatar_id":"","url":"https://api.github.com/users/carlotestor","html_url":"https://github.com/carlotestor","followers_url":"https://api.github.com/users/carlotestor/followers","following_url":"https://api.github.com/users/carlotestor/following{/other_user}","gists_url":"https://api.github.com/users/carlotestor/gists{/gist_id}","starred_url":"https://api.github.com/users/carlotestor/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/carlotestor/subscriptions","organizations_url":"https://api.github.com/users/carlotestor/orgs","repos_url":"https://api.github.com/users/carlotestor/repos","events_url":"https://api.github.com/users/carlotestor/events{/privacy}","received_events_url":"https://api.github.com/users/carlotestor/received_events","type":"User","user_view_type":"public","site_admin":false},"body":"## Summary\n\nDependabot lockfile-only bump of `sharp` 0.35.3 -> 0.35.4 in `examples/ts/nextjs-page-router`. One file, no source or build impact: `sharp` is absent from the root `ccxt` `dependencies` / `devDependencies` / `optionalDependencies` / `overrides`, and no workflow in `.github/workflows` builds this example.\n\n**What I verified in the lockfile diff**\n\n- All 28 changed package blocks are `sharp`, `@img/sharp-*`, `@img/sharp-libvips-*` or `@emnapi/runtime`. No off-target package was touched.\n- Line accounting is e
+
+=== GATED FOLLOW-UPS (only run when CREATED_201) ===
+SKIPPED - review was not created; state left untouched for retry.
+=== END ===
