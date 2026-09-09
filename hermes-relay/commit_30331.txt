@@ -1,0 +1,29 @@
+=== mark processed ===
+    "issues": 71
+  },
+  "new_prs": [],
+  "new_issues": []
+}
+rc=0
+
+=== confirm state ===
+30331 in processed.prs: True
+head sha recorded: 992d5e92864708b2864220f55c325137714fbe7e
+
+=== sibling catch-up (opened first-pass only) ===
+{
+  "repo": "ccxt/ccxt",
+  "source": "find_skipped_sibling_prs",
+  "checked_at": "2026-09-09T01:50:36Z",
+  "min_age_hours": 1.0,
+  "max_age_hours": 24.0,
+  "skipped": [],
+  "counts": {
+    "open_seen": 9,
+    "in_window": 7,
+    "skipped": 0,
+    "skipped_total": 0
+  }
+}
+BYTES:
+530 /tmp/commit_30331.txt
