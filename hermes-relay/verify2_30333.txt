@@ -1,0 +1,48 @@
+=== ALL hono-ish LOCK ENTRIES (stale nested copies?) ===
+node_modules/@hono/node-server                          1.19.17
+node_modules/hono                                       4.13.7
+
+=== @modelcontextprotocol/sdk ENTRY ===
+version: 1.29.0
+deps: {
+ "@hono/node-server": "^1.19.9",
+ "ajv": "^8.17.1",
+ "ajv-formats": "^3.0.1",
+ "content-type": "^1.0.5",
+ "cors": "^2.8.5",
+ "cross-spawn": "^7.0.5",
+ "eventsource": "^3.0.2",
+ "eventsource-parser": "^3.0.0",
+ "express": "^5.2.1",
+ "express-rate-limit": "^8.2.1",
+ "hono": "^4.11.4",
+ "jose": "^6.1.3",
+ "json-schema-typed": "^8.0.2",
+ "pkce-challenge": "^5.0.0",
+ "raw-body": "^3.0.0",
+ "zod": "^3.25 || ^4.0",
+ "zod-to-json-schema": "^3.25.1"
+}
+
+=== DOES mcp SOURCE IMPORT hono / hono/jsx ? ===
+no hono/jsx import found in the scanned mcp/ts entrypoints
+
+=== TRANSPORT USED BY THE MCP SERVER (stdio vs http) ===
+mcp/ts/server.ts:3: // else loads, protecting the stdio JSON-RPC channel on stdout
+mcp/ts/server.ts:5: import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+mcp/ts/server.ts:45: // hosts terminate stdio servers by closing stdin
+mcp/ts/server.ts:62: const transport = new StdioServerTransport ();
+mcp/ts/server.ts:64: log ('info', 'ccxt-mcp ' + packageJson.version + ' (ccxt ' + ccxtVersion () + ') connected over stdio — accounts: ' + Object.keys (config.accounts).length);
+
+=== CODE-SEARCH HITS FOR hono UNDER mcp/ ===
+mcp/ts/tools/trade.ts
+mcp/test/unit/config.test.ts
+mcp/test/integration/server.test.ts
+mcp/package-lock.json
+
+=== OTHER hono PINS ELSEWHERE IN REPO (out of scope, FYI) ===
+mcp/package-lock.json
+
+=== SEMVER SATISFACTION ===
+sdk requires hono ^4.11.4 ; @hono/node-server peer ^4 ; new = 4.13.7
+4.13.7 >= 4.11.4 and < 5.0.0 -> satisfies both: True
