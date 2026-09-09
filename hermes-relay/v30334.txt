@@ -1,0 +1,46 @@
+===== A. ARITHMETIC CHECK: do the libc additions explain +292/-244? =====
+deletions 244 + libc lines (16 x 3 = 48) = 292 ; claimed additions = 292
+MATCH
+
+===== B. OTHER example lockfiles that still pin sharp 0.35.3 =====
+docs/playground/package-lock.json
+docs/website/package-lock.json
+examples/ts/nextjs-page-router/package-lock.json
+--- direct listing of examples dirs with a lockfile ---
+examples/ts/nextjs-page-router : sharp=0.35.4
+examples/ts/prediction : sharp=no-lockfile
+
+===== C. Does ANY CI workflow reference examples/ or nextjs? =====
+== js.yml
+195:        git add js/ dist/ wiki/ README.md ts/ccxt.ts ts/src/abstract/ examples/
+== php.yml
+176:        git add php/ examples/php
+== python.yml
+167:        git add python/ examples/py
+== rust.yml
+54:            examples/rust
+100:        run: cargo build --manifest-path examples/rust/Cargo.toml --bins
+(end workflow scan)
+
+===== D. sharp 0.35.4 : is it a SECURITY release? (GH advisories) =====
+{"ghsa":"GHSA-rgj7-g3m4-5g8c","published":"2026-09-08T21:25:11Z","severity":"high","summary":"sharp: Vulnerabilities in libheif: GHSA-g89c-p67h-r497 and GHSA-2jg2-4ch7-h545"}
+{"ghsa":"GHSA-f88m-g3jw-g9cj","published":"2026-07-21T22:07:17Z","severity":"high","summary":"sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591"}
+{"ghsa":"GHSA-54xq-cgqr-rpm3","published":"2023-11-16T17:14:15Z","severity":"high","summary":"sharp vulnerability in libwebp dependency CVE-2023-4863"}
+{"ghsa":"GHSA-gp95-ppv5-3jc5","published":"2022-06-01T19:58:29Z","severity":"medium","summary":"sharp vulnerable to Command Injection in post-installation over build environment"}
+(end advisories)
+
+===== E. root ccxt package.json - does the LIBRARY depend on sharp at all? =====
+dependencies -> sharp: ABSENT
+devDependencies -> sharp: ABSENT
+optionalDependencies -> sharp: ABSENT
+overrides -> sharp: ABSENT
+
+===== F. lockfileVersion + root deps of the example lockfile (post-PR head) =====
+lockfileVersion: 2
+node_modules/sharp version: 0.35.4
+root deps sharp: ABSENT
+total packages in lock: 394
+occurrences of 0.35.3 remaining: 0
+occurrences of libvips 1.3.2 remaining: 6
+occurrences of emnapi 1.11.2 remaining: 0
+===== END =====
