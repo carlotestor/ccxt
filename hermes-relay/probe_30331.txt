@@ -1,0 +1,57 @@
+=== REAL METHOD BODIES: uncollapsed real calls caused by comment desync ===
+method bodies scanned: 1149
+bodies where NEW rule leaves REAL this.* calls uncollapsed (desync): 67
+  alpaca.ts :: async fetchTransactionsHelper (type: any, code: any, since: any, limit  -> 23 uncollapsed real calls  e.g. this.safeString2 ( , this.safeCurrencyCode ( , this.safeCurrencyCode (
+  binance.ts :: parseCurrenciesCustom (responseCurrencies: any, marginablesById: any):  -> 53 uncollapsed real calls  e.g. this.loadTimeDifference ( , this.parseMarket ( , this.safeString (
+  binance.ts :: parseTickersForRolling (response: any, symbols: any) {  -> 6 uncollapsed real calls  e.g. this.safeString ( , this.safeInteger ( , this.omit (
+  binance.ts :: editSpotOrderRequest (id: string, symbol: Str, type: Str, side: Str, a  -> 3 uncollapsed real calls  e.g. this.safeString ( , this.omit ( , this.omit (
+  binance.ts :: parseOrderTypeByMarket (type: Str, marketType: Str) {  -> 30 uncollapsed real calls  e.g. this.safeString ( , this.safeString ( , this.safeBool2 (
+  binance.ts :: createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, pr  -> 135 uncollapsed real calls  e.g. this.safeString ( , this.priceToPrecision ( , this.parseToNumeric (
+  binance.ts :: async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}  -> 31 uncollapsed real calls  e.g. this.milliseconds ( , this.safeBool ( , this.sum (
+  binance.ts :: parseOptionPosition (position: Dict, market: Market = undefined) {  -> 3 uncollapsed real calls  e.g. this.fetchPositionsRisk ( , this.fetchAccountPositions ( , this.fetchOptionPositions (
+
+=== regexAll callback arity contract ===
+candidate callback-valued regex rules: 1
+  1503: python3Body = python3Body.replace (/def (\w+)/g, (match, group1) => 'def ' + unCamelCase (group1))
+
+=== python style gate in CI / package.json ===
+  script transpile-prediction-py: tsx build/transpile.ts --python --prediction --force
+  script emitAPIPy: tsx build/generateImplicitAPI.ts -- --python
+  script pre-transpile-py: npm run export-exchanges-py && npm run emitAPIPy
+  script cli.py: python3 ./examples/py/cli.py
+  script export-exchanges-py: npm run export-exchanges-js && tsx build/export-exchanges.ts --py
+  script force-transpile-fast-py: npm run fast-force-transpileRest-py && npm run fast-force-transpileWs-py
+  script fast-force-transpileRest-py: tsx build/transpile.ts --multiprocess --force --python
+  script fast-force-transpileWs-py: tsx build/transpileWS.ts --multiprocess --force --python
+  script lint: node -r ./build/use-typescript6.cjs node_modules/eslint/bin/eslint.js "ts/src/*.ts" "ts/src/base/Exchange.ts" "ts/src/pro/*.ts" --cache --cache-location .cache/eslintcache --cache-strategy content
+  script eslint: node -r ./build/use-typescript6.cjs node_modules/eslint/bin/eslint.js
+  script check-python-syntax: cd python && tox -e qa && cd ..
+  script check-python-style: ruff check ./python/ccxt
+  script check-python-types: cd python && tox -e type && cd ..
+  script check-php-style: php vendor/bin/php-cs-fixer fix --config=build/.php-cs-fixer.dist.php --dry-run
+  script copy-python-files: npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme
+  script copy-python-package: node build/copy package.json python/package.json
+  script copy-python-license: node build/copy LICENSE.txt python/LICENSE.txt
+  script copy-python-keys: node build/copy keys.json python/keys.json
+  script copy-python-readme: node build/copy README.md python/README.md
+  script live-tests-rest-py: npm run live-tests -- --python
+  script live-tests-ws-py: npm run live-tests -- --python --ws
+  script ti-py: python3 python/ccxt/test/tests_init.py
+  script request-py-async: npm run ti-py  -- --requestTests
+  script request-py-sync: npm run ti-py  -- --requestTests --sync
+  script request-py: npm run request-py-sync && npm run request-py-async
+  script request-py-async-prediction: npm run ti-py  -- --requestTests --prediction
+  script request-py-sync-prediction: npm run ti-py  -- --requestTests --prediction --sync
+  script request-py-prediction: npm run request-py-sync-prediction && npm run request-py-async-prediction
+  script ws-tests-py: npm run ti-py  -- --wsTests
+  script response-py-sync: npm run ti-py  -- --responseTests --sync
+  script response-py-async: npm run ti-py  -- --responseTests
+  script response-py: npm run response-py-sync && npm run response-py-async
+  script response-py-sync-prediction: npm run ti-py  -- --responseTests --prediction --sync
+  script response-py-async-prediction: npm run ti-py  -- --responseTests --prediction
+  script response-py-prediction: npm run response-py-sync-prediction && npm run response-py-async-prediction
+  script id-tests-py: npm run ti-py  -- --idTests
+  script test-base-rest-py: npm run ti-py  -- --baseTests
+  script test-base-ws-py: npm run ti-py  -- --baseTests --ws
+rc=0
+=== CI python style grep ===
