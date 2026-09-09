@@ -1,0 +1,17 @@
+prior_rc=0 prior=[]
+post_rc=0 ok201=True url=https://github.com/ccxt/ccxt/pull/30324#issuecomment-5596235604
+status_line=HTTP/2.0 201 Created
+stderr=
+mark_rc=0 mark_out={
+  "repo": "ccxt/ccxt",
+  "action": "mark-digested",
+  "marked": [
+    30324
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",
+  "new_prs": [],
+  "new_issues": []
+} mark_err=[ok] marked [30324] digested
+state=digested_tail [30302, 30322, 30323, 30321, 30324] 
