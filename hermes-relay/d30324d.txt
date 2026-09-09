@@ -1,0 +1,39 @@
+=== POSTED_BODY ===
+## Merge digest
+
+Dependabot bumps the docs site AI SDK trio, moving `@ai-sdk/provider-utils` 4.0.27 → 4.0.50 together with its ancestors `@ai-sdk/react` and `ai`.
+
+| File | Δ | What |
+| --- | ---: | --- |
+| `docs/website/package-lock.json` | +40/−30 | `@ai-sdk/provider-utils` pin |
+| `docs/website/package.json` | +2/−2 | `@ai-sdk/react`, `ai` ranges |
+
+```mermaid
+flowchart LR
+  empty["no call graph"]
+```
+
+`docs/website/package-lock.json`
+
+```json
+@@ -78,30 +78,31 @@
+-      "version": "4.0.27",
+-      "resolved": "https://registry.npmjs.org/@ai-sdk/provider-utils/-/provider-utils-4.0.27.tgz",
+-      "integrity": "sha512-ubkAJ+xODouwtmN1tYlvTPphH1hPOBfZaEQe8U7skGvFAnIRs9PPpsq57bC2+Ky/MB4yzhd6YOsxTAx9sGpazw==",
++      "version": "4.0.50",
++      "resolved": "https://registry.npmjs.org/@ai-sdk/provider-utils/-/provider-utils-4.0.50.tgz",
++      "integrity": "sha512-YAcB+7M1JhAYsHorTrWyldCyZihjCKr/QRXH2vFrara/+lwqNE7q5KzoucKLZ7ktFiUonhnhFhRoiymsq/2K2Q==",
+-        "@ai-sdk/provider": "3.0.10",
++        "@ai-sdk/provider": "3.0.15",
+-        "eventsource-parser": "^3.0.8"
++        "eventsource-parser": "^3.0.8",
++        "undici": "^6.28.0"
+-        "node": ">=18"
++        "node": ">=18.17"
+```
+
+=== LEN_LOCAL_VS_REMOTE ===
+1215 /tmp/digest_body_30324.md
+1216 /tmp/remote_30324.md
+2431 total
+=== END ===
