@@ -1,0 +1,39 @@
+=== GATE ===
+review id=5150105432 state=COMMENTED commit=93ddef5 user=carlotestor
+
+[1] dupe gate
+  OK    1 review(s) by carlotestor on this head (1 on the PR overall)
+
+[2] event
+  OK    state == COMMENTED
+
+[3] body remote == local
+  WARN  no --local payload given; skipping equality gate
+
+[4] code spans / $identifiers
+
+[5] inline count
+  OK    1 inline(s), as expected
+
+[6] inline anchors + bodies
+  OK    docs/website/package-lock.json:3100 (start=3098) -- 388 chars
+
+[7] stray top-level comments
+  OK    0 top-level comment(s) by carlotestor
+
+ALL GATES PASSED  (0 fail, 1 warn)
+(gate exit 0)
+
+=== REVIEW STATE (direct) ===
+[{"commit_id":"93ddef53056729a03da947c3540b06a72ccb639f","id":5150105432,"state":"COMMENTED"}]
+
+=== INLINE COMMENTS ON THIS REVIEW ===
+[{"id":3964935462,"line":3100,"path":"docs/website/package-lock.json","pull_request_review_id":5150105432,"side":"RIGHT","start_line":3098}]
+
+=== THUMBS UP (gate is green) ===
+added +1 on #30336
+(reaction exit 0)
+
+=== LABELS NOW ===
+["dependencies","javascript"]
+=== END ===
