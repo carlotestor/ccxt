@@ -1,0 +1,88 @@
+=== python.yml lines 60-95 ===
+    - name: Determine modified files
+      run: ./build/utils/init_actions.sh
+    - name: Pre-transpile (export exchanges and emit API)
+      run: npm run pre-transpile-py
+    - name: Transpile to Python
+      if: env.important_modified == 'true'
+      run: npm run force-transpile-fast-py
+    - name: Transpile to Python (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run transpileRest --python $exchange
+        done
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          npm run transpileWs --python $exchange
+        done
+    - name: Transpile prediction to Python
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-py
+    - name: Post-transpile (syntax check)
+      run: npm run check-python-syntax
+    - name: Run Base Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-rest-py
+    - name: Run Base Ws Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-ws-py
+    - name: Run Id Tests
+      if: env.important_modified == 'true'
+      run: npm run id-tests-py
+    - name: Request tests
+      if: env.important_modified == 'true'
+      run: npm run request-py
+    - name: Request tests (specific)
+
+=== does python.yml transpile before the gate? ===
+42:      run: |
+52:      run: pip install -r build/ci-requirements.txt
+57:      run: python --version
+59:      run: npm ci --include=dev
+61:      run: ./build/utils/init_actions.sh
+62:    - name: Pre-transpile (export exchanges and emit API)
+63:      run: npm run pre-transpile-py
+66:      run: npm run force-transpile-fast-py
+69:      run: |
+72:          npm run transpileRest --python $exchange
+76:          npm run transpileWs --python $exchange
+80:      run: npm run transpile-prediction-py
+81:    - name: Post-transpile (syntax check)
+82:      run: npm run check-python-syntax
+85:      run: npm run test-base-rest-py
+88:      run: npm run test-base-ws-py
+91:      run: npm run id-tests-py
+94:      run: npm run request-py
+97:      run: |
+105:      run: npm run response-py
+108:      run: |
+116:      run: npm run ws-tests-py
+119:      run: |
+126:      run: npm run request-py-prediction
+129:      run: npm run response-py-prediction
+136:      run: npm run copy-python-files
+148:      run: |
+158:      run: |
+206:        run: ./build/utils/restore_shared_env.sh
+212:        run: npm ci --include=dev
+218:        run: pip install -r build/ci-requirements.txt
+220:        run: npm run export-exchanges
+222:        run: npm run id-tests-py
+224:        run: npm run request-py
+226:        run: npm run response-py
+244:        run: ./build/utils/restore_shared_env.sh
+250:        run: npm ci --include=dev
+256:        run: pip install -r build/ci-requirements.txt
+258:        run: npm run export-exchanges
+261:        run: ./run-tests-simul.sh --python-async
+
+=== confirm E211 is selected & not ignored by repo ruff config ===
+select = "W", "F", "E"
+ignore = "F722", "F841", "F821", "E402", "E501", "E902", "E713", "E741", "E714", "E275", "E721"
+E211 in ignore? False
+E-class selected? True
+
+BYTES:
+3286 /tmp/ci_30331.txt
