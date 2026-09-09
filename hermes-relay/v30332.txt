@@ -1,0 +1,80 @@
+===== npm_registry =====
+{
+  "4.3.1": {
+    "version": "4.3.1",
+    "integrity": "sha512-CY6crGq313MX8GkwvB7tzgp99vjQxY1++5y10/BKN/GUfHqWaOGQMNZkBvqSzsZKWk/ijwHlWzzkLulsGHhjWQ==",
+    "tarball": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.1.tgz",
+    "dependencies": {
+      "argparse": "^2.0.1"
+    },
+    "license": "MIT",
+    "engines": null,
+    "deprecated": null
+  },
+  "4.3.2": {
+    "version": "4.3.2",
+    "integrity": "sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==",
+    "tarball": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.2.tgz",
+    "dependencies": {
+      "argparse": "^2.0.1"
+    },
+    "license": "MIT",
+    "engines": null,
+    "deprecated": null
+  }
+}
+
+===== integrity_check =====
+integrity_match=True
+tarball_match=True
+registry_integrity=sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==
+pr_integrity=sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==
+
+===== manifest_lock_sync =====
+lockfileVersion=2
+manifest_devDep_range=^4.3.2
+lock_root_range=^4.3.2
+lock_packages_version=4.3.2
+lock_legacy_version=4.3.2
+packages_integrity==legacy_integrity: True
+mirrors_agree=True
+range_agrees=True
+
+===== jsyaml_entries_in_lock =====
+[
+  {
+    "path": "node_modules/js-yaml",
+    "version": "4.3.2",
+    "dev": true
+  }
+]
+
+===== jsyaml_usage_in_example (rc=0) =====
+EXIT=0
+
+--- stderr ---
+
+
+===== other_pins (rc=0) =====
+examples/ts/nextjs-page-router/package.json
+EXIT=0
+
+--- stderr ---
+
+
+===== pr_checks (rc=8) =====
+live-tests	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314436114/job/102347833793	
+live-tests	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314436126/job/102347812531	
+live-tests	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314436130/job/102347868432	
+windows	skipping	0	https://github.com/ccxt/ccxt/actions/runs/34314436126/job/102347813571	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314436097/job/102347589325	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314436108/job/102347589294	
+live-tests	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314436124/job/102347791121	
+build	pass	58s	https://github.com/ccxt/ccxt/actions/runs/34314436124/job/102347589241	
+build	pass	1m4s	https://github.com/ccxt/ccxt/actions/runs/34314436126/job/102347589358	
+build	pass	1m22s	https://github.com/ccxt/ccxt/actions/runs/34314436130/job/102347589331	
+build	pending	0	https://github.com/ccxt/ccxt/actions/runs/34314436257/job/102347590014	
+build	pass	1m12s	https://github.com/ccxt/ccxt/actions/runs/34314436114/job/102347589103	
+
+--- stderr ---
+
