@@ -1,0 +1,6 @@
+d30324.txt: rc=0 
+d30324b.txt: rc=0 
+d30324c.txt: rc=0 
+d30324d.txt: rc=0 
+=== LISTING (expect 404) ===
+[{"name":"g30332.txt","path":"hermes-relay/g30332.txt","sha":"0b6a27adfcafede53cdca3162964460373ae1be7","size":6456,"url":"https://api.github.com/repos/carlotestor/ccxt/contents/hermes-relay/g30332.txt?ref=master","html_url":"https://github.com/carlotestor/ccxt/blob/master/hermes-relay/g30332.txt","git_url":"https://api.github.com/repos/carlotestor/ccxt/git/blobs/0b6a27adfcafede53cdca3162964460373ae1be7","download_url":"https://raw.githubusercontent.com/carlotestor/ccxt/master/hermes-relay/g30332.txt","type":"file","_links":{"self":"https://api.github.com/repos/carlotestor/ccxt/contents/hermes-relay/g30332.txt?ref=master","git":"https://api.github.com/repos/carlotestor/ccxt/git/blobs/0b6a27adfcafede53cdca3162964460373ae1be7","html":"https://github.com/carlotestor/ccxt/blob/master/hermes-relay/g30332.txt"}}]=== END ===
