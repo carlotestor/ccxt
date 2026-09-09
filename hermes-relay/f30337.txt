@@ -1,0 +1,57 @@
+=== gate is RED -> ensure no thumbs-up on PR body ===
+no +1 on #30337
+reaction_exit=0
+
+=== current labels (taxonomy: dependencies + javascript already present) ===
+["dependencies","javascript"]
+
+=== MARK PROCESSED ===
+[ok] marked pr [30337] processed
+{
+  "repo": "ccxt/ccxt",
+  "action": "mark-processed",
+  "kind": "pr",
+  "marked": [
+    30337
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",
+  "watermarks": {
+    "last_pr_number": 30337,
+    "last_issue_number": 30311
+  },
+  "processed_counts": {
+    "prs": 500,
+    "issues": 71
+  },
+  "new_prs": [],
+  "new_issues": []
+}
+mark_exit=0
+
+=== state.json confirmation ===
+30337 in processed.prs: True
+pr_head_shas[30337]: debfd9bc408c793597209a3c4be1fa56ac6bd463
+
+=== SIBLING CATCH-UP ===
+{
+  "repo": "ccxt/ccxt",
+  "source": "find_skipped_sibling_prs",
+  "checked_at": "2026-09-09T05:34:54Z",
+  "min_age_hours": 1.0,
+  "max_age_hours": 24.0,
+  "skipped": [],
+  "counts": {
+    "open_seen": 10,
+    "in_window": 7,
+    "skipped": 0,
+    "skipped_total": 0
+  }
+}
+sibling_exit=0
+
+=== reaction state on PR body (should show no carlotestor +1) ===
+[]
+
+=== DONE ===
