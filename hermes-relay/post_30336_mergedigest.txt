@@ -1,7 +1,0 @@
-precheck_rc=0 existing=''
-post_rc=0 status='HTTP/2.0 201 Created'
-post_stderr=''
-comment_id=5597157812 url=https://github.com/ccxt/ccxt/pull/30336#issuecomment-5597157812
-readback_rc=0 body_match=True local_len=965 remote_len=965
-mark_rc=0 out='{\n  "repo": "ccxt/ccxt",\n  "action": "mark-digested",\n  "marked": [\n    30336\n  ],\n  "already_present": [],\n  "dry_run": false,\n  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",\n  "new_prs": [],\n  "new_issues": []\n}\n' err='[ok] marked [30336] digested\n'
-state_rc=0 digested_merges_tail= [30324, 30332, 30333, 30335, 30334, 30336]
