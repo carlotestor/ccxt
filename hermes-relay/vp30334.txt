@@ -1,0 +1,65 @@
+=== A. carlotestor reviews on PR (guard against double-post) ===
+rc: 0 err: 
+[{"commit_id":"2c95ab35b0db15cb4476296ea33348f12226b7a5","id":5150106610,"state":"COMMENTED","submitted_at":"2026-09-09T05:26:19Z"}]
+carlotestor review count: 1
+
+=== B. inline comments attached to review 5150106610 ===
+rc: 0 err: 
+[{"id":3964936371,"line":4818,"path":"examples/ts/nextjs-page-router/package-lock.json","side":"RIGHT","start_line":null},{"id":3964936392,"line":269,"path":"examples/ts/nextjs-page-router/package-lock.json","side":"RIGHT","start_line":267},{"id":3964936400,"line":619,"path":"examples/ts/nextjs-page-router/package-lock.json","side":"RIGHT","start_line":null}]
+INLINE_COUNT: 3
+
+=== C. review body sanity: gate + probability lines present ===
+body chars: 1643
+has green gate: True
+has red gate: False
+has merge probability 94%: True
+mentions house style: False
+has forbidden Labels line: False
+
+ALL_CHECKS_OK: True
+
+=== D. GATED FOLLOW-UPS ===
+reaction rc: 0 out: added +1 on #30334 err: 
+mark-processed rc: 0 out: {
+  "repo": "ccxt/ccxt",
+  "action": "mark-processed",
+  "kind": "pr",
+  "marked": [
+    30334
+  ],
+  "already_present": [],
+  "dry_run": false,
+  "state_path": "/root/workspace/ccxt-new-item-monitor/state/state.json",
+  "watermarks": {
+    "last_pr_number": 30336,
+    "last_issue_number": 30311
+  },
+  "processed_counts": {
+    "prs": 500,
+    "issues": 71
+  },
+  "new_prs": [],
+  "new_issues": []
+} err: [ok] marked pr [30334] processed
+siblings rc: 0
+siblings out: {
+  "repo": "ccxt/ccxt",
+  "source": "find_skipped_sibling_prs",
+  "checked_at": "2026-09-09T05:26:56Z",
+  "min_age_hours": 1.0,
+  "max_age_hours": 24.0,
+  "skipped": [],
+  "counts": {
+    "open_seen": 10,
+    "in_window": 7,
+    "skipped": 0,
+    "skipped_total": 0
+  }
+}
+siblings err: 
+
+=== E. confirm reaction + state landed ===
+pr body reactions by carlotestor: ["+1"] err: 
+30334 in processed.prs: True
+pr_head_shas[30334]: 2c95ab35b0db15cb4476296ea33348f12226b7a5
+=== END ===
