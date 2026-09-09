@@ -1,41 +1,0 @@
-=== setup worktree ===
-From https://github.com/ccxt/ccxt
- * [new ref]                 refs/pull/30331/head -> pr-30331-head
-Preparing worktree (detached HEAD 992d5e92864)
-Updating files:  65% (6646/10113)Updating files:  66% (6675/10113)Updating files:  67% (6776/10113)Updating files:  68% (6877/10113)Updating files:  69% (6978/10113)Updating files:  70% (7080/10113)Updating files:  71% (7181/10113)Updating files:  72% (7282/10113)Updating files:  73% (7383/10113)Updating files:  74% (7484/10113)Updating files:  75% (7585/10113)Updating files:  76% (7686/10113)Updating files:  77% (7788/10113)Updating files:  78% (7889/10113)Updating files:  79% (7990/10113)Updating files:  80% (8091/10113)Updating files:  81% (8192/10113)Updating files:  82% (8293/10113)Updating files:  83% (8394/10113)Updating files:  84% (8495/10113)Updating files:  85% (8597/10113)Updating files:  86% (8698/10113)Updating files:  87% (8799/10113)Updating files:  88% (8900/10113)Updating files:  89% (9001/10113)Updating files:  90% (9102/10113)Updating files:  91% (9203/10113)Updating files:  92% (9304/10113)Updating files:  93% (9406/10113)Updating files:  94% (9507/10113)Updating files:  95% (9608/10113)Updating files:  96% (9709/10113)Updating files:  97% (9810/10113)Updating files:  98% (9911/10113)Updating files:  99% (10012/10113)Updating files: 100% (10113/10113)Updating files: 100% (10113/10113), done.
-HEAD is now at 992d5e92864 fix(build): keep prose spaces before '(' in Python strings
-worktree head: 992d5e92864
-patch present: 2
-
-=== TRANSPILE alpaca (PR head) ===
-[32m[22m[1m{ force: true }[22m[39m [90m(<computed> → <computed> → <computed> @ pipez.js:48)[39m
-[36mTranspiling from [33malpaca.ts[36m [36mto[36m [33m[Python][36m[39m [90m(<computed> → <computed> @ pipez.js:48)[39m
-[32m[22m[1mTranspiled successfully.[22m[39m [90m(<computed> → <computed> → <computed> @ pipez.js:48)[39m
-rc=0
---- E211-style artifacts (real call left with a space) in generated python ---
-1861:            status = self.parse_transaction_status (self.safe_string(transaction, 'status'))
-1872:            type = self.parse_transaction_type (self.safe_string(transaction, 'direction'))
-1876:            status = self.parse_transaction_status (self.safe_string(transaction, 'status'))
---- count ---
-3
-
-=== RUFF (repo gate: npm run check-python-style === ruff check ./python/ccxt) ===
-pip 26.2.1 from /usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/pip (python 3.11)
-
-[notice] A new release of pip is available: 24.0 -> 26.2.1
-[notice] To update, run: python3.11 -m pip install --upgrade pip
-ruff version: ruff 0.0.292
-python/ccxt/alpaca.py:1861:51: E211 [*] Whitespace before '('
-python/ccxt/alpaca.py:1872:47: E211 [*] Whitespace before '('
-python/ccxt/alpaca.py:1876:51: E211 [*] Whitespace before '('
-Found 3 errors.
-[*] 3 potentially fixable with the --fix option.
-ruff rc=0
-
-=== BASELINE: same exchange transpiled from MASTER ===
-stash@{0}: WIP on (no branch): 33f8924f3c2 fix(toobit): position numeric fields are floats
-(master transpile skipped if tree dirty; comparing committed python instead)
-0
-
-BYTES:
-3178 /tmp/real_30331.txt
