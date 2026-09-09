@@ -1,8 +1,0 @@
-post_rc=0 status_201=True
-status_line=HTTP/2.0 201 Created
-stderr=
-comment_url=https://github.com/ccxt/ccxt/pull/30334#issuecomment-5596268684
-posted_body_matches=True
-readback_rc=0 byte_equal=False remote_len=1479 local_len=1478
-mark_digested=SKIPPED (no confirmed 201 + byte-equal body)
-state=digested_merges_tail [30323, 30321, 30324, 30332, 30333, 30335]
