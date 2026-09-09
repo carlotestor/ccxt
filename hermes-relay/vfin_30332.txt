@@ -1,5 +1,0 @@
-===== LIVE COMMENT =====
-{"first":"## Merge digest","html_url":"https://github.com/ccxt/ccxt/pull/30332#issuecomment-5596257902","id":5596257902,"lines":26}
-===== DIGESTED STATE =====
-type list
-30332_in_digested True
