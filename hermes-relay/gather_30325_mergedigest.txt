@@ -1,0 +1,38 @@
+=== SECTION existing_carlotestor_comments ===
+[]
+rc=0
+=== SECTION merge_digest_diagram ===
+{
+  "mermaid": "flowchart LR\n  okx[\"okx\"]\n  okx_json[\"okx.json\"]",
+  "dot": "digraph G {\n  rankdir=LR;\n  graph [bgcolor=\"white\"];\n  node [shape=box, style=\"rounded,filled\", fillcolor=\"#eef4ff\", color=\"#3b5bdb\", fontname=\"Helvetica\", fontsize=11];\n  edge [color=\"#495057\", arrowsize=0.8];\n  okx [label=\"okx\"];\n  okx_json [label=\"okx.json\"];\n}",
+  "image_url": "https://mermaid.ink/img/eyJjb2RlIjoiZmxvd2NoYXJ0IExSXG4gIG9reFtcIm9reFwiXVxuICBva3hfanNvbltcIm9reC5qc29uXCJdIiwibWVybWFpZCI6eyJ0aGVtZSI6Im5ldXRyYWwifX0",
+  "png": "",
+  "nodes": {
+    "okx": "okx",
+    "okx_json": "okx.json"
+  },
+  "edges": [],
+  "removed_edges": [],
+  "files": [
+    {
+      "file": "ts/src/okx.ts",
+      "additions": 3,
+      "deletions": 1,
+      "status": "modified"
+    },
+    {
+      "file": "ts/src/test/static/response/okx.json",
+      "additions": 160,
+      "deletions": 0,
+      "status": "modified"
+    }
+  ],
+  "salient": {
+    "file": "ts/src/okx.ts",
+    "lang": "ts",
+    "diff": "@@ -4046,8 +4046,10 @@\n+            'mmp_canceled': 'canceled',\n+            'partially_effective': 'open',"
+  }
+}
+rc=0
+=== END ===
+1229 /tmp/gather_30325_mergedigest.txt
