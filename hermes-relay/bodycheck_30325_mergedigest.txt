@@ -1,0 +1,6 @@
+rc=0
+local_chars=541 remote_chars=541
+exact_match=True
+match_rstrip=True
+mermaid_fence_intact=True
+fence_count=4
