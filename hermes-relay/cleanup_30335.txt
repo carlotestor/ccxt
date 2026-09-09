@@ -1,0 +1,10 @@
+=== rm result ===
+ctx_30335.txt: rc=0 
+ver_30335.txt: rc=0 
+post_result_30335.txt: rc=0 
+verify_posted_30335.txt: rc=0 
+tlc_30335.txt: rc=0 
+
+=== hermes-relay listing (should be empty/404) ===
+["a30334.txt","ctx_30333.txt","d30334.txt","g30334.txt","g30337.txt","out2_30336.txt","out30336.txt","v30334.txt","verify2_30333.txt","verify3_30333.txt","verify4_30333.txt","verify_30333.txt"]
+listing_exit=0
