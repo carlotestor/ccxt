@@ -1,0 +1,41 @@
+===== pr_meta (rc=0) =====
+{"additions":113,"changed_files":2,"deletions":91,"merged":true,"merged_at":"2026-09-09T05:22:52Z","state":"closed","title":"chore(deps): bump next from 16.2.11 to 16.3.3 in /examples/ts/nextjs-page-router"}
+
+STDERR:
+
+===== carlotestor_comments (rc=0) =====
+[]
+
+STDERR:
+
+===== diagram (rc=0) =====
+{
+  "mermaid": "flowchart LR\n  empty[\"no call graph\"]",
+  "dot": "digraph G {\n  rankdir=LR;\n  graph [bgcolor=\"white\"];\n  node [shape=box, style=\"rounded,filled\", fillcolor=\"#eef4ff\", color=\"#3b5bdb\", fontname=\"Helvetica\", fontsize=11];\n  edge [color=\"#495057\", arrowsize=0.8];\n}",
+  "image_url": "https://mermaid.ink/img/eyJjb2RlIjoiZmxvd2NoYXJ0IExSXG4gIGVtcHR5W1wibm8gY2FsbCBncmFwaFwiXSIsIm1lcm1haWQiOnsidGhlbWUiOiJuZXV0cmFsIn19",
+  "png": "",
+  "nodes": {},
+  "edges": [],
+  "removed_edges": [],
+  "files": [
+    {
+      "file": "examples/ts/nextjs-page-router/package-lock.json",
+      "additions": 112,
+      "deletions": 90,
+      "status": "modified"
+    },
+    {
+      "file": "examples/ts/nextjs-page-router/package.json",
+      "additions": 1,
+      "deletions": 1,
+      "status": "modified"
+    }
+  ],
+  "salient": {
+    "file": "examples/ts/nextjs-page-router/package-lock.json",
+    "lang": "json",
+    "diff": "@@ -6020,51 +6042,51 @@\n-      \"version\": \"16.2.11\",\n-      \"resolved\": \"https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-16.2.11.tgz\",\n-      \"integrity\": \"sha512-wryL4pjKmDwGv2ox6+GZDFxvmtSRLqApBR8kL1j4+vhB7Z5vJC/zAnXpiR9Xkfzl0AS8WLMnsuGV/UKI67/rrw==\",\n+      \"version\": \"16.3.3\",\n+      \"resolved\": \"https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-16.3.3.tgz\",\n+      \"integrity\": \"sha512-8Hiv32QJPwdV6KYJ8meR9SBA061tQqnIKTJDocvOXlEQqib0xMFpzArosuffFUUc0sslbh7QQ8a3Yey1QV8EIw==\",\n-      \"version\": \"16.2.11\",\n-      \"resolved\": \"https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-16.2.11.tgz\",\n-      \"integrity\": \"sha512-aZl2j4f/fLyjQvOhv0Oe9UaMAQHolYpKhctsoYzplSumKJKPUmgjcf6545aBtysLTcu994TREd0+pSgNE4ohmg==\",\n+      \"version\": \"16.3.3\",\n+      \"resolved\": \"https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-16.3.3.tgz\",\n+      \"integrity\": \"sha512-A1lgKgwVchRYmSe467zdwhxT9040dd8lH+o65sL5Jet8fjB4kegw/rDyPIpYVRb6jAqwXFOJpjIXJLxQKLiE3A==\",\n-      \"version\": \"16.2.11\","
+  }
+}
+
+STDERR:
