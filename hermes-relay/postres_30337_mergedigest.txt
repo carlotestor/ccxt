@@ -1,9 +1,0 @@
-status_line=HTTP/2.0 201 Created
-ok_status=True
-id=5597450973
-url=https://github.com/ccxt/ccxt/pull/30337#issuecomment-5597450973
-posted=True
-rc=0
-body_bytes=1063
-rows=2
-stderr=
