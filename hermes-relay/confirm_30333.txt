@@ -1,0 +1,36 @@
+=== carlotestor REVIEWS ===
+[{"body_len":1559,"commit_id":"32d0e05c1d137e20180a6bb856489979d7d6c8a7","id":5150102014,"state":"COMMENTED","submitted_at":"2026-09-09T05:25:39Z"}]
+review_id=5150102014
+
+=== INLINE COMMENTS ON THAT REVIEW ===
+[{"body_head":"Verified against the registry: `resolved` and `integrity` here match t","id":3964932858,"line":1213,"path":"mcp/package-lock.json","pull_request_review_id":5150102014,"side":"RIGHT","start_line":1211}]
+
+=== GATE: verify_posted_review.py ===
+rc=0
+review id=5150102014 state=COMMENTED commit=32d0e05 user=carlotestor
+
+[1] dupe gate
+  OK    1 review(s) by carlotestor on this head (1 on the PR overall)
+
+[2] event
+  OK    state == COMMENTED
+
+[3] body remote == local
+  WARN  no --local payload given; skipping equality gate
+
+[4] code spans / $identifiers
+  OK    required substring present: 'Merge gate: 🟢'
+  OK    required substring present: 'Merge probability: 95%'
+
+[5] inline count
+  OK    1 inline(s), as expected
+
+[6] inline anchors + bodies
+  OK    mcp/package-lock.json:1213 (start=1211) -- 334 chars
+
+[7] stray top-level comments
+  WARN  1 top-level comment(s) by carlotestor (max 0) -- double-posting the review?
+
+ALL GATES PASSED  (0 fail, 2 warn)
+
+stderr: 
