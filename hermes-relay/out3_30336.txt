@@ -1,0 +1,6 @@
+rc=0
+status=HTTP/2.0 200 OK
+created201=False
+review_id=
+stderr=
+stdout_tail= at 2.11.21), so this is a real resolver output rather than a hand-edited version string.\n- **CI:** the `build` shards that have finished are green; the remaining `build` / `live-tests` jobs were still pending at review time.\n\n## Upstream content\n\nPer the release notes quoted in the PR description, 2.11.0 is the substantive release in this range: it drops the `process.exit()` calls in `getCompatibleVersions()` / `getAllVersions()` in favour of throwing `Error` (tracked upstream as CVE-2026-45819), adds `getTimeline()`, and refactors the data-compression pipeline. Nothing in that set is breaking for the `next` consumer path, which only reads the browser-mapping data.\n\nMerge gate: 🟢\nMerge probability: 95%","state":"COMMENTED","html_url":"https://github.com/ccxt/ccxt/pull/30336#pullrequestreview-5150105432","pull_request_url":"https://api.github.com/repos/ccxt/ccxt/pulls/30336","author_association":"COLLABORATOR","_links":{"html":{"href":"https://github.com/ccxt/ccxt/pull/30336#pullrequestreview-5150105432"},"pull_request":{"href":"https://api.github.com/repos/ccxt/ccxt/pulls/30336"}},"submitted_at":"2026-09-09T05:26:11Z","commit_id":"93ddef53056729a03da947c3540b06a72ccb639f"}
