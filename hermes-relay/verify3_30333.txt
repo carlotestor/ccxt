@@ -1,0 +1,42 @@
+=== REAL 'hono' OCCURRENCES IN THE CODE-SEARCH HIT FILES ===
+--- mcp/ts/tools/trade.ts (436 lines) ---
+  397: // symbol-bearing write methods must honor the account's symbol allow/deny lists
+--- mcp/test/unit/config.test.ts (260 lines) ---
+  67: test ('trading:"live" with an explicit null cap opt-out is honored', () => {
+--- mcp/test/integration/server.test.ts (280 lines) ---
+  40: assert.equal (book.data.bids.length, 5, 'get_orderbook honors limit (aligned with get_ohlcv/get_trades)');
+
+=== npm ci CONSISTENCY: is hono a DIRECT dep of mcp/package.json? ===
+hono in mcp/package.json manifest: False
+=> lockfile-only change is correct; no package.json edit required,
+   so `npm ci` cannot desync on this PR.
+
+=== CI WORKFLOWS THAT TOUCH mcp/ ===
+--- .github/workflows/mcp-release.yml ---
+   working-directory: mcp
+   git add mcp/package.json mcp/package-lock.json mcp/mcpb/manifest.json mcp/server.json
+   git commit -m "[Automated changes] ccxt-mcp ${NEW_VERSION}"
+   echo "::error::push failed after 5 attempts — ccxt-mcp@${NEW_VERSION} is published but master is not bumped; set mcp/pac
+   - name: Install mcp-publisher
+   asset="mcp-publisher_${os}_${arch}.tar.gz"
+   tar xzf "$asset" mcp-publisher
+   "${RUNNER_TEMP}/mcp-publisher" login github-oidc
+   if "${RUNNER_TEMP}/mcp-publisher" publish; then
+   echo "::error::registry publish failed after 5 attempts — ccxt-mcp@${{ steps.bump.outputs.version }} is on npm and maste
+   working-directory: mcp
+   - name: Build the .mcpb desktop bundle
+   run: npm run mcpb
+   - name: Attach the .mcpb to a versioned + a moving "latest" GitHub Release
+--- .github/workflows/mcp.yml ---
+   - 'mcp/**'
+   - '.github/workflows/mcp.yml'
+   - 'mcp/**'
+   - '.github/workflows/mcp.yml'
+   working-directory: mcp
+--- .github/workflows/post-release.yml ---
+   args: -i ^(ccxt-mcp-|go/)
+--- .github/workflows/release.yml ---
+
+=== FULL DIFF LINE COUNT SANITY ===
+added lines: 3, removed lines: 3
+changed keys only: ['integrity', 'license', 'resolved', 'version']
