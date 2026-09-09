@@ -1,9 +1,0 @@
-=== top-level comments by carlotestor on #30335 ===
-{"body_head":"## Merge digest\n\nDependabot bumps `next` 16.2.11 -\u003e 16.3.3 in the Next.js page-router example, picking up the two critical RCE advisories fixed in 16.3.3.\n\n| File | Δ | What |\n| --- | ---: | --- |\n| `examples/ts/nextjs-page-router/package-lock.json` | +112/−90 | `next` + `@next/swc-*` pins |\n| `examples/ts/nextjs-page-router/package.json` | +1/−1 | `next` dependency range |\n\n```mermaid\nflowchart L","created_at":"2026-09-09T05:24:11Z","id":5596268126}
-
-=== merge/digest state for 30335 ===
-digested_merges is list, 30335 in it: True | tail: [30324, 30332, 30333, 30335, 30334]
-
-=== PR merged_at / merged_by ===
-{"mergedAt":"2026-09-09T05:22:52Z","mergedBy":"kroitor","state":"MERGED"}
-=== DONE ===
