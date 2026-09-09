@@ -1,0 +1,14 @@
+g30337.txt: absent
+c30337.txt: absent
+v30337.txt: absent
+w30337.txt: rc=0 
+x30337.txt: rc=0 
+y30337.txt: rc=0 
+z30337.txt: rc=0 
+t30337.txt: rc=0 
+a30337.txt: rc=0 
+r30337.txt: rc=0 
+q30337.txt: rc=0 
+f30337.txt: rc=0 
+{"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}gh: Not Found (HTTP 404)
+listing_rc=1
