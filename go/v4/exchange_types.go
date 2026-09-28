@@ -643,6 +643,7 @@ type Ticker struct {
 	IndexPrice    *float64
 	MarkPrice     *float64
 	Info          map[string]any
+	extra         map[string]any
 }
 
 func NewTicker(data any) Ticker {

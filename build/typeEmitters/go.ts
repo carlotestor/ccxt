@@ -101,6 +101,8 @@ const KEEP_PORT_ONLY: Record<string, string[]> = {
     'FundingHistory': [ 'Currency' ],
     'IsolatedBorrowRate': [ 'Rate' ],
     'Leverage': [ 'Leverage' ],
+    // keys outside the TS interface, kept for the map round trip (exchange_struct_returns.go)
+    'Ticker': [ 'extra' ],
 };
 
 /**
