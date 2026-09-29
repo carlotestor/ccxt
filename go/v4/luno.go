@@ -935,7 +935,7 @@ func (this *Luno) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Luno) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Luno) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "base": "string",
@@ -1055,7 +1055,7 @@ func (this *Luno) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	}
 	var response map[string]any = MapTyped(r1.Raw)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 func (this *Luno) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan AsyncResult[[]any] {
@@ -1826,10 +1826,10 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   GetValue(response, "order_id"),
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -1877,9 +1877,9 @@ func (this *Luno) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	//        "success": true
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 func (this *Luno) FetchLedgerByEntriesAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {

@@ -6415,7 +6415,7 @@ func (this *Gate) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	//
 	//     {"id": 7615567}
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
@@ -7011,7 +7011,7 @@ func (this *Gate) editOrderBody(ch chan AsyncResult[map[string]any], id string, 
 	//         "rebated_fee_currency": "ADA"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Gate) ParseOrderStatus(status *string) *string {
@@ -7030,7 +7030,7 @@ func (this *Gate) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gate) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// SPOT
 	// createOrder/cancelOrder/fetchOrder/editOrder
@@ -7577,7 +7577,7 @@ func (this *Gate) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 		panic(NotSupported(this.Id + " fetchOrder() not support this market type"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -8279,7 +8279,7 @@ func (this *Gate) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	//         "iceberg": "0",
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 

@@ -788,10 +788,10 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	response := r1.Raw
 	var data map[string]any = SafeMapTyped(response, "return")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   ToString(data["order_id"]),
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -842,10 +842,10 @@ func (this *Zaif) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	//
 	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
 	return nil
 }
-func (this *Zaif) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Zaif) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "currency_pair": "btc_jpy",

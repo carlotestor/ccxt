@@ -201,13 +201,13 @@ func (this *Pacifica) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any]
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":            orderId,
 		"clientOrderId": clientOrderId,
 		"status":        status,
 		"info":          response,
 		"symbol":        symbol,
-	})}
+	}))}
 	return nil
 }
 
@@ -296,13 +296,13 @@ func (this *Pacifica) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":            orderId,
 		"clientOrderId": clientOrderId,
 		"status":        status,
 		"info":          response,
 		"symbol":        symbol,
-	})}
+	}))}
 	return nil
 }
 
@@ -402,13 +402,13 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids any,
 		} else {
 			status = "canceled"
 		}
-		ordersToReturn = append(ordersToReturn, this.SafeOrder(map[string]any{
+		ordersToReturn = append(ordersToReturn, ccxt.OrderToMap(this.SafeOrder(map[string]any{
 			"id":            orderId,
 			"clientOrderId": clientOrderId,
 			"status":        status,
 			"info":          response,
 			"symbol":        market["symbol"],
-		}))
+		})))
 	}
 
 	ch <- ccxt.AsyncResult[any]{Value: ordersToReturn}
@@ -499,13 +499,13 @@ func (this *Pacifica) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any]
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":            orderId,
 		"clientOrderId": clientOrderId,
 		"status":        status,
 		"info":          response,
 		"symbol":        symbol,
-	})}
+	}))}
 	return nil
 }
 
@@ -571,9 +571,9 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], opt
 	//   "type": "cancel_all_orders"
 	// }
 	//
-	ch <- ccxt.AsyncResult[[]any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[[]any]{Value: []any{ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -1784,7 +1784,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var order map[string]any = this.ParseOrder(rawOrder)
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {

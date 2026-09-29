@@ -1934,7 +1934,7 @@ func (this *Blofin) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Blofin) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Blofin) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// response similar for REST & WS
 	//
@@ -2152,12 +2152,12 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	if isCombinedSlTp || isSlOrTp || isTriggerOrder {
 		var dataDict map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(dataDict, market)}
+		ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(dataDict, market))}
 		return nil
 	}
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = SafeMapTyped(data, 0)
-	var order map[string]any = this.ParseOrder(first, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(first, market))
 	order["type"] = typeVar
 	order["side"] = side
 
@@ -2308,7 +2308,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 		triggerResponse := r2.Value
 		var triggerData map[string]any = SafeMapTyped(triggerResponse, "data")
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(triggerData, market)}
+		ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(triggerData, market))}
 		return nil
 	}
 
@@ -2320,7 +2320,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = SafeMapTyped(data, 0)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 

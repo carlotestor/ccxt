@@ -1005,10 +1005,10 @@ func (this *Bitflyer) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	// { "status": - 200, "error_message": "Insufficient funds", "data": null }
 	var id *string = this.SafeString(result, "child_order_acceptance_id")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":   id,
 		"info": result,
-	})}
+	}))}
 	return nil
 }
 
@@ -1058,9 +1058,9 @@ func (this *Bitflyer) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	//
 	//    200 OK.
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 func (this *Bitflyer) ParseOrderStatus(status *string) *string {
@@ -1073,7 +1073,7 @@ func (this *Bitflyer) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitflyer) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitflyer) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "child_order_date"))

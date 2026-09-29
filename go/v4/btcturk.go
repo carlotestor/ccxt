@@ -1075,7 +1075,7 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -1118,9 +1118,9 @@ func (this *Btcturk) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//        "code": 0
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 
@@ -1263,7 +1263,7 @@ func (this *Btcturk) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcturk) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Btcturk) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// fetchOrders / fetchOpenOrders
 	//     {

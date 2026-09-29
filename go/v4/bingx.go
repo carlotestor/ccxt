@@ -4561,7 +4561,7 @@ func (this *Bingx) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 		AddElementToObject(result, "takeProfit", this.ParseJson(takeProfit))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -4725,7 +4725,7 @@ func (this *Bingx) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bingx) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// spot
 	// createOrder, createOrders, cancelOrder
@@ -5337,7 +5337,7 @@ func (this *Bingx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var order any = this.SafeDict(data, "order", data)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -5671,7 +5671,7 @@ func (this *Bingx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var order any = this.SafeDict(data, "order", data)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -7845,7 +7845,7 @@ func (this *Bingx) closePositionBody(ch chan AsyncResult[any], symbol string, op
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -8120,7 +8120,7 @@ func (this *Bingx) editOrderBody(ch chan AsyncResult[map[string]any], id string,
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 

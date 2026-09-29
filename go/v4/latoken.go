@@ -1520,7 +1520,7 @@ func (this *Latoken) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Latoken) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -1911,7 +1911,7 @@ func (this *Latoken) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "timestamp":1635920767648
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2001,7 +2001,7 @@ func (this *Latoken) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//        "timestamp": 1568185507
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2067,7 +2067,7 @@ func (this *Latoken) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "errors": { }
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2149,9 +2149,9 @@ func (this *Latoken) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//         "status":"SUCCESS"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 

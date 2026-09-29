@@ -1586,7 +1586,7 @@ func (this *Onetrading) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -1804,7 +1804,7 @@ func (this *Onetrading) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	//         "time_in_force": "GOOD_TILL_CANCELLED"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1868,7 +1868,7 @@ func (this *Onetrading) cancelOrderBody(ch chan AsyncResult[map[string]any], id 
 	//
 	// responds with an empty body
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -1917,9 +1917,9 @@ func (this *Onetrading) cancelAllOrdersBody(ch chan AsyncResult[any], optionalAr
 	//         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -1966,9 +1966,9 @@ func (this *Onetrading) cancelOrdersBody(ch chan AsyncResult[any], ids any, opti
 	//         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
 	//     ]
 	//
-	var order map[string]any = this.SafeOrder(map[string]any{
+	var order map[string]any = OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})
+	}))
 
 	ch <- AsyncResult[any]{Value: []any{order}}
 	return nil
@@ -2054,7 +2054,7 @@ func (this *Onetrading) fetchOrderBody(ch chan AsyncResult[map[string]any], id a
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 

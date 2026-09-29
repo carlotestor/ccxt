@@ -2256,7 +2256,7 @@ func (this *Paradex) authenticateRestBody(ch chan EndpointResult[*string], optio
 	ch <- EndpointResult[*string]{Value: token, Raw: token}
 	return nil
 }
-func (this *Paradex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// {
 	//     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -2661,7 +2661,7 @@ func (this *Paradex) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//     "type": "MARKET"
 	// }
 	//
-	var order map[string]any = this.ParseOrder(response, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 
 	ch <- AsyncResult[map[string]any]{Value: order}
 	return nil
@@ -2767,7 +2767,7 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	//         "type": "MARKET"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2858,10 +2858,10 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 			}
 			return nil
 		}()
-		AppendToArray(&parsedOrders, this.SafeOrder(map[string]any{
+		AppendToArray(&parsedOrders, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   error,
 			"status": "rejected",
-		}))
+		})))
 	}
 
 	ch <- AsyncResult[any]{Value: parsedOrders}
@@ -2928,7 +2928,7 @@ func (this *Paradex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//
 	// if success, no response...
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -3031,13 +3031,13 @@ func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
 		} else if status != nil && *status == "NOT_FOUND" {
 			orderStatus = SafeStringPtr("rejected")
 		}
-		orders = append(orders, this.SafeOrder(map[string]any{
+		orders = append(orders, OrderToMap(this.SafeOrder(map[string]any{
 			"info":          result,
 			"id":            this.SafeString(result, "id"),
 			"clientOrderId": this.SafeString(result, "client_id"),
 			"status":        orderStatus,
 			"symbol":        market["symbol"],
-		}, market))
+		}, market)))
 	}
 
 	ch <- AsyncResult[any]{Value: orders}
@@ -3094,9 +3094,9 @@ func (this *Paradex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//
 	// if success, no response...
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -3184,7 +3184,7 @@ func (this *Paradex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "trigger_price": "0"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 

@@ -1411,7 +1411,7 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	//         "targetAmount": "1000"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1529,7 +1529,7 @@ func (this *Btcmarkets) cancelOrderBody(ch chan AsyncResult[map[string]any], id 
 	//        "clientOrderId": "123-456"
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
@@ -1591,7 +1591,7 @@ func (this *Btcmarkets) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -1697,7 +1697,7 @@ func (this *Btcmarkets) fetchOrderBody(ch chan AsyncResult[map[string]any], id a
 	}
 	var response map[string]any = MapTyped(r1.Raw)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 

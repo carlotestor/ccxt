@@ -2005,7 +2005,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 						var marketId *string = this.SafeString(order, "market")
 						var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 
-						ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, marketNew)}
+						ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, marketNew))}
 						chSent = true
 						return nil
 					}
@@ -2060,7 +2060,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 						var orderId *string = this.SafeString(order, "id")
 						if IsEqual(orderId, id) {
 
-							ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, marketNew)}
+							ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, marketNew))}
 							chSent = true
 							return nil
 						}
@@ -2975,7 +2975,7 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		}
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -3065,7 +3065,7 @@ func (this *Whitebit) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -3132,7 +3132,7 @@ func (this *Whitebit) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	//        "activation_price": "40000" // activation price if activation price is set
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -3594,12 +3594,12 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 		var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = this.ParseOrder(func() any {
+			var order map[string]any = OrderToMap(this.ParseOrder(func() any {
 				if j >= 0 && j < len(orders) {
 					return DerefScalar(orders[j])
 				}
 				return nil
-			}(), marketNew)
+			}(), marketNew))
 			AppendToArray(&results, this.Extend(order, map[string]any{
 				"status": "closed",
 			}))
@@ -3623,7 +3623,7 @@ func (this *Whitebit) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder, fetchOpenOrders, cancelOrder
 	//

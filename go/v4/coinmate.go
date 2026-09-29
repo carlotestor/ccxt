@@ -1557,7 +1557,7 @@ func (this *Coinmate) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Coinmate) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Coinmate) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// limit sell
 	//
@@ -1733,10 +1733,10 @@ func (this *Coinmate) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	var id *string = this.SafeString(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   id,
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -1785,7 +1785,7 @@ func (this *Coinmate) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -1833,7 +1833,7 @@ func (this *Coinmate) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
 	return nil
 }
 func (this *Coinmate) Nonce() any {

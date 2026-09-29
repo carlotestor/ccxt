@@ -883,7 +883,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 	if (typeVar != nil && *typeVar == "market") && (side != nil && *side == "buy") {
 		cost = orderAmount
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(orderUpdate, "uuid"),
 		"clientOrderId":       this.SafeString(orderUpdate, "customerID"),
@@ -904,7 +904,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 		"fee":                 nil,
 		"cost":                cost,
 		"trades":              nil,
-	}, market)
+	}, market))
 }
 func (this *Lbank) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

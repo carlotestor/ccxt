@@ -2140,7 +2140,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	} else if (rawType != nil && *rawType == "STOP_LOSS") || (rawType != nil && *rawType == "STOP") || (rawType != nil && *rawType == "STOP_MARKET") {
 		stopLossPrice = triggerPrice
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                  this.SafeString(order, "id"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
 		"symbol":              marketResolved["symbol"],
@@ -2166,7 +2166,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 		"stopLossPrice":       stopLossPrice,
 		"takeProfitPrice":     takeProfitPrice,
 		"info":                order,
-	}, marketValue)
+	}, marketValue))
 }
 
 /**

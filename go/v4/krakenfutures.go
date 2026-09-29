@@ -1795,7 +1795,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[map[string]any], 
 	var status *string = this.SafeString(sendStatus, "status")
 	this.VerifyOrderActionSuccess(status, "createOrder", []any{"filled"})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(sendStatus, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(sendStatus, market))}
 	return nil
 }
 
@@ -1927,7 +1927,7 @@ func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[map[string]any], id
 	var editStatus map[string]any = this.SafeDictMap(response, "editStatus", map[string]any{})
 	var status *string = this.SafeString(editStatus, "status")
 	this.VerifyOrderActionSuccess(status, "editOrder", []any{"filled"})
-	var order map[string]any = this.ParseOrder(editStatus)
+	var order map[string]any = OrderToMap(this.ParseOrder(editStatus))
 	order["info"] = response
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -1975,7 +1975,7 @@ func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[map[string]any], 
 	this.VerifyOrderActionSuccess(status, "cancelOrder")
 	var order map[string]any = map[string]any{}
 	if InOp(response, "cancelStatus") {
-		order = this.ParseOrder(GetValue(response, "cancelStatus"))
+		order = OrderToMap(this.ParseOrder(GetValue(response, "cancelStatus")))
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.Extend(map[string]any{
@@ -2623,7 +2623,7 @@ func (this *Krakenfutures) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// LIMIT
 	//

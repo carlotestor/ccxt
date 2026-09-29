@@ -832,7 +832,7 @@ func (this *Bit2c) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 		response = r3.Value
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -868,7 +868,7 @@ func (this *Bit2c) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	}
 	var response map[string]any = r.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -981,10 +981,10 @@ func (this *Bit2c) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	//             "initialAmount": 2.00000000
 	//         }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
-func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//      createOrder
 	//      {

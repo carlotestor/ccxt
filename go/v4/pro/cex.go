@@ -1036,7 +1036,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "time")
 	ccxt.AddElementToObject(order, "timestamp", timestamp)
 	ccxt.AddElementToObject(order, "datetime", this.Iso8601(timestamp))
-	order = this.SafeOrder(order)
+	order = ccxt.OrderToMap(this.SafeOrder(order))
 	storedOrders.(ccxt.Appender).Append(order)
 	var messageHash string = "orders:" + symbol
 	client.(ccxt.ClientInterface).Resolve(storedOrders, messageHash)
@@ -1153,7 +1153,7 @@ func (this *Cex) ParseWsOrderUpdate(order map[string]any, optionalArgs ...any) a
 	if isTransaction {
 		parsedOrder["trades"] = this.ParseWsTrade(order, marketResolved)
 	}
-	return this.SafeOrder(parsedOrder, marketResolved)
+	return ccxt.OrderToMap(this.SafeOrder(parsedOrder, marketResolved))
 }
 func (this *Cex) FromPrecision(amount any, scale any) any {
 	if ccxt.IsEqual(amount, nil) {
@@ -1199,7 +1199,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 			return nil
 		}()
 		var market map[string]any = this.SafeMarket(symbol)
-		var order map[string]any = this.ParseOrder(rawOrder, market)
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder, market))
 		order["status"] = "open"
 		myOrders.(ccxt.Appender).Append(order)
 	}
@@ -1641,7 +1641,7 @@ func (this *Cex) fetchOrderWsBody(ch chan ccxt.AsyncResult[any], id string, opti
 	}
 	response := r2.Value
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- ccxt.AsyncResult[any]{Value: ccxt.OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1771,7 +1771,7 @@ func (this *Cex) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], sym
 	}
 	rawOrder := r2.Value
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParseOrder(rawOrder, market)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(rawOrder, market))}
 	return nil
 }
 
@@ -1843,7 +1843,7 @@ func (this *Cex) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id st
 	}
 	response := r2.Value
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1902,7 +1902,7 @@ func (this *Cex) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id 
 	}
 	response := r2.Value
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 

@@ -2308,7 +2308,7 @@ func (this *Delta) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Delta) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
 	//
@@ -2540,7 +2540,7 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -2617,7 +2617,7 @@ func (this *Delta) editOrderBody(ch chan AsyncResult[map[string]any], id string,
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -2700,7 +2700,7 @@ func (this *Delta) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -2745,9 +2745,9 @@ func (this *Delta) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	//         "success":true
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -2831,7 +2831,7 @@ func (this *Delta) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 

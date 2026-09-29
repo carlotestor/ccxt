@@ -1418,7 +1418,7 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan AsyncResult[any], id any, option
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -1575,7 +1575,7 @@ func (this *Hollaex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order id ", id)))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order))}
 	return nil
 }
 
@@ -1674,7 +1674,7 @@ func (this *Hollaex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder, fetchOpenOrder, fetchOpenOrders
 	//
@@ -1830,7 +1830,7 @@ func (this *Hollaex) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//         "stop": null
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1886,7 +1886,7 @@ func (this *Hollaex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "filled": 0
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 

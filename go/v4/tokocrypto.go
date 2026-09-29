@@ -1955,7 +1955,7 @@ func (this *Tokocrypto) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// spot
 	//
@@ -2325,7 +2325,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	//
 	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(rawOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(rawOrder, market))}
 	return nil
 }
 
@@ -2394,7 +2394,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[map[string]any], id a
 	var list []any = SafeListTyped(data, "list")
 	var rawOrder map[string]any = this.SafeDictMap(list, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(rawOrder)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(rawOrder))}
 	return nil
 }
 
@@ -2639,7 +2639,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[map[string]any], id 
 	//
 	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(rawOrder)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(rawOrder))}
 	return nil
 }
 

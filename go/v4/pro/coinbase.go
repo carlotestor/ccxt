@@ -1279,7 +1279,7 @@ func (this *Coinbase) ParseWsOrder(order any, optionalArgs ...any) any {
 	var datetime *string = this.SafeString2(order, "time", "creation_time")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var stopPrice *string = this.SafeString(order, "stop_price")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             this.SafeString(marketResolved, "symbol"),
 		"id":                 id,
@@ -1305,7 +1305,7 @@ func (this *Coinbase) ParseWsOrder(order any, optionalArgs ...any) any {
 			"currency": this.SafeString(marketResolved, "quote"),
 		},
 		"trades": nil,
-	})
+	}))
 }
 func (this *Coinbase) HandleOrderBookHelper(orderbook any, updates any) {
 	for i := 0; i < ccxt.GetArrayLength(updates); i++ {

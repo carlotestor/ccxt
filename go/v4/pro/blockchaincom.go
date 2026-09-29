@@ -758,7 +758,7 @@ func (this *Blockchaincom) ParseWsOrder(order any, optionalArgs ...any) any {
 			"id": tradeId,
 		})
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":            this.SafeString(order, "orderID"),
 		"clientOrderId": this.SafeString(order, "clOrdID"),
 		"datetime":      datetime,
@@ -784,7 +784,7 @@ func (this *Blockchaincom) ParseWsOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 		"lastTradeTimestamp": nil,
 		"average":            this.SafeString(order, "avgPx"),
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Blockchaincom) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

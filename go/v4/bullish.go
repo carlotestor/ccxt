@@ -2470,7 +2470,7 @@ func (this *Bullish) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "createdAtTimestamp": "1621490985000",
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2567,7 +2567,7 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//         "clientOrderId": "1234567"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2649,7 +2649,7 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	}
 	var response map[string]any = r2.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2713,7 +2713,7 @@ func (this *Bullish) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "clientOrderId": null
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2778,7 +2778,7 @@ func (this *Bullish) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market)}
 	return nil
 }
-func (this *Bullish) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bullish) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// fetchOrders, fetchOrder
 	//     {

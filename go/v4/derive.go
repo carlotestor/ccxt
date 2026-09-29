@@ -1952,7 +1952,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	if rawOrder == nil {
 		rawOrder = this.SafeDict(result, "order", map[string]any{})
 	}
-	var order map[string]any = this.ParseOrder(rawOrder, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(rawOrder, market))
 	order["type"] = typeVar
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -2134,7 +2134,7 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawOrder map[string]any = this.SafeDictMap(result, "order", map[string]any{})
-	var order map[string]any = this.ParseOrder(rawOrder, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(rawOrder, market))
 
 	ch <- AsyncResult[map[string]any]{Value: order}
 	return nil
@@ -2266,7 +2266,7 @@ func (this *Derive) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 		extendParams["client_order_id"] = clientOrderIdExchangeSpecific
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(order, market), extendParams)}
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(order, market)), extendParams)}
 	return nil
 }
 
@@ -2341,9 +2341,9 @@ func (this *Derive) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	//     "result": "ok"
 	// }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -2665,7 +2665,7 @@ func (this *Derive) ParseOrderStatus(status *string) *string {
 	}
 	return nil
 }
-func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) map[string]any {
+func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 	//
 	// {
 	//     "subaccount_id": 130837,

@@ -534,7 +534,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Coincheck) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Coincheck) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// fetchOpenOrders
 	//
@@ -1076,10 +1076,10 @@ func (this *Coincheck) createOrderBody(ch chan AsyncResult[map[string]any], symb
 	response := r1.Raw
 	var id *string = this.SafeString(response, "id")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":   id,
 		"info": response,
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -1121,7 +1121,7 @@ func (this *Coincheck) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	//        "id": 12345
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 

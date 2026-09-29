@@ -2606,10 +2606,10 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[map[strin
 	//        "fee":"0"
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
-func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//    {
 	//        "order_id":"1x96skvg-1-0",
@@ -2772,7 +2772,7 @@ func (this *Coinbaseinternational) cancelOrderBody(ch chan AsyncResult[map[strin
 	//        "fee":"0"
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(orders, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(orders, market))}
 	return nil
 }
 
@@ -2903,7 +2903,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan AsyncResult[map[string]
 	}
 	var order map[string]any = r2.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -2984,7 +2984,7 @@ func (this *Coinbaseinternational) fetchOrderBody(ch chan AsyncResult[map[string
 	//        "fee":"0"
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 

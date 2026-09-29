@@ -1400,7 +1400,7 @@ func (this *Deepcoin) ParseWsOrder(order any, optionalArgs ...any) any {
 	var state *string = this.SafeString(order, "Or")
 	var timestamp *int64 = this.SafeTimestamp(order, "IT")
 	var direction *string = this.SafeString(order, "D")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                  this.SafeString(order, "OS"),
 		"clientOrderId":       nil,
 		"datetime":            this.Iso8601(timestamp),
@@ -1426,7 +1426,7 @@ func (this *Deepcoin) ParseWsOrder(order any, optionalArgs ...any) any {
 		"reduceOnly":          nil,
 		"postOnly":            nil,
 		"info":                order,
-	}, market)
+	}, market))
 }
 func (this *Deepcoin) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

@@ -1373,7 +1373,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 			"currency": feeCurrency,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 this.SafeString2(order, "uuid", "order_id"),
 		"clientOrderId":      nil,
@@ -1396,7 +1396,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	}, market)
+	}, market))
 }
 func (this *Bithumb) HandleMessage(client any, message any) {
 	if ccxt.IsString(message) {

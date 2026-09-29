@@ -1090,7 +1090,7 @@ func (this *Dydx) HandlePublicAddress(methodName any, params any) any {
 	}
 	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
 }
-func (this *Dydx) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Dydx) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// {
 	//     "id": "dad46410-3444-5566-a129-19a619300fb7",
@@ -1216,7 +1216,7 @@ func (this *Dydx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	}
 	var order map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order))}
 	return nil
 }
 
@@ -2020,11 +2020,11 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info":          result,
 		"id":            orderId,
 		"clientOrderId": GetValue(GetValue(GetValue(GetValue(orderRequest, "value"), "order"), "orderId"), "clientId"),
-	})}
+	}))}
 	return nil
 }
 
@@ -2165,9 +2165,9 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": result,
-	})}
+	}))}
 	return nil
 }
 
@@ -2270,9 +2270,9 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalAr
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": result,
-	})}}
+	}))}}
 	return nil
 }
 

@@ -1033,7 +1033,7 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[map[string]any], symb
 	//         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1080,9 +1080,9 @@ func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	//         "success": true
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 
@@ -1188,7 +1188,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]an
 			}
 			return nil
 		}()
-		orders = append(orders, this.ParseOrder(order, market))
+		orders = append(orders, OrderToMap(this.ParseOrder(order, market)))
 	}
 
 	ch <- AsyncResult[[]any]{Value: orders}
@@ -1272,7 +1272,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseOrders(result, market, nil, nil)}
 	return nil
 }
-func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//     {

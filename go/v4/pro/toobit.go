@@ -1224,7 +1224,7 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) any {
 			"currency": nil,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "i"),
 		"clientOrderId":       this.SafeString(order, "c"),
@@ -1247,7 +1247,7 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":              this.ParseOrderStatus(this.SafeString(order, "X")),
 		"fee":                 fee,
 		"trades":              nil,
-	}, market)
+	}, market))
 }
 
 /**

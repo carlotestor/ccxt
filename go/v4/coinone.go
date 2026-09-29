@@ -1220,7 +1220,7 @@ func (this *Coinone) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1288,7 +1288,7 @@ func (this *Coinone) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "averageExecutedPrice": "10011000.0"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Coinone) ParseOrderStatus(status *string) *string {
@@ -1301,7 +1301,7 @@ func (this *Coinone) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinone) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -1641,7 +1641,7 @@ func (this *Coinone) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "errorCode": "0"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(response))}
 	return nil
 }
 

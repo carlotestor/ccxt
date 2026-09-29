@@ -627,7 +627,7 @@ func (this *Bullish) HandleOrders(client any, message any) {
 				}
 				return nil
 			}()
-			var parsedOrder map[string]any = this.ParseOrder(rawOrder)
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 			orders.(ccxt.Appender).Append(parsedOrder)
 			var symbol *string = this.SafeString(parsedOrder, "symbol")
 			if symbol != nil {

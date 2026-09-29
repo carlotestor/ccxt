@@ -957,7 +957,7 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 func (this *Blofin) ParseWsOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseOrder(order, market)
+	return ccxt.OrderToMap(this.ParseOrder(order, market))
 }
 
 /**

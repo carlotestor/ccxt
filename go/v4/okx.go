@@ -5094,7 +5094,7 @@ func (this *Okx) createOrderBody(ch chan AsyncResult[map[string]any], symbol str
 	}
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
-	var order map[string]any = this.ParseOrder(first, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(first, market))
 	order["type"] = typeVar
 	order["side"] = side
 
@@ -5403,7 +5403,7 @@ func (this *Okx) editOrderBody(ch chan AsyncResult[map[string]any], id string, s
 	//
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
-	var order map[string]any = this.ParseOrder(first, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(first, market))
 	order["type"] = typeVar
 	order["side"] = side
 
@@ -5482,7 +5482,7 @@ func (this *Okx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = SafeMapTyped(data, 0)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 func (this *Okx) ParseIds(ids any) any {
@@ -5827,7 +5827,7 @@ func (this *Okx) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Okx) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Okx) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -6290,7 +6290,7 @@ func (this *Okx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, opt
 	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = SafeMapTyped(data, 0)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -11899,7 +11899,7 @@ func (this *Okx) closePositionBody(ch chan AsyncResult[any], symbol string, opti
 	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = SafeMapTyped(data, 0)
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 

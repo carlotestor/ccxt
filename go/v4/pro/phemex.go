@@ -1547,7 +1547,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 				}
 				return nil
 			}()
-			var parsedOrder map[string]any = this.ParseOrder(rawOrder)
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	} else {
@@ -1760,7 +1760,7 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	var timeInForce any = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
 	var stopPrice *string = this.SafeString(order, "stopPx")
 	var postOnly bool = (ccxt.IsEqual(timeInForce, "PO"))
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -1783,7 +1783,7 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                nil,
 		"trades":             nil,
-	}, marketValue)
+	}, marketValue))
 }
 func (this *Phemex) HandleMessage(client any, message any) {
 	// private spot update

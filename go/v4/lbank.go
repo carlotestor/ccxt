@@ -2281,10 +2281,10 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	//
 	var result map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":   this.SafeString(result, "order_id"),
 		"info": result,
-	}, market)}
+	}, market))}
 	return nil
 }
 func (this *Lbank) ParseOrderStatus(status *string) *string {
@@ -2298,7 +2298,7 @@ func (this *Lbank) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Lbank) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Lbank) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// fetchOrderSupplement (private)
 	//
@@ -2564,7 +2564,7 @@ func (this *Lbank) fetchOrderSupplementBody(ch chan EndpointResult[map[string]an
 	//
 	var result map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	chValue := this.ParseOrder(result)
+	chValue := OrderToMap(this.ParseOrder(result))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -2626,12 +2626,12 @@ func (this *Lbank) fetchOrderDefaultBody(ch chan EndpointResult[map[string]any],
 	var numOrders int = len(result)
 	if numOrders == 1 {
 
-		chValue := this.ParseOrder(func() any {
+		chValue := OrderToMap(this.ParseOrder(func() any {
 			if 0 >= 0 && 0 < len(result) {
 				return DerefScalar(result[0])
 			}
 			return nil
-		}())
+		}()))
 		ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 		return nil
 	} else {
@@ -2964,7 +2964,7 @@ func (this *Lbank) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//  }
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
 	return nil
 }
 

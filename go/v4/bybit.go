@@ -5288,7 +5288,7 @@ func (this *Bybit) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Bybit) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// v1 for usdc normal account
 	//     {
@@ -5741,7 +5741,7 @@ func (this *Bybit) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	//
 	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
@@ -6359,11 +6359,11 @@ func (this *Bybit) editOrderBody(ch chan AsyncResult[map[string]any], id string,
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info":          response,
 		"id":            this.SafeString(result, "orderId"),
 		"clientOrderId": this.SafeString(result, "orderLinkId"),
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -6576,7 +6576,7 @@ func (this *Bybit) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -6987,9 +6987,9 @@ func (this *Bybit) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	var orders any = this.SafeList(result, "list")
 	if orders == nil {
 
-		ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+		ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 			"info": response,
-		})}}
+		}))}}
 		return nil
 	}
 
@@ -7202,7 +7202,7 @@ func (this *Bybit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	}
 	var order map[string]any = this.SafeDictMap(innerList, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 

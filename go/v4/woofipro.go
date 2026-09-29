@@ -2391,7 +2391,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(rows, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// Possible input functions:
 	// * createOrder
@@ -2745,7 +2745,7 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
-	var order map[string]any = this.ParseOrder(data, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(data, market))
 	order["type"] = typeVar
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -2948,7 +2948,7 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -3072,12 +3072,12 @@ func (this *Woofipro) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 			return response
 		}()
 
-		ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(parsedResponse), extendParams)}
+		ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(parsedResponse)), extendParams)}
 		return nil
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(data), extendParams)}
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(data)), extendParams)}
 	return nil
 }
 
@@ -3143,9 +3143,9 @@ func (this *Woofipro) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 	//     }
 	// }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -3218,9 +3218,9 @@ func (this *Woofipro) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
 	//     }
 	// }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -3339,7 +3339,7 @@ func (this *Woofipro) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		return orders
 	}()
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(parsedOrders, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(parsedOrders, market))}
 	return nil
 }
 

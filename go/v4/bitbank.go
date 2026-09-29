@@ -955,7 +955,7 @@ func (this *Bitbank) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
@@ -1045,7 +1045,7 @@ func (this *Bitbank) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	response := r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -1114,7 +1114,7 @@ func (this *Bitbank) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
 	return nil
 }
 
@@ -1182,7 +1182,7 @@ func (this *Bitbank) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 

@@ -2296,7 +2296,7 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	// it's impossible to know if the order was created using cost or base currency
 	// because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
 	// this usingCost flag is used to help the parsing but omitted from the order
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result))}
 	return nil
 }
 
@@ -2479,7 +2479,7 @@ func (this *Kraken) ParseOrderType(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kraken) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -3057,7 +3057,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -3148,9 +3148,9 @@ func (this *Kraken) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order id ", id)))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 		"id": id,
-	}, GetValue(result, id)))}
+	}, GetValue(result, id))))}
 	return nil
 }
 
@@ -3317,9 +3317,9 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan AsyncResult[any], ids any, opti
 	for i := 0; i < len(orderIds); i++ {
 		var id string = orderIds[i]
 		var item any = result[id]
-		var order map[string]any = this.ParseOrder(this.Extend(map[string]any{
+		var order map[string]any = OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"id": id,
-		}, item))
+		}, item)))
 		orders = append(orders, order)
 	}
 
@@ -3514,9 +3514,9 @@ func (this *Kraken) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 
@@ -3560,9 +3560,9 @@ func (this *Kraken) cancelOrdersBody(ch chan AsyncResult[any], ids any, optional
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -3609,9 +3609,9 @@ func (this *Kraken) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	//        }
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 

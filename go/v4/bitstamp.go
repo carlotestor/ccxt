@@ -2644,7 +2644,7 @@ func (this *Bitstamp) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		}
 		return response
 	}()
-	var order map[string]any = this.ParseOrder(orderResponse, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(orderResponse, market))
 	order["type"] = typeVar
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -2712,7 +2712,7 @@ func (this *Bitstamp) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var order map[string]any = this.ParseOrder(response, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 	order["type"] = typeVar
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -2767,7 +2767,7 @@ func (this *Bitstamp) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	//        "market": "BTC/USD"
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2964,7 +2964,7 @@ func (this *Bitstamp) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -3442,7 +3442,7 @@ func (this *Bitstamp) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//   from fetch order:
 	//     { status: "Finished",

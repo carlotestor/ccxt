@@ -1921,7 +1921,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan AsyncResult[map[string]any], id an
 	//
 	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
@@ -2090,7 +2090,7 @@ func (this *Cryptocom) createOrderBody(ch chan AsyncResult[map[string]any], symb
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -2369,7 +2369,7 @@ func (this *Cryptocom) editOrderBody(ch chan AsyncResult[map[string]any], id str
 	response := r1.Value
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result))}
 	return nil
 }
 func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optionalArgs ...any) map[string]any {
@@ -2443,9 +2443,9 @@ func (this *Cryptocom) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArg
 	}
 	response := r1.Value
 
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -2505,7 +2505,7 @@ func (this *Cryptocom) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -3390,7 +3390,7 @@ func (this *Cryptocom) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder, cancelOrder
 	//
@@ -4677,7 +4677,7 @@ func (this *Cryptocom) closePositionBody(ch chan AsyncResult[any], symbol string
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 

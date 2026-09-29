@@ -3994,7 +3994,7 @@ func (this *Extended) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	data["timestamp"] = now
 	data["status"] = "NEW"
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(request, data), market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.Extend(request, data), market))}
 	return nil
 }
 
@@ -4110,7 +4110,7 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	responseData["timestamp"] = now
 	responseData["status"] = "NEW"
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(request, responseData), market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.Extend(request, responseData), market))}
 	return nil
 }
 
@@ -4192,7 +4192,7 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 		return GetValue(market, "symbol")
 	}()
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info":          response,
 		"id":            orderId,
 		"clientOrderId": clientOrderId,
@@ -4200,7 +4200,7 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 		"datetime":      nil,
 		"symbol":        orderSymbol,
 		"status":        "canceled",
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -4436,7 +4436,7 @@ func (this *Extended) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		order = this.SafeDict(response, "data", map[string]any{})
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -4729,7 +4729,7 @@ func (this *Extended) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Extended) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Extended) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "id": 1784963886257016832,

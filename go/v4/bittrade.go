@@ -1963,7 +1963,7 @@ func (this *Bittrade) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 	response := r1.Value
 	var order map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order))}
 	return nil
 }
 
@@ -2228,7 +2228,7 @@ func (this *Bittrade) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {                  id:  13997833014,
 	//                    "symbol": "ethbtc",
@@ -2471,7 +2471,7 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	var id *string = this.SafeString(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info":               response,
 		"id":                 id,
 		"timestamp":          nil,
@@ -2490,7 +2490,7 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		"fee":                nil,
 		"clientOrderId":      nil,
 		"average":            nil,
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -2530,7 +2530,7 @@ func (this *Bittrade) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	//         "data": "10138899000",
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(response), map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(response)), map[string]any{
 		"id":     id,
 		"status": "canceled",
 	})}
@@ -2655,11 +2655,11 @@ func (this *Bittrade) ParseCancelOrders(orders any) []any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
 		var order *string = SafeStringPtr(GetValue(success, i))
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
 			"status": "canceled",
-		}))
+		})))
 	}
 	for i := 0; i < len(failed); i++ {
 		var order any = func() any {
@@ -2668,12 +2668,12 @@ func (this *Bittrade) ParseCancelOrders(orders any) []any {
 			}
 			return nil
 		}()
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
 			"status":        "failed",
 			"clientOrderId": this.SafeString(order, "client-order-id"),
-		}))
+		})))
 	}
 	return result
 }
@@ -2729,9 +2729,9 @@ func (this *Bittrade) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": data,
-	})}}
+	}))}}
 	return nil
 }
 func (this *Bittrade) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {

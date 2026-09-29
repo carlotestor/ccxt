@@ -1316,7 +1316,7 @@ func (this *Grvt) ParseWsOrder(order any, optionalArgs ...any) any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseOrder(order, market)
+	return ccxt.OrderToMap(this.ParseOrder(order, market))
 }
 func (this *Grvt) HandleErrorMessage(client any, response any) bool {
 	//

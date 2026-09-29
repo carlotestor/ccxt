@@ -2618,7 +2618,7 @@ func (this *Deribit) ParseOrderType(orderType *string) *string {
 	}
 	return this.SafeString(orderTypes, orderType, orderType)
 }
-func (this *Deribit) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Deribit) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -2789,7 +2789,7 @@ func (this *Deribit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -2986,7 +2986,7 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	var trades any = this.SafeList(result, "trades", []any{})
 	AddElementToObject(order, "trades", trades)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -3056,7 +3056,7 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	var trades any = this.SafeList(result, "trades", []any{})
 	AddElementToObject(order, "trades", trades)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order))}
 	return nil
 }
 
@@ -3100,7 +3100,7 @@ func (this *Deribit) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	var response map[string]any = r1.Value
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result))}
 	return nil
 }
 
@@ -3163,9 +3163,9 @@ func (this *Deribit) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//        testnet: true
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 

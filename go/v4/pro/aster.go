@@ -2900,7 +2900,7 @@ func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) any {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 		timeInForce = ccxt.SafeStringPtr("PO")
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"symbol":              marketResolved["symbol"],
 		"id":                  this.SafeString2(order, "i", "aid"),
@@ -2925,7 +2925,7 @@ func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":              status,
 		"fee":                 fee,
 		"trades":              nil,
-	})
+	}))
 }
 func (this *Aster) GetMarketFromOrder(client any, order any) any {
 	var marketId *string = this.SafeString(order, "s")

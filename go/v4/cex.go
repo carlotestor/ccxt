@@ -1613,7 +1613,7 @@ func (this *Cex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Cex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Cex) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//                "orderId": "1313003",
 	//                "clientOrderId": "037F0AFEB93A",
@@ -1814,7 +1814,7 @@ func (this *Cex) createOrderBody(ch chan AsyncResult[map[string]any], symbol str
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -1863,7 +1863,7 @@ func (this *Cex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
 	return nil
 }
 

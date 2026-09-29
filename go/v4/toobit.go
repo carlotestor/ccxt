@@ -2283,7 +2283,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//         "priceType": "INPUT"                   // only in contract
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Toobit) CreateOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
@@ -2433,7 +2433,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar string, side 
 	}
 	return []any{request, paramsOmitted}
 }
-func (this *Toobit) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Toobit) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder, cancelOrder
 	//
@@ -2629,7 +2629,7 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 		panic(OrderNotFound(Add(Add(Add(this.Id+" order ", id), " can not be canceled, "), this.Json(response))))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2689,9 +2689,9 @@ func (this *Toobit) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -2841,7 +2841,7 @@ func (this *Toobit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//        "priceType": "INPUT"                 // only in CONTRACT
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 

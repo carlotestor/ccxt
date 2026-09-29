@@ -1213,7 +1213,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 				ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
 			}
 			// update the newUpdates count
-			orders.(ccxt.Appender).Append(this.SafeOrder(previousOrder))
+			orders.(ccxt.Appender).Append(ccxt.OrderToMap(this.SafeOrder(previousOrder)))
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*symbol)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		}
@@ -1396,7 +1396,7 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(unparsedOrder, "instrument")
 	var timestamp *string = this.SafeString(unparsedOrder, "time")
 	var direction *int64 = this.SafeInteger(unparsedOrder, "direction")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             this.SafeSymbol(marketId, market),
 		"id":                 this.SafeString(unparsedOrder, "order_id"),
@@ -1428,7 +1428,7 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) any {
 			"currency": nil,
 		},
 		"trades": nil,
-	})
+	}))
 }
 func (this *Krakenfutures) HandleTicker(client any, message map[string]any) {
 	//

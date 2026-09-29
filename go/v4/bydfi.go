@@ -1610,7 +1610,7 @@ func (this *Bydfi) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
@@ -1863,7 +1863,7 @@ func (this *Bydfi) editOrderBody(ch chan AsyncResult[map[string]any], id string,
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
 	return nil
 }
 
@@ -2215,7 +2215,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optional
 	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -2379,7 +2379,7 @@ func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) m
 	}
 	return this.Extend(request, paramsUntil)
 }
-func (this *Bydfi) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bydfi) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder, fetchOpenOrders, fetchOpenOrder
 	//     {

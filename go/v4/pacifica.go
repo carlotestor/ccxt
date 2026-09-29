@@ -2129,12 +2129,12 @@ func (this *Pacifica) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	var order map[string]any = SafeMapTyped(response, "data")
 	var orderId *string = this.SafeString(order, "order_id")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":     orderId,
 		"status": status,
 		"info":   response,
 		"symbol": symbol,
-	})}
+	}))}
 	return nil
 }
 func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -2416,11 +2416,11 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[any], orders any, opt
 			status = "open"
 		}
 		var orderId *string = this.SafeString(order, "order_id")
-		ordersToReturn = append(ordersToReturn, this.SafeOrder(map[string]any{
+		ordersToReturn = append(ordersToReturn, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     orderId,
 			"status": status,
-		}))
+		})))
 	}
 
 	ch <- AsyncResult[any]{Value: ordersToReturn}
@@ -2511,11 +2511,11 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 		} else {
 			status = "canceled"
 		}
-		ordersToReturn = append(ordersToReturn, this.SafeOrder(map[string]any{
+		ordersToReturn = append(ordersToReturn, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"status": status,
 			"symbol": symbol,
-		}))
+		})))
 	}
 
 	ch <- AsyncResult[any]{Value: ordersToReturn}
@@ -2612,9 +2612,9 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
 	//   error: null
 	// }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 func (this *Pacifica) CancelAllOrdersRequest(symbol any, optionalArgs ...any) any {
@@ -2708,12 +2708,12 @@ func (this *Pacifica) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 		status = "canceled"
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":     id,
 		"status": status,
 		"info":   response,
 		"symbol": symbol,
-	})}
+	}))}
 	return nil
 }
 func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) any {
@@ -2803,11 +2803,11 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orderId *string = this.SafeString(data, "order_id")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":     orderId,
 		"info":   response,
 		"symbol": symbol,
-	})}
+	}))}
 	return nil
 }
 func (this *Pacifica) EditOrderRequest(id any, symbol any, typeVar any, side any, amount any, price any, market any, optionalArgs ...any) any {
@@ -3504,7 +3504,7 @@ func (this *Pacifica) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		}()
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(lastInfo, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(lastInfo, market))}
 	return nil
 }
 func (this *Pacifica) ParseOrderStatus(status *string) *string {
@@ -3551,7 +3551,7 @@ func (this *Pacifica) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// fetchOpenOrders
 	//   [

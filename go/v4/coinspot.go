@@ -1177,9 +1177,9 @@ func (this *Coinspot) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	//
 	// status - ok, error
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 
@@ -1234,9 +1234,9 @@ func (this *Coinspot) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	//
 	// status - ok, error
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

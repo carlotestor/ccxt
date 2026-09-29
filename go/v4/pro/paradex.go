@@ -563,7 +563,7 @@ func (this *Paradex) HandleOrder(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var parsed map[string]any = this.ParseOrder(data)
+	var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)

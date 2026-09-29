@@ -1906,7 +1906,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 		side = this.SafeString2(order, "direction", "side")
 	}
 	var cost *string = this.SafeString2(order, "orderValue", "trade_turnover")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -1932,7 +1932,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 		"triggerPrice":       nil,
 		"takeProfitPrice":    this.SafeString2(order, "tp_trigger_price", "tp_order_price"),
 		"stopLossPrice":      this.SafeString2(order, "sl_trigger_price", "sl_order_price"),
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any {
 	// spot private wrapped trade

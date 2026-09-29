@@ -790,7 +790,7 @@ func (this *Btcbox) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//         "id":"12"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -845,7 +845,7 @@ func (this *Btcbox) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//
 	//     {"result":true, "id":"11"}
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Btcbox) ParseOrderStatus(status *string) *string {
@@ -861,7 +861,7 @@ func (this *Btcbox) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "id":11,
@@ -981,7 +981,7 @@ func (this *Btcbox) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//          "trades":[]
 	//      }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Btcbox) FetchOrdersByTypeAsync(typeVar any, optionalArgs ...any) <-chan AsyncResult[any] {

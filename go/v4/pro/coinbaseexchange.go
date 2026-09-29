@@ -1094,7 +1094,7 @@ func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) any {
 			remaining = ccxt.Precise.StringSub(amount, filled)
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 id,
@@ -1117,7 +1117,7 @@ func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                nil,
 		"trades":             nil,
-	})
+	}))
 }
 func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) any {
 	//

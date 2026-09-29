@@ -1874,7 +1874,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	//         "trades_count": 0
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -1937,7 +1937,7 @@ func (this *Upbit) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//         "trades_count": 0
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2095,7 +2095,7 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[map[string]any], id string,
 	result["side"] = this.SafeString(response, "side")
 	result["market"] = this.SafeString(response, "market")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result))}
 	return nil
 }
 
@@ -2461,7 +2461,7 @@ func (this *Upbit) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Upbit) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	// {
 	//   "market": "KRW-USDT",
 	//   "uuid": "3b67e543-8ad3-48d0-8451-0dad315cae73",
@@ -2954,7 +2954,7 @@ func (this *Upbit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 

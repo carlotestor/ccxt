@@ -785,7 +785,7 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 			"cost":     feeCost,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      nil,
@@ -808,7 +808,7 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	})
+	}))
 }
 func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	// see: parseWsOrder

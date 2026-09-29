@@ -2715,7 +2715,7 @@ func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -3028,7 +3028,7 @@ func (this *Hitbtc) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optiona
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -3190,7 +3190,7 @@ func (this *Hitbtc) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 		}
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Hitbtc) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -3266,7 +3266,7 @@ func (this *Hitbtc) editOrderBody(ch chan AsyncResult[map[string]any], id string
 		}
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -3339,7 +3339,7 @@ func (this *Hitbtc) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 		response = r3.Value
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -3422,7 +3422,7 @@ func (this *Hitbtc) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// limit
 	//     {
@@ -5185,7 +5185,7 @@ func (this *Hitbtc) closePositionBody(ch chan AsyncResult[any], symbol string, o
 	//     "updated_at":"2023-12-19T09:34:40.014Z"
 	// }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {

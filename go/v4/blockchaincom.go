@@ -720,7 +720,7 @@ func (this *Blockchaincom) ParseOrderState(state *string) *string {
 	}
 	return this.SafeString(states, state, state)
 }
-func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "clOrdId": "00001",
@@ -760,7 +760,7 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) map[string
 	var datetime *string = this.Iso8601(timestamp)
 	var filled *string = this.SafeString(order, "cumQty")
 	var remaining *string = this.SafeString(order, "leavesQty")
-	var result map[string]any = this.SafeOrder(map[string]any{
+	var result map[string]any = OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 exchangeOrderId,
 		"clientOrderId":      clientOrderId,
 		"datetime":           datetime,
@@ -780,8 +780,8 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) map[string
 		"trades":             []any{},
 		"fees":               []any{},
 		"info":               order,
-	})
-	return result
+	}))
+	return OrderFromMap(result)
 }
 
 /**
@@ -865,7 +865,7 @@ func (this *Blockchaincom) createOrderBody(ch chan AsyncResult[map[string]any], 
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -901,10 +901,10 @@ func (this *Blockchaincom) cancelOrderBody(ch chan AsyncResult[map[string]any], 
 	}
 	response := r.Raw
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":   id,
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 
@@ -953,9 +953,9 @@ func (this *Blockchaincom) cancelAllOrdersBody(ch chan AsyncResult[any], optiona
 	//
 	// {}
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -1821,7 +1821,7 @@ func (this *Blockchaincom) fetchOrderBody(ch chan AsyncResult[map[string]any], i
 	//         "timestamp": 1592830770594
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {

@@ -913,7 +913,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 			unifiedStatus = "canceled"
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 id,
@@ -936,7 +936,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":             unifiedStatus,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Whitebit) ParseWsOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{

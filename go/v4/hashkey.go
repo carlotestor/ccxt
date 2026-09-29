@@ -3240,7 +3240,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan EndpointResult[map[string]any],
 		response = r3.Raw // the endpoint for market buy orders by cost and other orders
 	}
 
-	chValue := this.ParseOrder(response, market)
+	chValue := OrderToMap(this.ParseOrder(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3471,7 +3471,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan EndpointResult[map[string]any],
 	//         "contractMultiplier": "0.00100000"
 	//     }
 	//
-	chValue := this.ParseOrder(response, market)
+	chValue := OrderToMap(this.ParseOrder(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3631,7 +3631,7 @@ func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -3696,7 +3696,7 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", market["type"]), " type of markets")))
 	}
-	var order map[string]any = this.SafeOrder(response)
+	var order map[string]any = OrderToMap(this.SafeOrder(response))
 	order["info"] = response
 
 	ch <- AsyncResult[any]{Value: []any{order}}
@@ -3762,7 +3762,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketTypeOption + " type of markets"))
 	}
-	var order map[string]any = this.SafeOrder(response)
+	var order map[string]any = OrderToMap(this.SafeOrder(response))
 	order["info"] = response
 
 	ch <- AsyncResult[any]{Value: []any{order}}
@@ -3846,7 +3846,7 @@ func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -4223,7 +4223,7 @@ func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, op
 	var paramsStop map[string]any = MapTyped(isTriggerStopparamsStopVariable[1])
 	return []any{isTriggerStop, paramsStop}
 }
-func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder spot
 	//     {

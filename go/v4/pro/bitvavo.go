@@ -2598,7 +2598,7 @@ func (this *Bitvavo) HandleSingleOrder(client any, message map[string]any) {
 	//    }
 	//
 	var response map[string]any = this.SafeDictMap(message, "response", map[string]any{})
-	var order map[string]any = this.ParseOrder(response)
+	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(response))
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
@@ -2685,7 +2685,7 @@ func (this *Bitvavo) HandleOrder(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "order:" + *symbol
-	var order map[string]any = this.ParseOrder(message, market)
+	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(message, market))
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

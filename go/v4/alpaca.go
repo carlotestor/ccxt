@@ -1663,7 +1663,7 @@ func (this *Alpaca) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//      "hwm": null
 	//   }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -1705,7 +1705,7 @@ func (this *Alpaca) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//       "message": "order is not found."
 	//   }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -1749,9 +1749,9 @@ func (this *Alpaca) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		return nil
 	} else {
 
-		ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+		ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 			"info": response,
-		})}}
+		}))}}
 		return nil
 	}
 }
@@ -1797,7 +1797,7 @@ func (this *Alpaca) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	var marketId *string = this.SafeString(order, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -2083,10 +2083,10 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
-func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//    {
 	//        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",

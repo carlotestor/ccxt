@@ -3013,7 +3013,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	//
 	var data map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 func (this *Grvt) ConvertToBigIntCustom(x any) any {
@@ -4021,10 +4021,10 @@ func (this *Grvt) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result))}
 	return nil
 }
-func (this *Grvt) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// fetchOrders, fetchOpenOrders, fetchOrder, createOrder
 	//
@@ -4322,7 +4322,7 @@ func (this *Grvt) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result))}
 	return nil
 }
 func (this *Grvt) EipDomainData() any {

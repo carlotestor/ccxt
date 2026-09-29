@@ -1984,7 +1984,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//         ]
 	//     },
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2032,7 +2032,7 @@ func (this *Coinsph) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2190,7 +2190,7 @@ func (this *Coinsph) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2241,7 +2241,7 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market)}
 	return nil
 }
-func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder POST /openapi/v1/order
 	//     {

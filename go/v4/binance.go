@@ -7920,7 +7920,7 @@ func (this *Binance) editSpotOrderBody(ch chan EndpointResult[map[string]any], i
 	//
 	var data map[string]any = this.SafeDictMap(response, "newOrderResponse", map[string]any{})
 
-	chValue := this.ParseOrder(data, market)
+	chValue := OrderToMap(this.ParseOrder(data, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -8206,7 +8206,7 @@ func (this *Binance) editContractOrderBody(ch chan EndpointResult[map[string]any
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	chValue := this.ParseOrder(response, market)
+	chValue := OrderToMap(this.ParseOrder(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -8433,7 +8433,7 @@ func (this *Binance) ParseOrderTypeByMarket(typeVar *string, marketType any) *st
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Binance) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// spot
 	//
@@ -9469,7 +9469,7 @@ func (this *Binance) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -10246,7 +10246,7 @@ func (this *Binance) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -11151,7 +11151,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[any], id any, option
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -11563,7 +11563,7 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -11743,9 +11743,9 @@ func (this *Binance) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		ch <- AsyncResult[any]{Value: this.ParseOrders(response, market)}
 		return nil
 	} else {
-		var order map[string]any = this.SafeOrder(map[string]any{
+		var order map[string]any = OrderToMap(this.SafeOrder(map[string]any{
 			"info": response,
-		})
+		}))
 
 		ch <- AsyncResult[any]{Value: []any{order}}
 		return nil

@@ -841,7 +841,7 @@ func (this *Onetrading) ParseTradingOrder(order map[string]any, optionalArgs ...
 	var datetime *string = this.SafeString(order, "time")
 	var marketId *string = this.SafeString(order, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "order_id"),
 		"clientOrderId":      this.SafeString(order, "client_id"),
 		"info":               order,
@@ -863,7 +863,7 @@ func (this *Onetrading) ParseTradingOrder(order map[string]any, optionalArgs ...
 		"status":             this.ParseTradingOrderStatus(this.SafeString(order, "status")),
 		"fee":                nil,
 		"trades":             nil,
-	}, market)
+	}, market))
 }
 func (this *Onetrading) ParseTradingOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -948,12 +948,12 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	}
 	var orders any = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
-		var order map[string]any = this.ParseOrder(func() any {
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(func() any {
 			if i >= 0 && i < len(rawOrders) {
 				return ccxt.DerefScalar(rawOrders[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = this.SafeString(order, "symbol", "")
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*symbol)
@@ -1232,7 +1232,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 		}
 		orders.(ccxt.Appender).Append(orderObject)
 	} else {
-		var parsed map[string]any = this.ParseOrder(update)
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(update))
 		symbol = this.SafeString(parsed, "symbol", "")
 		orders.(ccxt.Appender).Append(parsed)
 	}

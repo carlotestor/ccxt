@@ -1127,7 +1127,7 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	if ccxt.IsArray(data) {
 		orders = this.ParseOrders(data)
 	} else {
-		var order map[string]any = this.ParseOrder(data)
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 		orders = []any{order}
 	}
 	var cachedOrders any = this.Orders

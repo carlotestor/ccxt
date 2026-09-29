@@ -1968,7 +1968,7 @@ func (this *Modetrade) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, o
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(rows, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// Possible input functions:
 	// * createOrder
@@ -2326,7 +2326,7 @@ func (this *Modetrade) createOrderBody(ch chan AsyncResult[map[string]any], symb
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
-	var order map[string]any = this.ParseOrder(data, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(data, market))
 	order["type"] = typeVar
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -2529,7 +2529,7 @@ func (this *Modetrade) editOrderBody(ch chan AsyncResult[map[string]any], id str
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -2646,12 +2646,12 @@ func (this *Modetrade) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	}
 	if trigger != nil && *trigger == true {
 
-		ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(response), extendParams)}
+		ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(response)), extendParams)}
 		return nil
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(data), extendParams)}
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(data)), extendParams)}
 	return nil
 }
 
@@ -2717,9 +2717,9 @@ func (this *Modetrade) cancelOrdersBody(ch chan AsyncResult[any], ids any, optio
 	//     }
 	// }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -2792,9 +2792,9 @@ func (this *Modetrade) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArg
 	//     }
 	// }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -2907,7 +2907,7 @@ func (this *Modetrade) fetchOrderBody(ch chan AsyncResult[map[string]any], id an
 	//
 	var orders any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(orders, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(orders, market))}
 	return nil
 }
 

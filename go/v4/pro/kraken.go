@@ -397,7 +397,7 @@ func (this *Kraken) HandleCreateEditOrder(client any, message map[string]any) {
 	//     }
 	//
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
-	var order map[string]any = this.ParseOrder(result)
+	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(result))
 	var messageHash *string = this.SafeString2(message, "reqid", "req_id")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
@@ -2013,7 +2013,7 @@ func (this *Kraken) ParseWsOrder(order any, optionalArgs ...any) any {
 	}
 	var stopPrice *string = this.SafeString(order, "stop_price")
 	var datetime *string = this.SafeString(order, "timestamp")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "order_id"),
 		"clientOrderId":      this.SafeString(order, "order_userref"),
 		"info":               order,
@@ -2036,7 +2036,7 @@ func (this *Kraken) ParseWsOrder(order any, optionalArgs ...any) any {
 		"remaining":          nil,
 		"fee":                fee,
 		"trades":             nil,
-	})
+	}))
 }
 func (this *Kraken) WatchMultiHelperAsync(unifiedName string, channelName string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)

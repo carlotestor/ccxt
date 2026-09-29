@@ -2261,7 +2261,7 @@ func (this *Bitfinex) ParseTimeInForce(orderType *string) *string {
 	}
 	return this.SafeString(orderTypes, orderType, "GTC")
 }
-func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderList []any = SafeListTyped(order, "result")
@@ -2549,7 +2549,7 @@ func (this *Bitfinex) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		"result": order,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(newOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(newOrder, market))}
 	return nil
 }
 
@@ -2764,7 +2764,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 		"result": order,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(newOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(newOrder, market))}
 	return nil
 }
 
@@ -5423,7 +5423,7 @@ func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		"result": order,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(newOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(newOrder, market))}
 	return nil
 }
 
@@ -5586,7 +5586,7 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 		"result": order,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(newOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(newOrder, market))}
 	return nil
 }
 

@@ -2023,7 +2023,7 @@ func (this *Gemini) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
-func (this *Gemini) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Gemini) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder (private)
 	//
@@ -2252,7 +2252,7 @@ func (this *Gemini) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//          "remaining_amount":"0.01"
 	//      }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2449,7 +2449,7 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//          "remaining_amount":"0"
 	//      }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2516,7 +2516,7 @@ func (this *Gemini) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//          "remaining_amount":"0.01"
 	//      }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 

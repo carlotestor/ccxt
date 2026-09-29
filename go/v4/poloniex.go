@@ -2124,7 +2124,7 @@ func (this *Poloniex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// fetchOpenOrder
 	//
@@ -2326,7 +2326,7 @@ func (this *Poloniex) ParseOpenOrders(orders any, market map[string]any, result 
 			"side":   GetValue(order, "type"),
 			"price":  GetValue(order, "rate"),
 		})
-		AppendToArray(&result, this.ParseOrder(extended, market))
+		AppendToArray(&result, OrderToMap(this.ParseOrder(extended, market)))
 	}
 	return result
 }
@@ -2657,7 +2657,7 @@ func (this *Poloniex) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	//         "clientOrderId" : ""
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any, request any, optionalArgs ...any) any {
@@ -2845,7 +2845,7 @@ func (this *Poloniex) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 		"type": typeVar,
 	})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Poloniex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -2902,7 +2902,7 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 		//        }
 		//    }
 		//
-		ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.SafeDict(raw, "data", map[string]any{}))}
+		ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.SafeDict(raw, "data", map[string]any{})))}
 		return nil
 	}
 	var clientOrderId any = this.SafeValue(params, "clientOrderId")
@@ -2941,7 +2941,7 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	//       "message":""
 	//   }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -3131,7 +3131,7 @@ func (this *Poloniex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "updateTime": 1646196019020
 	//     }
 	//
-	var order map[string]any = this.ParseOrder(response)
+	var order map[string]any = OrderToMap(this.ParseOrder(response))
 	order["id"] = idValue
 
 	ch <- AsyncResult[map[string]any]{Value: order}

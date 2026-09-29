@@ -1152,12 +1152,12 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 	var orders any = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
-		var parsed map[string]any = this.ParseOrder(func() any {
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(func() any {
 			if i >= 0 && i < len(lists) {
 				return ccxt.DerefScalar(lists[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
 			symbols[*symbol] = true

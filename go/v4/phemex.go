@@ -3003,7 +3003,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 		triggerPrice = &derefNum
 	}
 	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
-	return this.SafeOrder(map[string]any{
+	return OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -3025,7 +3025,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Phemex) ParseOrderSide(side *string) *string {
 	var sides map[string]any = map[string]any{
@@ -3196,7 +3196,7 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) map[string]an
 			"currency": "PT",
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -3221,17 +3221,17 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) map[string]an
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	})
+	}))
 }
-func (this *Phemex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Phemex) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var isSwap *bool = this.SafeBool(market, "swap", false)
 	var hasPnl bool = (InOp(order, "closedPnl")) || (InOp(order, "closedPnlRv")) || (InOp(order, "totalPnlRv"))
 	if (isSwap != nil && *isSwap == true) || hasPnl {
-		return this.ParseSwapOrder(order, market)
+		return OrderFromMap(this.ParseSwapOrder(order, market))
 	}
-	return this.ParseSpotOrder(order, market)
+	return OrderFromMap(this.ParseSpotOrder(order, market))
 }
 
 /**
@@ -3604,7 +3604,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -3713,7 +3713,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -3790,7 +3790,7 @@ func (this *Phemex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -3858,9 +3858,9 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		response = r3.Value
 	}
 
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -3955,7 +3955,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 		order = this.SafeDict(rows, 0, map[string]any{})
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 

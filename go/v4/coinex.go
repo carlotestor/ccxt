@@ -2705,7 +2705,7 @@ func (this *Coinex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Coinex) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
 	//
@@ -3260,7 +3260,7 @@ func (this *Coinex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -3394,10 +3394,10 @@ func (this *Coinex) createOrdersBody(ch chan AsyncResult[any], orders any, optio
 		var order map[string]any = nil
 		if (market["spot"] == true) && !isTriggerOrder {
 			AddElementToObject(entry, "status", status)
-			order = this.ParseOrder(entry, market)
+			order = OrderToMap(this.ParseOrder(entry, market))
 		} else {
 			innerData["status"] = status
-			order = this.ParseOrder(innerData, market)
+			order = OrderToMap(this.ParseOrder(innerData, market))
 		}
 		results = append(results, order)
 	}
@@ -3497,7 +3497,7 @@ func (this *Coinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optional
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = SafeMapTyped(data, i)
 		var item map[string]any = this.SafeDictMap(entry, "data", map[string]any{})
-		var order map[string]any = this.ParseOrder(item, market)
+		var order map[string]any = OrderToMap(this.ParseOrder(item, market))
 		results = append(results, order)
 	}
 
@@ -3607,7 +3607,7 @@ func (this *Coinex) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -3707,7 +3707,7 @@ func (this *Coinex) editOrdersBody(ch chan AsyncResult[[]any], orders any, optio
 			panic(ExchangeError(feedback))
 		}
 		var item map[string]any = this.SafeDictMap(entry, "data", map[string]any{})
-		var order map[string]any = this.ParseOrder(item)
+		var order map[string]any = OrderToMap(this.ParseOrder(item))
 		result = append(result, order)
 	}
 
@@ -3860,7 +3860,7 @@ func (this *Coinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 		data = this.SafeDict(response, "data", map[string]any{})
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -3925,9 +3925,9 @@ func (this *Coinex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -3987,7 +3987,7 @@ func (this *Coinex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -7111,7 +7111,7 @@ func (this *Coinex) closePositionBody(ch chan AsyncResult[any], symbol string, o
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 func (this *Coinex) HandleMarginModeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {

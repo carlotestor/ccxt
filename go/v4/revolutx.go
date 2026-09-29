@@ -1186,7 +1186,7 @@ func (this *Revolutx) ParseOrderStatus(status *string) *string {
  * @param {object} [market] the market the order was placed in
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderId *string = this.SafeString2(order, "id", "venue_order_id")
@@ -1354,13 +1354,13 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	}()
 	var venueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
-	var order map[string]any = this.ParseOrder(this.Extend(orderData, map[string]any{
+	var order map[string]any = OrderToMap(this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     venueOrderId,
 		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
-	}), market)
+	}), market))
 
 	ch <- AsyncResult[map[string]any]{Value: order}
 	return nil
@@ -1405,11 +1405,11 @@ func (this *Revolutx) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	}
 	response := r1.Raw
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info":   response,
 		"id":     id,
 		"status": "canceled",
-	})}
+	}))}
 	return nil
 }
 
@@ -1508,7 +1508,7 @@ func (this *Revolutx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		market = this.Market(symbol)
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -1590,7 +1590,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var order map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		result = append(result, this.ParseOrder(order))
+		result = append(result, OrderToMap(this.ParseOrder(order)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(result, symbol, since, limit)}
@@ -1684,7 +1684,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var order map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		result = append(result, this.ParseOrder(order))
+		result = append(result, OrderToMap(this.ParseOrder(order)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(result, symbol, since, limit)}
@@ -1965,13 +1965,13 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	}()
 	var newVenueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
-	var order map[string]any = this.ParseOrder(this.Extend(orderData, map[string]any{
+	var order map[string]any = OrderToMap(this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     newVenueOrderId,
 		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
-	}), market)
+	}), market))
 
 	ch <- AsyncResult[map[string]any]{Value: order}
 	return nil

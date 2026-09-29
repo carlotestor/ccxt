@@ -1758,7 +1758,7 @@ func (this *Bigone) ParseType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bigone) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bigone) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//    {
 	//        "id": "42154072252",
@@ -2023,7 +2023,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var order map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -2079,7 +2079,7 @@ func (this *Bigone) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//    }
 	var order map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order))}
 	return nil
 }
 
@@ -2144,11 +2144,11 @@ func (this *Bigone) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 			}
 			return nil
 		}()
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   orderId,
 			"id":     orderId,
 			"status": "canceled",
-		}))
+		})))
 	}
 	for i := 0; i < len(failed); i++ {
 		var orderId any = func() any {
@@ -2157,11 +2157,11 @@ func (this *Bigone) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 			}
 			return nil
 		}()
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   orderId,
 			"id":     orderId,
 			"status": "failed",
-		}))
+		})))
 	}
 
 	ch <- AsyncResult[any]{Value: result}
@@ -2208,7 +2208,7 @@ func (this *Bigone) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	var response map[string]any = MapTyped(r1.Raw)
 	var order map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order))}
 	return nil
 }
 

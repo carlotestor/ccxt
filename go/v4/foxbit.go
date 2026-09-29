@@ -1366,7 +1366,7 @@ func (this *Foxbit) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//     "sn": "OKMAKSDHRVVREK",
 	//     "client_order_id": "451637946501"
 	// }
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1525,7 +1525,7 @@ func (this *Foxbit) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result))}
 	return nil
 }
 
@@ -1580,9 +1580,9 @@ func (this *Foxbit) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	//         }
 	//     ]
 	// }
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -1644,7 +1644,7 @@ func (this *Foxbit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//     "remark": "A remarkable note for the order.",
 	//     "funds_received": "290.0"
 	// }
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2223,7 +2223,7 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	// }
 	var created map[string]any = this.SafeDictMap(response, "create", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(created, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(created, market))}
 	return nil
 }
 
@@ -2514,7 +2514,7 @@ func (this *Foxbit) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(order, "market_symbol")

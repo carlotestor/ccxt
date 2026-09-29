@@ -1986,7 +1986,7 @@ func (this *Ndax) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Ndax) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Ndax) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -2189,7 +2189,7 @@ func (this *Ndax) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	//         "OrderId": 2543565231
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2287,7 +2287,7 @@ func (this *Ndax) editOrderBody(ch chan AsyncResult[map[string]any], id string, 
 	//         "origClOrdId": 91011,
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2463,9 +2463,9 @@ func (this *Ndax) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	//         "detail":null
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -2528,7 +2528,7 @@ func (this *Ndax) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var order map[string]any = this.ParseOrder(response, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 
 	ch <- AsyncResult[map[string]any]{Value: this.Extend(order, map[string]any{
 		"id":            id,
@@ -2870,7 +2870,7 @@ func (this *Ndax) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	//         "OMSId":1
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 

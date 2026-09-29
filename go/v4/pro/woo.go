@@ -1634,7 +1634,7 @@ func (this *Woo) ParseWsOrder(order any, optionalArgs ...any) any {
 	var trades any = nil
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var triggerPrice *string = this.SafeString(order, "triggerPrice")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 orderId,
@@ -1658,7 +1658,7 @@ func (this *Woo) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                fee,
 		"trades":             trades,
-	})
+	}))
 }
 func (this *Woo) HandleOrderUpdate(client any, message map[string]any) {
 	//

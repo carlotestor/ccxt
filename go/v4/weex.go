@@ -2987,7 +2987,7 @@ func (this *Weex) createSpotOrderBody(ch chan EndpointResult[map[string]any], sy
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	chValue := this.ParseOrder(response, market)
+	chValue := OrderToMap(this.ParseOrder(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3110,7 +3110,7 @@ func (this *Weex) createContractOrderBody(ch chan EndpointResult[map[string]any]
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
 
-	chValue := this.ParseOrder(response, market)
+	chValue := OrderToMap(this.ParseOrder(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3376,7 +3376,7 @@ func (this *Weex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
-	var order map[string]any = this.ParseOrder(response, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 	order["status"] = "canceled"
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -3628,7 +3628,7 @@ func (this *Weex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -4176,7 +4176,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], o
 	ch <- AsyncResult[[]any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
-func (this *Weex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder (spot)
 	//     {

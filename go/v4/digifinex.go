@@ -2278,7 +2278,7 @@ func (this *Digifinex) createOrderBody(ch chan AsyncResult[map[string]any], symb
 	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
-	var order map[string]any = this.ParseOrder(response, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 	order["symbol"] = market["symbol"]
 	order["type"] = typeVar
 	order["side"] = side
@@ -2734,10 +2734,10 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 		return nil
 	} else {
 
-		ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+		ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 			"info": response,
 			"id":   this.SafeString(response, "data"),
-		})}
+		}))}
 		return nil
 	}
 }
@@ -2754,12 +2754,12 @@ func (this *Digifinex) ParseCancelOrders(response any, optionalArgs ...any) []an
 			}
 			return nil
 		}())
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
 			"symbol": this.SafeString(symbolsById, order),
 			"status": "canceled",
-		}))
+		})))
 	}
 	for i := 0; i < len(error); i++ {
 		var order *string = SafeStringPtr(func() any {
@@ -2768,12 +2768,12 @@ func (this *Digifinex) ParseCancelOrders(response any, optionalArgs ...any) []an
 			}
 			return nil
 		}())
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
 			"symbol": this.SafeString(symbolsById, order),
 			"status": "failed",
-		}))
+		})))
 	}
 	return result
 }
@@ -2979,7 +2979,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], or
 				}
 				return "failed"
 			}()
-			result = append(result, this.SafeOrder(map[string]any{
+			result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 				"info": orderId,
 				"id":   orderId,
 				"symbol": func() any {
@@ -2989,7 +2989,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], or
 					return nil
 				}(),
 				"status": status,
-			}))
+			})))
 		}
 
 		ch <- AsyncResult[[]any]{Value: result}
@@ -3033,7 +3033,7 @@ func (this *Digifinex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// spot: createOrder
 	//
@@ -3620,7 +3620,7 @@ func (this *Digifinex) fetchOrderBody(ch chan AsyncResult[map[string]any], id an
 		panic(OrderNotFound(this.Id + " fetchOrder() order " + ToString(id) + " not found"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 

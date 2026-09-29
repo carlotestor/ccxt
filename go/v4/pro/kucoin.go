@@ -2975,7 +2975,7 @@ func (this *Kucoin) ParseWsOrder(order any, optionalArgs ...any) any {
 	if (status != nil && *status == "triggered") && triggerFail {
 		status = ccxt.SafeStringPtr("canceled")
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             marketResolved["symbol"],
 		"id":                 this.SafeString(order, "orderId"),
@@ -2998,7 +2998,7 @@ func (this *Kucoin) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                nil,
 		"trades":             nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Kucoin) ParseWsUtaOrder(order map[string]any, optionalArgs ...any) any {
 	//
@@ -3058,7 +3058,7 @@ func (this *Kucoin) ParseWsUtaOrder(order map[string]any, optionalArgs ...any) a
 		"currency": this.SafeCurrencyCode(this.SafeString(order, "fC")),
 	}
 	// todo check amount for other qU values
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "oi"),
 		"clientOrderId":       this.SafeString(order, "ci"),
@@ -3084,7 +3084,7 @@ func (this *Kucoin) ParseWsUtaOrder(order map[string]any, optionalArgs ...any) a
 		"fee":                 fee,
 		"reduceOnly":          this.SafeBool(order, "rO"),
 		"postOnly":            this.SafeBool(order, "pO"),
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	//

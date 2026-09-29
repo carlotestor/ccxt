@@ -5218,7 +5218,7 @@ func (this *Binance) HandleOrderWs(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
-	var order map[string]any = this.ParseOrder(result)
+	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(result))
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
 func (this *Binance) HandleOrdersWs(client any, message map[string]any) {
@@ -5457,9 +5457,9 @@ func (this *Binance) HandleEditOrderWs(client any, message map[string]any) {
 	var newSpotOrder map[string]any = ccxt.SafeMapTyped(result, "newOrderResponse")
 	var order map[string]any = nil
 	if newSpotOrder != nil {
-		order = this.ParseOrder(newSpotOrder)
+		order = ccxt.OrderToMap(this.ParseOrder(newSpotOrder))
 	} else {
-		order = this.ParseOrder(result)
+		order = ccxt.OrderToMap(this.ParseOrder(result))
 	}
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
@@ -6229,7 +6229,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		}
 		var stockTimestamp *int64 = this.SafeInteger(order, "T")
 		var stockLastUpdateTimestamp *int64 = this.SafeInteger(order, "U", stockTimestamp)
-		return this.SafeOrder(map[string]any{
+		return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 			"info":                order,
 			"symbol":              stockSymbol,
 			"id":                  this.SafeString(order, "i"),
@@ -6252,7 +6252,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 			"status":              stockStatus,
 			"fee":                 nil,
 			"trades":              nil,
-		})
+		}))
 	}
 	var executionType *string = this.SafeString(order, "x")
 	var marketId *string = this.SafeString(order, "s")
@@ -6304,7 +6304,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 		timeInForce = ccxt.SafeStringPtr("PO")
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"symbol":              symbol,
 		"id":                  this.SafeString2(order, "i", "aid"),
@@ -6330,7 +6330,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":              status,
 		"fee":                 fee,
 		"trades":              nil,
-	})
+	}))
 }
 func (this *Binance) HandleOrderUpdate(client any, message any) {
 	//

@@ -642,7 +642,7 @@ func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) any {
 	if marketResolved["contract"] == true {
 		typeVar = nil
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                  this.SafeString(order, "i"),
 		"clientOrderId":       this.SafeString(order, "c"),
 		"datetime":            this.Iso8601(timestamp),
@@ -672,7 +672,7 @@ func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) any {
 		"reduceOnly": reduceOnly,
 		"postOnly":   postOnly,
 		"info":       order,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

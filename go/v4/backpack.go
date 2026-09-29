@@ -2372,7 +2372,7 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2619,7 +2619,7 @@ func (this *Backpack) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optio
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2667,7 +2667,7 @@ func (this *Backpack) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2770,7 +2770,7 @@ func (this *Backpack) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
-func (this *Backpack) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Backpack) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "clientId": null,

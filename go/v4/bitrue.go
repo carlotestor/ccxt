@@ -2189,7 +2189,7 @@ func (this *Bitrue) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder - spot
 	//
@@ -2538,7 +2538,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -2665,7 +2665,7 @@ func (this *Bitrue) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -2975,7 +2975,7 @@ func (this *Bitrue) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 

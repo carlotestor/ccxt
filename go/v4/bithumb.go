@@ -2237,7 +2237,7 @@ func (this *Bithumb) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 		panic(InvalidOrder(this.Id + " createOrder() did not return an order id"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(response, market), map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(response, market)), map[string]any{
 		"info":   response,
 		"symbol": symbol,
 		"type":   typeVar,
@@ -2359,7 +2359,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan EndpointResult[map[string]any],
 	//         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
 	//     }
 	//
-	chValue := this.ParseOrder(response, market)
+	chValue := OrderToMap(this.ParseOrder(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -2543,7 +2543,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	}
 	var parsedOrder map[string]any = this.Extend(data, orderData)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(parsedOrder, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(parsedOrder, market))}
 	return nil
 }
 func (this *Bithumb) ParseOrderStatus(status *string) *string {
@@ -2559,7 +2559,7 @@ func (this *Bithumb) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//
 	// generation 1: fetchOrder
@@ -3222,7 +3222,7 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 		response = r3.Value
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(response, market), map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(response, market)), map[string]any{
 		"id": id,
 	})}
 	return nil

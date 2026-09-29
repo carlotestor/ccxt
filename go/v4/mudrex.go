@@ -1039,7 +1039,7 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 		riskResponse := r1.Raw
 		var riskData any = this.SafeDict(riskResponse, "data", riskResponse)
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(riskData, market)}
+		ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(riskData, market))}
 		return nil
 	}
 	var lev *int64 = this.SafeInteger(params, "leverage", 1)
@@ -1090,7 +1090,7 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 		"order_type":   request["order_type"],
 		"trigger_type": request["trigger_type"],
 	})
-	var order map[string]any = this.ParseOrder(merged, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(merged, market))
 	order["info"] = data
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -1153,7 +1153,7 @@ func (this *Mudrex) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	response := r1.Raw
 	var data any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 func (this *Mudrex) ParseOrderStatus(status *string) *string {
@@ -1172,7 +1172,7 @@ func (this *Mudrex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var oms *string = this.SafeString(order, "symbol")
@@ -1285,7 +1285,7 @@ func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	response := r1.Raw
 	var data any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -1333,7 +1333,7 @@ func (this *Mudrex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	response := r1.Raw
 	var data any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -1401,12 +1401,12 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]any], state str
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		orders = append(orders, this.ParseOrder(func() any {
+		orders = append(orders, OrderToMap(this.ParseOrder(func() any {
 			if i >= 0 && i < len(rows) {
 				return DerefScalar(rows[i])
 			}
 			return nil
-		}(), market))
+		}(), market)))
 	}
 
 	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbol, since, limit)}

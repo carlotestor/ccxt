@@ -999,7 +999,7 @@ func (this *Indodax) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Indodax) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "order_id": "12345",
@@ -1145,9 +1145,9 @@ func (this *Indodax) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	}
 	response := r1.Raw
 	var orders map[string]any = SafeMapTyped(response, "return")
-	var order map[string]any = this.ParseOrder(this.Extend(map[string]any{
+	var order map[string]any = OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 		"id": id,
-	}, orders["order"]), market)
+	}, orders["order"]), market))
 	order["info"] = response
 
 	ch <- AsyncResult[map[string]any]{Value: order}
@@ -1373,10 +1373,10 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	var data map[string]any = SafeMapTyped(result, "return")
 	var id *string = this.SafeString(data, "order_id")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": result,
 		"id":   id,
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -1449,7 +1449,7 @@ func (this *Indodax) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//
 	var data map[string]any = SafeMapTyped(response, "return")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
 	return nil
 }
 

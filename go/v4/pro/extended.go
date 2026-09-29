@@ -704,7 +704,7 @@ func (this *Extended) HandleOrders(client any, message any) {
 		return
 	}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var order map[string]any = this.ParseOrder(ccxt.GetValue(rawOrders, i))
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(ccxt.GetValue(rawOrders, i)))
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true

@@ -1534,9 +1534,9 @@ func (this *Nado) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], sy
 	//         "id": 100
 	//     }
 	//
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(map[string]any{
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,
-	}, response), market)}
+	}, response), market))}
 	return nil
 }
 
@@ -1620,9 +1620,9 @@ func (this *Nado) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id s
 	var cancelAndPlace map[string]any = ccxt.SafeMapTyped(request, "cancel_and_place")
 	var placeOrder any = this.SafeDict(cancelAndPlace, "place_order", map[string]any{})
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(map[string]any{
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,
-	}, response), market)}
+	}, response), market))}
 	return nil
 }
 
@@ -1747,14 +1747,14 @@ func (this *Nado) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids any, opt
 	var cancelledOrders []any = ccxt.SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
 	for i := 0; i < len(cancelledOrders); i++ {
-		result = append(result, this.ParseOrder(this.Extend(map[string]any{
+		result = append(result, ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
 		}, func() any {
 			if i >= 0 && i < len(cancelledOrders) {
 				return ccxt.DerefScalar(cancelledOrders[i])
 			}
 			return nil
-		}()), market))
+		}()), market)))
 	}
 
 	ch <- ccxt.AsyncResult[any]{Value: result}
@@ -1822,14 +1822,14 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optiona
 	var cancelledOrders []any = ccxt.SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
 	for i := 0; i < len(cancelledOrders); i++ {
-		result = append(result, this.ParseOrder(this.Extend(map[string]any{
+		result = append(result, ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
 		}, func() any {
 			if i >= 0 && i < len(cancelledOrders) {
 				return ccxt.DerefScalar(cancelledOrders[i])
 			}
 			return nil
-		}()), market))
+		}()), market)))
 	}
 
 	ch <- ccxt.AsyncResult[[]any]{Value: result}
@@ -2438,7 +2438,7 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) any {
 	} else if reason != nil && *reason == "cancelled" {
 		status = ccxt.SafeStringPtr("canceled")
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":          order,
 		"id":            id,
 		"clientOrderId": nil,
@@ -2467,7 +2467,7 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":              status,
 		"fee":                 nil,
 		"trades":              nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Nado) HandleOrder(client any, message map[string]any) {
 	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))

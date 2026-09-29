@@ -1302,7 +1302,7 @@ func (this *Bitopro) ParseOrderStatus(status *string) any {
 		return this.SafeString(statuses, status)
 	}()
 }
-func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//         {
@@ -1483,7 +1483,7 @@ func (this *Bitopro) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//         "timeInForce": "GTC"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1540,7 +1540,7 @@ func (this *Bitopro) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "amount":"0.01"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Bitopro) ParseCancelOrders(data any) []any {
@@ -1550,11 +1550,11 @@ func (this *Bitopro) ParseCancelOrders(data any) []any {
 		var marketId string = dataKeys[i]
 		var orderIds any = GetValue(data, marketId)
 		for j := 0; j < GetArrayLength(orderIds); j++ {
-			orders = append(orders, this.SafeOrder(map[string]any{
+			orders = append(orders, OrderToMap(this.SafeOrder(map[string]any{
 				"info":   GetValue(orderIds, j),
 				"id":     GetValue(orderIds, j),
 				"symbol": this.SafeSymbol(marketId),
-			}))
+			})))
 		}
 	}
 	return orders
@@ -1750,7 +1750,7 @@ func (this *Bitopro) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "updatedTimestamp":1644899002598
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 

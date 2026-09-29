@@ -1962,7 +1962,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, tradeType)
 	var timestamp *int64 = this.SafeInteger2(order, "ct", "createTime")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 this.SafeString2(order, "i", "orderId"),
 		"clientOrderId":      this.SafeString2(order, "ci", "clientOrderId"),
@@ -1989,7 +1989,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
 			"cost":     this.SafeNumber(order, "f"),
 		},
 		"trades": nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Xt) HandleOrder(client any, message map[string]any) any {
 	//

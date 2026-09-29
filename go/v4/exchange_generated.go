@@ -1379,7 +1379,7 @@ func (this *BaseExchange) ParseLedgerEntry(item any, optionalArgs ...any) map[st
 	_ = currency
 	panic(NotSupported(this.Id + " parseLedgerEntry() is not supported yet"))
 }
-func (this *BaseExchange) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseOrder() is not supported yet"))
@@ -2673,7 +2673,7 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 	}
 	return balance
 }
-func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 	// parses numbers as strings
 	// * it is important pass the trades as unparsed rawTrades
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -2924,7 +2924,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) map[string]a
 	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString2(orderDict, "triggerPrice", "stopPrice")))
 	var takeProfitPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(orderDict, "takeProfitPrice")))
 	var stopLossPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(orderDict, "stopLossPrice")))
-	return this.Extend(orderDict, map[string]any{
+	return OrderFromMap(this.Extend(orderDict, map[string]any{
 		"id":                  this.SafeString(orderDict, "id"),
 		"clientOrderId":       this.SafeString(orderDict, "clientOrderId"),
 		"timestamp":           timestamp,
@@ -2950,7 +2950,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) map[string]a
 		"stopLossPrice":       stopLossPrice,
 		"status":              status,
 		"fee":                 this.SafeValue(orderDict, "fee"),
-	})
+	}))
 }
 func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) []any {
 	//
@@ -2989,7 +2989,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) []any {
 	if IsArray(orders) {
 		for i := 0; i < GetArrayLength(orders); i++ {
 
-			var parsed map[string]any = this.DerivedExchange.ParseOrder(GetValue(orders, i), market)
+			var parsed map[string]any = OrderToMap(this.DerivedExchange.ParseOrder(GetValue(orders, i), market))
 			PanicOnError(parsed) // don't inline this call
 			var order map[string]any = this.Extend(parsed, params)
 			results = append(results, order)
@@ -3002,7 +3002,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) []any {
 				"id": id,
 			}, GetValue(orders, id))
 
-			var parsedOrder map[string]any = this.DerivedExchange.ParseOrder(idExtended, market)
+			var parsedOrder map[string]any = OrderToMap(this.DerivedExchange.ParseOrder(idExtended, market))
 			PanicOnError(parsedOrder) // don't  inline these calls
 			var order map[string]any = this.Extend(parsedOrder, params)
 			results = append(results, order)

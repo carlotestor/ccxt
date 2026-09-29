@@ -826,10 +826,10 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	}
 
 	// TODO: replace this with a call to parseOrder for unification
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   ToString(GetValue(GetValue(response["response_data"], "order"), "order_id")),
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -901,7 +901,7 @@ func (this *Mercado) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var order map[string]any = this.SafeDictMap(responseData, "order", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 func (this *Mercado) ParseOrderStatus(status *string) *string {
@@ -912,7 +912,7 @@ func (this *Mercado) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mercado) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Mercado) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "order_id": 4,
@@ -1037,7 +1037,7 @@ func (this *Mercado) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var order map[string]any = SafeMapTyped(responseData, "order")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 

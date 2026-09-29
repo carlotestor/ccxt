@@ -1496,7 +1496,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optional
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)}
 	return nil
 }
-func (this *Apex) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Apex) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// {
 	//     "id": "1234",
@@ -1871,7 +1871,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	var response map[string]any = r3.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -2140,7 +2140,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: []any{this.ParseOrder(data, market)}}
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.ParseOrder(data, market))}}
 	return nil
 }
 
@@ -2188,7 +2188,7 @@ func (this *Apex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(data))}
 	return nil
 }
 
@@ -2245,7 +2245,7 @@ func (this *Apex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
 	return nil
 }
 

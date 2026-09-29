@@ -1478,7 +1478,7 @@ func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) any {
 		var trade any = this.ParseWsOrderTrade(order)
 		ccxt.AppendToArray(&trades, trade)
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             this.SafeSymbol(marketId, market),
 		"id":                 id,
@@ -1505,7 +1505,7 @@ func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) any {
 			"currency": this.SafeString(order, "feeCurrency"),
 		},
 		"trades": trades,
-	})
+	}))
 }
 func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
 	//

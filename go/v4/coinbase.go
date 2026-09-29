@@ -4413,10 +4413,10 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	var data map[string]any = this.SafeDictMap(response, "success_response", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
-func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -4779,7 +4779,7 @@ func (this *Coinbase) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -4866,7 +4866,7 @@ func (this *Coinbase) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 	//
 	var order map[string]any = this.SafeDictMap(response, "order", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -6746,7 +6746,7 @@ func (this *Coinbase) closePositionBody(ch chan AsyncResult[any], symbol string,
 	var response map[string]any = r1.Value
 	var order map[string]any = this.SafeDictMap(response, "success_response", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(order))}
 	return nil
 }
 

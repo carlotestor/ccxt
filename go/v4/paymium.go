@@ -709,10 +709,10 @@ func (this *Paymium) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	}
 	response := r1.Raw
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   this.SafeString(response, "uuid"),
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -748,9 +748,9 @@ func (this *Paymium) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	}
 	response := r.Raw
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 

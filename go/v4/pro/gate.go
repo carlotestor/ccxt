@@ -216,7 +216,7 @@ func (this *Gate) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], sy
 		panic(r2.Err)
 	}
 	rawOrder := r2.Value
-	var order map[string]any = this.ParseOrder(rawOrder, market)
+	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder, market))
 
 	ch <- ccxt.AsyncResult[map[string]any]{Value: order}
 	return nil
@@ -408,7 +408,7 @@ func (this *Gate) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id
 	}
 	res := r2.Value
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParseOrder(res, market)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(res, market))}
 	return nil
 }
 
@@ -465,7 +465,7 @@ func (this *Gate) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id s
 	}
 	rawOrder := r2.Value
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParseOrder(rawOrder, market)}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(rawOrder, market))}
 	return nil
 }
 
@@ -527,7 +527,7 @@ func (this *Gate) fetchOrderWsBody(ch chan ccxt.AsyncResult[any], id string, opt
 	}
 	rawOrder := r2.Value
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParseOrder(rawOrder, market)}
+	ch <- ccxt.AsyncResult[any]{Value: ccxt.OrderToMap(this.ParseOrder(rawOrder, market))}
 	return nil
 }
 

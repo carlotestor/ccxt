@@ -1057,7 +1057,7 @@ func (this *Bydfi) ParseWsOrder(order any, optionalArgs ...any) any {
 			"currency": marketResolved["quote"],
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "o"),
 		"clientOrderId":       this.SafeString(order, "cid"),
@@ -1083,7 +1083,7 @@ func (this *Bydfi) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 		"fee":                 fee,
 		"average":             this.OmitZero(this.SafeString(order, "ap")),
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

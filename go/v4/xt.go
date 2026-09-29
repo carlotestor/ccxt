@@ -3556,7 +3556,7 @@ func (this *Xt) createSpotOrderBody(ch chan EndpointResult[map[string]any], symb
 	//
 	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	chValue := this.ParseOrder(order, market)
+	chValue := OrderToMap(this.ParseOrder(order, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3748,7 +3748,7 @@ func (this *Xt) createContractOrderBody(ch chan EndpointResult[map[string]any], 
 	//         "result": "206410760006650176"
 	//     }
 	//
-	chValue := this.ParseOrder(response, market)
+	chValue := OrderToMap(this.ParseOrder(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -4007,7 +4007,7 @@ func (this *Xt) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, opti
 	//
 	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -4953,7 +4953,7 @@ func (this *Xt) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, opt
 		return this.SafeDict(response, "result", map[string]any{})
 	}()
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -5109,7 +5109,7 @@ func (this *Xt) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...an
 	//         "result": true
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(response)}}
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(response))}}
 	return nil
 }
 
@@ -5170,10 +5170,10 @@ func (this *Xt) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs
 	//         "result": null
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(response)}}
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(response))}}
 	return nil
 }
-func (this *Xt) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// spot: createOrder
 	//
@@ -7828,7 +7828,7 @@ func (this *Xt) editOrderBody(ch chan AsyncResult[map[string]any], id string, sy
 		return this.SafeDict(response, "result", map[string]any{})
 	}()
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 func (this *Xt) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

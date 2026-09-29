@@ -7696,7 +7696,7 @@ func (this *Bitget) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitget) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitget) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder, editOrder, closePosition
 	//
@@ -8284,7 +8284,7 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
@@ -9250,7 +9250,7 @@ func (this *Bitget) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -9489,7 +9489,7 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 		}
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 func (this *Bitget) CancelUtaOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]any] {
@@ -9817,12 +9817,12 @@ func (this *Bitget) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 			var responseData map[string]any = SafeMapTyped(response, "data")
 			var marketId *string = this.SafeString(responseData, "symbol")
 
-			ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+			ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 				"info":      response,
 				"symbol":    this.SafeSymbol(marketId, nil, nil, "spot"),
 				"timestamp": timestamp,
 				"datetime":  this.Iso8601(timestamp),
-			})}}
+			}))}}
 			return nil
 		}
 	} else {
@@ -10063,7 +10063,7 @@ func (this *Bitget) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	if data != nil {
 		if true {
 
-			ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+			ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 			return nil
 		}
 	}
@@ -10074,7 +10074,7 @@ func (this *Bitget) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	}
 	var first map[string]any = this.SafeDictMap(dataList, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(first, market))}
 	return nil
 }
 
@@ -15478,12 +15478,12 @@ func (this *Bitget) closePositionBody(ch chan AsyncResult[any], symbol string, o
 	var data map[string]any = SafeMapTyped(response, "data")
 	var order []any = SafeList2Typed(data, "successList", "list")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(func() any {
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(func() any {
 		if 0 >= 0 && 0 < len(order) {
 			return DerefScalar(order[0])
 		}
 		return nil
-	}(), market)}
+	}(), market))}
 	return nil
 }
 

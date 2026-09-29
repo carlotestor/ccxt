@@ -1576,7 +1576,7 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, request any, optionalArgs ...any) any {
@@ -1673,7 +1673,7 @@ func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//        },
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.SafeDict(response, "data", map[string]any{}))}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.SafeDict(response, "data", map[string]any{})))}
 	return nil
 }
 
@@ -1725,7 +1725,7 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	//    }
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var parsedOrder map[string]any = this.ParseOrder(data)
+	var parsedOrder map[string]any = OrderToMap(this.ParseOrder(data))
 
 	ch <- AsyncResult[any]{Value: []any{parsedOrder}}
 	return nil
@@ -1910,10 +1910,10 @@ func (this *Zebpay) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//
 	var responseData map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(responseData, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(responseData, market))}
 	return nil
 }
-func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//      {
 	//          "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",
@@ -1946,7 +1946,7 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var status *string = this.SafeStringLower(order, "status")
 	var orderId *string = this.SafeString(order, "orderId")
-	var parsedOrder map[string]any = this.SafeOrder(map[string]any{
+	var parsedOrder map[string]any = OrderToMap(this.SafeOrder(map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
 		"symbol":              symbol,
@@ -1970,8 +1970,8 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) map[string]any {
 		"lastUpdateTimestamp": nil,
 		"average":             nil,
 		"trades":              nil,
-	}, marketResolved)
-	return parsedOrder
+	}, marketResolved))
+	return OrderFromMap(parsedOrder)
 }
 
 /**
@@ -2016,7 +2016,7 @@ func (this *Zebpay) closePositionBody(ch chan AsyncResult[any], symbol string, o
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 

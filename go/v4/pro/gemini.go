@@ -1037,7 +1037,7 @@ func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) any {
 		timeInForce = "PO"
 		postOnly = true
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "order_id"),
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
 		"info":               order,
@@ -1059,7 +1059,7 @@ func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) any {
 		"remaining":          this.SafeNumber(order, "remaining_amount"),
 		"fee":                nil,
 		"trades":             nil,
-	}, market)
+	}, market))
 }
 func (this *Gemini) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

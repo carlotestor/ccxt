@@ -822,7 +822,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed map[string]any = this.ParseOrder(data)
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		var orderId *string = this.SafeString(parsed, "id")
 		if symbol != nil {

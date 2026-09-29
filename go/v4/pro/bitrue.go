@@ -375,7 +375,7 @@ func (this *Bitrue) ParseWsOrder(order any, optionalArgs ...any) any {
 	}
 	var statusId *string = this.SafeString(order, "X")
 	var feeCurrencyId *string = this.SafeString(order, "N")
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 this.SafeString(order, "i"),
 		"clientOrderId":      this.SafeString(order, "c"),
@@ -399,7 +399,7 @@ func (this *Bitrue) ParseWsOrder(order any, optionalArgs ...any) any {
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 			"cost":     this.SafeNumber(order, "n"),
 		},
-	}, market)
+	}, market))
 }
 func (this *Bitrue) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)

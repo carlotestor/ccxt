@@ -1762,7 +1762,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 			ccxt.AddElementToObject(parsed, "lastTradeTimestamp", sendTime)
 		}
 	} else if data != nil {
-		parsed = this.ParseOrder(data, market)
+		parsed = ccxt.OrderToMap(this.ParseOrder(data, market))
 	} else {
 		return
 	}
@@ -1859,7 +1859,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
 			"cost":     nil,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "id"),
 		"clientOrderId":      this.SafeString(order, "clientId"),
 		"timestamp":          timestamp,
@@ -1886,7 +1886,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
 		"fee":          fee,
 		"trades":       nil,
 		"info":         order,
-	}, market)
+	}, market))
 }
 func (this *Mexc) ParseWsOrderStatus(status *string, optionalArgs ...any) *string {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)

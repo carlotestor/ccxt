@@ -2100,7 +2100,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[map[string]any], symbol str
 	data = this.SafeDict(this.SafeList(data, "rows"), 0, data)
 	AddElementToObject(data, "timestamp", this.SafeString(response, "timestamp"))
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 func (this *Woo) EncodeMarginMode(mode any) any {
@@ -2233,7 +2233,7 @@ func (this *Woo) editOrderBody(ch chan AsyncResult[map[string]any], id string, s
 		order["orderId"] = id
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -2326,7 +2326,7 @@ func (this *Woo) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 		data["orderId"] = id
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -2395,9 +2395,9 @@ func (this *Woo) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": data,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -2522,7 +2522,7 @@ func (this *Woo) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, opt
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -2743,7 +2743,7 @@ func (this *Woo) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Woo) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Woo) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//     {

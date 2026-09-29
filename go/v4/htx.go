@@ -5493,7 +5493,7 @@ func (this *Htx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, opt
 		order = this.SafeDict(order, 0)
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 func (this *Htx) ParseMarginBalanceHelper(balance any, code *string, result any) any {
@@ -6649,7 +6649,7 @@ func (this *Htx) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Htx) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Htx) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// spot
 	//
@@ -7688,7 +7688,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[map[string]any], symbol str
 	var result any = nil
 	if market["spot"] == true {
 
-		ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+		ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 			"info":               response,
 			"id":                 this.SafeString(response, "data"),
 			"timestamp":          nil,
@@ -7707,7 +7707,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[map[string]any], symbol str
 			"fee":                nil,
 			"clientOrderId":      nil,
 			"average":            nil,
-		}, market)}
+		}, market))}
 		return nil
 	} else if market["linear"] == true {
 		if isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder {
@@ -7720,7 +7720,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[map[string]any], symbol str
 			panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 		}
 
-		ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(result, market), map[string]any{
+		ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(result, market)), map[string]any{
 			"type":   typeVar,
 			"side":   side,
 			"price":  price,
@@ -7740,7 +7740,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[map[string]any], symbol str
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(result, market))}
 	return nil
 }
 
@@ -8178,7 +8178,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseOrder(result, market), map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(result, market)), map[string]any{
 		"id":     id,
 		"status": "canceled",
 	})}
@@ -8487,20 +8487,20 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 			}
 			return nil
 		}()
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString(order, "order_id"),
 			"status":        "canceled",
 			"clientOrderId": this.SafeString(order, "client_order_id"),
-		}))
+		})))
 	}
 	for i := 0; i < GetArrayLength(success); i++ {
 		var order *string = SafeStringPtr(GetValue(success, i))
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
 			"status": "canceled",
-		}))
+		})))
 	}
 	for i := 0; i < len(failed); i++ {
 		var order any = func() any {
@@ -8509,12 +8509,12 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 			}
 			return nil
 		}()
-		result = append(result, this.SafeOrder(map[string]any{
+		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
 			"status":        "failed",
 			"clientOrderId": this.SafeString(order, "client-order-id"),
-		}))
+		})))
 	}
 	return result
 }
@@ -8579,9 +8579,9 @@ func (this *Htx) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
 
-		ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+		ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 			"info": data,
-		})}}
+		}))}}
 		return nil
 	} else {
 		if symbol == nil {
@@ -12777,14 +12777,14 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[any], symbol string, opti
 	if market["linear"] == true {
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-		ch <- AsyncResult[any]{Value: this.ParseOrder(data, market)}
+		ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(data, market))}
 		return nil
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 

@@ -2121,7 +2121,7 @@ func (this *Bitvavo) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//          "postOnly":false
 	//      }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
@@ -2210,7 +2210,7 @@ func (this *Bitvavo) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]any {
@@ -2283,7 +2283,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2488,7 +2488,7 @@ func (this *Bitvavo) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "disableMarketProtection":false
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) map[string]any {
@@ -2721,7 +2721,7 @@ func (this *Bitvavo) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// cancelOrder, cancelAllOrders
 	//

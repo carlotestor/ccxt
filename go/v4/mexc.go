@@ -3232,7 +3232,7 @@ func (this *Mexc) createSpotOrderBody(ch chan EndpointResult[map[string]any], ma
 	//         "transactTime": 1661992652132
 	//     }
 	//
-	var order map[string]any = this.ParseOrder(response, market)
+	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 	order["side"] = side
 	order["type"] = typeVar
 	if this.SafeString(order, "price") == nil {
@@ -3427,10 +3427,10 @@ func (this *Mexc) createSwapOrderBody(ch chan EndpointResult[map[string]any], ma
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	chValue := this.SafeOrder(map[string]any{
+	chValue := OrderToMap(this.SafeOrder(map[string]any{
 		"id":        this.SafeString(data, "orderId"),
 		"timestamp": this.SafeInteger(data, "ts"),
-	}, market)
+	}, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3638,7 +3638,7 @@ func (this *Mexc) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 		data = this.SafeValue(response, "data")
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -4351,7 +4351,7 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 		}
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -4535,7 +4535,7 @@ func (this *Mexc) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		return nil
 	}
 }
-func (this *Mexc) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Mexc) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// spot
 	//    createOrder

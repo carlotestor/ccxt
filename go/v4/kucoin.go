@@ -5432,7 +5432,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan EndpointResult[map[string]any], 
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	chValue := this.ParseOrder(data, market)
+	chValue := OrderToMap(this.ParseOrder(data, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -5631,7 +5631,7 @@ func (this *Kucoin) createContractOrderBody(ch chan EndpointResult[map[string]an
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	chValue := this.ParseOrder(data, market)
+	chValue := OrderToMap(this.ParseOrder(data, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -5878,7 +5878,7 @@ func (this *Kucoin) createUtaOrderBody(ch chan EndpointResult[map[string]any], s
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	chValue := this.ParseOrder(data, market)
+	chValue := OrderToMap(this.ParseOrder(data, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -6543,7 +6543,7 @@ func (this *Kucoin) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -6726,10 +6726,10 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan EndpointResult[map[string]any], 
 				var orderIds []any = SafeListTyped(data, "cancelledOrderIds")
 				var orderId *string = this.SafeString(orderIds, 0)
 
-				chValue := this.SafeOrder(map[string]any{
+				chValue := OrderToMap(this.SafeOrder(map[string]any{
 					"info": data,
 					"id":   orderId,
-				})
+				}))
 				ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 				return nil
 			} else {
@@ -6780,7 +6780,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan EndpointResult[map[string]any], 
 		}
 		response = this.SafeDict(response, "data")
 
-		chValue := this.ParseOrder(response)
+		chValue := OrderToMap(this.ParseOrder(response))
 		ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 		return nil
 	} else {
@@ -6838,7 +6838,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan EndpointResult[map[string]any], 
 			//
 			response = this.SafeDict(response, "data", map[string]any{})
 
-			chValue := this.ParseOrder(response)
+			chValue := OrderToMap(this.ParseOrder(response))
 			ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 			return nil
 		} else {
@@ -6854,10 +6854,10 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan EndpointResult[map[string]any], 
 		var orderIds []any = SafeListTyped(data, "cancelledOrderIds")
 		orderId = this.SafeString(orderIds, 0, orderId)
 
-		chValue := this.SafeOrder(map[string]any{
+		chValue := OrderToMap(this.SafeOrder(map[string]any{
 			"info": data,
 			"id":   orderId,
-		})
+		}))
 		ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 		return nil
 	}
@@ -6931,9 +6931,9 @@ func (this *Kucoin) cancelContractOrderBody(ch chan EndpointResult[map[string]an
 	//       },
 	//   }
 	//
-	chValue := this.SafeOrder(map[string]any{
+	chValue := OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})
+	}))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -7029,7 +7029,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan EndpointResult[map[string]any], i
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	chValue := this.ParseOrder(data, market)
+	chValue := OrderToMap(this.ParseOrder(data, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -7234,9 +7234,9 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan EndpointResult[[]any], optio
 		response = MapTyped(r6.Raw)
 	}
 
-	chValue := []any{this.SafeOrder(map[string]any{
+	chValue := []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -7305,9 +7305,9 @@ func (this *Kucoin) cancelAllContractOrdersBody(ch chan EndpointResult[[]any], o
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	chValue := []any{this.SafeOrder(map[string]any{
+	chValue := []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": data,
-	})}
+	}))}
 	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -8418,7 +8418,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan EndpointResult[map[string]any], i
 		responseData = this.SafeValue(responseData, 0)
 	}
 
-	chValue := this.ParseOrder(responseData, market)
+	chValue := OrderToMap(this.ParseOrder(responseData, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -8527,7 +8527,7 @@ func (this *Kucoin) fetchContractOrderBody(ch chan EndpointResult[map[string]any
 	}()
 	var responseData map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	chValue := this.ParseOrder(responseData, market)
+	chValue := OrderToMap(this.ParseOrder(responseData, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -8646,7 +8646,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan EndpointResult[map[string]any], id
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	chValue := this.ParseOrder(data, market)
+	chValue := OrderToMap(this.ParseOrder(data, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -8678,7 +8678,7 @@ func (this *Kucoin) HandleTradeType(optionalArgs ...any) any {
 	}
 	return tradeType
 }
-func (this *Kucoin) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tradeType *string = this.SafeString(order, "tradeType")
@@ -8688,14 +8688,14 @@ func (this *Kucoin) ParseOrder(order any, optionalArgs ...any) map[string]any {
 		isUtaOrder = true
 	}
 	if isUtaOrder {
-		return this.ParseUtaOrder(order, market)
+		return OrderFromMap(this.ParseUtaOrder(order, market))
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	if (marketResolved != nil) && (marketResolved["contract"] == true) {
-		return this.ParseContractOrder(order, marketResolved)
+		return OrderFromMap(this.ParseContractOrder(order, marketResolved))
 	} else {
-		return this.ParseSpotOrder(order, marketResolved)
+		return OrderFromMap(this.ParseSpotOrder(order, marketResolved))
 	}
 }
 func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) map[string]any {
@@ -8817,7 +8817,7 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) map[strin
 	var postOnly *bool = this.SafeBool(order, "postOnly")
 	var reduceOnly *bool = this.SafeBool(order, "reduceOnly")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "updatedAt")
-	return this.SafeOrder(map[string]any{
+	return OrderToMap(this.SafeOrder(map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
 		"symbol":              symbol,
@@ -8841,7 +8841,7 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) map[strin
 		"lastUpdateTimestamp": lastUpdateTimestamp,
 		"average":             average,
 		"trades":              nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Kucoin) ParseSpotOrder(order any, optionalArgs ...any) map[string]any {
 	//
@@ -8997,7 +8997,7 @@ func (this *Kucoin) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 	if responseStatus != nil && *responseStatus == "fail" {
 		status = SafeStringPtr("rejected")
 	}
-	return this.SafeOrder(map[string]any{
+	return OrderToMap(this.SafeOrder(map[string]any{
 		"info":          order,
 		"id":            this.SafeStringN(order, []any{"id", "orderId", "newOrderId", "cancelledOrderId"}),
 		"clientOrderId": this.SafeString(order, "clientOid"),
@@ -9022,7 +9022,7 @@ func (this *Kucoin) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 		"lastTradeTimestamp": nil,
 		"average":            this.SafeString(order, "avgDealPrice"),
 		"trades":             nil,
-	}, market)
+	}, market))
 }
 func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) map[string]any {
 	//
@@ -9098,7 +9098,7 @@ func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) map[string]any
 		"currency": this.SafeCurrencyCode(this.SafeString(order, "feeCurrency")),
 		"cost":     this.SafeString(order, "fee"),
 	}
-	return this.SafeOrder(map[string]any{
+	return OrderToMap(this.SafeOrder(map[string]any{
 		"id":                  this.SafeString(order, "orderId"),
 		"clientOrderId":       this.SafeString(order, "clientOid"),
 		"symbol":              symbol,
@@ -9124,7 +9124,7 @@ func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) map[string]any
 		"stopLossPrice":       this.SafeString(order, "slTriggerPrice"),
 		"takeProfitPrice":     this.SafeString(order, "tpTriggerPrice"),
 		"info":                order,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Kucoin) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
@@ -15459,7 +15459,7 @@ func (this *Kucoin) closePositionBody(ch chan AsyncResult[any], symbol string, o
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 

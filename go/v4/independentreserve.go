@@ -731,7 +731,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[map[string]a
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// fetchOrder
 	//
@@ -936,7 +936,7 @@ func (this *Independentreserve) fetchOrderBody(ch chan AsyncResult[map[string]an
 		market = this.Market(symbol)
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1365,10 +1365,10 @@ func (this *Independentreserve) createOrderBody(ch chan AsyncResult[map[string]a
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   GetValue(response, "OrderGuid"),
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -1426,7 +1426,7 @@ func (this *Independentreserve) cancelOrderBody(ch chan AsyncResult[map[string]a
 	//        "VolumeOrdered": 0.358
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 

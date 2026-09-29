@@ -1522,10 +1522,10 @@ func (this *Bitso) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var id *string = this.SafeString(payload, "oid")
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   id,
-	}, market)}
+	}, market))}
 	return nil
 }
 
@@ -1576,10 +1576,10 @@ func (this *Bitso) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	var payload []any = SafeListTyped(response, "payload")
 	var orderId *string = this.SafeString(payload, 0)
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
 		"id":   orderId,
-	})}
+	}))}
 	return nil
 }
 
@@ -1637,7 +1637,7 @@ func (this *Bitso) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalA
 			}
 			return nil
 		}()
-		orders = append(orders, this.ParseOrder(id, market))
+		orders = append(orders, OrderToMap(this.ParseOrder(id, market)))
 	}
 
 	ch <- AsyncResult[any]{Value: orders}
@@ -1683,12 +1683,12 @@ func (this *Bitso) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	var payload []any = SafeListTyped(response, "payload")
 	var canceledOrders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var order map[string]any = this.ParseOrder(func() any {
+		var order map[string]any = OrderToMap(this.ParseOrder(func() any {
 			if i >= 0 && i < len(payload) {
 				return DerefScalar(payload[i])
 			}
 			return nil
-		}())
+		}()))
 		canceledOrders = append(canceledOrders, order)
 	}
 
@@ -1704,7 +1704,7 @@ func (this *Bitso) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitso) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitso) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//
 	// canceledOrder
@@ -1867,7 +1867,7 @@ func (this *Bitso) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 		var numOrders int = GetArrayLength(payload)
 		if numOrders == 1 {
 
-			ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(GetValue(payload, 0))}
+			ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(GetValue(payload, 0)))}
 			return nil
 		}
 	}

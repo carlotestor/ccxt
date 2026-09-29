@@ -1701,7 +1701,7 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(order, 5, 4)
 	var average *string = this.SafeString(order, 17)
 	var stopPrice any = this.OmitZero(this.SafeString(order, 18))
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -1722,7 +1722,7 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) any {
 		"fee":                nil,
 		"cost":               nil,
 		"trades":             nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Bitfinex) HandleMessage(client any, message any) {
 	var channelId *string = this.SafeString(message, 0)

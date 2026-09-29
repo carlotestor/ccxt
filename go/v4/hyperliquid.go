@@ -2849,10 +2849,10 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan EndpointResult[map[string]a
 	var running map[string]any = SafeMapTyped(status, "running")
 	var orderId *string = this.SafeString(running, "twapId")
 
-	chValue := this.ParseOrder(map[string]any{
+	chValue := OrderToMap(this.ParseOrder(map[string]any{
 		"status": "running",
 		"oid":    orderId,
-	}, market)
+	}, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3285,10 +3285,10 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[any], ids any, opt
 			}
 			return nil
 		}()
-		orders = append(orders, this.SafeOrder(map[string]any{
+		orders = append(orders, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   status,
 			"status": status,
-		}))
+		})))
 	}
 
 	ch <- AsyncResult[any]{Value: orders}
@@ -3378,10 +3378,10 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan EndpointResult[map[string]a
 	var data map[string]any = SafeMapTyped(responseObj, "data")
 	var status *string = this.SafeString(data, "status")
 
-	chValue := this.ParseOrder(map[string]any{
+	chValue := OrderToMap(this.ParseOrder(map[string]any{
 		"status": status,
 		"oid":    id,
-	}, market)
+	}, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3568,9 +3568,9 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], 
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[[]any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[[]any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 
@@ -4539,10 +4539,10 @@ func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[map[string]any], id 
 	//
 	var data map[string]any = SafeMapTyped(response, "order")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
-func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrdersWs error
 	//

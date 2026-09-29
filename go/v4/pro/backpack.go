@@ -1664,7 +1664,7 @@ func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
 			"cost":     nil,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"timestamp":          timestamp,
@@ -1686,7 +1686,7 @@ func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
 		"fee":                fee,
 		"trades":             nil,
 		"info":               order,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Backpack) ParseWsOrderStatus(status *string, optionalArgs ...any) *string {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)

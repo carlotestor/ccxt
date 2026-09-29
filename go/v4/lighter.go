@@ -1509,7 +1509,7 @@ func (this *Lighter) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//     "predicted_execution_time_ms": 1766088500120
 	// }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.DeepExtend(response, order), market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.DeepExtend(response, order), market))}
 	return nil
 }
 
@@ -1622,7 +1622,7 @@ func (this *Lighter) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	}
 	var response map[string]any = r4.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -3287,7 +3287,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit)}
 	return nil
 }
-func (this *Lighter) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Lighter) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "order_index": 281474977354074,
@@ -4658,7 +4658,7 @@ func (this *Lighter) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 func (this *Lighter) SignAndCancelAllOrdersAsync(method string, optionalArgs ...any) <-chan EndpointResult[[]any] {

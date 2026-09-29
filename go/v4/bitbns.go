@@ -775,7 +775,7 @@ func (this *Bitbns) ParseStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitbns) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitbns) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -950,7 +950,7 @@ func (this *Bitbns) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 		return response
 	}()
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(parsed, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(parsed, market))}
 	return nil
 }
 
@@ -1023,7 +1023,7 @@ func (this *Bitbns) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 		return response
 	}()
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(parsed, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(parsed, market))}
 	return nil
 }
 
@@ -1102,7 +1102,7 @@ func (this *Bitbns) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(first, market))}
 	return nil
 }
 

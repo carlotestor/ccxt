@@ -829,7 +829,7 @@ func (this *Hibachi) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, uppercaseStatus, status)
 }
-func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
@@ -944,7 +944,7 @@ func (this *Hibachi) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -1179,10 +1179,10 @@ func (this *Hibachi) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//     "orderId": "578721673790138368"
 	// }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":     this.SafeString(response, "orderId"),
 		"status": "pending",
-	})}
+	}))}
 	return nil
 }
 
@@ -1248,11 +1248,11 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 			}
 			return nil
 		}()
-		ret = append(ret, this.SafeOrder(map[string]any{
+		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
 			"status": "pending",
-		}))
+		})))
 	}
 
 	ch <- AsyncResult[any]{Value: ret}
@@ -1348,10 +1348,10 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	//
 	// {}
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"id":     id,
 		"status": "pending",
-	})}
+	}))}
 	return nil
 }
 
@@ -1418,11 +1418,11 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]any], orders any, opti
 			}
 			return nil
 		}()
-		ret = append(ret, this.SafeOrder(map[string]any{
+		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
 			"status": "pending",
-		}))
+		})))
 	}
 
 	ch <- AsyncResult[[]any]{Value: ret}
@@ -1475,11 +1475,11 @@ func (this *Hibachi) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//
 	// {}
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info":   response,
 		"id":     id,
 		"status": "canceled",
-	})}
+	}))}
 	return nil
 }
 
@@ -1533,11 +1533,11 @@ func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
 			}
 			return nil
 		}()
-		ret = append(ret, this.SafeOrder(map[string]any{
+		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
 			"status": "canceled",
-		}))
+		})))
 	}
 
 	ch <- AsyncResult[any]{Value: ret}
@@ -1597,9 +1597,9 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//
 	// {}
 	//
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees any, address string) any {

@@ -674,7 +674,7 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var order map[string]any = this.ParseOrder(rawOrder)
+	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 	orders.(ccxt.Appender).Append(order)
 	var messageHash any = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)

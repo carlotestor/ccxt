@@ -1827,7 +1827,7 @@ func (this *Coinbaseexchange) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -1955,7 +1955,7 @@ func (this *Coinbaseexchange) fetchOrderBody(ch chan AsyncResult[map[string]any]
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
 	return nil
 }
 
@@ -2288,7 +2288,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[map[string]any
 	//         "settled": false
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
 	return nil
 }
 
@@ -2356,9 +2356,9 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan AsyncResult[map[string]any
 		response = r2.Raw
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}
+	}))}
 	return nil
 }
 
@@ -2403,9 +2403,9 @@ func (this *Coinbaseexchange) cancelAllOrdersBody(ch chan AsyncResult[any], opti
 	}
 	response := r1.Raw
 
-	ch <- AsyncResult[any]{Value: []any{this.SafeOrder(map[string]any{
+	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	})}}
+	}))}}
 	return nil
 }
 func (this *Coinbaseexchange) FetchPaymentMethodsAsync(optionalArgs ...any) <-chan AsyncResult[any] {

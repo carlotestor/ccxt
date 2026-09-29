@@ -2706,7 +2706,7 @@ func (this *Btse) createSpotOrderBody(ch chan EndpointResult[map[string]any], sy
 	}
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	chValue := this.ParseOrder(order, market)
+	chValue := OrderToMap(this.ParseOrder(order, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -2952,7 +2952,7 @@ func (this *Btse) createContractOrderBody(ch chan EndpointResult[map[string]any]
 		order = this.SafeDict(response, 0, map[string]any{})
 	}
 
-	chValue := this.ParseOrder(order, market)
+	chValue := OrderToMap(this.ParseOrder(order, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3043,7 +3043,7 @@ func (this *Btse) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optionalA
 		order = this.SafeDict(order, 0, map[string]any{})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -3155,7 +3155,7 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[map[string]any], id string, 
 	}
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -3243,7 +3243,7 @@ func (this *Btse) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	}
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 
@@ -3440,7 +3440,7 @@ func (this *Btse) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseOrders(rows, market, since, limit)}
 	return nil
 }
-func (this *Btse) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Btse) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// createOrder - spot
 	//     {
@@ -4752,7 +4752,7 @@ func (this *Btse) closePositionBody(ch chan AsyncResult[any], symbol string, opt
 		order = response
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(order, market))}
 	return nil
 }
 

@@ -2643,7 +2643,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	remaining = ccxt.Precise.StringSub(totalAmount, totalFilled)
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 this.SafeString(order, "orderId"),
@@ -2665,7 +2665,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":             this.ParseWsOrderStatus(rawStatus),
 		"fee":                feeObject,
 		"trades":             nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Bitget) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

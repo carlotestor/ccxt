@@ -1572,7 +1572,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 			"cost":     feeCost,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 this.SafeString2(order, "order_id", "stop_id"),
 		"clientOrderId":      this.SafeString(order, "client_id"),
@@ -1595,7 +1595,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 		"status":             this.ParseWsOrderStatus(status),
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Coinex) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

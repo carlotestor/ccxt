@@ -175,7 +175,7 @@ func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]a
 	if ordersLength == 0 {
 
 		// not sure why but it is happening sometimes
-		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeOrder(map[string]any{})}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.SafeOrder(map[string]any{}))}
 		return nil
 	}
 	var parsedOrder any = ccxt.GetValue(orders, 0)
@@ -255,7 +255,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any
 	var dataObject map[string]any = ccxt.SafeMapTyped(responseObject, "data")
 	var statuses []any = ccxt.SafeListTyped(dataObject, "statuses")
 	var first any = this.SafeDict(statuses, 0, map[string]any{})
-	var parsedOrder map[string]any = this.ParseOrder(first, market)
+	var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(first, market))
 
 	ch <- ccxt.AsyncResult[map[string]any]{Value: parsedOrder}
 	return nil
@@ -315,10 +315,10 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids a
 			}
 			return nil
 		}()
-		orders = append(orders, this.SafeOrder(map[string]any{
+		orders = append(orders, ccxt.OrderToMap(this.SafeOrder(map[string]any{
 			"info":   status,
 			"status": status,
-		}))
+		})))
 	}
 
 	ch <- ccxt.AsyncResult[any]{Value: orders}
@@ -2222,7 +2222,7 @@ func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var order map[string]any = this.ParseOrder(rawOrder)
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		ccxt.AddElementToObject(marketSymbols, symbol, true)

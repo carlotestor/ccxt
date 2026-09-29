@@ -439,9 +439,9 @@ func (this *Nado) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	//         "id": 100
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,
-	}, response), market)}
+	}, response), market))}
 	return nil
 }
 
@@ -660,9 +660,9 @@ func (this *Nado) editOrderBody(ch chan AsyncResult[map[string]any], id string, 
 	var cancelAndPlace map[string]any = SafeMapTyped(request, "cancel_and_place")
 	var placeOrder map[string]any = this.SafeDictMap(cancelAndPlace, "place_order", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(this.Extend(map[string]any{
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,
-	}, response), market)}
+	}, response), market))}
 	return nil
 }
 
@@ -884,14 +884,14 @@ func (this *Nado) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	var cancelledOrders []any = SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
 	for i := 0; i < len(cancelledOrders); i++ {
-		result = append(result, this.ParseOrder(this.Extend(map[string]any{
+		result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
 		}, func() any {
 			if i >= 0 && i < len(cancelledOrders) {
 				return DerefScalar(cancelledOrders[i])
 			}
 			return nil
-		}()), market))
+		}()), market)))
 	}
 
 	ch <- AsyncResult[any]{Value: result}
@@ -1027,14 +1027,14 @@ func (this *Nado) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalAr
 	var cancelledOrders []any = SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
 	for i := 0; i < len(cancelledOrders); i++ {
-		result = append(result, this.ParseOrder(this.Extend(map[string]any{
+		result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
 		}, func() any {
 			if i >= 0 && i < len(cancelledOrders) {
 				return DerefScalar(cancelledOrders[i])
 			}
 			return nil
-		}()), market))
+		}()), market)))
 	}
 
 	ch <- AsyncResult[any]{Value: result}
@@ -1179,7 +1179,7 @@ func (this *Nado) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
 	return nil
 }
 
@@ -3644,7 +3644,7 @@ func (this *Nado) IsArchiveOrderClosed(order any) bool {
 	}
 	return Precise.StringGe(Precise.StringAbs(filled), Precise.StringAbs(amount))
 }
-func (this *Nado) ParseOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	// create order
 	//
