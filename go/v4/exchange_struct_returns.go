@@ -109,3 +109,33 @@ func lowerFirst(s string) string {
 	}
 	return string(b)
 }
+
+// TradeFromMap builds a Trade from a unified trade map; `fee`/`fees` and other undeclared keys
+// ride in extra so TradeToMap gives back the same map (Fee drops non-dict and unknown fee keys).
+func TradeFromMap(data any) Trade {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Trade{}
+	}
+	t := NewTrade(m)
+	t.Info = GetInfo(m)
+	t.extra = structExtraKeys(m, tradeKeys)
+	return t
+}
+
+var tradeKeys = map[string]bool{
+	"amount": true, "price": true, "cost": true, "id": true, "order": true, "timestamp": true,
+	"datetime": true, "symbol": true, "type": true, "side": true, "takerOrMaker": true,
+}
+
+// TradeToMap is the inverse of TradeFromMap.
+func TradeToMap(t Trade) map[string]any {
+	m := StructToMap(t)
+	// Fee is a value field; the map's own fee (or its absence) lives in extra
+	if _, ok := t.extra["fee"]; !ok {
+		delete(m, "fee")
+	}
+	return m
+}
+
+func (t Trade) structExtra() map[string]any { return t.extra }

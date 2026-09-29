@@ -526,6 +526,7 @@ type Trade struct {
 	Side         *string
 	TakerOrMaker *string
 	Fee          Fee
+	extra        map[string]any
 }
 
 func NewTrade(data any) Trade {

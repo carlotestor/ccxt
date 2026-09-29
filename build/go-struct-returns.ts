@@ -15,6 +15,7 @@ import { fileURLToPath } from 'url';
 
 export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[] }> = {
     'Ticker': { 'names': [ 'ParseTicker', 'SafeTicker', 'ParseContractTicker' ] },
+    'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
 };
 
 const NAME_TO_STRUCT = new Map<string, string> ();
@@ -116,8 +117,8 @@ export function goStructReturnsPass (content: string): string {
         const bodyOpen = content.indexOf ('{', parenClose);
         const retType = content.slice (parenClose + 1, bodyOpen).trim ();
         const applied = (retType === q + struct); // idempotent replay
-        if (!applied && retType !== 'map[string]any') {
-            throw new Error ('go-struct-returns: ' + m[1] + ' returns ' + retType + ', expected map[string]any');
+        if (!applied && retType !== 'map[string]any' && retType !== 'any') {
+            throw new Error ('go-struct-returns: ' + m[1] + ' returns ' + retType + ', expected map[string]any or any');
         }
         const bodyClose = matchClose (content, mask, bodyOpen);
         if (!applied) {

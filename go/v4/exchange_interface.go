@@ -394,7 +394,7 @@ type IDerivedExchange interface {
 	HandleBookDeltas(orderbook any, deltas any)
 	ParseLeverage(leverage any, optionalArgs ...any) map[string]any
 	ParseOHLCV(ohlcv any, optionalArgs ...any) any
-	ParseTrade(trade any, optionalArgs ...any) any
+	ParseTrade(trade any, optionalArgs ...any) Trade
 	ParseTrades(trades any, optionalArgs ...any) []any
 	ParseGreeks(greeks any, optionalArgs ...any) map[string]any
 	ParseMarket(market any) any
