@@ -15,7 +15,7 @@ func TickerFromMap(data any) Ticker {
 	t := NewTicker(m)
 	// undeclared keys ride in extra, so Info stays the raw info (NewTicker merges them in)
 	t.Info = GetInfo(m)
-	t.extra = structExtraKeys(m, tickerKeys)
+	t.extra = structExtraKeys(m, tickerKeys, nil)
 	return t
 }
 
@@ -35,8 +35,11 @@ func (t Ticker) structExtra() map[string]any { return t.extra }
 
 type structExtraCarrier interface{ structExtra() map[string]any }
 
-func structExtraKeys(m map[string]any, known map[string]bool) map[string]any {
-	var extra map[string]any
+// structAbsent marks a declared key the source map did not have, so the round trip drops it
+type structAbsent struct{}
+
+func structExtraKeys(m map[string]any, known map[string]bool, valueKeys []string) map[string]any {
+	extra := map[string]any{}
 	for k, v := range m {
 		if known[k] {
 			continue
@@ -46,10 +49,20 @@ func structExtraKeys(m map[string]any, known map[string]bool) map[string]any {
 				continue
 			}
 		}
-		if extra == nil {
-			extra = map[string]any{}
-		}
 		extra[k] = v
+	}
+	for k := range known {
+		if _, has := m[k]; !has {
+			extra[k] = structAbsent{}
+		}
+	}
+	if _, has := m["info"]; !has {
+		extra["info"] = structAbsent{}
+	}
+	for _, k := range valueKeys {
+		if _, has := m[k]; !has {
+			extra[k] = structAbsent{}
+		}
 	}
 	return extra
 }
@@ -93,7 +106,11 @@ func StructToMap(s any) map[string]any {
 	}
 	if c, ok := v.Interface().(structExtraCarrier); ok {
 		for k, x := range c.structExtra() {
-			m[k] = x
+			if _, absent := x.(structAbsent); absent {
+				delete(m, k)
+			} else {
+				m[k] = x
+			}
 		}
 	}
 	return m
@@ -119,7 +136,7 @@ func TradeFromMap(data any) Trade {
 	}
 	t := NewTrade(m)
 	t.Info = GetInfo(m)
-	t.extra = structExtraKeys(m, tradeKeys)
+	t.extra = structExtraKeys(m, tradeKeys, tradeValueKeys)
 	return t
 }
 
@@ -130,12 +147,10 @@ var tradeKeys = map[string]bool{
 
 // TradeToMap is the inverse of TradeFromMap.
 func TradeToMap(t Trade) map[string]any {
-	m := StructToMap(t)
-	// Fee is a value field; the map's own fee (or its absence) lives in extra
-	if _, ok := t.extra["fee"]; !ok {
-		delete(m, "fee")
-	}
-	return m
+	return StructToMap(t)
 }
+
+// value fields rebuilt lossily (Fee): the map's own value rides in extra instead
+var tradeValueKeys = []string{"fee"}
 
 func (t Trade) structExtra() map[string]any { return t.extra }
