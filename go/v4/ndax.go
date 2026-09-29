@@ -582,7 +582,7 @@ func (this *Ndax) Describe() any {
 				"Resource Not Found": OrderNotFound,
 			},
 			"broad": map[string]any{
-				"Invalid InstrumentId": BadSymbol,
+				"Invalid InstrumentId":                                  BadSymbol,
 				"This endpoint requires 2FACode along with the payload": AuthenticationError,
 			},
 		},
