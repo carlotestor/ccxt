@@ -47,6 +47,15 @@ type IFetchOrderWithClientOrderId interface {
 type IFetchPositions interface {
 	FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
+type IFetchTicker interface {
+	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
+type IWatchTicker interface {
+	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
+type IWatchTickers interface {
+	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
 type IFetchTickers interface {
 	FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
@@ -213,7 +222,6 @@ type ICoreExchange interface {
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
-	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -367,8 +375,6 @@ type ICoreExchange interface {
 	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
 	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[any]
 	Close(cleanInstanceCache ...any) []error

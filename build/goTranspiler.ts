@@ -7960,7 +7960,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // it), so call sites in the harness type-assert to the per-method interface (ccxt.I<Method>)
             // for exactly the method called. A prediction venue that overrides only some of these runs
             // the has-gated test for the ones it has, and each single-method assertion succeeds.
-            [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+            [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
             GO_TEST_ANY_RECEIVE_REGEX,
             // SafeBool* now return `*bool` (the pointer layer): an `any` local that captures
             // the call must keep holding the plain value, exactly as it did before that change,
@@ -8087,7 +8087,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // 62 symbol-based methods trimmed from ICoreExchange → assert to the per-method interface
                 // (ccxt.I<Method>) for exactly the method called, so a prediction venue that overrides
                 // only some of them satisfies each has-gated per-method assertion it actually runs.
-                [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+                [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
                 GO_TEST_ANY_RECEIVE_REGEX,
                 // SafeBool* now return `*bool` (the pointer layer): an `any` local that
                 // captures the call must keep holding the plain value, exactly as it did before
