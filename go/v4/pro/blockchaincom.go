@@ -522,7 +522,7 @@ func (this *Blockchaincom) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	var datetime *string = this.SafeString(trade, "timestamp")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "trade_id"),
 		"timestamp":    this.Parse8601(datetime),
 		"datetime":     datetime,
@@ -536,7 +536,7 @@ func (this *Blockchaincom) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"cost":         nil,
 		"fee":          nil,
 		"info":         trade,
-	}, market)
+	}, market))
 }
 
 /**

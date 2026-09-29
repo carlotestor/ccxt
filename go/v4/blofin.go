@@ -1188,7 +1188,7 @@ func (this *Blofin) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetch trades (response similar for REST & WS)
 	//
@@ -1283,7 +1283,7 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
 				"currency": feeCurrency,
 			},
 		}
-		return result
+		return TradeFromMap(result)
 	} else {
 		return this.SafeTrade(map[string]any{
 			"info":         trade,

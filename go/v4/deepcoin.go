@@ -1199,7 +1199,7 @@ func (this *Deepcoin) GetProductGroupFromMarket(market any) string {
 	}
 	return productGroup
 }
-func (this *Deepcoin) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Deepcoin) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public fetchTrades
 	//

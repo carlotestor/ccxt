@@ -2251,7 +2251,7 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "sell"
 		}())
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"timestamp":    timestamp,
@@ -2265,7 +2265,7 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.ParseX18(this.SafeString(trade, "taker_qty")),
 		"cost":         nil,
 		"fee":          nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
 	//
@@ -2320,7 +2320,7 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 			"currency": marketResolved["quote"],
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString2(trade, "id", "submission_idx"),
 		"timestamp":    timestamp,
@@ -2334,7 +2334,7 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 		"amount":       this.ParseX18(this.SafeString(trade, "filled_qty")),
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Nado) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")

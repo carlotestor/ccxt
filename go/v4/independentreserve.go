@@ -1113,7 +1113,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan AsyncResult[any], opti
 	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limitResolved)}
 	return nil
 }
-func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(GetValue(trade, "TradeTimestampUtc"))

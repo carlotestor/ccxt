@@ -829,7 +829,7 @@ func (this *Indodax) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.FilterByArray(parsedTickers, "symbol", symbols)}
 	return nil
 }
-func (this *Indodax) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Indodax) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "date")

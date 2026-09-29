@@ -1208,7 +1208,7 @@ func (this *Bit2c) RemoveCommaFromValue(str any) any {
 	}
 	return newString
 }
-func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public fetchTrades
 	//

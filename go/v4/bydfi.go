@@ -979,7 +979,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limit)}
 	return nil
 }
-func (this *Bydfi) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bydfi) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//     {

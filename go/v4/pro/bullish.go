@@ -781,7 +781,7 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 				}
 				return nil
 			}()
-			var parsedTrade map[string]any = ccxt.MapTyped(this.ParseTrade(rawTrade))
+			var parsedTrade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(rawTrade)))
 			trades.(ccxt.Appender).Append(parsedTrade)
 			var symbol *string = this.SafeString(parsedTrade, "symbol")
 			if symbol != nil {

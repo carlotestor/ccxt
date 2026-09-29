@@ -1228,7 +1228,7 @@ func (this *Bittrade) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
 	return nil
 }
-func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//
@@ -1513,12 +1513,12 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 			return nil
 		}(), "data")
 		for j := 0; j < len(trades); j++ {
-			var trade map[string]any = MapTyped(this.ParseTrade(func() any {
+			var trade map[string]any = MapTyped(TradeToMap(this.ParseTrade(func() any {
 				if j >= 0 && j < len(trades) {
 					return DerefScalar(trades[j])
 				}
 				return nil
-			}(), market))
+			}(), market)))
 			result = append(result, trade)
 		}
 	}

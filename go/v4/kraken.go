@@ -1804,7 +1804,7 @@ func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[map[string]any], id
 	ch <- AsyncResult[map[string]any]{Value: entry}
 	return nil
 }
-func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//
@@ -2715,12 +2715,12 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) map[string]any {
 			return nil
 		}()
 		if IsString(rawTrade) {
-			trades = append(trades, this.SafeTrade(map[string]any{
+			trades = append(trades, TradeToMap(this.SafeTrade(map[string]any{
 				"id":      rawTrade,
 				"orderId": id,
 				"symbol":  symbol,
 				"info":    map[string]any{},
-			}))
+			})))
 		} else {
 			trades = append(trades, rawTrade)
 		}

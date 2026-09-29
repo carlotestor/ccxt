@@ -448,7 +448,7 @@ func (this *Bitvavo) HandleTrade(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "trades"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", marketId))
-	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message, market))
+	var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(message, market)))
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesArray, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2714,7 +2714,7 @@ func (this *Bitvavo) HandleMyTrade(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "myTrades:" + *symbol
-	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message, market))
+	var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(message, market)))
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCache(limit)

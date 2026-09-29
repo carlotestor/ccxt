@@ -1738,7 +1738,7 @@ func (this *Poloniex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

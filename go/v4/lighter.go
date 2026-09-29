@@ -4294,7 +4294,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limit, paramsUntil)}
 	return nil
 }
-func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	//     {
 	//         "trade_id": 17609,

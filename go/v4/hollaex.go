@@ -1027,7 +1027,7 @@ func (this *Hollaex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Hollaex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Hollaex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

@@ -1719,7 +1719,7 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) map
 		},
 	}
 }
-func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchMyBuys, fetchMySells
 	//

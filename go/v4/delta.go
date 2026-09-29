@@ -1763,7 +1763,7 @@ func (this *Delta) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbo
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(result, market["symbol"], nil, "buy", "sell", "price", "size")}
 	return nil
 }
-func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Delta) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public fetchTrades
 	//

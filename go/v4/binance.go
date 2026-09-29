@@ -7247,11 +7247,11 @@ func (this *Binance) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: candles}
 	return nil
 }
-func (this *Binance) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	if InOp(trade, "isDustTrade") {
-		return this.ParseDustTrade(trade, market)
+		return TradeFromMap(this.ParseDustTrade(trade, market))
 	}
 	//
 	// aggregate trades

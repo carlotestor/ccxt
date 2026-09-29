@@ -874,7 +874,7 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Cex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Cex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public fetchTrades
 	//

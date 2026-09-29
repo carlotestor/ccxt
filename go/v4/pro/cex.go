@@ -270,7 +270,7 @@ func (this *Cex) ParseWsOldTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(tradeParts, 2)
 	var price *string = this.SafeString(tradeParts, 3)
 	var id *string = this.SafeString(tradeParts, 4)
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         tradeParts,
 		"id":           id,
 		"timestamp":    timestamp,
@@ -284,7 +284,7 @@ func (this *Cex) ParseWsOldTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 func (this *Cex) HandleTrade(client any, message map[string]any) {
 	//
@@ -917,7 +917,7 @@ func (this *Cex) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"rate":     nil,
 		}
 	}
-	return this.SafeTrade(parsedTrade, market)
+	return ccxt.TradeToMap(this.SafeTrade(parsedTrade, market))
 }
 func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	//

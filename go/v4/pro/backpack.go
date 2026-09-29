@@ -1180,7 +1180,7 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) any {
 	} else {
 		orderId = this.SafeString(trade, "a")
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
 		"timestamp":    timestamp,
@@ -1197,7 +1197,7 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"currency": nil,
 			"cost":     nil,
 		},
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

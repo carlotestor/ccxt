@@ -1262,7 +1262,7 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 		}()
 		var marketId *string = this.SafeString(rawTrade, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(rawTrade))
+		var parsed map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(rawTrade)))
 		cachedTrades.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if typeVar == nil {

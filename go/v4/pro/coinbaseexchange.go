@@ -832,7 +832,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	// }
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var parsed any = this.base.ParseTrade(trade)
+	var parsed any = ccxt.TradeToMap(this.base.ParseTrade(trade))
 	var feeRate *string = nil
 	var isMaker bool = false
 	if ccxt.InOp(trade, "maker_fee_rate") {

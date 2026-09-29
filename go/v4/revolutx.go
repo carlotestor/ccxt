@@ -964,7 +964,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
  * @param {object} [market] the market the trade was executed in
  * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "id")
@@ -978,7 +978,7 @@ func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) any {
 	if (price != nil) && (amount != nil) {
 		cost = Multiply(price, amount)
 	}
-	return map[string]any{
+	return TradeFromMap(map[string]any{
 		"info":         trade,
 		"id":           id,
 		"order":        nil,
@@ -993,7 +993,7 @@ func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) any {
 		"datetime":     this.Iso8601(timestamp),
 		"fee":          nil,
 		"fees":         []any{},
-	}
+	})
 }
 
 /**
@@ -1073,7 +1073,7 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		result = append(result, this.ParseTrade(trade, market))
+		result = append(result, TradeToMap(this.ParseTrade(trade, market)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(this.SortBy(result, "timestamp"), symbol, since, limit)}

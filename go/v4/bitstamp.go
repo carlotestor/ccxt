@@ -1806,7 +1806,7 @@ func (this *Bitstamp) GetMarketFromTrade(trade any) any {
 	}
 	return nil
 }
-func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//
@@ -3591,7 +3591,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) map[string
 	_ = currency
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	if typeVar != nil && *typeVar == "trade" {
-		var parsedTrade map[string]any = MapTyped(this.ParseTrade(item))
+		var parsedTrade map[string]any = MapTyped(TradeToMap(this.ParseTrade(item)))
 		var market any = nil
 		var keys []string = ObjectKeys(item)
 		for i := 0; i < len(keys); i++ {

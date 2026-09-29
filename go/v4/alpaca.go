@@ -2300,7 +2300,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
-func (this *Alpaca) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Alpaca) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

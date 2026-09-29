@@ -1126,7 +1126,7 @@ func (this *Modetrade) ParseTokenAndFeeTemp(item any, feeTokenKey any, feeAmount
 	}
 	return fee
 }
-func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public/market_trades
 	//

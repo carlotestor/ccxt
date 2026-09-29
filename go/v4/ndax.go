@@ -1418,7 +1418,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(candles, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

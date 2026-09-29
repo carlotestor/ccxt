@@ -820,7 +820,7 @@ func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if isMakerAsk != nil && *isMakerAsk == true {
 		side = "buy"
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           tradeId,
 		"order":        nil,
@@ -834,7 +834,7 @@ func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         this.SafeString(trade, "usd_amount"),
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 func (this *Lighter) HandleTrades(client any, message any) {
 	//
@@ -1088,7 +1088,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			"rate":     feeRate,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           tradeId,
 		"order":        order,
@@ -1102,7 +1102,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, market)
+	}, market))
 }
 func (this *Lighter) HandleMyTrades(client any, message any) bool {
 	//

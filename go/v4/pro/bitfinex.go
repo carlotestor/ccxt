@@ -819,7 +819,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "maker"
 		}())
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -833,7 +833,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Bitfinex) HandleTicker(client any, message []any, subscription map[string]any) {
 	//

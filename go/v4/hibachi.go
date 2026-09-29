@@ -604,7 +604,7 @@ func (this *Hibachi) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}, market)
 }
-func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
 	// public fetchTrades:
 	//      {
 	//          "price": "3512.431902",

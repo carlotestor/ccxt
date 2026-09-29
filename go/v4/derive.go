@@ -1477,7 +1477,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) []any {
 		if isFetchTrades && (liquidityRole != nil && *liquidityRole == "maker") {
 			continue
 		}
-		var parsed map[string]any = MapTyped(this.ParseTrade(rawTrade, market))
+		var parsed map[string]any = MapTyped(TradeToMap(this.ParseTrade(rawTrade, market)))
 		var trade map[string]any = this.Extend(parsed, params)
 		result = append(result, trade)
 	}
@@ -1485,7 +1485,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) []any {
 	var symbol *string = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }
-func (this *Derive) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Derive) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades & fetchMyTrades
 	//

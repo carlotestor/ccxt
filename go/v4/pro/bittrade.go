@@ -264,12 +264,12 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 		ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}(), market))
+		}(), market)))
 		tradesCache.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)

@@ -3296,7 +3296,7 @@ func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info": ticker,
 	}, marketResolved)
 }
-func (this *Cryptocom) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

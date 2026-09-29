@@ -613,7 +613,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(ccxt.GetValue(data, i)))
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(ccxt.GetValue(data, i))))
 		tradesArray.(ccxt.Appender).Append(trade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
@@ -947,7 +947,7 @@ func (this *Derive) HandleMyTrade(client any, message map[string]any) {
 	var topic *string = this.SafeString(params, "channel")
 	var rawTrades []any = ccxt.SafeListTyped(params, "data")
 	for i := 0; i < len(rawTrades); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message))
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(message)))
 		myTrades.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(myTrades, topic)
 		if topic != nil {

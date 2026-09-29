@@ -1008,7 +1008,7 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}, market)
 }
-func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

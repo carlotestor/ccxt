@@ -149,7 +149,7 @@ func (this *Independentreserve) ParseWsTrade(trade any, optionalArgs ...any) any
 	_ = market
 	var datetime *string = this.SafeString(trade, "TradeDate")
 	var marketId *string = this.SafeString(market, "Pair")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "TradeGuid"),
 		"order":        this.SafeString(trade, "orderNo"),
@@ -163,7 +163,7 @@ func (this *Independentreserve) ParseWsTrade(trade any, optionalArgs ...any) any
 		"fee":          nil,
 		"timestamp":    this.Parse8601(datetime),
 		"datetime":     datetime,
-	}, market)
+	}, market))
 }
 
 /**

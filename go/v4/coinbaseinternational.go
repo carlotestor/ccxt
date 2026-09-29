@@ -1829,7 +1829,7 @@ func (this *Coinbaseinternational) ParseTransaction(transaction any, optionalArg
 		},
 	}
 }
-func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	//    {
 	//       "portfolio_id":"1wp37qsc-1-0",

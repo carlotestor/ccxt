@@ -1251,7 +1251,7 @@ func (this *Upbit) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol s
 	ch <- AsyncResult[map[string]any]{Value: ticker}
 	return nil
 }
-func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

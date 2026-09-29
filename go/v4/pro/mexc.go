@@ -1360,7 +1360,7 @@ func (this *Mexc) HandleTrades(client any, message any) {
 		if market["spot"] == true {
 			parsedTrade = this.ParseWsTrade(ccxt.GetValue(trades, j), market)
 		} else {
-			parsedTrade = this.ParseTrade(ccxt.GetValue(trades, j), market)
+			parsedTrade = ccxt.TradeToMap(this.ParseTrade(ccxt.GetValue(trades, j), market))
 		}
 		stored.(ccxt.Appender).Append(parsedTrade)
 	}
@@ -1490,7 +1490,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	if market["spot"] == true {
 		trade = this.ParseWsTrade(data, market)
 	} else if data != nil {
-		trade = this.ParseTrade(data, market)
+		trade = ccxt.TradeToMap(this.ParseTrade(data, market))
 	} else {
 		return
 	}
@@ -1573,7 +1573,7 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var isMaker *int64 = this.SafeInteger(trade, "m")
 	var feeAmount *string = this.SafeString2(trade, "n", "feeAmount")
 	var feeCurrencyId *string = this.SafeString2(trade, "N", "feeCurrency")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":      trade,
 		"id":        tradeId,
 		"order":     this.SafeString2(trade, "i", "orderId"),
@@ -1595,7 +1595,7 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"cost":     feeAmount,
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 		},
-	}, market)
+	}, market))
 }
 
 /**

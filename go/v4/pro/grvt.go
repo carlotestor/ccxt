@@ -522,7 +522,7 @@ func (this *Grvt) ParseWsTrade(trade any, optionalArgs ...any) any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseTrade(trade, market)
+	return ccxt.TradeToMap(this.ParseTrade(trade, market))
 }
 
 /**
@@ -1035,7 +1035,7 @@ func (this *Grvt) HandleMyTrade(client any, message map[string]any) {
 func (this *Grvt) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseTrade(trade, market)
+	return ccxt.TradeToMap(this.ParseTrade(trade, market))
 }
 
 /**

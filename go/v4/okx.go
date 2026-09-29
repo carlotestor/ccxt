@@ -3695,7 +3695,7 @@ func (this *Okx) fetchMarkPricesBody(ch chan AsyncResult[map[string]any], option
 	ch <- AsyncResult[map[string]any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Okx) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Okx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public fetchTrades
 	//

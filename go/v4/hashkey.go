@@ -1665,7 +1665,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
-func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

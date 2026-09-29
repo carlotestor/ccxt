@@ -690,7 +690,7 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "buy"
 		}())
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"timestamp":    timestamp,
 		"datetime":     datetime,
 		"symbol":       nil,
@@ -704,7 +704,7 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"cost":         this.SafeString(trade, "amount"),
 		"fee":          nil,
 		"info":         trade,
-	}, market)
+	}, market))
 }
 
 /**

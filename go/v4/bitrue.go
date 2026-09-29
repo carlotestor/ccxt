@@ -1996,7 +1996,7 @@ func (this *Bitrue) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

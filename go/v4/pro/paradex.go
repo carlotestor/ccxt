@@ -196,7 +196,7 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var parsedTrade map[string]any = ccxt.MapTyped(this.ParseTrade(data))
+	var parsedTrade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(data)))
 	var symbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
 	var messageHash *string = this.SafeString(params, "channel")
 	var stored any = this.SafeValue(this.Trades, symbol)

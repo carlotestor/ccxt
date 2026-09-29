@@ -1460,7 +1460,7 @@ func (this *Toobit) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
-func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

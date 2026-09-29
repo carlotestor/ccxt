@@ -773,7 +773,7 @@ func (this *Bitflyer) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public) v1
 	//

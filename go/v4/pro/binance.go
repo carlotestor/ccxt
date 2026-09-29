@@ -1934,7 +1934,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var executionType *string = this.SafeString(trade, "x")
 	var isTradeExecution bool = (executionType != nil && *executionType == "TRADE")
 	if !isTradeExecution {
-		return this.ParseTrade(trade, market)
+		return ccxt.TradeToMap(this.ParseTrade(trade, market))
 	}
 	var id *string = this.SafeString2(trade, "t", "a")
 	var timestamp *int64 = this.SafeInteger(trade, "T")
@@ -1993,7 +1993,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var typeVar *string = this.SafeStringLower(trade, "o")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -2007,7 +2007,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         cost,
 		"fee":          fee,
-	})
+	}))
 }
 func (this *Binance) HandleTrade(client any, message map[string]any) {
 	// the trade streams push raw trade information in real-time

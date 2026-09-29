@@ -1417,7 +1417,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, 
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcv, market, timeframe, since, limitResolved)}
 	return nil
 }
-func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

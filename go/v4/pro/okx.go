@@ -476,12 +476,12 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}()))
+		}())))
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
 			stored = ccxt.NewArrayCache(tradesLimit)
@@ -2441,7 +2441,7 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = (this.SafeString(info, "execType", "") != nil && *this.SafeString(info, "execType", "") == "T")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":      info,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -2463,7 +2463,7 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 			"cost":     this.SafeNumber(info, "fillFee"),
 			"currency": this.SafeCurrencyCode(feeMarketId),
 		},
-	}, market)
+	}, market))
 }
 
 /**

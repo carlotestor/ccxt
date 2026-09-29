@@ -525,7 +525,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	}
 	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 		var item any = ccxt.GetValue(trades, i)
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(item, market))
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(item, market)))
 		tradesArray.(ccxt.Appender).Append(trade)
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("deals::", symbol))

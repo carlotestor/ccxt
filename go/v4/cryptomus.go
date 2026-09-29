@@ -814,7 +814,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[any], symbol any, opt
 	ch <- AsyncResult[any]{Value: this.ParseTrades(dataList, market, since, limit)}
 	return nil
 }
-func (this *Cryptomus) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Cryptomus) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	//     {
 	//         "trade_id": "01J017Q6B3JGHZRP9D2NZHVKFX",

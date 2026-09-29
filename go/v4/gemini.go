@@ -1750,7 +1750,7 @@ func (this *Gemini) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.RemoveKeysFromDict(result, brokenPairs)}
 	return nil
 }
-func (this *Gemini) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Gemini) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public fetchTrades
 	//

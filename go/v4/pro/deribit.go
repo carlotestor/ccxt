@@ -659,7 +659,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(trade, market))
+		var parsed map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(trade, market)))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)

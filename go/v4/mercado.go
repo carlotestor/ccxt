@@ -580,7 +580,7 @@ func (this *Mercado) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp2(trade, "date", "executed_timestamp")

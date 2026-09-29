@@ -723,7 +723,7 @@ func (this *Coincheck) fetchTickerBody(ch chan AsyncResult[map[string]any], symb
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

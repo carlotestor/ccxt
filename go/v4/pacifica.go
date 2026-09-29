@@ -1945,7 +1945,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limit)}
 	return nil
 }
-func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// user trades:
 	//     {

@@ -1446,7 +1446,7 @@ func (this *Bullish) fetchOrderTradesBody(ch chan AsyncResult[any], id string, o
 	}
 	return nil
 }
-func (this *Bullish) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bullish) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//     [

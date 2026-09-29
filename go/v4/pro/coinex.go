@@ -740,7 +740,7 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"cost":     feeCost,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "deal_id"),
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -754,7 +754,7 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "amount"),
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

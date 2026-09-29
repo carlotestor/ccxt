@@ -1270,7 +1270,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "tradeId"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1284,7 +1284,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"type":         typeVar,
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Woo) CheckRequiredUid(optionalArgs ...any) bool {
 	var error bool = ccxt.GetArgBool(optionalArgs, 0, true)

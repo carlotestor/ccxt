@@ -1318,7 +1318,7 @@ func (this *Bigone) ParseContractOrderBook(orderbook any, symbol any, optionalAr
 		"nonce":     nil,
 	}
 }
-func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

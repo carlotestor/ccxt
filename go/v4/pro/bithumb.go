@@ -935,14 +935,14 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"market":    marketCode,
 			"timestamp": tradeTimestamp,
 		})
-		return this.ParseTrade(normalized, market)
+		return ccxt.TradeToMap(this.ParseTrade(normalized, market))
 	}
 	var marketId *string = this.SafeString(trade, "symbol")
 	var datetime *string = this.SafeString(trade, "contDtm")
 	// that date is not UTC iso8601, but exchange's local time, -9hr difference
 	var timestamp int64 = this.ParseToInt(this.Parse8601(datetime)) - 32400000
 	var sideId *string = this.SafeString(trade, "buySellGb")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":        nil,
 		"info":      trade,
 		"timestamp": timestamp,
@@ -961,7 +961,7 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "contQty"),
 		"cost":         this.SafeString(trade, "contAmt"),
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 	//

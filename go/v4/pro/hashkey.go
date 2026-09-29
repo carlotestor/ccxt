@@ -821,7 +821,7 @@ func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) any {
 			side = this.SafeStringLower(trade, "S")
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString2(trade, "v", "T"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -835,7 +835,7 @@ func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"order":        this.SafeString(trade, "o"),
 		"fee":          nil,
 		"info":         trade,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

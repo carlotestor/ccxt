@@ -714,7 +714,7 @@ func (this *Bingx) HandleTrades(client any, message any) {
 	if ccxt.IsArray(data) {
 		trades = this.ParseTrades(data, market)
 	} else {
-		trades = []any{this.ParseTrade(data, market)}
+		trades = []any{ccxt.TradeToMap(this.ParseTrade(data, market))}
 	}
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -2368,7 +2368,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 	}
 	var marketId *string = this.SafeString(result, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, "-", typeVar)
-	var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(result, market))
+	var parsed map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(result, market)))
 	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var spotHash string = "spot:mytrades"
 	var swapHash string = "swap:mytrades"

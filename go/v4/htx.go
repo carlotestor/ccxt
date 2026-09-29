@@ -3627,7 +3627,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol 
 	}
 	panic(ExchangeError(this.Id + " fetchOrderBook() returned unrecognized response: " + this.Json(response)))
 }
-func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Htx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// spot fetchTrades (public)
 	//
@@ -4270,12 +4270,12 @@ func (this *Htx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 			return nil
 		}(), "data")
 		for j := 0; j < len(trades); j++ {
-			var trade map[string]any = MapTyped(this.ParseTrade(func() any {
+			var trade map[string]any = MapTyped(TradeToMap(this.ParseTrade(func() any {
 				if j >= 0 && j < len(trades) {
 					return DerefScalar(trades[j])
 				}
 				return nil
-			}(), market))
+			}(), market)))
 			result = append(result, trade)
 		}
 	}

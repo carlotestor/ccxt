@@ -1007,7 +1007,7 @@ func (this *Krakenfutures) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "time")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "uid"),
 		"symbol":       this.SafeString(marketResolved, "symbol"),
@@ -1025,7 +1025,7 @@ func (this *Krakenfutures) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"cost":     nil,
 			"currency": nil,
 		},
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Krakenfutures) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1060,7 +1060,7 @@ func (this *Krakenfutures) ParseWsOrderTrade(trade any, optionalArgs ...any) any
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "tradeTime")
 	var marketId *string = this.SafeString(trade, "symbol")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "tradeId"),
 		"symbol":       this.SafeSymbol(marketId, market),
@@ -1078,7 +1078,7 @@ func (this *Krakenfutures) ParseWsOrderTrade(trade any, optionalArgs ...any) any
 			"cost":     this.SafeString(trade, "tradeFee"),
 			"currency": this.SafeString(trade, "feeCurrency"),
 		},
-	}, market)
+	}, market))
 }
 func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 	//
@@ -1990,7 +1990,7 @@ func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var isBuy *bool = this.SafeBool(trade, "buy")
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":      trade,
 		"id":        this.SafeString(trade, "fill_id"),
 		"timestamp": timestamp,
@@ -2013,7 +2013,7 @@ func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 			"cost":     this.SafeString(trade, "fee_paid"),
 			"rate":     nil,
 		},
-	})
+	}))
 }
 func (this *Krakenfutures) WatchMultiHelperAsync(unifiedName string, channelName string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)

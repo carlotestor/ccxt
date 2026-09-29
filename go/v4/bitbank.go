@@ -563,7 +563,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp)}
 	return nil
 }
-func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

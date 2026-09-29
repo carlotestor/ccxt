@@ -2155,7 +2155,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframe, sinceResolved, limitResolved)}
 	return nil
 }
-func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

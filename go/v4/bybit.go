@@ -4419,7 +4419,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optiona
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbolValue, since, limitResolved)}
 	return nil
 }
-func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public https://bybit-exchange.github.io/docs/v5/market/recent-trade
 	//

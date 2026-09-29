@@ -1055,7 +1055,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
-func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

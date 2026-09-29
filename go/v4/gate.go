@@ -5673,7 +5673,7 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
-func (this *Gate) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Gate) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public
 	//

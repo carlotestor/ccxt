@@ -1370,7 +1370,7 @@ func (this *Luno) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

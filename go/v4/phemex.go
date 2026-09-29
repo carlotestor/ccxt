@@ -2198,7 +2198,7 @@ func (this *Phemex) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public) spot & contract
 	//

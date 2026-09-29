@@ -640,7 +640,7 @@ func (this *Btcbox) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbols)}
 	return nil
 }
-func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

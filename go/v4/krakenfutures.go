@@ -1421,7 +1421,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[any], symbol any,
 	ch <- AsyncResult[any]{Value: this.ParseTrades(rawTrades, market, since, limit)}
 	return nil
 }
-func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (recent trades)
 	//

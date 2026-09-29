@@ -1553,7 +1553,7 @@ func (this *Extended) ParseFundingHistories(histories []any, optionalArgs ...any
 	}()
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }
-func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Extended) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

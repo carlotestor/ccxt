@@ -3154,7 +3154,7 @@ func (this *Nado) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeTimestamp(ohlcv, "timestamp"), this.ParseX18(this.SafeString(ohlcv, "open_x18")), this.ParseX18(this.SafeString(ohlcv, "high_x18")), this.ParseX18(this.SafeString(ohlcv, "low_x18")), this.ParseX18(this.SafeString(ohlcv, "close_x18")), this.ParseX18(this.SafeString(ohlcv, "volume"))}
 }
-func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Nado) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	//     {
 	//         "product_id": 1,

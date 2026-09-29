@@ -789,7 +789,7 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeAsset")),
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "tradeId"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -803,7 +803,7 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"type":         this.SafeStringLower(trade, "type"),
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Modetrade) HandleAuth(client any, message map[string]any) {
 	//

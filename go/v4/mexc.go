@@ -2183,7 +2183,7 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id any = nil

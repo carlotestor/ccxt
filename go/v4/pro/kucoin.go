@@ -1977,7 +1977,7 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(data, market))
+	var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(data, market)))
 	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	if !(ccxt.InOp(this.Trades, symbol)) {
@@ -2060,7 +2060,7 @@ func (this *Kucoin) ParseWsUtaTrade(trade map[string]any, optionalArgs ...any) a
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "ti"),
 		"order":        this.SafeString(trade, "oi"),
@@ -2074,7 +2074,7 @@ func (this *Kucoin) ParseWsUtaTrade(trade map[string]any, optionalArgs ...any) a
 		"amount":       this.SafeString(trade, "q"),
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**
@@ -3500,7 +3500,7 @@ func (this *Kucoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var feeCurrency *string = ccxt.SafeStringPtr(marketResolved["quote"])
 	var feeRate *string = this.SafeString(trade, "feeRate")
 	var feeCost *string = this.SafeString(trade, "fee")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3518,7 +3518,7 @@ func (this *Kucoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"rate":     feeRate,
 			"currency": feeCurrency,
 		},
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

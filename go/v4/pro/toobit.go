@@ -322,7 +322,7 @@ func (this *Toobit) HandleTrades(client any, message map[string]any) {
 func (this *Toobit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseTrade(trade, market)
+	return ccxt.TradeToMap(this.ParseTrade(trade, market))
 }
 
 /**
@@ -1351,7 +1351,7 @@ func (this *Toobit) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 	if isMaker != nil && *isMaker {
 		takerOrMaker = "maker"
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "T"),
 		"timestamp":    ts,
@@ -1365,7 +1365,7 @@ func (this *Toobit) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 		"amount":       this.SafeString(trade, "q"),
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 
 /**

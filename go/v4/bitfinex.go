@@ -1909,7 +1909,7 @@ func (this *Bitfinex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

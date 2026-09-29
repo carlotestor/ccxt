@@ -213,7 +213,7 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 func (this *Blofin) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseTrade(trade, market)
+	return ccxt.TradeToMap(this.ParseTrade(trade, market))
 }
 
 /**

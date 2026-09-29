@@ -1040,7 +1040,7 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Coinspot) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coinspot) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public fetchTrades
 	//

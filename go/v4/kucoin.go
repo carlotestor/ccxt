@@ -9892,18 +9892,18 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 	ch <- AsyncResult[any]{Value: this.ParseTrades(tradesList, market, since, limit)}
 	return nil
 }
-func (this *Kucoin) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Kucoin) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	if InOp(trade, "liquidityRole") {
-		return this.ParseMyUtaTrade(trade, market)
+		return TradeFromMap(this.ParseMyUtaTrade(trade, market))
 	}
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	if (marketResolved == nil) || (marketResolved["spot"] == true) {
-		return this.ParseSpotOrUtaTrade(trade, marketResolved)
+		return TradeFromMap(this.ParseSpotOrUtaTrade(trade, marketResolved))
 	} else {
-		return this.ParseContractTrade(trade, marketResolved)
+		return TradeFromMap(this.ParseContractTrade(trade, marketResolved))
 	}
 }
 func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
@@ -10048,7 +10048,7 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 		typeVar = nil
 	}
 	var costString *string = this.SafeString2(trade, "funds", "dealValue")
-	return this.SafeTrade(map[string]any{
+	return TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
 		"order":        orderId,
@@ -10062,7 +10062,7 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 	//
@@ -10199,7 +10199,7 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 		var contractCost *string = Precise.StringMul(priceString, amountString)
 		costString = Precise.StringMul(contractCost, contractSize)
 	}
-	return this.SafeTrade(map[string]any{
+	return TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
 		"order":        orderId,
@@ -10213,7 +10213,7 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Kucoin) ParseMyUtaTrade(trade any, optionalArgs ...any) any {
 	//
@@ -10243,7 +10243,7 @@ func (this *Kucoin) ParseMyUtaTrade(trade any, optionalArgs ...any) any {
 		"cost":     this.SafeString(trade, "fee"),
 		"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
 	}
-	return this.SafeTrade(map[string]any{
+	return TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "tradeId"),
 		"order":        this.SafeString(trade, "orderId"),
@@ -10257,7 +10257,7 @@ func (this *Kucoin) ParseMyUtaTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "size"),
 		"cost":         this.SafeString(trade, "value"),
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

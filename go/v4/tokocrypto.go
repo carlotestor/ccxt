@@ -1098,7 +1098,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[map[string]any], 
 	ch <- AsyncResult[map[string]any]{Value: orderbook}
 	return nil
 }
-func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// aggregate trades
 	// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list

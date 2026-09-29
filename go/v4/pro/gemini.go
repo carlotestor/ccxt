@@ -197,7 +197,7 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeStringLower(trade, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        nil,
 		"info":         trade,
@@ -211,7 +211,7 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"cost":         nil,
 		"amount":       amountString,
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	//

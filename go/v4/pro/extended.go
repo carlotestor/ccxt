@@ -487,12 +487,12 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 		return
 	}
 	for i := 0; i < len(rawTrades); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(func() any {
 			if i >= 0 && i < len(rawTrades) {
 				return ccxt.DerefScalar(rawTrades[i])
 			}
 			return nil
-		}()))
+		}())))
 		var symbol *string = this.SafeString(trade, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -1007,12 +1007,12 @@ func (this *Extended) HandleTrades(client any, message any) {
 	}
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}(), market))
+		}(), market)))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

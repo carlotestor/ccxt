@@ -441,12 +441,12 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 		ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}(), market))
+		}(), market)))
 		tradesCache.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
@@ -1995,7 +1995,7 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 			return "maker"
 		}())
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -2009,7 +2009,7 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          nil,
-	}, marketValue)
+	}, marketValue))
 }
 
 /**
@@ -3397,7 +3397,7 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 					}
 					return nil
 				}()
-				var parsedTrade any = this.ParseTrade(trade, market)
+				var parsedTrade any = ccxt.TradeToMap(this.ParseTrade(trade, market))
 				// add extra params (side, type, ...) coming from the order
 				parsedTrade = this.Extend(parsedTrade, extendParams)
 				cachedTrades.(ccxt.Appender).Append(parsedTrade)
@@ -3501,7 +3501,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"currency": feeCurrency,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3515,7 +3515,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isLinear bool = ccxt.GetArgBool(optionalArgs, 0, true)

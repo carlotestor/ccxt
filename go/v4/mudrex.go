@@ -2065,7 +2065,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTrades(rows, market, since, limit)}
 	return nil
 }
-func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	//     {
 	//         "id": "019f21e1-9093-7333-866d-31f19c1300ed",

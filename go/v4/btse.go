@@ -2305,7 +2305,7 @@ func (this *Btse) fetchOrderTradesBody(ch chan AsyncResult[any], id string, opti
 	}
 	return nil
 }
-func (this *Btse) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Btse) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//     {

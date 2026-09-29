@@ -2968,7 +2968,7 @@ func (this *Xt) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any)
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// spot: fetchTrades
 	//

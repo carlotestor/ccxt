@@ -1659,7 +1659,7 @@ func (this *Coinsph) fetchOrderTradesBody(ch chan AsyncResult[any], id string, o
 	}
 	return nil
 }
-func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//     {

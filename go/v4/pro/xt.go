@@ -1708,7 +1708,7 @@ func (this *Xt) HandleTrade(client any, message map[string]any) any {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeStringLower(data, "s")
 	if marketId != nil {
-		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(data))
+		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(data)))
 		var i *string = this.SafeString(data, "i")
 		var tradeType string = "contract"
 		if i != nil {
@@ -1890,7 +1890,7 @@ func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, tradeType)
 	var timestamp *string = this.SafeString(trade, "t")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"timestamp":    timestamp,
@@ -1908,7 +1908,7 @@ func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			"cost":     this.SafeNumber(trade, "f"),
 			"rate":     nil,
 		},
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
 	//
@@ -2148,7 +2148,7 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = stored
 	}
-	var parsedTrade map[string]any = ccxt.MapTyped(this.ParseTrade(data))
+	var parsedTrade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(data)))
 	var tradeSymbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
 	if tradeSymbol == nil {
 		return

@@ -420,7 +420,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if sideRaw != nil && *sideRaw == 0 {
 		side = "buy"
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -434,7 +434,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	//
@@ -853,7 +853,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) 
 			"currency": marketResolved["quote"],
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString2(trade, "id_str", "id"),
 		"order":        this.SafeString(trade, "order_id"),
@@ -867,7 +867,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) 
 		"amount":       this.SafeString(trade, "amount"),
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	//

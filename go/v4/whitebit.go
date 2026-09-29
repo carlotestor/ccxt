@@ -2454,7 +2454,7 @@ func (this *Whitebit) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		return nil
 	}
 }
-func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTradesV4
 	//

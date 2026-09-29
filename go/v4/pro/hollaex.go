@@ -340,7 +340,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
 		var trade any = ccxt.GetValue(rawTrades, i)
-		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(trade))
+		var parsed map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(trade)))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(trade, "symbol")
 		var market map[string]any = this.Market(symbol)

@@ -2060,7 +2060,7 @@ func (this *Bingx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optiona
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// spot fetchTrades
 	//

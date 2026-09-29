@@ -964,12 +964,12 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 			return nil
 		}(), "trades")
 		for ii := 0; ii < len(rawTrades); ii++ {
-			var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
+			var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(func() any {
 				if ii >= 0 && ii < len(rawTrades) {
 					return ccxt.DerefScalar(rawTrades[ii])
 				}
 				return nil
-			}()))
+			}())))
 			symbol = this.SafeString(trade, "symbol", symbol)
 			this.MyTrades.(ccxt.Appender).Append(trade)
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+*symbol)
@@ -1254,7 +1254,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 	// update trades
 	if updateType != nil && *updateType == "TRADE_SETTLED" {
-		var parsed any = this.ParseTrade(update)
+		var parsed any = ccxt.TradeToMap(this.ParseTrade(update))
 		symbol = this.SafeString(parsed, "symbol", "")
 		var myTrades any = this.MyTrades
 		myTrades.(ccxt.Appender).Append(parsed)

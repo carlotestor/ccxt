@@ -1353,7 +1353,7 @@ func (this *BaseExchange) ParseDepositAddress(depositAddress any, optionalArgs .
 	_ = currency
 	panic(NotSupported(this.Id + " parseDepositAddress() is not supported yet"))
 }
-func (this *BaseExchange) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseTrade() is not supported yet"))
@@ -3113,7 +3113,7 @@ func (this *BaseExchange) SafeLiquidation(liquidation any, optionalArgs ...any) 
 	AddElementToObject(liquidation, "quoteValue", this.ParseNumber(quoteValue))
 	return liquidation
 }
-func (this *BaseExchange) SafeTrade(trade any, optionalArgs ...any) any {
+func (this *BaseExchange) SafeTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var amount *string = this.SafeString(trade, "amount")
@@ -3140,7 +3140,7 @@ func (this *BaseExchange) SafeTrade(trade any, optionalArgs ...any) any {
 	AddElementToObject(trade, "amount", this.ParseNumber(amount))
 	AddElementToObject(trade, "price", this.ParseNumber(price))
 	AddElementToObject(trade, "cost", this.ParseNumber(cost))
-	return trade
+	return TradeFromMap(trade)
 }
 func (this *BaseExchange) CreateCcxtTradeId(optionalArgs ...any) any {
 	// this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
@@ -4497,12 +4497,12 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 			PanicOnError(parsed)
 		} else {
 
-			parsed = this.DerivedExchange.ParseTrade(func() any {
+			parsed = TradeToMap(this.DerivedExchange.ParseTrade(func() any {
 				if i >= 0 && i < len(tradesArray) {
 					return DerefScalar(tradesArray[i])
 				}
 				return nil
-			}(), market)
+			}(), market))
 			PanicOnError(parsed)
 		}
 		var trade map[string]any = this.Extend(parsed, params)

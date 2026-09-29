@@ -1307,7 +1307,7 @@ func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbo
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks")}
 	return nil
 }
-func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (old) spotPublicGetTrades
 	//

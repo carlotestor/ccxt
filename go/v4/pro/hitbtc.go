@@ -998,7 +998,7 @@ func (this *Hitbtc) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "t")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "i"),
 		"order":        nil,
@@ -1012,7 +1012,7 @@ func (this *Hitbtc) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "q"),
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 
 /**
@@ -1340,7 +1340,7 @@ func (this *Hitbtc) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var marketId *string = this.SafeString(trade, "symbol")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "trade_id"),
 		"order":        this.SafeString(trade, "id"),
@@ -1358,7 +1358,7 @@ func (this *Hitbtc) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			"currency": nil,
 			"rate":     nil,
 		},
-	}, market)
+	}, market))
 }
 func (this *Hitbtc) ParseWsOrder(order any, optionalArgs ...any) any {
 	//

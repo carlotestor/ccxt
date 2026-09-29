@@ -1710,7 +1710,7 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeStringN(trade, []any{"tradeId", "i", "execId"}),
 		"order":        this.SafeString2(trade, "orderId", "L"),
@@ -1724,7 +1724,7 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeStringN(trade, []any{"size", "baseVolume", "execQty", "v"}),
 		"cost":         this.SafeStringN(trade, []any{"amount", "quoteVolume", "execValue"}),
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

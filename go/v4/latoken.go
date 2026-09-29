@@ -1104,7 +1104,7 @@ func (this *Latoken) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbols)}
 	return nil
 }
-func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

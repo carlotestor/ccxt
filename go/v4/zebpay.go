@@ -1343,7 +1343,7 @@ func (this *Zebpay) fetchOrderTradesBody(ch chan AsyncResult[any], id string, op
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades)}
 	return nil
 }
-func (this *Zebpay) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Zebpay) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchMyTrades
 	//

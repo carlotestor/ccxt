@@ -469,7 +469,7 @@ func (this *Alpaca) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(message))
+	var parsed map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(message)))
 	stored.(ccxt.Appender).Append(parsed)
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -803,7 +803,7 @@ func (this *Alpaca) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 		// might be limit or stop-limit
 		typeVar = ccxt.SafeStringPtr("limit")
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":        this.SafeString(trade, "i"),
 		"info":      trade,
 		"timestamp": this.Parse8601(datetime),
@@ -822,7 +822,7 @@ func (this *Alpaca) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 		"amount": this.SafeString(trade, "filled_qty"),
 		"cost":   nil,
 		"fee":    nil,
-	}, market)
+	}, market))
 }
 func (this *Alpaca) AuthenticateAsync(url any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)

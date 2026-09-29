@@ -714,7 +714,7 @@ func (this *Deepcoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "f")),
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -728,7 +728,7 @@ func (this *Deepcoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "V"),
 		"cost":         this.SafeString(trade, "T"),
 		"fee":          fee,
-	}, market)
+	}, market))
 }
 func (this *Deepcoin) ParseTradeSide(direction *string) *string {
 	var sides map[string]any = map[string]any{

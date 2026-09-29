@@ -1707,7 +1707,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// generation 1: fetchTrades (public)
 	//

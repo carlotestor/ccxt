@@ -1367,7 +1367,7 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan AsyncResult[map[string]any
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	//     {
 	//         "type": "match",

@@ -1278,7 +1278,7 @@ func (this *Apex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limitResolved)}
 	return nil
 }
-func (this *Apex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Apex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// [
 	//  {

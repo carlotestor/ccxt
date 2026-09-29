@@ -1505,7 +1505,7 @@ func (this *Grvt) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 	ch <- AsyncResult[any]{Value: this.ParseTrades(result, market, since, limit)}
 	return nil
 }
-func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

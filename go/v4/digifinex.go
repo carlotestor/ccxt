@@ -1690,7 +1690,7 @@ func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}, marketResolved)
 }
-func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// spot: fetchTrades
 	//

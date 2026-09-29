@@ -1980,7 +1980,7 @@ func (this *Coinex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(depth, symbol, timestamp)}
 	return nil
 }
-func (this *Coinex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// Spot and Swap fetchTrades (public)
 	//

@@ -1809,7 +1809,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

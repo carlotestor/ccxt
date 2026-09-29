@@ -693,7 +693,7 @@ func (this *Bitrue) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var rawVol *float64 = this.SafeNumber(trade, "vol")
 	var baseAmount any = this.ConvertFromRawQuantity(symbol, rawVol)
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"timestamp":    timestamp,
@@ -707,7 +707,7 @@ func (this *Bitrue) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.NumberToString(baseAmount),
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 
 /**

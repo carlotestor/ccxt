@@ -793,7 +793,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")}
 	return nil
 }
-func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//         {

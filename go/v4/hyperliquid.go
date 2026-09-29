@@ -4862,7 +4862,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseTrades(myFills, market, since, limit)}
 	return nil
 }
-func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	//     {
 	//         "closedPnl": "0.19343",

@@ -1182,7 +1182,7 @@ func (this *Blockchaincom) fetchOrdersByStateBody(ch chan AsyncResult[[]any], st
 	ch <- AsyncResult[[]any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
-func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	//     {
 	//         "exOrdId":281685751028507,

@@ -1168,7 +1168,7 @@ func (this *Btcmarkets) fetchTicker2Body(ch chan EndpointResult[map[string]any],
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public fetchTrades
 	//

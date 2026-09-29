@@ -1241,7 +1241,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseTrades(data, nil, since, limitResolved)}
 	return nil
 }
-func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchMyTrades (private)
 	//

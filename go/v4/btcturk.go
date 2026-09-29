@@ -720,7 +720,7 @@ func (this *Btcturk) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	ch <- AsyncResult[map[string]any]{Value: ticker}
 	return nil
 }
-func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//     {

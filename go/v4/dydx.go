@@ -777,7 +777,7 @@ func (this *Dydx) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any
 	ch <- AsyncResult[any]{Value: this.ParseMarkets(markets)}
 	return nil
 }
-func (this *Dydx) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Dydx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// {
 	//     "id": "02ac5b1f0000000200000002",

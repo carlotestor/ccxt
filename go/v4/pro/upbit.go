@@ -475,7 +475,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	//   "change_price": 27000,
 	//   "sequential_id": 1584508285000002,
 	//   "stream_type": "REALTIME" }
-	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message))
+	var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(message)))
 	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	if symbol == nil {
 		return
@@ -831,7 +831,7 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"cost":     feeCost,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "trade_uuid"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -845,7 +845,7 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"type":         this.SafeString(trade, "order_type"),
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Upbit) HandleMyOrder(client any, message map[string]any) {
 	// see: parseWsOrder

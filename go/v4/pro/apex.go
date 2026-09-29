@@ -231,7 +231,7 @@ func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower2(trade, "S", "side")
 	var price *string = this.SafeString2(trade, "p", "price")
 	var amount *string = this.SafeStringN(trade, []any{"q", "v", "size"})
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -245,7 +245,7 @@ func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

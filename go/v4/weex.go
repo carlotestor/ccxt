@@ -2254,7 +2254,7 @@ func (this *Weex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 	ch <- AsyncResult[any]{Value: this.ParseTrades(responseList, market, since, limit)}
 	return nil
 }
-func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Weex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//     {

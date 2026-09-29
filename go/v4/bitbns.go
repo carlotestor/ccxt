@@ -1193,7 +1193,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit)}
 	return nil
 }
-func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchMyTrades
 	//

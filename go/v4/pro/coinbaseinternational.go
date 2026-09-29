@@ -847,7 +847,7 @@ func (this *Coinbaseinternational) ParseWsTrade(trade any, optionalArgs ...any) 
 	_ = market
 	var marketId *string = this.SafeString2(trade, "symbol", "product_id")
 	var datetime *string = this.SafeString(trade, "time")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "match_id"),
 		"order":        nil,
@@ -861,7 +861,7 @@ func (this *Coinbaseinternational) ParseWsTrade(trade any, optionalArgs ...any) 
 		"amount":       this.SafeString(trade, "trade_qty"),
 		"cost":         nil,
 		"fee":          nil,
-	})
+	}))
 }
 
 /**

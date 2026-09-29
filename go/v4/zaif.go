@@ -621,7 +621,7 @@ func (this *Zaif) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades (public)
 	//

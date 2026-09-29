@@ -244,7 +244,7 @@ func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeString(trade, 5)
 	var priceString *string = this.SafeString(trade, 3)
 	var amountString *string = this.SafeString(trade, 4)
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, 1),
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -258,7 +258,7 @@ func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 func (this *Coincheck) HandleMessage(client any, message any) {
 	var data any = this.SafeValue(message, 0)

@@ -1241,7 +1241,7 @@ func (this *Woo) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 	ch <- AsyncResult[any]{Value: this.ParseTrades(rows, market, since, limit)}
 	return nil
 }
-func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Woo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public/market_trades
 	//

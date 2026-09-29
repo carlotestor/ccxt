@@ -1649,7 +1649,7 @@ func (this *Aster) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)}
 	return nil
 }
-func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Aster) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

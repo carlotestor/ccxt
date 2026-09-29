@@ -1201,7 +1201,7 @@ func (this *Woofipro) ParseTokenAndFeeTemp(item any, feeTokenKey any, feeAmountK
 	}
 	return fee
 }
-func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// public/market_trades
 	//

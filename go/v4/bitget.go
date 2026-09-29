@@ -6306,7 +6306,7 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseTickers(data, symbols)}
 	return nil
 }
-func (this *Bitget) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitget) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// spot, swap and future: fetchTrades
 	//

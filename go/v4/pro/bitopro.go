@@ -428,7 +428,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 			takerOrMaker = ccxt.SafeStringPtr("taker")
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
 		"order":        orderId,
@@ -442,7 +442,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

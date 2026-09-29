@@ -806,7 +806,7 @@ func (this *P2b) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 	ch <- AsyncResult[any]{Value: this.ParseTrades(result, market, since, limit)}
 	return nil
 }
-func (this *P2b) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *P2b) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//

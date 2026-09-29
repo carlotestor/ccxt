@@ -794,7 +794,7 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}())
 		takerOrMaker = ccxt.SafeStringPtr("taker") // a public trade is reported from the aggressor's side, same as parseTrade
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "t"),
 		"timestamp":    timestamp,
@@ -808,7 +808,7 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "q"),
 		"cost":         this.SafeString(trade, "v"),
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 
 /**
@@ -1800,7 +1800,7 @@ func (this *Weex) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 			"currency": feeCurrency,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "id"),
 		"timestamp":    timestamp,
@@ -1814,7 +1814,7 @@ func (this *Weex) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 		"amount":       this.SafeString(trade, "fillSize"),
 		"cost":         this.SafeString(trade, "fillValue"),
 		"fee":          fee,
-	})
+	}))
 }
 
 /**

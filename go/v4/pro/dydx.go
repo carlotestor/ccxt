@@ -199,7 +199,7 @@ func (this *Dydx) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "createdAt"))
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "id"),
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -213,7 +213,7 @@ func (this *Dydx) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "size"),
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 
 /**

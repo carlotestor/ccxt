@@ -1697,7 +1697,7 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseTrades(responseList, market, since, limit)}
 	return nil
 }
-func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//     {

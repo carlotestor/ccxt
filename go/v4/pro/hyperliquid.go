@@ -1306,7 +1306,7 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}())
 	}
 	var fee *string = this.SafeString(trade, "fee")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1323,7 +1323,7 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"cost":     fee,
 			"currency": "USDC",
 		},
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

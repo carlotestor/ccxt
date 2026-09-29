@@ -1218,7 +1218,7 @@ func (this *Poloniex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "createTime")
 	var takerMaker *string = this.SafeStringLower2(trade, "matchRole", "taker")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString2(trade, "id", "tradeId"),
 		"symbol":       this.SafeString(marketResolved, "symbol"),
@@ -1236,7 +1236,7 @@ func (this *Poloniex) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"cost":     this.SafeString(trade, "tradeFee"),
 			"currency": this.SafeString(trade, "feeCurrency"),
 		},
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Poloniex) ParseStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -1282,7 +1282,7 @@ func (this *Poloniex) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "tradeTime")
 	var marketId *string = this.SafeString(trade, "symbol")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "tradeId"),
 		"symbol":       this.SafeSymbol(marketId, market),
@@ -1300,7 +1300,7 @@ func (this *Poloniex) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			"cost":     this.SafeString(trade, "tradeFee"),
 			"currency": this.SafeString(trade, "feeCurrency"),
 		},
-	}, market)
+	}, market))
 }
 func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 	//

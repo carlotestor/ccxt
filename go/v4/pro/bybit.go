@@ -1979,7 +1979,7 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "p")
 	var amount *string = this.SafeString2(trade, "q", "v")
 	var orderId *string = this.SafeString(trade, "o")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -1993,7 +1993,7 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Bybit) GetPrivateType(url any) string {
 	if ccxt.GetIndexOf(url, "spot") >= 0 {
@@ -2283,7 +2283,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 			if (!ccxt.IsEqual(execTypes, nil)) && !this.InArray(execType, execTypes) {
 				continue
 			}
-			parsed = this.ParseTrade(rawTrade)
+			parsed = ccxt.TradeToMap(this.ParseTrade(rawTrade))
 		}
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 		if symbol == nil {

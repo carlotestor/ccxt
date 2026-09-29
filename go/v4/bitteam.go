@@ -2447,7 +2447,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	// fetchTrades
 	//     {

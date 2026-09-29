@@ -450,7 +450,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "id"),
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -464,7 +464,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         nil,
 		"fee":          nil,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Coinone) HandleErrorMessage(client any, message any) bool {
 	//

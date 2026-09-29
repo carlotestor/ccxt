@@ -1173,7 +1173,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 				}
 				return nil
 			}()
-			tradesArray.(ccxt.Appender).Append(this.ParseTrade(item))
+			tradesArray.(ccxt.Appender).Append(ccxt.TradeToMap(this.ParseTrade(item)))
 		}
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
