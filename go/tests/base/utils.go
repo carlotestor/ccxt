@@ -499,7 +499,7 @@ func DetypeForComparison(value any) any {
 		}
 		return out
 	case reflect.Map:
-		if rv.Type().Key().Kind() != reflect.String {
+		if rv.Type().Key().Kind() != reflect.String || rv.IsNil() {
 			return value
 		}
 		out := map[string]any{}
@@ -508,7 +508,7 @@ func DetypeForComparison(value any) any {
 		}
 		return out
 	case reflect.Slice:
-		if k := rv.Type().Elem().Kind(); k != reflect.Struct && k != reflect.Interface && k != reflect.Map {
+		if k := rv.Type().Elem().Kind(); rv.IsNil() || (k != reflect.Struct && k != reflect.Interface && k != reflect.Map) {
 			return value
 		}
 		out := make([]any, rv.Len())
