@@ -50,7 +50,7 @@
     "buildJava": "cd java/ && ./gradlew build && cd ../",
     "check-java-pinning": "tsx build/javaPinningGuard.ts",
     "publishJava": "cd java && ./gradlew :lib:publishToMavenCentral --no-configuration-cache",
-    "buildGO": "(gofmt -d go/v4/bitget.go go/v4/ndax.go || true) && go build -C go ./v4 && go build -C go ./v4/pro && go build -C go ./v4/prediction",
+    "buildGO": "(gofmt -l go/v4 go/tests; gofmt -d go/v4/bitget.go go/v4/ndax.go || true) && go build -C go ./v4 && go build -C go ./v4/pro && go build -C go ./v4/prediction",
     "build-go-cli": "go build -C go/cli",
     "transpileGOWs": "tsx build/goTranspiler.ts --ws",
     "transpileGORest": "tsx build/goTranspiler.ts",
