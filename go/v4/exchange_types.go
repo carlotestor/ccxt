@@ -669,7 +669,7 @@ func NewTicker(data any) Ticker {
 		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
 		IndexPrice:    SafeFloatTyped(m, "indexPrice"),
 		MarkPrice:     SafeFloatTyped(m, "markPrice"),
-		Info:          GetInfo(m),
+		Info:          GetInfoWithExtra(m, "symbol", "timestamp", "datetime", "high", "low", "bid", "bidVolume", "ask", "askVolume", "vwap", "open", "close", "last", "previousClose", "change", "percentage", "average", "quoteVolume", "baseVolume", "indexPrice", "markPrice"),
 	}
 }
 
