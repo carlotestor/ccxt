@@ -104,6 +104,7 @@ const KEEP_PORT_ONLY: Record<string, string[]> = {
     // keys outside the TS interface, kept for the map round trip (exchange_struct_returns.go)
     'Ticker': [ 'extra' ],
     'Trade': [ 'extra' ],
+    'Order': [ 'extra' ],
 };
 
 /**

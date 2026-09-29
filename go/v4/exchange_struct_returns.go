@@ -179,3 +179,49 @@ func OHLCVToList(o OHLCV) any {
 	}
 	return []any{o.Timestamp, o.Open, o.High, o.Low, o.Close, o.Volume}
 }
+
+// OrderFromMap builds an Order from a unified order map. NewOrder asserts `fee` is a dict and
+// `trades` a list of dicts, so it reads a copy holding only those shapes; the map's own
+// fee/trades ride in extra so OrderToMap gives back the same map.
+func OrderFromMap(data any) Order {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Order{}
+	}
+	view := make(map[string]any, len(m))
+	for k, v := range m {
+		view[k] = v
+	}
+	if _, isDict := view["fee"].(map[string]any); !isDict {
+		delete(view, "fee")
+	}
+	delete(view, "trades")
+	o := NewOrder(view)
+	if list, isList := m["trades"].([]any); isList {
+		for _, t := range list {
+			if _, isDict := t.(map[string]any); isDict {
+				o.Trades = append(o.Trades, TradeFromMap(t))
+			}
+		}
+	}
+	o.Info = GetInfo(m)
+	o.extra = structExtraKeys(m, orderKeys, orderValueKeys)
+	return o
+}
+
+var orderKeys = map[string]bool{
+	"id": true, "clientOrderId": true, "timestamp": true, "datetime": true, "lastTradeTimestamp": true,
+	"symbol": true, "type": true, "side": true, "price": true, "cost": true, "average": true,
+	"amount": true, "filled": true, "remaining": true, "status": true, "reduceOnly": true,
+	"postOnly": true, "triggerPrice": true, "stopLossPrice": true, "takeProfitPrice": true,
+	"lastUpdateTimestamp": true, "timeInForce": true, "stopPrice": true,
+}
+
+var orderValueKeys = []string{"fee", "trades"}
+
+// OrderToMap is the inverse of OrderFromMap.
+func OrderToMap(o Order) map[string]any {
+	return StructToMap(o)
+}
+
+func (o Order) structExtra() map[string]any { return o.extra }

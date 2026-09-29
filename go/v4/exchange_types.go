@@ -577,6 +577,7 @@ type Order struct {
 	TimeInForce         *string
 	StopPrice           *float64
 	Info                map[string]any
+	extra               map[string]any
 }
 
 func NewOrder(data any) Order {

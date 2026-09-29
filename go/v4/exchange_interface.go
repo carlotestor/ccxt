@@ -404,7 +404,7 @@ type IDerivedExchange interface {
 	ParseAccount(account any) any
 	ParseLedgerEntry(item any, optionalArgs ...any) map[string]any
 	ParseLastPrice(item any, optionalArgs ...any) any
-	ParseOrder(order any, optionalArgs ...any) map[string]any
+	ParseOrder(order any, optionalArgs ...any) Order
 	ParseTicker(ticker any, optionalArgs ...any) Ticker
 	ParseTickers(tickers any, optionalArgs ...any) map[string]any
 	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any

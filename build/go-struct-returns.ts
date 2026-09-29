@@ -18,6 +18,7 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'Ticker': { 'names': [ 'ParseTicker', 'SafeTicker', 'ParseContractTicker' ] },
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
     'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
+    'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
 };
 
 const fromName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].from ?? (struct + 'FromMap');
