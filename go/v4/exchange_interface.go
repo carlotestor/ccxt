@@ -393,7 +393,7 @@ type IDerivedExchange interface {
 	HandleBookDelta(orderbook any, delta any)
 	HandleBookDeltas(orderbook any, deltas any)
 	ParseLeverage(leverage any, optionalArgs ...any) map[string]any
-	ParseOHLCV(ohlcv any, optionalArgs ...any) any
+	ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV
 	ParseTrade(trade any, optionalArgs ...any) Trade
 	ParseTrades(trades any, optionalArgs ...any) []any
 	ParseGreeks(greeks any, optionalArgs ...any) map[string]any

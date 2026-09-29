@@ -154,3 +154,28 @@ func TradeToMap(t Trade) map[string]any {
 var tradeValueKeys = []string{"fee"}
 
 func (t Trade) structExtra() map[string]any { return t.extra }
+
+// OHLCVFromList builds an OHLCV from a parsed [ts, o, h, l, c, v] row (nil elements read as 0);
+// the row itself is kept so OHLCVToList returns it unchanged.
+func OHLCVFromList(data any) OHLCV {
+	o := OHLCV{row: data}
+	if row, ok := data.([]any); ok {
+		if ts := SafeInt64Typed(row, 0); ts != nil {
+			o.Timestamp = *ts
+		}
+		for i, dst := range []*float64{&o.Open, &o.High, &o.Low, &o.Close, &o.Volume} {
+			if f := SafeFloatTyped(row, i+1); f != nil {
+				*dst = *f
+			}
+		}
+	}
+	return o
+}
+
+// OHLCVToList is the inverse of OHLCVFromList.
+func OHLCVToList(o OHLCV) any {
+	if o.row != nil {
+		return o.row
+	}
+	return []any{o.Timestamp, o.Open, o.High, o.Low, o.Close, o.Volume}
+}

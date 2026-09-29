@@ -13,10 +13,15 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[] }> = {
+// from/to: boundary helpers when the row is not a map (default <T>FromMap / <T>ToMap)
+export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, to?: string }> = {
     'Ticker': { 'names': [ 'ParseTicker', 'SafeTicker', 'ParseContractTicker' ] },
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
+    'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
 };
+
+const fromName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].from ?? (struct + 'FromMap');
+const toName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].to ?? (struct + 'ToMap');
 
 const NAME_TO_STRUCT = new Map<string, string> ();
 for (const [ struct, spec ] of Object.entries (GO_STRUCT_RETURN_TYPES)) {
@@ -156,7 +161,7 @@ export function goStructReturnsPass (content: string): string {
                 continue;
             }
             if (applied) continue;
-            edits.push ({ 'at': start, 'del': 0, 'text': q + struct + 'FromMap(' });
+            edits.push ({ 'at': start, 'del': 0, 'text': q + fromName (struct) + '(' });
             edits.push ({ 'at': start + expr.length, 'del': 0, 'text': ')' });
         }
     }
@@ -166,9 +171,10 @@ export function goStructReturnsPass (content: string): string {
         const struct = NAME_TO_STRUCT.get (m[2]);
         if (struct === undefined || !mask[m.index]) continue;
         const nameAt = m.index + m[1].length;
-        if (identitySpans.has (nameAt) || content.slice (Math.max (0, m.index - 6), m.index) === 'ToMap(') continue;
+        const to = toName (struct) + '(';
+        if (identitySpans.has (nameAt) || content.slice (Math.max (0, m.index - to.length), m.index) === to) continue;
         const close = matchClose (content, mask, m.index + m[0].length - 1);
-        edits.push ({ 'at': m.index, 'del': 0, 'text': q + struct + 'ToMap(' });
+        edits.push ({ 'at': m.index, 'del': 0, 'text': q + toName (struct) + '(' });
         edits.push ({ 'at': close + 1, 'del': 0, 'text': ')' });
     }
     // apply back to front; at equal offsets closers (`)`) before openers keeps nesting sane

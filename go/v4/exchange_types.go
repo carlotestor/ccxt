@@ -683,6 +683,7 @@ type OHLCV struct {
 	Low       float64
 	Close     float64
 	Volume    float64
+	row       any
 }
 
 func NewOHLCV(data any) OHLCV {
