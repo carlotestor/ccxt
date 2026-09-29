@@ -3303,10 +3303,10 @@ func (this *Woo) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optiona
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(rows, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Woo) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Woo) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "startTimestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, "startTimestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**

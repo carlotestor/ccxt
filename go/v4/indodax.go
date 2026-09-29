@@ -896,7 +896,7 @@ func (this *Indodax) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
 	return nil
 }
-func (this *Indodax) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Indodax) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "Time": 1708416900,
@@ -909,7 +909,7 @@ func (this *Indodax) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, "Time"), this.SafeNumber(ohlcv, "Open"), this.SafeNumber(ohlcv, "High"), this.SafeNumber(ohlcv, "Low"), this.SafeNumber(ohlcv, "Close"), this.SafeNumber(ohlcv, "Volume")}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "Time"), this.SafeNumber(ohlcv, "Open"), this.SafeNumber(ohlcv, "High"), this.SafeNumber(ohlcv, "Low"), this.SafeNumber(ohlcv, "Close"), this.SafeNumber(ohlcv, "Volume")})
 }
 
 /**

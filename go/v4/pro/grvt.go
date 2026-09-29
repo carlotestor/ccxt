@@ -694,7 +694,7 @@ func (this *Grvt) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseOHLCV(ohlcv, market)
+	return ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
 }
 
 /**

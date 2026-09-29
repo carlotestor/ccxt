@@ -745,7 +745,7 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bitbank) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bitbank) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [
 	//         "0.02501786",
@@ -758,7 +758,7 @@ func (this *Bitbank) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, 5), this.SafeNumber(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 5), this.SafeNumber(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4)})
 }
 
 /**

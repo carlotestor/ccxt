@@ -3928,7 +3928,7 @@ func (this *Myriad) fetchOHLCVBody(ch chan ccxt.AsyncResult[any], outcome string
  * @param {object} [market] the outcome object the candle belongs to
  * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
  */
-func (this *Myriad) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Myriad) ParseOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//     {
 	//         "timestamp": 1705318200,
@@ -3947,7 +3947,7 @@ func (this *Myriad) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var low *float64 = this.SafeNumber(ohlcv, "low")
 	var close *float64 = this.SafeNumber(ohlcv, "close")
 	var price *float64 = this.SafeNumber(ohlcv, "price", this.SafeNumber(ohlcv, "value")) // fallback single-value tick
-	return []any{this.SafeTimestamp(ohlcv, "timestamp"), func() any {
+	return ccxt.OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "timestamp"), func() any {
 		if open != nil {
 			return open
 		}
@@ -3967,7 +3967,7 @@ func (this *Myriad) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 			return close
 		}
 		return price
-	}(), 0}
+	}(), 0})
 }
 
 /**

@@ -2345,7 +2345,7 @@ func (this *Lighter) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Lighter) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Lighter) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	// {
 	//     "t": 1767700500000,
@@ -2364,7 +2364,7 @@ func (this *Lighter) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")})
 }
 
 /**

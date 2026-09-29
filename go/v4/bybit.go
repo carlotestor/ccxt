@@ -3911,7 +3911,7 @@ func (this *Bybit) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	return nil
 }
-func (this *Bybit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bybit) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [
 	//         "1621162800",
@@ -3932,7 +3932,7 @@ func (this *Bybit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		}
 		return 5
 	}()
-	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)})
 }
 
 /**

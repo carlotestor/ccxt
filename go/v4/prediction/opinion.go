@@ -1160,7 +1160,7 @@ func (this *Opinion) fetchOHLCVBody(ch chan ccxt.AsyncResult[any], outcome strin
  * @param {object} [market] the outcome object the candle belongs to
  * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
  */
-func (this *Opinion) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Opinion) ParseOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	// Unused: fetchOHLCV maps { p, t } points directly.
 	//
 	//     { "p": "0.001", "t": 1785495600 }
@@ -1168,7 +1168,7 @@ func (this *Opinion) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var price *float64 = this.SafeNumber(ohlcv, "p")
-	return []any{this.SafeTimestamp(ohlcv, "t"), price, price, price, price, nil}
+	return ccxt.OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "t"), price, price, price, price, nil})
 }
 
 /**

@@ -4109,7 +4109,7 @@ func (this *Kucoin) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symb
 		return nil
 	}
 }
-func (this *Kucoin) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Kucoin) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [
 	//         "1545904980",             // Start time of the candle cycle
@@ -4126,10 +4126,10 @@ func (this *Kucoin) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var timestampString *string = this.SafeString(ohlcv, 0)
 	if (timestampString != nil) && (len(*timestampString) <= 10) {
 		// kucoin spot and uta return seconds timestamps
-		return []any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)}
+		return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)})
 	} else {
 		// kucoin futures return milliseconds timestamps
-		return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+		return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 	}
 }
 

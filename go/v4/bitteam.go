@@ -920,7 +920,7 @@ func (this *Bitteam) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Bitteam) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bitteam) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "t": 1669680000,
@@ -933,7 +933,7 @@ func (this *Bitteam) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")})
 }
 
 /**

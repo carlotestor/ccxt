@@ -1925,7 +1925,7 @@ func (this *Delta) fetchTradesBody(ch chan AsyncResult[any], symbol any, optiona
 	ch <- AsyncResult[any]{Value: this.ParseTrades(result, market, since, limit)}
 	return nil
 }
-func (this *Delta) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Delta) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "time":1605393120,
@@ -1938,7 +1938,7 @@ func (this *Delta) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, "time"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "time"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**

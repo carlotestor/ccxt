@@ -1903,7 +1903,7 @@ func (this *Hibachi) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseTrades(tradesList, market, since, limit, params)}
 	return nil
 }
-func (this *Hibachi) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Hibachi) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	// [
 	//     {
@@ -1919,7 +1919,7 @@ func (this *Hibachi) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeIntegerProduct(ohlcv, "timestamp", 1000), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volumeNotional")}
+	return OHLCVFromList([]any{this.SafeIntegerProduct(ohlcv, "timestamp", 1000), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volumeNotional")})
 }
 
 /**

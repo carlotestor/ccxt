@@ -1844,7 +1844,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[any], outcome string
  * @param {object} [market] the outcome object the candle belongs to
  * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
  */
-func (this *Kalshi) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Kalshi) ParseOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//     {
 	//         "end_period_ts": 1776109260,
@@ -1887,7 +1887,7 @@ func (this *Kalshi) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	if endTimestamp != nil {
 		timestamp = ccxt.Subtract(endTimestamp, *durationSeconds*1000)
 	}
-	return []any{timestamp, this.SafeNumber(price, "open_dollars", previous), this.SafeNumber(price, "high_dollars", previous), this.SafeNumber(price, "low_dollars", previous), this.SafeNumber(price, "close_dollars", previous), this.SafeNumber(ohlcv, "volume_fp", 0)}
+	return ccxt.OHLCVFromList([]any{timestamp, this.SafeNumber(price, "open_dollars", previous), this.SafeNumber(price, "high_dollars", previous), this.SafeNumber(price, "low_dollars", previous), this.SafeNumber(price, "close_dollars", previous), this.SafeNumber(ohlcv, "volume_fp", 0)})
 }
 
 /**

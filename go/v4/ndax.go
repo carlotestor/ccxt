@@ -1321,7 +1321,7 @@ func (this *Ndax) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Ndax) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Ndax) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [
 	//         1501603632000, // 0 DateTime
@@ -1337,7 +1337,7 @@ func (this *Ndax) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 }
 
 /**

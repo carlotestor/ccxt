@@ -1504,7 +1504,7 @@ func (this *Lbank) fetchTradesBody(ch chan AsyncResult[any], symbol any, optiona
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Lbank) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Lbank) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//   [
 	//     1482311500, // timestamp
@@ -1517,7 +1517,7 @@ func (this *Lbank) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 }
 
 /**

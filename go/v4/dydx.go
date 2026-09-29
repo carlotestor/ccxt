@@ -879,7 +879,7 @@ func (this *Dydx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 	ch <- AsyncResult[any]{Value: this.ParseTrades(rows, market, since, limit)}
 	return nil
 }
-func (this *Dydx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Dydx) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	// {
 	//     "startedAt": "2025-07-25T09:47:00.000Z",
@@ -899,7 +899,7 @@ func (this *Dydx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.Parse8601(this.SafeString(ohlcv, "startedAt")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "baseTokenVolume")}
+	return OHLCVFromList([]any{this.Parse8601(this.SafeString(ohlcv, "startedAt")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "baseTokenVolume")})
 }
 
 /**

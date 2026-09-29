@@ -1548,7 +1548,7 @@ func (this *Bigone) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
 	return nil
 }
-func (this *Bigone) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bigone) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "close": "0.021562",
@@ -1561,7 +1561,7 @@ func (this *Bigone) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.Parse8601(this.SafeString(ohlcv, "time")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return OHLCVFromList([]any{this.Parse8601(this.SafeString(ohlcv, "time")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**

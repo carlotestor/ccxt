@@ -6960,7 +6960,7 @@ func (this *Binance) fetchMarkPricesBody(ch chan AsyncResult[map[string]any], op
 	ch <- AsyncResult[map[string]any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
-func (this *Binance) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Binance) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	// when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
 	//     [
 	//         1591478520000, // open time
@@ -7021,7 +7021,7 @@ func (this *Binance) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		}
 		return 5
 	}()
-	return []any{this.SafeInteger2(ohlcv, 0, "openTime"), this.SafeNumber2(ohlcv, 1, "open"), this.SafeNumber2(ohlcv, 2, "high"), this.SafeNumber2(ohlcv, 3, "low"), this.SafeNumber2(ohlcv, 4, "close"), this.SafeNumber2(ohlcv, volumeIndex, "volume")}
+	return OHLCVFromList([]any{this.SafeInteger2(ohlcv, 0, "openTime"), this.SafeNumber2(ohlcv, 1, "open"), this.SafeNumber2(ohlcv, 2, "high"), this.SafeNumber2(ohlcv, 3, "low"), this.SafeNumber2(ohlcv, 4, "close"), this.SafeNumber2(ohlcv, volumeIndex, "volume")})
 }
 
 /**

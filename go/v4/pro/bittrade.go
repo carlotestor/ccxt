@@ -380,7 +380,7 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 	}
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
-	var parsed any = this.ParseOHLCV(tick, market)
+	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, ch)
 }

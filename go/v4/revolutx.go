@@ -867,7 +867,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sy
  * @param {object} [market] the market the candle is for
  * @returns {int[]} an [OHLCV structure]{@link https://docs.ccxt.com/?id=ohlcv-structure}
  */
-func (this *Revolutx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Revolutx) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ohlcv, "start")
@@ -876,7 +876,7 @@ func (this *Revolutx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var low *float64 = this.SafeNumber(ohlcv, "low")
 	var close *float64 = this.SafeNumber(ohlcv, "close")
 	var volume *float64 = this.SafeNumber(ohlcv, "volume")
-	return []any{timestamp, open, high, low, close, volume}
+	return OHLCVFromList([]any{timestamp, open, high, low, close, volume})
 }
 
 /**

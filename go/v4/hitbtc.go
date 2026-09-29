@@ -2495,7 +2495,7 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Hitbtc) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	// Spot and Swap
 	//
@@ -2521,7 +2521,7 @@ func (this *Hitbtc) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.Parse8601(this.SafeString(ohlcv, "timestamp")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "max"), this.SafeNumber(ohlcv, "min"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return OHLCVFromList([]any{this.Parse8601(this.SafeString(ohlcv, "timestamp")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "max"), this.SafeNumber(ohlcv, "min"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**

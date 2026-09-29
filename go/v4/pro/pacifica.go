@@ -1588,7 +1588,7 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 		ohlcv = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(symbolOhlcvs, timeframe, ohlcv)
 	}
-	var parsed any = this.ParseOHLCV(data)
+	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.(ccxt.Appender).Append(parsed)
 	var messageHash string = "candles:" + *timeframe + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)

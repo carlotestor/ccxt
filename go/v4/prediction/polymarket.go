@@ -2031,7 +2031,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[any], outcome st
 	ch <- ccxt.AsyncResult[any]{Value: candles}
 	return nil
 }
-func (this *Polymarket) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Polymarket) ParseOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	// Unused: fetchOHLCV performs client-side bucket aggregation directly.
 	//
 	//     {
@@ -2042,7 +2042,7 @@ func (this *Polymarket) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var price *float64 = this.SafeNumber(ohlcv, "p")
-	return []any{this.SafeTimestamp(ohlcv, "t"), price, price, price, price, nil}
+	return ccxt.OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "t"), price, price, price, price, nil})
 }
 
 /**

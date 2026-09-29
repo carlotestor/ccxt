@@ -7031,7 +7031,7 @@ func (this *Bitget) ParseTradingFee(data any, optionalArgs ...any) map[string]an
 		"tierBased":  nil,
 	}
 }
-func (this *Bitget) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bitget) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [
 	//         "1645911960000",
@@ -7052,7 +7052,7 @@ func (this *Bitget) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		}
 		return 5
 	}()
-	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)})
 }
 
 /**

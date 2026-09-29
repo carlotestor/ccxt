@@ -4284,7 +4284,7 @@ func (this *Htx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(result, this.SafeString(market, "symbol"), since, limit)}
 	return nil
 }
-func (this *Htx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Htx) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "amount":1.2082,
@@ -4299,7 +4299,7 @@ func (this *Htx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, "id"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "amount")}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "id"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "amount")})
 }
 
 /**

@@ -725,7 +725,7 @@ func (this *Bitvavo) HandleOHLCV(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseOHLCV(candle, market)
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(candle, market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

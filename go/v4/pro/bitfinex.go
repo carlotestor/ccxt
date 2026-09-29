@@ -385,7 +385,7 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	var ohlcvsLength int = ccxt.GetArrayLength(ohlcvs)
 	for i := 0; i < ohlcvsLength; i++ {
 		var ohlcv any = ccxt.GetValue(ohlcvs, (ohlcvsLength-i)-1)
-		var parsed any = this.ParseOHLCV(ohlcv, market)
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

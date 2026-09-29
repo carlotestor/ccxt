@@ -1487,7 +1487,7 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 	}
 	var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
-	var parsed any = this.ParseOHLCV(data)
+	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.(ccxt.Appender).Append(parsed)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol))
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)

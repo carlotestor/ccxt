@@ -1559,7 +1559,7 @@ func (this *Upbit) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
-func (this *Upbit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Upbit) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "market": "BTC-ETH",
@@ -1577,7 +1577,7 @@ func (this *Upbit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.Parse8601(this.SafeString(ohlcv, "candle_date_time_utc")), this.SafeNumber(ohlcv, "opening_price"), this.SafeNumber(ohlcv, "high_price"), this.SafeNumber(ohlcv, "low_price"), this.SafeNumber(ohlcv, "trade_price"), this.SafeNumber(ohlcv, "candle_acc_trade_volume")}
+	return OHLCVFromList([]any{this.Parse8601(this.SafeString(ohlcv, "candle_date_time_utc")), this.SafeNumber(ohlcv, "opening_price"), this.SafeNumber(ohlcv, "high_price"), this.SafeNumber(ohlcv, "low_price"), this.SafeNumber(ohlcv, "trade_price"), this.SafeNumber(ohlcv, "candle_acc_trade_volume")})
 }
 
 /**

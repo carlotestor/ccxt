@@ -1465,7 +1465,7 @@ func (this *BaseExchange) ParseWsOrderTrade(trade any, optionalArgs ...any) any 
 func (this *BaseExchange) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.DerivedExchange.ParseOHLCV(ohlcv, market)
+	return OHLCVToList(this.DerivedExchange.ParseOHLCV(ohlcv, market))
 }
 func (this *BaseExchange) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
@@ -3962,13 +3962,13 @@ func (this *BaseExchange) FilterBySymbol(objects any, optionalArgs ...any) any {
 	_ = symbol
 	return this.FilterByKey(objects, "symbol", symbol)
 }
-func (this *BaseExchange) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	if IsArray(ohlcv) {
-		return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+		return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 	}
-	return ohlcv
+	return OHLCVFromList(ohlcv)
 }
 func (this *BaseExchange) SafeNetwork(network any) any {
 	var withdrawEnabled *bool = this.SafeBool(network, "withdraw")
@@ -4294,7 +4294,7 @@ func (this *BaseExchange) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
 	}
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(ohlcvs); i++ {
-		results = append(results, this.DerivedExchange.ParseOHLCV(GetValue(ohlcvs, i), market))
+		results = append(results, OHLCVToList(this.DerivedExchange.ParseOHLCV(GetValue(ohlcvs, i), market)))
 	}
 	var sorted []any = this.SortBy(results, 0)
 	return this.FilterBySinceLimit(sorted, since, limit, 0, tail)

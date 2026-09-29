@@ -715,7 +715,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[any], symb
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(candles, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Coinbaseinternational) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//   {
 	//     "start": "2024-04-23T00:00:00Z",
@@ -728,7 +728,7 @@ func (this *Coinbaseinternational) ParseOHLCV(ohlcv any, optionalArgs ...any) an
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.Parse8601(this.SafeString2(ohlcv, "start", "time")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return OHLCVFromList([]any{this.Parse8601(this.SafeString2(ohlcv, "start", "time")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**

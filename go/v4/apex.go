@@ -1103,7 +1103,7 @@ func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(OHLCVs, market, timeframe, since, limitResolved)}
 	return nil
 }
-func (this *Apex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Apex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//  {
 	//     "start": 1647511440000,
@@ -1119,7 +1119,7 @@ func (this *Apex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger2(ohlcv, "start", "t"), this.SafeNumber2(ohlcv, "open", "o"), this.SafeNumber2(ohlcv, "high", "h"), this.SafeNumber2(ohlcv, "low", "l"), this.SafeNumber2(ohlcv, "close", "c"), this.SafeNumber2(ohlcv, "volume", "v")}
+	return OHLCVFromList([]any{this.SafeInteger2(ohlcv, "start", "t"), this.SafeNumber2(ohlcv, "open", "o"), this.SafeNumber2(ohlcv, "high", "h"), this.SafeNumber2(ohlcv, "low", "l"), this.SafeNumber2(ohlcv, "close", "c"), this.SafeNumber2(ohlcv, "volume", "v")})
 }
 
 /**

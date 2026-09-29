@@ -1711,7 +1711,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(candles, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Grvt) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Grvt) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//            {
 	//                "open_time": "1767288240000000000",
@@ -1728,7 +1728,7 @@ func (this *Grvt) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeIntegerProduct(ohlcv, "open_time", 0.000001), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume_b")}
+	return OHLCVFromList([]any{this.SafeIntegerProduct(ohlcv, "open_time", 0.000001), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume_b")})
 }
 
 /**

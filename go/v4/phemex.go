@@ -1700,7 +1700,7 @@ func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 	}
 	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
 }
-func (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [
 	//         1592467200, // timestamp
@@ -1726,7 +1726,7 @@ func (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 			baseVolume = nil
 		}
 	}
-	return []any{this.SafeTimestamp(ohlcv, 0), this.ParseNumber(this.FromEp(this.SafeString(ohlcv, 3), market)), this.ParseNumber(this.FromEp(this.SafeString(ohlcv, 4), market)), this.ParseNumber(this.FromEp(this.SafeString(ohlcv, 5), market)), this.ParseNumber(this.FromEp(this.SafeString(ohlcv, 6), market)), baseVolume}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, 0), this.ParseNumber(this.FromEp(this.SafeString(ohlcv, 3), market)), this.ParseNumber(this.FromEp(this.SafeString(ohlcv, 4), market)), this.ParseNumber(this.FromEp(this.SafeString(ohlcv, 5), market)), this.ParseNumber(this.FromEp(this.SafeString(ohlcv, 6), market)), baseVolume})
 }
 
 /**

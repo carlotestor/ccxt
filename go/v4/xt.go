@@ -2074,7 +2074,7 @@ func (this *Xt) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optional
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframe, since, limitResolved)}
 	return nil
 }
-func (this *Xt) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Xt) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	// spot
 	//
@@ -2109,7 +2109,7 @@ func (this *Xt) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	if isInverse != nil && *isInverse == true {
 		volumeIndex = "v"
 	}
-	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber2(ohlcv, "q", volumeIndex)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber2(ohlcv, "q", volumeIndex)})
 }
 
 /**

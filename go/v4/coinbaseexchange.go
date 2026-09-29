@@ -1659,7 +1659,7 @@ func (this *Coinbaseexchange) fetchTradingFeesBody(ch chan AsyncResult[any], opt
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Coinbaseexchange) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [
 	//         1591514160,
@@ -1672,7 +1672,7 @@ func (this *Coinbaseexchange) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 }
 
 /**

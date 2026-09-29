@@ -457,7 +457,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	// reverse order of array to store candles in ascending order
 	for i := 0; i < changesLength; i++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(changesLength, i), 1)
-		var parsed any = this.ParseOHLCV(ccxt.GetValue(changes, index), market)
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ccxt.GetValue(changes, index), market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash string = "ohlcv:" + *symbol + ":" + timeframeId

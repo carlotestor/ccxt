@@ -1291,7 +1291,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[map[string]any], 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "amount")}
 	return nil
 }
-func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "instrument_code":"BTC_EUR",
@@ -1332,7 +1332,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var alignedTimestamp int64 = duration * this.ParseToInt(Divide(timestamp, duration))
 	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
 	var volumeField *string = this.SafeString(options, "volume", "total_amount")
-	return []any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)}
+	return OHLCVFromList([]any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)})
 }
 
 /**

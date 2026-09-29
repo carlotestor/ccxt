@@ -1752,12 +1752,12 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 	// use a reverse lookup in a static map instead
 	var timeframe *string = this.FindTimeframe(interval)
 	for i := 0; i < len(data); i++ {
-		var parsed any = this.ParseOHLCV(func() any {
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}(), market)
+		}(), market))
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {

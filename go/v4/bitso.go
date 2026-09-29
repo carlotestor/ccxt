@@ -1129,7 +1129,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(payload, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Bitso) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bitso) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "bucket_start_time":1648219140000,
@@ -1146,7 +1146,7 @@ func (this *Bitso) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "bucket_start_time"), this.SafeNumber(ohlcv, "first_rate"), this.SafeNumber(ohlcv, "max_rate"), this.SafeNumber(ohlcv, "min_rate"), this.SafeNumber(ohlcv, "last_rate"), this.SafeNumber(ohlcv, "volume")}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, "bucket_start_time"), this.SafeNumber(ohlcv, "first_rate"), this.SafeNumber(ohlcv, "max_rate"), this.SafeNumber(ohlcv, "min_rate"), this.SafeNumber(ohlcv, "last_rate"), this.SafeNumber(ohlcv, "volume")})
 }
 func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//

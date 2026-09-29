@@ -332,14 +332,14 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 	}
 	return nil
 }
-func (this *Mudrex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Mudrex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
 	//     [ timestampInSeconds, open, high, low, close, volume ]
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 }
 
 /**

@@ -1237,7 +1237,7 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	var data any = this.SafeValue(message, "data")
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var tick map[string]any = ccxt.SafeMapTyped(data, i)
-		var parsed any = this.ParseOHLCV(tick, market)
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

@@ -857,7 +857,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	ch <- AsyncResult[any]{Value: this.ParseTrades(dataList, market, since, limit)}
 	return nil
 }
-func (this *Btcturk) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Btcturk) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//    {
 	//        "timestamp": 1661990400,
@@ -870,7 +870,7 @@ func (this *Btcturk) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, "timestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "timestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**
@@ -1014,7 +1014,7 @@ func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
 			"close":     this.SafeNumber(close, i),
 			"volume":    this.SafeNumber(volume, i),
 		}
-		results = append(results, this.ParseOHLCV(ohlcv, market))
+		results = append(results, OHLCVToList(this.ParseOHLCV(ohlcv, market)))
 	}
 	var sorted []any = this.SortBy(results, 0)
 	return this.FilterBySinceLimit(sorted, since, limit, 0, tail)

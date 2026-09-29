@@ -2468,10 +2468,10 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}, market)
 }
-func (this *Foxbit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Foxbit) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 6)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 6)})
 }
 func (this *Foxbit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)

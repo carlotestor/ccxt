@@ -508,7 +508,7 @@ func (this *Upbit) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "code")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "candle.1s:" + *symbol
-	var ohlcv any = this.ParseOHLCV(message)
+	var ohlcv any = ccxt.OHLCVToList(this.ParseOHLCV(message))
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
 func (this *Upbit) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

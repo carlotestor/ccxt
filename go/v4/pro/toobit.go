@@ -524,7 +524,7 @@ func (this *Toobit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var parsed any = this.ParseOHLCV(ohlcv, market)
+	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
 	return parsed
 }
 

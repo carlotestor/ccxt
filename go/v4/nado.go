@@ -3136,7 +3136,7 @@ func (this *Nado) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Nado) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Nado) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "product_id": 1,
@@ -3152,7 +3152,7 @@ func (this *Nado) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeTimestamp(ohlcv, "timestamp"), this.ParseX18(this.SafeString(ohlcv, "open_x18")), this.ParseX18(this.SafeString(ohlcv, "high_x18")), this.ParseX18(this.SafeString(ohlcv, "low_x18")), this.ParseX18(this.SafeString(ohlcv, "close_x18")), this.ParseX18(this.SafeString(ohlcv, "volume"))}
+	return OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "timestamp"), this.ParseX18(this.SafeString(ohlcv, "open_x18")), this.ParseX18(this.SafeString(ohlcv, "high_x18")), this.ParseX18(this.SafeString(ohlcv, "low_x18")), this.ParseX18(this.SafeString(ohlcv, "close_x18")), this.ParseX18(this.SafeString(ohlcv, "volume"))})
 }
 func (this *Nado) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//

@@ -1745,7 +1745,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Bitrue) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bitrue) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	// spot
 	//
@@ -1776,7 +1776,7 @@ func (this *Bitrue) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	if timestamp == nil {
 		timestamp = this.SafeInteger(ohlcv, "idx")
 	}
-	return []any{timestamp, this.SafeNumber2(ohlcv, "o", "open"), this.SafeNumber2(ohlcv, "h", "high"), this.SafeNumber2(ohlcv, "l", "low"), this.SafeNumber2(ohlcv, "c", "close"), this.SafeNumber2(ohlcv, "v", "vol")}
+	return OHLCVFromList([]any{timestamp, this.SafeNumber2(ohlcv, "o", "open"), this.SafeNumber2(ohlcv, "h", "high"), this.SafeNumber2(ohlcv, "l", "low"), this.SafeNumber2(ohlcv, "c", "close"), this.SafeNumber2(ohlcv, "v", "vol")})
 }
 
 /**

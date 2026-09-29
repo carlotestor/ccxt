@@ -1143,12 +1143,12 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var parsed any = this.ParseOHLCV(func() any {
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}())
+		}()))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

@@ -2263,7 +2263,7 @@ func (this *Coinex) ParseTradingFee(fee any, optionalArgs ...any) map[string]any
 		"tierBased":  true,
 	}
 }
-func (this *Coinex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Coinex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "close": "66999.95",
@@ -2278,7 +2278,7 @@ func (this *Coinex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "created_at"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "value")}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, "created_at"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "value")})
 }
 
 /**

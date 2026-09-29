@@ -1188,7 +1188,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Alpaca) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Alpaca) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//        "c":22895,
@@ -1205,7 +1205,7 @@ func (this *Alpaca) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	var datetime *string = this.SafeString(ohlcv, "t")
 	var timestamp *int64 = this.Parse8601(datetime)
-	return []any{timestamp, this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	return OHLCVFromList([]any{timestamp, this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")})
 }
 
 /**

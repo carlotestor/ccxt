@@ -953,7 +953,7 @@ func (this *P2b) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optiona
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(result, market, timeframe, since, limit)}
 	return nil
 }
-func (this *P2b) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *P2b) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//    [
 	//        1699253400,       // Kline open time
@@ -968,7 +968,7 @@ func (this *P2b) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeIntegerProduct(ohlcv, 0, 1000), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)}
+	return OHLCVFromList([]any{this.SafeIntegerProduct(ohlcv, 0, 1000), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)})
 }
 
 /**

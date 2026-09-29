@@ -709,7 +709,7 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 	var data []any = ccxt.SafeListTyped(message, "candles")
 	for i := 0; i < len(data); i++ {
 		var tick map[string]any = ccxt.SafeMapTyped(data, i)
-		var parsed any = this.ParseOHLCV(tick, market)
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	if messageHash != nil {

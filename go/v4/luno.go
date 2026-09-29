@@ -1604,7 +1604,7 @@ func (this *Luno) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Luno) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Luno) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	// {
 	//     "timestamp": 1664055240000,
 	//     "open": "19612.65",
@@ -1615,7 +1615,7 @@ func (this *Luno) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	// }
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "timestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, "timestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**

@@ -1513,7 +1513,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
-func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	// generation 1
 	//
@@ -1550,7 +1550,7 @@ func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	} else {
 		timestamp = this.Parse8601(this.SafeString2(ohlcv, "candle_date_time_utc", "candle_date_time_kst"))
 	}
-	return []any{timestamp, this.SafeNumber2(ohlcv, 1, "opening_price"), this.SafeNumber2(ohlcv, 3, "high_price"), this.SafeNumber2(ohlcv, 4, "low_price"), this.SafeNumber2(ohlcv, 2, "trade_price"), this.SafeNumber2(ohlcv, 5, "candle_acc_trade_volume")}
+	return OHLCVFromList([]any{timestamp, this.SafeNumber2(ohlcv, 1, "opening_price"), this.SafeNumber2(ohlcv, 3, "high_price"), this.SafeNumber2(ohlcv, 4, "low_price"), this.SafeNumber2(ohlcv, 2, "trade_price"), this.SafeNumber2(ohlcv, 5, "candle_acc_trade_volume")})
 }
 
 /**

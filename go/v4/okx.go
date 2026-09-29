@@ -3913,7 +3913,7 @@ func (this *Okx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limit)}
 	return nil
 }
-func (this *Okx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Okx) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     [
 	//         "1678928760000", // timestamp
@@ -3936,7 +3936,7 @@ func (this *Okx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		}
 		return 6
 	}()
-	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)})
 }
 
 /**

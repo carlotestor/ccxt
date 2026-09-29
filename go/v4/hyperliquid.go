@@ -1847,7 +1847,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan AsyncResult[any], symbol string,
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(candles, market, timeframe, originalSince, limit, useTail)}
 	return nil
 }
-func (this *Hyperliquid) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	//     {
 	//         "T": 1704287699999,
@@ -1864,7 +1864,7 @@ func (this *Hyperliquid) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")})
 }
 
 /**

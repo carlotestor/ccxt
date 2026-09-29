@@ -1658,10 +1658,10 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(candles, market, timeframe, since, limit)}
 	return nil
 }
-func (this *Toobit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Toobit) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeIntegerN(ohlcv, []any{0, "time", "t"}), this.SafeNumberN(ohlcv, []any{1, "open", "o"}), this.SafeNumberN(ohlcv, []any{2, "high", "h"}), this.SafeNumberN(ohlcv, []any{3, "low", "l"}), this.SafeNumberN(ohlcv, []any{4, "close", "c"}), this.SafeNumberN(ohlcv, []any{5, "volume", "v"})}
+	return OHLCVFromList([]any{this.SafeIntegerN(ohlcv, []any{0, "time", "t"}), this.SafeNumberN(ohlcv, []any{1, "open", "o"}), this.SafeNumberN(ohlcv, []any{2, "high", "h"}), this.SafeNumberN(ohlcv, []any{3, "low", "l"}), this.SafeNumberN(ohlcv, []any{4, "close", "c"}), this.SafeNumberN(ohlcv, []any{5, "volume", "v"})})
 }
 
 /**

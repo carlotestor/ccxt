@@ -1698,7 +1698,7 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 		var prefix *string = ccxt.SafeStringPtr(ccxt.Add(timeframe, "_"))
 		var marketId string = ccxt.Replace(subscription, prefix, "")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
-		var parsed any = this.ParseOHLCV(ohlcv)
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv))
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {

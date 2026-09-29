@@ -1657,7 +1657,7 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 		}
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var parsed any = this.ParseOHLCV(data, market)
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {

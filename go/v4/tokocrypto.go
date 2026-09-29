@@ -1669,7 +1669,7 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs
 	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbols)}
 	return nil
 }
-func (this *Tokocrypto) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Tokocrypto) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	// when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
 	//     [
 	//         1591478520000, // open time
@@ -1706,7 +1706,7 @@ func (this *Tokocrypto) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 }
 
 /**

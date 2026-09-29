@@ -800,7 +800,7 @@ func (this *Poloniex) Describe() any {
 		},
 	})
 }
-func (this *Poloniex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Poloniex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	// spot:
 	//
@@ -842,9 +842,9 @@ func (this *Poloniex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var ohlcvLength int = GetArrayLength(ohlcv)
 	var isContract bool = (ohlcvLength == 9)
 	if isContract {
-		return []any{this.SafeInteger(ohlcv, 7), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 5)}
+		return OHLCVFromList([]any{this.SafeInteger(ohlcv, 7), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 5)})
 	}
-	return []any{this.SafeInteger(ohlcv, 12), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 5)}
+	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 12), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 5)})
 }
 
 /**
