@@ -3999,9 +3999,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     // pass covers the text assembled here (hand-written emitters and sections concatenated after
     // the transpiled ones). It is a no-op on text that is already aligned. The nil-check collapse
     // runs last so its match sees the canonical spacing.
-    if (path.endsWith ('.go')) {
-        content = goStructReturnsPass (content);
-    }
     content = collapseRedundantNilChecks (formatGoSource (path, normalizeGoFileHeader (alignGoTrailingComments (content))));
     // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
@@ -4013,6 +4010,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     // fs.writeFileSync below wrote every generated file a second time
     content = g10kNativeDerefs (path, content);
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
+    // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
+    if (path.endsWith ('.go')) {
+        content = goStructReturnsPass (content);
+    }
     // layout last: the passes above splice operands (derefs, natives) after spacing and the
     // comment columns were computed; recompute both from the final text
     if (path.endsWith ('.go')) {
