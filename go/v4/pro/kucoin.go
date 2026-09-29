@@ -1099,7 +1099,7 @@ func (this *Kucoin) HandleContractTicker(client any, message any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
-	var ticker map[string]any = this.ParseTicker(data, market)
+	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
 	this.Tickers.Store(market["symbol"], ticker)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", market["symbol"]))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -1154,7 +1154,7 @@ func (this *Kucoin) ParseWsUtaTicker(ticker map[string]any, optionalArgs ...any)
 	if timestamp == nil {
 		timestamp = this.SafeIntegerProduct(ticker, "M", 0.000001)
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1177,7 +1177,7 @@ func (this *Kucoin) ParseWsUtaTicker(ticker map[string]any, optionalArgs ...any)
 		"markPrice":     this.SafeString(ticker, "mp"),
 		"indexPrice":    this.SafeString(ticker, "ip"),
 		"info":          ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**
@@ -1363,7 +1363,7 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 		var ask []any = ccxt.SafeListTyped(data, "asks")
 		var bid []any = ccxt.SafeListTyped(data, "bids")
 		var timestamp *int64 = this.SafeInteger(data, "timestamp")
-		return this.SafeTicker(map[string]any{
+		return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"symbol":    symbol,
 			"timestamp": timestamp,
 			"datetime":  this.Iso8601(timestamp),
@@ -1372,7 +1372,7 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 			"bid":       this.SafeNumber(bid, 0),
 			"bidVolume": this.SafeNumber(bid, 1),
 			"info":      ticker,
-		}, marketResolved)
+		}, marketResolved))
 	} else {
 		// futures
 		var data map[string]any = ccxt.SafeMapTyped(ticker, "data")
@@ -1380,7 +1380,7 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 		var marketResolved map[string]any = this.SafeMarket(marketId, market)
 		var symbol *string = this.SafeString(marketResolved, "symbol")
 		var timestamp *int64 = this.SafeIntegerProduct(data, "ts", 0.000001)
-		return this.SafeTicker(map[string]any{
+		return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"symbol":    symbol,
 			"timestamp": timestamp,
 			"datetime":  this.Iso8601(timestamp),
@@ -1389,7 +1389,7 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 			"bid":       this.SafeNumber(data, "bestBidPrice"),
 			"bidVolume": this.SafeNumber(data, "bestBidSize"),
 			"info":      ticker,
-		}, marketResolved)
+		}, marketResolved))
 	}
 }
 

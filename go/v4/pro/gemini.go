@@ -674,7 +674,7 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 	var market map[string]any = this.SafeMarket(ccxt.ToLower(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(this.Bidsasks.Has(symbol)) {
-		this.Bidsasks.Store(symbol, this.ParseTicker(map[string]any{}))
+		this.Bidsasks.Store(symbol, ccxt.TickerToMap(this.ParseTicker(map[string]any{})))
 		ccxt.AddElementToObject(this.Bidsasks.Get(symbol), "symbol", symbol)
 	}
 	var currentBidAsk any = this.Bidsasks.Get(symbol)

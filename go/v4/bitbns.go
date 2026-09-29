@@ -548,7 +548,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], timestamp)}
 	return nil
 }
-func (this *Bitbns) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitbns) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol":"BTC/INR",

@@ -3551,14 +3551,14 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 	if (event != nil && *event == "markPriceUpdate") || (event != nil && *event == "markPrice") {
 		// handle this separately because some fields clash with the ticker fields
 		// futures use 'p' for mark price; options use 'mp'
-		return this.SafeTicker(map[string]any{
+		return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"symbol":     symbol,
 			"timestamp":  this.SafeInteger(message, "E"),
 			"datetime":   this.Iso8601(this.SafeInteger(message, "E")),
 			"info":       message,
 			"markPrice":  this.SafeString2(message, "mp", "p"),
 			"indexPrice": this.SafeString(message, "i"),
-		})
+		}))
 	}
 	var timestamp *int64 = nil
 	if event != nil && *event == "bookTicker" {
@@ -3586,7 +3586,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 			quoteVolume = ccxt.Precise.StringMul(baseVolume, weightedAverage)
 		}
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -3607,7 +3607,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          message,
-	}, market)
+	}, market))
 }
 func (this *Binance) HandleTickerWs(client any, message map[string]any) {
 	//
@@ -6496,7 +6496,7 @@ func (this *Binance) HandleStockPrice(client any, message map[string]any) {
 			continue
 		}
 		var timestamp *int64 = this.SafeInteger(rate, "t")
-		var parsed map[string]any = this.SafeTicker(map[string]any{
+		var parsed map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"symbol":        symbol,
 			"timestamp":     timestamp,
 			"datetime":      this.Iso8601(timestamp),
@@ -6504,7 +6504,7 @@ func (this *Binance) HandleStockPrice(client any, message map[string]any) {
 			"close":         this.SafeString(rate, "p"),
 			"previousClose": this.SafeString(rate, "pc"),
 			"info":          rate,
-		})
+		}))
 		this.Tickers.Store(symbol, parsed)
 		ccxt.AddElementToObject(tickers, symbol, parsed)
 		client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add("stock:price:", symbol))
@@ -6518,7 +6518,7 @@ func (this *Binance) HandleStockQuote(client any, message map[string]any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger2(message, "E", "T")
-	var parsed map[string]any = this.SafeTicker(map[string]any{
+	var parsed map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -6527,7 +6527,7 @@ func (this *Binance) HandleStockQuote(client any, message map[string]any) {
 		"bidVolume": this.SafeString(message, "bs"),
 		"askVolume": this.SafeString(message, "as"),
 		"info":      message,
-	})
+	}))
 	this.Bidsasks.Store(symbol, parsed)
 	client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add("stock:quote:", symbol))
 }

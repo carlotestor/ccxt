@@ -3067,12 +3067,12 @@ func (this *Bingx) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol s
 	if data != nil {
 		var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(first, market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(first, market))}
 		return nil
 	}
 	var dataDict map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(dataDict, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(dataDict, market))}
 	return nil
 }
 
@@ -3226,11 +3226,11 @@ func (this *Bingx) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	if IsArray(GetValue(response, "data")) {
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(this.SafeDict(GetValue(response, "data"), 0, map[string]any{}), market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(this.SafeDict(GetValue(response, "data"), 0, map[string]any{}), market))}
 		return nil
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(GetValue(response, "data"), market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(GetValue(response, "data"), market))}
 	return nil
 }
 
@@ -3322,7 +3322,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan AsyncResult[map[string]any], opti
 	ch <- AsyncResult[map[string]any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// mark price
 	// {

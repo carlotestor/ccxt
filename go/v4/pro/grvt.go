@@ -379,7 +379,7 @@ func (this *Grvt) ParseWsTicker(message map[string]any, optionalArgs ...any) any
 	// same dict as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseTicker(message, market)
+	return ccxt.TickerToMap(this.ParseTicker(message, market))
 }
 
 /**

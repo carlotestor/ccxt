@@ -327,7 +327,7 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 		var marketId *string = this.SafeString(parts, 1)
 		var market map[string]any = this.SafeMarket(marketId)
 		var stats map[string]any = ccxt.SafeMapTyped(data, "stats")
-		ticker = this.SafeTicker(map[string]any{
+		ticker = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"symbol":      market["symbol"],
 			"timestamp":   this.SafeInteger(data, "t"),
 			"datetime":    this.Iso8601(this.SafeInteger(data, "t")),
@@ -343,9 +343,9 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 			"markPrice":   this.SafeString(data, "M"),
 			"indexPrice":  this.SafeString(data, "I"),
 			"info":        rawData,
-		}, market)
+		}, market))
 	} else {
-		ticker = this.ParseTicker(data)
+		ticker = ccxt.TickerToMap(this.ParseTicker(data))
 	}
 	var tickerSymbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if tickerSymbol != nil {

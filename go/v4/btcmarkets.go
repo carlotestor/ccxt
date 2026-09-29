@@ -1028,7 +1028,7 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan AsyncResult[map[string]any], 
 	ch <- AsyncResult[map[string]any]{Value: orderbook}
 	return nil
 }
-func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//
@@ -1133,7 +1133,7 @@ func (this *Btcmarkets) fetchTickerBody(ch chan AsyncResult[map[string]any], sym
 	//         "timestamp":"2020-08-09T18:28:23.280000Z"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 func (this *Btcmarkets) FetchTicker2Async(symbol any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1164,7 +1164,7 @@ func (this *Btcmarkets) fetchTicker2Body(ch chan EndpointResult[map[string]any],
 	}
 	var response map[string]any = r1.Value
 
-	chValue := this.ParseTicker(response, market)
+	chValue := TickerToMap(this.ParseTicker(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }

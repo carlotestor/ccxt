@@ -707,7 +707,7 @@ func (this *Foxbit) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(result, market))}
 	return nil
 }
 
@@ -2434,7 +2434,7 @@ func (this *Foxbit) ParseTradingFee(entry any, optionalArgs ...any) map[string]a
 		"tierBased":  true,
 	}
 }
-func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_symbol")

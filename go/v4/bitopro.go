@@ -576,7 +576,7 @@ func (this *Bitopro) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Bitopro) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitopro) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "pair":"btc_twd",
@@ -668,7 +668,7 @@ func (this *Bitopro) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 

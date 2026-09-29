@@ -658,7 +658,7 @@ func (this *Indodax) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, market["symbol"], nil, "buy", "sell")}
 	return nil
 }
-func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "high":"0.01951",
@@ -754,7 +754,7 @@ func (this *Indodax) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//
 	var ticker map[string]any = this.SafeDictMap(response, "ticker", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 
@@ -822,7 +822,7 @@ func (this *Indodax) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 		var rawTicker any = tickers[key]
 		var marketId string = strings.Replace(key, "_", "", 1)
 		var market map[string]any = this.SafeMarket(marketId)
-		var parsed map[string]any = this.ParseTicker(rawTicker, market)
+		var parsed map[string]any = TickerToMap(this.ParseTicker(rawTicker, market))
 		parsedTickers[marketId] = parsed
 	}
 

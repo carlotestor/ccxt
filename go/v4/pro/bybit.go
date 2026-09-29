@@ -882,7 +882,7 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 	var symbol any = nil
 	var parsed any = nil
 	if updateType != nil && *updateType == "snapshot" {
-		parsed = this.ParseTicker(data)
+		parsed = ccxt.TickerToMap(this.ParseTicker(data))
 		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
 	} else if updateType != nil && *updateType == "delta" {
 		var topicParts []string = strings.Split(*topic, ".")
@@ -894,7 +894,7 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 		var ticker map[string]any = ccxt.MapTyped(this.Tickers.Get(symbol))
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
-		parsed = this.ParseTicker(merged)
+		parsed = ccxt.TickerToMap(this.ParseTicker(merged))
 	}
 	if (ccxt.IsEqual(parsed, nil)) || (symbol == nil) {
 		return
@@ -1005,7 +1005,7 @@ func (this *Bybit) ParseWsBidAsk(orderbook any, optionalArgs ...any) any {
 	var asks []any = this.SortBy(this.Aggregate(ccxt.GetValue(orderbook, "asks")), 0)
 	var bestBid []any = ccxt.SafeListTyped(bids, 0)
 	var bestAsk []any = ccxt.SafeListTyped(asks, 0)
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    this.SafeString(market, "symbol"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -1014,7 +1014,7 @@ func (this *Bybit) ParseWsBidAsk(orderbook any, optionalArgs ...any) any {
 		"bid":       this.SafeNumber(bestBid, 0),
 		"bidVolume": this.SafeNumber(bestBid, 1),
 		"info":      orderbook,
-	}, market)
+	}, market))
 }
 
 /**

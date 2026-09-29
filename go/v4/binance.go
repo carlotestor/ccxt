@@ -6145,7 +6145,7 @@ func (this *Binance) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	ch <- AsyncResult[map[string]any]{Value: orderbook}
 	return nil
 }
-func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	// markPrices
 	//
 	//     {
@@ -6486,14 +6486,14 @@ func (this *Binance) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	if IsArray(response) {
 		var firstTicker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(firstTicker, market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(firstTicker, market))}
 		return nil
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " fetchTicker() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 func (this *Binance) CheckNoStockSymbols(symbols any, methodName string) {
@@ -6816,7 +6816,7 @@ func (this *Binance) ParseTickersForRolling(response any, symbols any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var marketId *string = this.SafeString(GetValue(response, i), "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, "spot")
-		var parsedTicker map[string]any = this.ParseTicker(GetValue(response, i))
+		var parsedTicker map[string]any = TickerToMap(this.ParseTicker(GetValue(response, i)))
 		parsedTicker["symbol"] = tickerMarket["symbol"]
 		results = append(results, parsedTicker)
 	}
@@ -6885,14 +6885,14 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], sym
 	}
 	if response != nil {
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(this.SafeDict(response, 0, map[string]any{}), market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(this.SafeDict(response, 0, map[string]any{}), market))}
 		return nil
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " fetchMarkPrice() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 

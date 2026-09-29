@@ -2226,7 +2226,7 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan AsyncResult[any], op
 		var marketId *string = this.SafeString(instrument, "symbol")
 		var symbol *string = this.SafeSymbol(marketId)
 		var quote map[string]any = this.SafeDictMap(instrument, "quote", map[string]any{})
-		AddElementToObject(tickers, symbol, this.ParseTicker(quote, this.SafeMarket(marketId)))
+		AddElementToObject(tickers, symbol, TickerToMap(this.ParseTicker(quote, this.SafeMarket(marketId))))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArray(tickers, "symbol", symbolsNormalized, true)}
@@ -2270,10 +2270,10 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan AsyncResult[map[strin
 	}
 	var ticker map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Coinbaseinternational) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coinbaseinternational) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//    {
 	//        "best_bid_price":"2490.8",

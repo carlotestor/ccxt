@@ -1960,7 +1960,7 @@ func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//
 	var ticker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 
@@ -2003,7 +2003,7 @@ func (this *Hashkey) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
 	return nil
 }
-func (this *Hashkey) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "t": 1721685896846,

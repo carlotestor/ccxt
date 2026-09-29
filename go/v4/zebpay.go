@@ -948,7 +948,7 @@ func (this *Zebpay) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
 
@@ -2642,7 +2642,7 @@ func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) map[string]any
 		"tierBased":  nil,
 	}
 }
-func (this *Zebpay) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Zebpay) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     [
 	//        {

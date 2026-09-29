@@ -928,7 +928,7 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArgs
 	ch <- AsyncResult[[]any]{Value: result}
 	return nil
 }
-func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -1072,7 +1072,7 @@ func (this *Lbank) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol s
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(first, market))}
 	return nil
 }
 

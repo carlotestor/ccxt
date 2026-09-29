@@ -1107,7 +1107,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, symbol)}
 	return nil
 }
-func (this *Ndax) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Ndax) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//
@@ -1318,7 +1318,7 @@ func (this *Ndax) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	//         "Rolling24HrPxChangePercent":0,
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 func (this *Ndax) ParseOHLCV(ohlcv any, optionalArgs ...any) any {

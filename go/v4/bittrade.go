@@ -940,7 +940,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//
@@ -1159,7 +1159,7 @@ func (this *Bittrade) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	//     }
 	//
 	var tick map[string]any = this.SafeDictMap(response, "tick", map[string]any{})
-	var ticker map[string]any = this.ParseTicker(tick, market)
+	var ticker map[string]any = TickerToMap(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	ticker["timestamp"] = timestamp
 	ticker["datetime"] = this.Iso8601(timestamp)
@@ -1214,12 +1214,12 @@ func (this *Bittrade) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		}(), "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
-		var ticker map[string]any = this.ParseTicker(func() any {
+		var ticker map[string]any = TickerToMap(this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
 			}
 			return nil
-		}(), market)
+		}(), market))
 		ticker["timestamp"] = timestamp
 		ticker["datetime"] = this.Iso8601(timestamp)
 		AddElementToObject(result, symbol, ticker)

@@ -997,7 +997,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(first, symbol, timestamp)}
 	return nil
 }
-func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// response similar for REST & WS
 	//
@@ -1100,7 +1100,7 @@ func (this *Blofin) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(first, market))}
 	return nil
 }
 
@@ -1144,7 +1144,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symb
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(first, market))}
 	return nil
 }
 

@@ -1017,7 +1017,7 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any
 func (this *Hyperliquid) ParseWsTicker(rawTicker map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseTicker(rawTicker, market)
+	return ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
 }
 func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 	//

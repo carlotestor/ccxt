@@ -412,7 +412,7 @@ func (this *Bingx) ParseWsTicker(message map[string]any, optionalArgs ...any) an
 		}
 		return "v"
 	}()
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -433,7 +433,7 @@ func (this *Bingx) ParseWsTicker(message map[string]any, optionalArgs ...any) an
 		"baseVolume":    this.SafeString(message, baseVolumeKey),
 		"quoteVolume":   this.SafeString(message, "q"),
 		"info":          message,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Bingx) GetOrderBookLimitByMarketType(marketType any, optionalArgs ...any) any {
 	limit := ccxt.GetArg(optionalArgs, 0, nil)

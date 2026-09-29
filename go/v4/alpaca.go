@@ -1369,7 +1369,7 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 		var latestQuote map[string]any = SafeMapTyped(entry, "latestQuote")
 		var latestTrade map[string]any = SafeMapTyped(entry, "latestTrade")
 		var datetime *string = this.SafeString(latestQuote, "t")
-		var ticker map[string]any = this.SafeTicker(map[string]any{
+		var ticker map[string]any = TickerToMap(this.SafeTicker(map[string]any{
 			"info":          entry,
 			"symbol":        market["symbol"],
 			"timestamp":     this.Parse8601(datetime),
@@ -1390,7 +1390,7 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 			"average":       nil,
 			"baseVolume":    this.SafeString(dailyBar, "v"),
 			"quoteVolume":   Precise.StringMul(this.SafeString(dailyBar, "v"), this.SafeString(dailyBar, "vw")),
-		}, market)
+		}, market))
 		results = append(results, ticker)
 	}
 

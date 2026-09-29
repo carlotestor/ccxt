@@ -1615,10 +1615,10 @@ func (this *Bullish) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Bullish) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bullish) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "createdAtDatetime": "2021-05-20T01:01:01.000Z",

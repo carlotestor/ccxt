@@ -368,14 +368,14 @@ func (this *Mudrex) HandleTicker(client any, message any) {
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var timestamp int64 = this.Milliseconds()
 		var last *float64 = this.SafeNumber(t, "p")
-		var result map[string]any = this.SafeTicker(map[string]any{
+		var result map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"symbol":    symbol,
 			"timestamp": timestamp,
 			"datetime":  this.Iso8601(timestamp),
 			"last":      last,
 			"close":     last,
 			"info":      t,
-		})
+		}))
 		this.Tickers.Store(symbol, result)
 		var messageHash string = "ticker:" + *symbol
 		client.(ccxt.ClientInterface).Resolve(result, messageHash)

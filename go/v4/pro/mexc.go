@@ -243,7 +243,7 @@ func (this *Mexc) HandleTicker(client any, message any) {
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
 	} else if rawTicker != nil {
-		ticker = this.ParseTicker(rawTicker, market)
+		ticker = ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
 	} else {
 		return
 	}
@@ -424,7 +424,7 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 		if isSpot == true {
 			ticker = this.ParseWsTicker(entry, market)
 		} else {
-			ticker = this.ParseTicker(entry)
+			ticker = ccxt.TickerToMap(this.ParseTicker(entry))
 		}
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 		if symbol != nil {
@@ -474,7 +474,7 @@ func (this *Mexc) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "s")
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var price *string = this.SafeString(ticker, "p")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(marketId, market),
 		"timestamp":     timestamp,
@@ -495,7 +495,7 @@ func (this *Mexc) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"average":       nil,
 		"baseVolume":    this.SafeNumber(ticker, "v"),
 		"quoteVolume":   this.SafeNumber(ticker, "q"),
-	}, market)
+	}, market))
 }
 
 /**
@@ -611,7 +611,7 @@ func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -620,7 +620,7 @@ func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 		"bid":       this.SafeNumber(data, "b"),
 		"bidVolume": this.SafeNumber(data, "B"),
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Mexc) WatchSpotPublicAsync(channel any, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)

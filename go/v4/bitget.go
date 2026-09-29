@@ -5694,7 +5694,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(data, market["symbol"], timestamp, bidsKey, asksKey)}
 	return nil
 }
-func (this *Bitget) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitget) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//   {
 	//       "symbol": "BTCUSDT",
@@ -6033,12 +6033,12 @@ func (this *Bitget) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var data []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(func() any {
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(func() any {
 		if 0 >= 0 && 0 < len(data) {
 			return DerefScalar(data[0])
 		}
 		return nil
-	}(), market)}
+	}(), market))}
 	return nil
 }
 
@@ -6089,12 +6089,12 @@ func (this *Bitget) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symb
 	}
 	var data []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(func() any {
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(func() any {
 		if 0 >= 0 && 0 < len(data) {
 			return DerefScalar(data[0])
 		}
 		return nil
-	}(), market)}
+	}(), market))}
 	return nil
 }
 

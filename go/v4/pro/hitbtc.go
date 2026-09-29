@@ -680,7 +680,7 @@ func (this *Hitbtc) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var symbol *string = this.SafeSymbol(nil, market)
 	var last *string = this.SafeString(ticker, "c")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -701,7 +701,7 @@ func (this *Hitbtc) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    this.SafeString(ticker, "v"),
 		"quoteVolume":   this.SafeString(ticker, "q"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**
@@ -826,7 +826,7 @@ func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	if market != nil {
 		bidAskSymbol = ccxt.GetValue(market, "symbol")
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    bidAskSymbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -835,7 +835,7 @@ func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 		"bid":       this.SafeString(ticker, "b"),
 		"bidVolume": this.SafeString(ticker, "B"),
 		"info":      ticker,
-	}, market)
+	}, market))
 }
 
 /**

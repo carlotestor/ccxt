@@ -570,7 +570,7 @@ func (this *Hibachi) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
 	return nil
 }
-func (this *Hibachi) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Hibachi) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var prices map[string]any = SafeMapTyped(ticker, "prices")
@@ -806,7 +806,7 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 		"stats":  statsResponse,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 func (this *Hibachi) ParseOrderStatus(status *string) *string {

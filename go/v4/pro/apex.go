@@ -630,9 +630,9 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 	var updateType *string = this.SafeString(message, "type", "")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var symbol any = nil
-	var parsed map[string]any = this.ParseTicker(data)
+	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
 	if updateType != nil && *updateType == "snapshot" {
-		parsed = this.ParseTicker(data)
+		parsed = ccxt.TickerToMap(this.ParseTicker(data))
 		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
 	} else if updateType != nil && *updateType == "delta" {
 		var topicParts []string = strings.Split(*topic, ".")
@@ -643,7 +643,7 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 		var ticker map[string]any = ccxt.MapTyped(this.Tickers.Get(symbol))
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
-		parsed = this.ParseTicker(merged)
+		parsed = ccxt.TickerToMap(this.ParseTicker(merged))
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(message, "ts", 0.001)
 	parsed["timestamp"] = timestamp

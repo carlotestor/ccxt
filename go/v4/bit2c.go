@@ -527,7 +527,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbo
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(filtered, symbol)}
 	return nil
 }
-func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -595,7 +595,7 @@ func (this *Bit2c) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol s
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 

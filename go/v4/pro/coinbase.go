@@ -715,7 +715,7 @@ func (this *Coinbase) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "product_id")
 	var timestamp any = nil
 	var last *float64 = this.SafeNumber(ticker, "price")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(marketId, market, "-"),
 		"timestamp":     timestamp,
@@ -736,7 +736,7 @@ func (this *Coinbase) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "volume_24_h"),
 		"quoteVolume":   nil,
-	})
+	}))
 }
 
 /**

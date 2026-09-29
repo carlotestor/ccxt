@@ -899,7 +899,7 @@ func (this *Apex) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "symbol": "BTCUSDT",
@@ -994,7 +994,7 @@ func (this *Apex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(rawTicker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(rawTicker, market))}
 	return nil
 }
 

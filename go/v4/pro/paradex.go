@@ -608,7 +608,7 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var channel *string = this.SafeString(params, "channel")
-	var ticker map[string]any = this.ParseTicker(data, market)
+	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
 	if channel != nil {

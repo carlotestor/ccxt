@@ -498,7 +498,7 @@ func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) a
 	var close *string = this.SafeString2(ticker, "lastPr", "lastPrice")
 	var changeCoefficient *string = this.SafeString2(ticker, "price24hPcnt", "change24h")
 	var changePercentage *string = ccxt.Precise.StringMul(changeCoefficient, "100")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -519,7 +519,7 @@ func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) a
 		"baseVolume":    this.SafeString2(ticker, "baseVolume", "volume24h"),
 		"quoteVolume":   this.SafeString2(ticker, "quoteVolume", "turnover24h"),
 		"info":          ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**
@@ -641,7 +641,7 @@ func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) a
 	var utaMarketId *string = this.SafeString(arg, "symbol")
 	var marketId *string = this.SafeString(ticker, "instId", utaMarketId)
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    marketResolved["symbol"],
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -650,7 +650,7 @@ func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) a
 		"bid":       this.SafeString2(ticker, "bidPr", "bid1Price"),
 		"bidVolume": this.SafeString2(ticker, "bidSz", "bid1Size"),
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

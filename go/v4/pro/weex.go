@@ -500,7 +500,7 @@ func (this *Weex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any 
 	} else {
 		symbol = ccxt.GetValue(market, "symbol")
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -523,7 +523,7 @@ func (this *Weex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any 
 		"markPrice":     this.SafeString(ticker, "m"),
 		"indexPrice":    this.SafeString(ticker, "i"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**
@@ -1544,7 +1544,7 @@ func (this *Weex) ParseWsBidAsk(message any, optionalArgs ...any) any {
 	} else {
 		symbol = ccxt.GetValue(market, "symbol")
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -1553,7 +1553,7 @@ func (this *Weex) ParseWsBidAsk(message any, optionalArgs ...any) any {
 		"bid":       this.SafeString(message, "b"),
 		"bidVolume": this.SafeString(message, "B"),
 		"info":      message,
-	}, market)
+	}, market))
 }
 
 /**

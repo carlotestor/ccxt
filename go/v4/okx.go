@@ -3349,7 +3349,7 @@ func (this *Okx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(first, symbol, timestamp)}
 	return nil
 }
-func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "instType": "SPOT", // SPOT, SWAP, etc
@@ -3500,7 +3500,7 @@ func (this *Okx) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol str
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(first, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(first, market))}
 	return nil
 }
 
@@ -3637,7 +3637,7 @@ func (this *Okx) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var data []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(this.SafeDict(data, 0), market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(this.SafeDict(data, 0), market))}
 	return nil
 }
 

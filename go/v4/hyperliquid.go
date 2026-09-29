@@ -1539,7 +1539,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan AsyncResult[any], optionalArgs
 	for i := 0; i < GetArrayLength(response); i++ {
 		var market any = GetValue(response, i)
 		var info any = GetValue(market, "info")
-		var ticker map[string]any = this.ParseTicker(info, market)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(info, market))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		AddElementToObject(result, symbol, ticker)
 	}
@@ -1712,7 +1712,7 @@ func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) map[str
 		"interval":                 "1h",
 	}
 }
-func (this *Hyperliquid) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "prevDayPx": "3400.5",

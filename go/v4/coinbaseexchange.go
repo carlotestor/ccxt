@@ -1128,7 +1128,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan AsyncResult[map[string]
 	ch <- AsyncResult[map[string]any]{Value: orderbook}
 	return nil
 }
-func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTickers
 	//
@@ -1286,7 +1286,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan AsyncResult[any], optiona
 		var first []any = SafeListTypedDefault(entry, 0, []any{})
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol *string = SafeStringPtr(market["symbol"])
-		AddElementToObject(result, symbol, this.ParseTicker(first, market))
+		AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(first, market)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
@@ -1364,7 +1364,7 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan AsyncResult[map[string]any
 	//         "volume": "2.41000000"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {

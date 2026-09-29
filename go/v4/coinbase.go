@@ -2919,7 +2919,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan AsyncResult[map[string]any], op
 		var marketId *string = SafeStringPtr(Add(baseId+delimiter, quoteId))
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol *string = SafeStringPtr(market["symbol"])
-		AddElementToObject(result, symbol, this.ParseTicker(rates[baseId], market))
+		AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(rates[baseId], market)))
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
@@ -3024,7 +3024,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan AsyncResult[map[string]any], op
 		var marketId *string = this.SafeString(entry, "product_id")
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
 		var symbol *string = SafeStringPtr(market["symbol"])
-		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
+		AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(entry, market)))
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
@@ -3138,7 +3138,7 @@ func (this *Coinbase) fetchTickerV2Body(ch chan EndpointResult[map[string]any], 
 		"price": this.SafeNumber(spotData, "amount"),
 	}
 
-	chValue := this.ParseTicker(bidAskLast, market)
+	chValue := TickerToMap(this.ParseTicker(bidAskLast, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -3201,14 +3201,14 @@ func (this *Coinbase) fetchTickerV3Body(ch chan EndpointResult[map[string]any], 
 	//
 	var data []any = SafeListTyped(response, "trades")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
-	var ticker map[string]any = this.ParseTicker(first, market)
+	var ticker map[string]any = TickerToMap(this.ParseTicker(first, market))
 	ticker["bid"] = this.SafeNumber(response, "best_bid")
 	ticker["ask"] = this.SafeNumber(response, "best_ask")
 
 	ch <- EndpointResult[map[string]any]{Value: ticker, Raw: ticker}
 	return nil
 }
-func (this *Coinbase) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coinbase) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTickerV2
 	//

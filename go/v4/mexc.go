@@ -2713,10 +2713,10 @@ func (this *Mexc) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	}
 
 	// when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")

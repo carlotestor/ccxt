@@ -3523,7 +3523,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]any], params any
 	ch <- AsyncResult[[]any]{Value: result}
 	return nil
 }
-func (this *Bybit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bybit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// spot
 	//
@@ -3733,7 +3733,7 @@ func (this *Bybit) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol s
 	var tickers []any = SafeListTyped(result, "list")
 	var rawTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(rawTicker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(rawTicker, market))}
 	return nil
 }
 

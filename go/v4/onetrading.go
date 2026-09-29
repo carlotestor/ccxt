@@ -1001,7 +1001,7 @@ func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[str
 		"taker": takerFees,
 	}
 }
-func (this *Onetrading) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Onetrading) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker, fetchTickers
 	//
@@ -1111,7 +1111,7 @@ func (this *Onetrading) fetchTickerBody(ch chan AsyncResult[map[string]any], sym
 	//         "low":"8110.0"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 
@@ -1173,12 +1173,12 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[any], optionalArgs 
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker map[string]any = this.ParseTicker(func() any {
+		var ticker map[string]any = TickerToMap(this.ParseTicker(func() any {
 			if i >= 0 && i < len(rawTickers) {
 				return DerefScalar(rawTickers[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker

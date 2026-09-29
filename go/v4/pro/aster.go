@@ -647,16 +647,16 @@ func (this *Aster) ParseWsTicker(message map[string]any, marketType any) any {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var last *string = this.SafeString(message, "c")
 	if event != nil && *event == "markPriceUpdate" {
-		return this.SafeTicker(map[string]any{
+		return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"symbol":     market["symbol"],
 			"timestamp":  timestamp,
 			"datetime":   this.Iso8601(timestamp),
 			"info":       message,
 			"markPrice":  this.SafeString(message, "p"),
 			"indexPrice": this.SafeString(message, "i"),
-		})
+		}))
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        market["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -677,7 +677,7 @@ func (this *Aster) ParseWsTicker(message map[string]any, marketType any) any {
 		"baseVolume":    this.SafeString(message, "v"),
 		"quoteVolume":   this.SafeString(message, "q"),
 		"info":          message,
-	}, market)
+	}, market))
 }
 
 /**
@@ -873,7 +873,7 @@ func (this *Aster) ParseWsBidAsk(message map[string]any, optionalArgs ...any) an
 	if market != nil {
 		bidAskSymbol = ccxt.GetValue(market, "symbol")
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    bidAskSymbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -882,7 +882,7 @@ func (this *Aster) ParseWsBidAsk(message map[string]any, optionalArgs ...any) an
 		"bid":       this.SafeString(message, "b"),
 		"bidVolume": this.SafeString(message, "B"),
 		"info":      message,
-	}, market)
+	}, market))
 }
 
 /**

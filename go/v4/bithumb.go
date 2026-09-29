@@ -1022,7 +1022,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")}
 	return nil
 }
-func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// generation 1: fetchTicker, fetchTickers
 	//
@@ -1328,7 +1328,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 				if symbol == nil {
 					continue
 				}
-				AddElementToObject(result, symbol, this.ParseTicker(entry, market))
+				AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(entry, market)))
 			}
 		}
 	} else {
@@ -1396,7 +1396,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 				var symbol string = *base + "/" + quote
 				var market map[string]any = this.SafeMarket(symbol)
 				AddElementToObject(ticker, "date", timestamp)
-				result[symbol] = this.ParseTicker(ticker, market)
+				result[symbol] = TickerToMap(this.ParseTicker(ticker, market))
 			}
 		}
 	}
@@ -1510,7 +1510,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 		data = this.SafeDict(response, "data", map[string]any{})
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
 func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) any {

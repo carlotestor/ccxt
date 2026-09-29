@@ -1798,10 +1798,10 @@ func (this *Whitebit) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	//
 	var ticker map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Whitebit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Whitebit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//  FetchTicker (v1)
 	//
@@ -2216,7 +2216,7 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var ticker map[string]any = this.ParseTicker(GetValue(response, marketId), market)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(GetValue(response, marketId), market))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		AddElementToObject(result, symbol, ticker)
 	}

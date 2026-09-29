@@ -1290,7 +1290,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, symbol)}
 	return nil
 }
-func (this *Kraken) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Kraken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "a":["2432.77000","1","1.000"],
@@ -1403,7 +1403,7 @@ func (this *Kraken) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 		var market map[string]any = this.SafeMarket(id)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var ticker any = tickers[id]
-		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
+		AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(ticker, market)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
@@ -1449,7 +1449,7 @@ func (this *Kraken) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	var tickerResult map[string]any = SafeMapTyped(response, "result")
 	var ticker any = this.SafeValue(tickerResult, market["id"])
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 func (this *Kraken) ParseOHLCV(ohlcv any, optionalArgs ...any) any {

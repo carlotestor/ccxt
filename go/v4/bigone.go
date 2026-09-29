@@ -899,7 +899,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// spot
 	//
@@ -1039,7 +1039,7 @@ func (this *Bigone) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 		//
 		var ticker map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 		return nil
 	} else {
 

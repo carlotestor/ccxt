@@ -531,7 +531,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"])}
 	return nil
 }
-func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -599,7 +599,7 @@ func (this *Btcbox) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	}
 	var response map[string]any = MapTyped(r1.Raw)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 

@@ -1755,7 +1755,7 @@ func (this *Deribit) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	}}
 	return nil
 }
-func (this *Deribit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Deribit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker /public/ticker
 	//
@@ -1901,7 +1901,7 @@ func (this *Deribit) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(result, market))}
 	return nil
 }
 
@@ -2009,12 +2009,12 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	var result []any = SafeListTyped(response, "result")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ticker map[string]any = this.ParseTicker(func() any {
+		var ticker map[string]any = TickerToMap(this.ParseTicker(func() any {
 			if i >= 0 && i < len(result) {
 				return DerefScalar(result[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			tickers[*symbol] = ticker

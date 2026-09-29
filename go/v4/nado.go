@@ -3385,7 +3385,7 @@ func (this *Nado) ParseOpenInterest(interest any, optionalArgs ...any) map[strin
 		"info":               interest,
 	}, marketResolved)
 }
-func (this *Nado) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Nado) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")

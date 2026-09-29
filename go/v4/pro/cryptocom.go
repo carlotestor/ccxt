@@ -970,7 +970,7 @@ func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var quote *string = this.SafeString(marketResolved, "quote")
 	var last *string = this.SafeString(ticker, "a")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -996,7 +996,7 @@ func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) any {
 			return nil
 		}(),
 		"info": ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**
@@ -1098,7 +1098,7 @@ func (this *Cryptocom) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any)
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -1107,7 +1107,7 @@ func (this *Cryptocom) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any)
 		"bid":       this.SafeString(ticker, "b"),
 		"bidVolume": this.SafeString(ticker, "bs"),
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

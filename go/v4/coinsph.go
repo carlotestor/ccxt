@@ -1237,10 +1237,10 @@ func (this *Coinsph) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 		ticker = r3.Value
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Coinsph) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coinsph) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// publicGetOpenapiQuoteV1Ticker24hr
 	//     {

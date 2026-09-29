@@ -1293,10 +1293,10 @@ func (this *Grvt) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(result, market))}
 	return nil
 }
-func (this *Grvt) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Grvt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//  {
 	//            "event_time": "1764774730025055205",

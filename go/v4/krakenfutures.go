@@ -841,7 +841,7 @@ func (this *Krakenfutures) fetchTickerBody(ch chan AsyncResult[map[string]any], 
 	//
 	var ticker map[string]any = this.SafeDictMap(response, "ticker", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 
@@ -916,7 +916,7 @@ func (this *Krakenfutures) fetchTickersBody(ch chan AsyncResult[any], optionalAr
 	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbols)}
 	return nil
 }
-func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//    {
 	//        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",

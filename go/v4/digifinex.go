@@ -1483,7 +1483,7 @@ func (this *Digifinex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs .
 			}
 			return nil
 		}())
-		var ticker map[string]any = this.ParseTicker(rawTicker)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -1602,10 +1602,10 @@ func (this *Digifinex) fetchTickerBody(ch chan AsyncResult[map[string]any], symb
 		panic(NullResponse(this.Id + " fetchTicker() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(result, market))}
 	return nil
 }
-func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//

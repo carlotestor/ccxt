@@ -1743,7 +1743,7 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized, paramsMarketType)}
 	return nil
 }
-func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "s")

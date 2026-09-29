@@ -764,7 +764,7 @@ func (this *Coinmate) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
 
@@ -833,14 +833,14 @@ func (this *Coinmate) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var market map[string]any = this.Market(keys[i])
-		var ticker map[string]any = this.ParseTicker(this.SafeValue(data, keys[i]), market)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeValue(data, keys[i]), market))
 		AddElementToObject(result, market["symbol"], ticker)
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
 	return nil
 }
-func (this *Coinmate) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coinmate) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "last": "0.001337",

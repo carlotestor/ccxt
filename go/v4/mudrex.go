@@ -530,7 +530,7 @@ func (this *Mudrex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
 
@@ -588,13 +588,13 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
 		}
-		AddElementToObject(resultTickers, symbol, this.ParseTicker(t, m))
+		AddElementToObject(resultTickers, symbol, TickerToMap(this.ParseTicker(t, m)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(resultTickers, "symbol", symbols)}
 	return nil
 }
-func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ms *string = this.SafeString(ticker, "symbol")

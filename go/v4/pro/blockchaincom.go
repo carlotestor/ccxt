@@ -361,7 +361,7 @@ func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
 	if event != nil && *event == "subscribed" {
 		return
 	} else if event != nil && *event == "snapshot" {
-		ticker = this.ParseTicker(message, market)
+		ticker = ccxt.TickerToMap(this.ParseTicker(message, market))
 	} else if event != nil && *event == "updated" {
 		var lastTicker any = this.Tickers.Get(symbol)
 		ticker = this.ParseWsUpdatedTicker(message, lastTicker, market)
@@ -387,7 +387,7 @@ func (this *Blockchaincom) ParseWsUpdatedTicker(ticker map[string]any, optionalA
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var last *string = this.SafeString(ticker, "mark_price")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -408,7 +408,7 @@ func (this *Blockchaincom) ParseWsUpdatedTicker(ticker map[string]any, optionalA
 		"baseVolume":    this.SafeString(lastTicker, "baseVolume"),
 		"quoteVolume":   nil,
 		"info":          this.Extend(this.SafeDict(lastTicker, "info", map[string]any{}), ticker),
-	}, market)
+	}, market))
 }
 
 /**

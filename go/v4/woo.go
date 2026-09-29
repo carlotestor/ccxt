@@ -2997,7 +2997,7 @@ func (this *Woo) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")}
 	return nil
 }
-func (this *Woo) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Woo) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDT",
@@ -3120,7 +3120,7 @@ func (this *Woo) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol str
 		"timestamp": this.SafeInteger(response, "timestamp"),
 	}, first)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 
@@ -3210,7 +3210,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any)
 		var ticker map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
 		}, row)
-		result = append(result, this.ParseTicker(ticker))
+		result = append(result, TickerToMap(this.ParseTicker(ticker)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}

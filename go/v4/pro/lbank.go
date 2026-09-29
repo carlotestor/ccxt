@@ -461,7 +461,7 @@ func (this *Lbank) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var datetime *string = this.SafeString(ticker, "TS")
 	var tickerData map[string]any = ccxt.SafeMapTyped(ticker, "tick")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     this.Parse8601(datetime),
 		"datetime":      datetime,
@@ -482,7 +482,7 @@ func (this *Lbank) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any
 		"baseVolume":    this.SafeString(tickerData, "vol"),
 		"quoteVolume":   this.SafeString(tickerData, "turnover"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**

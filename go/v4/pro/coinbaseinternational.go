@@ -526,7 +526,7 @@ func (this *Coinbaseinternational) ParseWsInstrument(ticker map[string]any, opti
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
 	var datetime *string = this.SafeString(ticker, "time")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(marketId, market, "-"),
 		"timestamp":     this.Parse8601(datetime),
@@ -547,7 +547,7 @@ func (this *Coinbaseinternational) ParseWsInstrument(ticker map[string]any, opti
 		"average":       nil,
 		"baseVolume":    this.SafeString2(ticker, "total_24_hour_quantity", "total24_hour_quantity"),
 		"quoteVolume":   this.SafeString2(ticker, "total_24_hour_volume", "total24_hour_volume"),
-	})
+	}))
 }
 func (this *Coinbaseinternational) HandleTicker(client any, message map[string]any) {
 	//
@@ -599,7 +599,7 @@ func (this *Coinbaseinternational) ParseWsTicker(ticker any, optionalArgs ...any
 	_ = market
 	var datetime *string = this.SafeString(ticker, "time")
 	var marketId *string = this.SafeString(ticker, "product_id")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(marketId, market),
 		"timestamp":     this.Parse8601(datetime),
@@ -620,7 +620,7 @@ func (this *Coinbaseinternational) ParseWsTicker(ticker any, optionalArgs ...any
 		"baseVolume":    nil,
 		"quoteVolume":   nil,
 		"previousClose": nil,
-	})
+	}))
 }
 
 /**

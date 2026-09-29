@@ -989,7 +989,7 @@ func (this *Extended) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
 
@@ -1059,7 +1059,7 @@ func (this *Extended) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		var marketId *string = this.SafeString(marketData, "name")
 		var market map[string]any = this.SafeMarket(marketId)
 		var stats map[string]any = this.SafeDictMap(marketData, "marketStats", map[string]any{})
-		var ticker map[string]any = this.ParseTicker(stats, market)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(stats, market))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			tickers[*symbol] = ticker
@@ -1069,7 +1069,7 @@ func (this *Extended) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized)}
 	return nil
 }
-func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//       "dailyVolume": "231216165.666600",

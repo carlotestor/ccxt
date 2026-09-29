@@ -896,13 +896,13 @@ func (this *Extended) HandleMarkPrice(client any, message any) {
 	if (timestamp == nil) || (timestamp != nil && *timestamp == 0) {
 		timestamp = this.SafeInteger(message, "ts")
 	}
-	var ticker map[string]any = this.SafeTicker(map[string]any{
+	var ticker map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"markPrice": this.SafeString(data, "p"),
 		"info":      message,
-	}, market)
+	}, market))
 	this.Tickers.Store(symbol, ticker)
 	var messageHash string = "markPrice:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)

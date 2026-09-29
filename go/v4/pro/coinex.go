@@ -250,7 +250,7 @@ func (this *Coinex) ParseWSTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var marketId *string = this.SafeString(ticker, "market")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        this.SafeSymbol(marketId, market, nil, defaultType),
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -271,7 +271,7 @@ func (this *Coinex) ParseWSTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    this.SafeString(ticker, "volume"),
 		"quoteVolume":   this.SafeString(ticker, "value"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**
@@ -1744,7 +1744,7 @@ func (this *Coinex) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 	var marketId *string = this.SafeString(ticker, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, defaultType)
 	var timestamp *int64 = this.SafeInteger(ticker, "updated_at")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    this.SafeSymbol(marketId, marketResolved, nil, defaultType),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -1753,7 +1753,7 @@ func (this *Coinex) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 		"bid":       this.SafeNumber(ticker, "best_bid_price"),
 		"bidVolume": this.SafeNumber(ticker, "best_bid_size"),
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Coinex) HandleMessage(client any, message any) {
 	var method *string = this.SafeString(message, "method")

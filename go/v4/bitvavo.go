@@ -862,10 +862,10 @@ func (this *Bitvavo) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//         "timestamp":1590381666900
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//

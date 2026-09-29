@@ -433,7 +433,7 @@ func (this *Bydfi) HandleTicker(client any, message any) {
 	//         "o": 0.04657
 	//     }
 	//
-	var ticker map[string]any = this.ParseTicker(message)
+	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(message))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
 	this.Tickers.Store(symbol, ticker)

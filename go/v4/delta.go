@@ -1188,7 +1188,7 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -1509,7 +1509,7 @@ func (this *Delta) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol s
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(result, market))}
 	return nil
 }
 
@@ -1689,7 +1689,7 @@ func (this *Delta) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...an
 		if (contractType != nil && *contractType == "options_combos") || (contractType != nil && *contractType == "binary_call_options") || (contractType != nil && *contractType == "binary_put_options") {
 			continue
 		}
-		var ticker map[string]any = this.ParseTicker(rawTicker)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker

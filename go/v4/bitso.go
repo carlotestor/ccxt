@@ -943,7 +943,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbo
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "amount")}
 	return nil
 }
-func (this *Bitso) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitso) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "high":"37446.85",
@@ -1045,7 +1045,7 @@ func (this *Bitso) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol s
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 

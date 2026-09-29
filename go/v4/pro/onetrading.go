@@ -342,7 +342,7 @@ func (this *Onetrading) ParseWSTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        this.SafeSymbol(marketId, market),
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -363,7 +363,7 @@ func (this *Onetrading) ParseWSTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    nil,
 		"quoteVolume":   this.SafeNumber(ticker, "volume"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**

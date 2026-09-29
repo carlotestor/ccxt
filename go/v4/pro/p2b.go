@@ -575,13 +575,13 @@ func (this *P2b) HandleTicker(client any, message map[string]any) any {
 	var ticker map[string]any = nil
 	if method != nil && *method == "price.update" {
 		var lastPrice *string = this.SafeString(data, 1)
-		ticker = this.SafeTicker(map[string]any{
+		ticker = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"last":   lastPrice,
 			"close":  lastPrice,
 			"symbol": market["symbol"],
-		})
+		}))
 	} else {
-		ticker = this.ParseTicker(tickerData, market)
+		ticker = ccxt.TickerToMap(this.ParseTicker(tickerData, market))
 	}
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	this.Tickers.Store(symbol, ticker)

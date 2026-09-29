@@ -717,7 +717,7 @@ func (this *Toobit) HandleTickers(client any, message map[string]any) {
 func (this *Toobit) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseTicker(ticker, market)
+	return ccxt.TickerToMap(this.ParseTicker(ticker, market))
 }
 
 /**

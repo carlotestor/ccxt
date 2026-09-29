@@ -158,7 +158,7 @@ func (this *Phemex) ParseSwapTicker(ticker any, optionalArgs ...any) any {
 			percentage = nil
 		}
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -181,7 +181,7 @@ func (this *Phemex) ParseSwapTicker(ticker any, optionalArgs ...any) any {
 		"markPrice":     this.ParseNumber(this.FromEp(this.SafeString(ticker, "markPrice"), marketValue)),
 		"indexPrice":    this.ParseNumber(this.FromEp(this.SafeString(ticker, "indexPrice"), marketValue)),
 		"info":          ticker,
-	})
+	}))
 }
 func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -244,7 +244,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 			percentage = nil
 		}
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -265,7 +265,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	})
+	}))
 }
 func (this *Phemex) HandleTicker(client any, message any) {
 	//
@@ -349,7 +349,7 @@ func (this *Phemex) HandleTicker(client any, message any) {
 		tickers = append(tickers, this.ParseSwapTicker(ticker))
 	} else if ccxt.InOp(message, "spot_market24h") {
 		var ticker any = this.SafeValue(message, "spot_market24h")
-		tickers = append(tickers, this.ParseTicker(ticker))
+		tickers = append(tickers, ccxt.TickerToMap(this.ParseTicker(ticker)))
 	} else if ccxt.InOp(message, "data") {
 		var data []any = ccxt.SafeListTyped(message, "data")
 		for i := 0; i < len(data); i++ {

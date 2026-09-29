@@ -1428,10 +1428,10 @@ func (this *Paradex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	var data []any = SafeListTyped(response, "results")
 	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",

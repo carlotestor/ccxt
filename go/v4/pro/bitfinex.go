@@ -884,7 +884,7 @@ func (this *Bitfinex) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var last *string = this.SafeString(ticker, 6)
 	var change *string = this.SafeString(ticker, 4)
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -905,7 +905,7 @@ func (this *Bitfinex) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    this.SafeString(ticker, 7),
 		"quoteVolume":   nil,
 		"info":          ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

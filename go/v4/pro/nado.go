@@ -2590,7 +2590,7 @@ func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) any 
 	var marketId *string = this.SafeString(bidask, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp any = this.ParseWsTimestamp(bidask, "timestamp")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    marketResolved["symbol"],
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -2599,7 +2599,7 @@ func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) any 
 		"bid":       this.ParseX18(this.SafeString(bidask, "bid_price")),
 		"bidVolume": this.ParseX18(this.SafeString(bidask, "bid_qty")),
 		"info":      bidask,
-	}, marketResolved)
+	}, marketResolved))
 }
 func (this *Nado) HandleBidAsk(client any, message map[string]any) {
 	var ticker any = this.ParseWsBidAsk(message)
@@ -2644,14 +2644,14 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) any {
 		var ask *string = this.SafeString(bbo, "ask")
 		var maxPrice string = "170141183460469231731687303715884105727"
 		if ccxt.Precise.StringGt(bid, "0") && ccxt.Precise.StringGt(ask, "0") && !ccxt.Precise.StringEquals(bid, maxPrice) && !ccxt.Precise.StringEquals(ask, maxPrice) {
-			var ticker map[string]any = this.SafeTicker(map[string]any{
+			var ticker map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 				"symbol":    market["symbol"],
 				"timestamp": timestamp,
 				"datetime":  this.Iso8601(timestamp),
 				"ask":       this.ParseX18(ask),
 				"bid":       this.ParseX18(bid),
 				"info":      bbo,
-			}, market)
+			}, market))
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 			ccxt.AddElementToObject(result, symbol, ticker)
 		}

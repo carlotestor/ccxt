@@ -1353,7 +1353,7 @@ func (this *Poloniex) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ..
 	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "serverTime")}
 	return nil
 }
-func (this *Poloniex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Poloniex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//  spot:
 	//
@@ -1735,7 +1735,7 @@ func (this *Poloniex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	//         "markPrice" : "26444.11"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) any {

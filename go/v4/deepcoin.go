@@ -1066,7 +1066,7 @@ func (this *Deepcoin) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "instType": "SWAP",

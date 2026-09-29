@@ -4328,10 +4328,10 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 		panic(NullResponse(this.Id + " fetchTicker() returned empty response"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// SPOT
 	//

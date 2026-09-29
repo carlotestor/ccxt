@@ -1104,7 +1104,7 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 func (this *Pacifica) ParseWsTicker(rawTicker any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.ParseTicker(rawTicker, market)
+	return ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
 }
 func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 	//

@@ -284,7 +284,7 @@ func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
 		}()
 		var marketId *string = this.SafeString(data, "market")
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
-		var ticker map[string]any = this.ParseTicker(data, market)
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		this.Tickers.Store(symbol, ticker)
 		result = append(result, ticker)
@@ -373,7 +373,7 @@ func (this *Bitvavo) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, nil, "-")
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -382,7 +382,7 @@ func (this *Bitvavo) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 		"bid":       this.SafeNumber(ticker, "bid"),
 		"bidVolume": this.SafeNumber(ticker, "bidSize"),
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

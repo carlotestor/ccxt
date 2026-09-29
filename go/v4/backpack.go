@@ -1082,10 +1082,10 @@ func (this *Backpack) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
-func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker/fetchTickers
 	//
@@ -1120,7 +1120,7 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) map[string]an
 		percentage = Precise.StringMul(this.SafeString(ticker, "priceChangePercent"), "100")
 	}
 	var change *string = this.SafeString(ticker, "priceChange")
-	var parsedTicker map[string]any = this.SafeTicker(map[string]any{
+	var parsedTicker map[string]any = TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -1143,8 +1143,8 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) map[string]an
 		"markPrice":     nil,
 		"indexPrice":    nil,
 		"info":          ticker,
-	}, marketResolved)
-	return parsedTicker
+	}, marketResolved))
+	return TickerFromMap(parsedTicker)
 }
 
 /**

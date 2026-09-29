@@ -445,7 +445,7 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var code *string = this.SafeString(ticker, "code")
 	if code != nil {
 		ccxt.AddElementToObject(ticker, "market", this.SafeString(ticker, "market", code))
-		return this.ParseTicker(ticker, market)
+		return ccxt.TickerToMap(this.ParseTicker(ticker, market))
 	}
 	var date *string = this.SafeString(ticker, "date", "")
 	var time *string = this.SafeString(ticker, "time", "")
@@ -495,7 +495,7 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		timestamp = (ccxt.Subtract(timestamp, 32400000))
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        this.SafeSymbol(marketId, market, "_"),
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -516,7 +516,7 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    this.SafeString(ticker, "volume"),
 		"quoteVolume":   this.SafeString(ticker, "value"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**

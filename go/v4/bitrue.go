@@ -1435,7 +1435,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	ch <- AsyncResult[map[string]any]{Value: orderbook}
 	return nil
 }
-func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchBidsAsks
 	//
@@ -1610,7 +1610,7 @@ func (this *Bitrue) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	//         "time": 1699348013000
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
 

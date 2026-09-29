@@ -946,12 +946,12 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = this.ParseTicker(func() any {
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}())
+		}()))
 		this.Tickers.Store(symbol, ticker)
 		ccxt.AddElementToObject(newTickers, symbol, ticker)
 	}
@@ -1116,7 +1116,7 @@ func (this *Okx) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 		bid = this.SafeString(firstBid, 0)
 		bidVolume = this.SafeString(firstBid, 1)
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -1125,7 +1125,7 @@ func (this *Okx) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
 		"bid":       bid,
 		"bidVolume": bidVolume,
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

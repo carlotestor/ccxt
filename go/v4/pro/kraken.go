@@ -726,7 +726,7 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 		quoteVolume = ccxt.Precise.StringMul(baseVolume, vwap)
 	}
 	var last *string = this.SafeString(ticker, "last")
-	var result map[string]any = this.SafeTicker(map[string]any{
+	var result map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -747,7 +747,7 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	})
+	}))
 	this.Tickers.Store(symbol, result)
 	client.(ccxt.ClientInterface).Resolve(result, messageHash)
 }

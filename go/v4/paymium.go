@@ -314,7 +314,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")}
 	return nil
 }
-func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "high":"33740.82",
@@ -420,7 +420,7 @@ func (this *Paymium) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//     "size":"0.00041087"
 	// }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any {

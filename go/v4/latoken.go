@@ -932,7 +932,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(filtered, symbol, nil, "bid", "ask", "price", "quantity")}
 	return nil
 }
-func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//    {
 	//        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
@@ -1040,7 +1040,7 @@ func (this *Latoken) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//        "updateTimestamp": "1693965231406"
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 

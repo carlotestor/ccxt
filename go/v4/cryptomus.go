@@ -639,7 +639,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseTickers(data, symbolsNormalized)}
 	return nil
 }
-func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "currency_pair": "XMR_USDT",

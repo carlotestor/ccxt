@@ -1343,7 +1343,7 @@ func (this *BaseExchange) ParseMarkets(markets any) []any {
 	}
 	return result
 }
-func (this *BaseExchange) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseTicker() is not supported yet"))
@@ -3363,7 +3363,7 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) any {
 	}
 	return result
 }
-func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var open any = this.OmitZero(this.SafeString(ticker, "open"))
@@ -3446,7 +3446,7 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) map[string
 	if derefNum, isNum := this.ParseNumber(this.OmitZero(close)).(float64); isNum {
 		closeParsed = &derefNum
 	}
-	return this.Extend(ticker, map[string]any{
+	return TickerFromMap(this.Extend(ticker, map[string]any{
 		"bid":           this.ParseNumber(this.OmitZero(this.SafeString(ticker, "bid"))),
 		"bidVolume":     this.SafeNumber(ticker, "bidVolume"),
 		"ask":           this.ParseNumber(this.OmitZero(this.SafeString(ticker, "ask"))),
@@ -3465,7 +3465,7 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) map[string
 		"previousClose": this.SafeNumber(ticker, "previousClose"),
 		"indexPrice":    this.SafeNumber(ticker, "indexPrice"),
 		"markPrice":     this.SafeNumber(ticker, "markPrice"),
-	})
+	}))
 }
 func (this *BaseExchange) FetchBorrowRateAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
@@ -6941,7 +6941,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) map[str
 	if IsArray(tickers) {
 		for i := 0; i < GetArrayLength(tickers); i++ {
 
-			var parsedTicker map[string]any = this.DerivedExchange.ParseTicker(GetValue(tickers, i))
+			var parsedTicker map[string]any = TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, i)))
 			var ticker map[string]any = this.Extend(parsedTicker, params)
 			results = append(results, ticker)
 		}
@@ -6952,7 +6952,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) map[str
 
 			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
 
-			var parsed map[string]any = this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market)
+			var parsed map[string]any = TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market))
 			var ticker map[string]any = this.Extend(parsed, params)
 			results = append(results, ticker)
 		}

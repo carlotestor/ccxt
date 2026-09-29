@@ -964,7 +964,7 @@ func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs 
 		}
 		return ccxt.Multiply(rose, 100)
 	}()
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"info":          tick,
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -985,7 +985,7 @@ func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs 
 		"average":       nil,
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
-	}, market)
+	}, market))
 }
 func (this *Bitrue) ParseWsOrderType(typeId *string) *string {
 	var types map[string]any = map[string]any{

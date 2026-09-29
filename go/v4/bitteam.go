@@ -1828,7 +1828,7 @@ func (this *Bitteam) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 			}
 			return nil
 		}()
-		var ticker map[string]any = this.ParseTicker(rawTicker)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
 		tickers = append(tickers, ticker)
 	}
 
@@ -2058,10 +2058,10 @@ func (this *Bitteam) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	var result map[string]any = SafeMapTyped(response, "result")
 	var pair map[string]any = this.SafeDictMap(result, "pair", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(pair, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(pair, market))}
 	return nil
 }
-func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//     {

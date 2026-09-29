@@ -1411,7 +1411,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[any], symbol any, op
 	ch <- AsyncResult[any]{Value: this.ParseTrades(responseList, market, since, limit)}
 	return nil
 }
-func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "ETHBTC",
@@ -1623,11 +1623,11 @@ func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[map[string]any], sym
 	if IsArray(response) {
 		var firstTicker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(firstTicker, market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(firstTicker, market))}
 		return nil
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 

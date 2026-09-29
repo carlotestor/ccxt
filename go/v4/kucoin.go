@@ -3499,7 +3499,7 @@ func (this *Kucoin) ParseSpotOrUtaTicker(ticker any, optionalArgs ...any) map[st
 	var baseVolume *string = this.SafeString2(ticker, "vol", "baseVolume")
 	var quoteVolume *string = this.SafeString2(ticker, "volValue", "quoteVolume")
 	var timestamp *int64 = this.SafeIntegerN(ticker, []any{"time", "datetime", "timePoint"})
-	return this.SafeTicker(map[string]any{
+	return TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -3522,16 +3522,16 @@ func (this *Kucoin) ParseSpotOrUtaTicker(ticker any, optionalArgs ...any) map[st
 		"markPrice":     this.SafeString2(ticker, "markPrice", "value"),
 		"indexPrice":    this.SafeString(ticker, "indexPrice"),
 		"info":          ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
-func (this *Kucoin) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	// wrapper for parseTickers
 	// parseTickers used only in methods for contract markets
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseContractTicker(ticker, market)
 }
-func (this *Kucoin) ParseContractTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) ParseContractTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "LTCUSDTM",
@@ -4014,7 +4014,7 @@ func (this *Kucoin) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 		//
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 		return nil
 	} else {
 
@@ -4094,7 +4094,7 @@ func (this *Kucoin) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symb
 		response = r1.Value
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 		return nil
 	} else {
 

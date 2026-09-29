@@ -834,7 +834,7 @@ func (this *Hollaex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//         "timestamp": "2020-03-03T03:11:18.965Z"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 
@@ -905,11 +905,11 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) map[string]a
 		var marketId *string = this.SafeString(ticker, "symbol", key)
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
 		var symbol *string = SafeStringPtr(market["symbol"])
-		AddElementToObject(result, symbol, this.Extend(this.ParseTicker(ticker, market), params))
+		AddElementToObject(result, symbol, this.Extend(TickerToMap(this.ParseTicker(ticker, market)), params))
 	}
 	return this.FilterByArrayTickers(result, "symbol", symbols)
 }
-func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//

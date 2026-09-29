@@ -1534,13 +1534,13 @@ func (this *Weex) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...an
 		// book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
 		var marketId *string = this.SafeString(rawTicker, "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-		results = append(results, this.ParseTicker(rawTicker, tickerMarket))
+		results = append(results, TickerToMap(this.ParseTicker(rawTicker, tickerMarket)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(results, "symbol", symbolsNormalized)}
 	return nil
 }
-func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// spot
 	//     {
@@ -1768,7 +1768,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symbol
 		ticker["markPrice"] = this.SafeString(ticker, "price")
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 

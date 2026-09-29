@@ -628,7 +628,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[map[string]any], s
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"])}
 	return nil
 }
-func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "last":4192632.0,
@@ -720,7 +720,7 @@ func (this *Coincheck) fetchTickerBody(ch chan AsyncResult[map[string]any], symb
 	//     "timestamp":1643374115
 	// }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {

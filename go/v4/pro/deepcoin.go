@@ -516,7 +516,7 @@ func (this *Deepcoin) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 		baseVolume = quoteVolume
 		quoteVolume = temp
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        this.SafeString(market, "symbol"),
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -537,7 +537,7 @@ func (this *Deepcoin) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**

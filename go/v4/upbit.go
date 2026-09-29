@@ -1021,7 +1021,7 @@ func (this *Upbit) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbo
 	ch <- AsyncResult[map[string]any]{Value: orderbook}
 	return nil
 }
-func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//       {                market: "BTC-ETH",
 	//                    "trade_date": "20181122",

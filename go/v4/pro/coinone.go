@@ -303,7 +303,7 @@ func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) a
 	if (base != nil) && (quote != nil) {
 		symbol = this.Symbol(*base + "/" + *quote)
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -324,7 +324,7 @@ func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) a
 		"baseVolume":    this.SafeString(ticker, "target_volume"),
 		"quoteVolume":   this.SafeString(ticker, "quote_volume"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**

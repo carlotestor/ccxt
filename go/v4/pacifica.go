@@ -3013,7 +3013,7 @@ func (this *Pacifica) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 			}
 			return nil
 		}()
-		var ticker map[string]any = this.ParseTicker(info)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(info))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -3023,7 +3023,7 @@ func (this *Pacifica) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
 	return nil
 }
-func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//       "funding": "0.00010529",

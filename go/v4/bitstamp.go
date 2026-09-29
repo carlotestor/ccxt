@@ -1570,7 +1570,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sy
 	ch <- AsyncResult[map[string]any]{Value: orderbook}
 	return nil
 }
-func (this *Bitstamp) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitstamp) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "timestamp": "1686068944",
@@ -1672,7 +1672,7 @@ func (this *Bitstamp) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	//     "percent_change_24": "1.24"
 	// }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 

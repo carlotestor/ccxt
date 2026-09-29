@@ -402,7 +402,7 @@ func (this *Deribit) HandleTicker(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
-	var ticker map[string]any = this.ParseTicker(data)
+	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
 	var messageHash *string = this.SafeString(params, "channel")
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -520,7 +520,7 @@ func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) a
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -529,7 +529,7 @@ func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) a
 		"bid":       this.SafeString(ticker, "best_bid_price"),
 		"bidVolume": this.SafeString(ticker, "best_bid_amount"),
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

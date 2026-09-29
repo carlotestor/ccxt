@@ -1591,7 +1591,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan EndpointResult[[]any], para
 	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
-func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// Spot fetchTicker, fetchTickers
 	//
@@ -1769,7 +1769,7 @@ func (this *Coinex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(result, market))}
 	return nil
 }
 

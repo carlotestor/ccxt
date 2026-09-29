@@ -2344,11 +2344,11 @@ func (this *Xt) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol stri
 	var ticker any = this.SafeValue(response, "result")
 	if market["spot"] == true {
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(GetValue(ticker, 0), market)}
+		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(GetValue(ticker, 0), market))}
 		return nil
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 
@@ -2468,12 +2468,12 @@ func (this *Xt) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) 
 	var tickers []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker map[string]any = this.ParseTicker(func() any {
+		var ticker map[string]any = TickerToMap(this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
 			}
 			return nil
-		}(), market)
+		}(), market))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2606,7 +2606,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...any)
 			marketType = "contract"
 		}
 		var marketInner map[string]any = this.SafeMarket(marketId, market, "_", marketType)
-		var ticker map[string]any = this.ParseTicker(rawTicker, marketInner)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker, marketInner))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2616,7 +2616,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...any)
 	ch <- AsyncResult[any]{Value: this.FilterByArray(result, "symbol", symbolsNormalized)}
 	return nil
 }
-func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//

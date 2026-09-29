@@ -416,7 +416,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
 			var marketId string = marketIds[i]
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-			var ticker map[string]any = this.ParseTicker(data[marketId], market)
+			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[marketId], market))
 			this.Tickers.Store(symbol, ticker)
 			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
 			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
@@ -425,7 +425,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
 		var marketId *string = this.SafeString(data, "market_id")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var ticker map[string]any = this.ParseTicker(data, market)
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
 		this.Tickers.Store(symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
 	}

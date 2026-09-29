@@ -489,7 +489,7 @@ func (this *Backpack) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 	var symbol *string = this.SafeSymbol(marketId, marketResolved)
 	var last *string = this.SafeString(ticker, "c")
 	var open *string = this.SafeString(ticker, "o")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -510,7 +510,7 @@ func (this *Backpack) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 		"baseVolume":    this.SafeString(ticker, "v"),
 		"quoteVolume":   this.SafeString(ticker, "V"),
 		"info":          ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**
@@ -664,7 +664,7 @@ func (this *Backpack) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) 
 	var askVolume *string = this.SafeString(ticker, "A")
 	var bid *string = this.SafeString(ticker, "b")
 	var bidVolume *string = this.SafeString(ticker, "B")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -673,7 +673,7 @@ func (this *Backpack) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) 
 		"bid":       bid,
 		"bidVolume": bidVolume,
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

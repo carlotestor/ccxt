@@ -446,7 +446,7 @@ func (this *Bitbank) ParseMarket(entry any) any {
 		"info":    entry,
 	})
 }
-func (this *Bitbank) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitbank) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -514,7 +514,7 @@ func (this *Bitbank) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
 

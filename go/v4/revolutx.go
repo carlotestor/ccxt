@@ -601,7 +601,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [market] the market the ticker is for
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tickerSymbol *string = this.SafeString(ticker, "symbol")
@@ -717,7 +717,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	for i := 0; i < len(data); i++ {
 		var tickerData map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		tickerData["timestamp"] = timestamp
-		var ticker map[string]any = this.ParseTicker(tickerData)
+		var ticker map[string]any = TickerToMap(this.ParseTicker(tickerData))
 		var symbol *string = this.SafeString(ticker, "symbol", "")
 		if symbol != nil && *symbol == "" {
 			continue

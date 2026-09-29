@@ -1541,7 +1541,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
 		}()
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
-			var ticker map[string]any = this.ParseTicker(item)
+			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(item))
 			var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 			if symbol != nil {
 				this.Tickers.Store(symbol, ticker)

@@ -1542,7 +1542,7 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan AsyncResult[any], optionalAr
 	ch <- AsyncResult[any]{Value: this.ParseFundingRates(rows, symbolsNormalized)}
 	return nil
 }
-func (this *Woofipro) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Woofipro) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",
@@ -1653,7 +1653,7 @@ func (this *Woofipro) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
 
@@ -1734,7 +1734,7 @@ func (this *Woofipro) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		var ticker map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
 		}, row)
-		result = append(result, this.ParseTicker(ticker))
+		result = append(result, TickerToMap(this.ParseTicker(ticker)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}

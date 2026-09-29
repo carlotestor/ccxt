@@ -1429,7 +1429,7 @@ func (this *Gemini) fetchTickerV1Body(ch chan EndpointResult[map[string]any], sy
 	//         "last":"9115.23"
 	//     }
 	//
-	chValue := this.ParseTicker(response, market)
+	chValue := TickerToMap(this.ParseTicker(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -1474,7 +1474,7 @@ func (this *Gemini) fetchTickerV2Body(ch chan EndpointResult[map[string]any], sy
 	//         "ask":"9115.87"
 	//     }
 	//
-	chValue := this.ParseTicker(response, market)
+	chValue := TickerToMap(this.ParseTicker(response, market))
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -1574,7 +1574,7 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	}
 	return nil
 }
-func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// fetchTickers
 	//

@@ -1662,7 +1662,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sy
 	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
 }
-func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// on trading pairs (ex. tBTCUSD)
 	//
@@ -1906,7 +1906,7 @@ func (this *Bitfinex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	ticker := r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {

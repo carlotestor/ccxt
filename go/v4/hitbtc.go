@@ -1417,7 +1417,7 @@ func (this *Hitbtc) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	//         "timestamp": "2021-06-02T17:52:36.732Z"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 
@@ -1490,13 +1490,13 @@ func (this *Hitbtc) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var entry map[string]any = this.SafeDictMap(response, marketId, map[string]any{})
-		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
+		AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(entry, market)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
 	return nil
 }
-func (this *Hitbtc) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Hitbtc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//       "ask": "62756.01",

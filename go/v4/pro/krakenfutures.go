@@ -1557,7 +1557,7 @@ func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...
 	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var last *string = this.SafeString(ticker, "last")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -1580,7 +1580,7 @@ func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...
 		"quoteVolume":   this.SafeString(ticker, "volumeQuote"),
 		"markPrice":     this.SafeString(ticker, "markPrice"),
 		"indexPrice":    this.SafeString(ticker, "index"),
-	})
+	}))
 }
 func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[string]any) {
 	//

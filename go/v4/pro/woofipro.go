@@ -264,7 +264,7 @@ func (this *Woofipro) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        this.SafeSymbol(nil, market),
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -285,7 +285,7 @@ func (this *Woofipro) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 		"baseVolume":    this.SafeString(ticker, "volume"),
 		"quoteVolume":   this.SafeString(ticker, "amount"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 func (this *Woofipro) HandleTicker(client any, message map[string]any) any {
 	//
@@ -518,7 +518,7 @@ func (this *Woofipro) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) 
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
@@ -527,7 +527,7 @@ func (this *Woofipro) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) 
 		"bid":       this.SafeString(ticker, "bid"),
 		"bidVolume": this.SafeString(ticker, "bidSize"),
 		"info":      ticker,
-	}, marketResolved)
+	}, marketResolved))
 }
 
 /**

@@ -1224,7 +1224,7 @@ func (this *Luno) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	return nil
 }
-func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	// {
 	//     "pair":"XBTAUD",
 	//     "timestamp":1642201439301,
@@ -1314,7 +1314,7 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any
 		var market map[string]any = this.SafeMarket(id)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var ticker any = tickers[id]
-		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
+		AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(ticker, market)))
 	}
 
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
@@ -1367,7 +1367,7 @@ func (this *Luno) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	//     "rolling_24_hour_volume":"1.89510000",
 	//     "status":"ACTIVE"
 	// }
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
 	return nil
 }
 func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {

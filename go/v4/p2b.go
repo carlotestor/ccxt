@@ -587,10 +587,10 @@ func (this *P2b) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol str
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(result, market))}
 	return nil
 }
-func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// parseTickers
 	//

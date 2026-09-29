@@ -1857,7 +1857,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(rows, market, timeframe, sinceResolved, userLimit)}
 	return nil
 }
-func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// spot
 	//
@@ -2052,7 +2052,7 @@ func (this *Phemex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(result, market))}
 	return nil
 }
 

@@ -1264,10 +1264,10 @@ func (this *Derive) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var data map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
 	return nil
 }
-func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "instrument_type": "perp",

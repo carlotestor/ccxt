@@ -527,7 +527,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol
 	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, market["symbol"])}
 	return nil
 }
-func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "last": 9e-08,
@@ -618,7 +618,7 @@ func (this *Zaif) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	//     "ask": 1e-07
 	// }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
 func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) any {

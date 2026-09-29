@@ -584,7 +584,7 @@ func (this *Cex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	if timestamp != nil {
 		timestamp = ccxt.Multiply(timestamp, 1000)
 	}
-	return this.SafeTicker(map[string]any{
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -605,7 +605,7 @@ func (this *Cex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 		"baseVolume":    nil,
 		"quoteVolume":   this.SafeString(ticker, "volume"),
 		"info":          ticker,
-	}, market)
+	}, market))
 }
 
 /**

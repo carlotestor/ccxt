@@ -941,10 +941,10 @@ func (this *Coinone) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	var data []any = SafeListTyped(response, "tickers")
 	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
 	return nil
 }
-func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "quote_currency": "krw",
