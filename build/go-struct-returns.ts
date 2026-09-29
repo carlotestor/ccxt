@@ -21,6 +21,15 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
 };
 
+// what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
+export function goStructBoxedReturn (name: string): string | undefined {
+    const struct = NAME_TO_STRUCT.get (name);
+    if (struct === undefined) {
+        return undefined;
+    }
+    return (GO_STRUCT_RETURN_TYPES[struct].to === undefined) ? 'map[string]any' : '';
+}
+
 const fromName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].from ?? (struct + 'FromMap');
 const toName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].to ?? (struct + 'ToMap');
 
