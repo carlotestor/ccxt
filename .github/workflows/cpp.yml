@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, cpp ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') }}
     timeout-minutes: 150
     steps:
@@ -40,18 +40,12 @@ jobs:
         node-version: '22'
     - name: Install npm dependencies
       run: npm ci --include=dev
-    - name: Install C++ toolchain
-      # lld links the whole-archive test binary in a fraction of GNU ld's time and
-      # memory -- the 104-exchange static lib is the memory hot spot on the runner
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang-format libcurl4-openssl-dev libssl-dev nlohmann-json3-dev lld libboost-dev libboost-system-dev libsimdjson-dev
     - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        max-size: 2G
-        key: cpp-linux
-        restore-keys: cpp-linux
+      # toolchain (cmake, ninja, lld, ccache, dev libs) is baked into the runner's cpp layer;
+      # the cache dir persists across ephemeral jobs on the runner
+      run: |
+        echo "CCACHE_DIR=/mnt/cache/ccache" >> "$GITHUB_ENV"
+        echo "CCACHE_MAXSIZE=2G" >> "$GITHUB_ENV"
     - name: Emit implicit API
       run: npm run emitAPI -- --cpp
     - name: Transpile everything (base, tests, all exchanges)
@@ -64,7 +58,7 @@ jobs:
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld
     - name: Build (parallel compile)
-      run: cmake --build cpp/build --parallel 2
+      run: cmake --build cpp/build --parallel 4
     - name: Base tests
       run: npm run test-base-rest-cpp
     - name: binance smoke test
