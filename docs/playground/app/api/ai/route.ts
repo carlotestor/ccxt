@@ -1,11 +1,30 @@
 import { isLanguageId, type LanguageId } from "@/lib/languages";
 import { AI_ENDPOINT, buildSystemPrompt } from "@/lib/ai/assistant";
 import { clientIp, logEvent, truncate } from "@/lib/log";
+import cachedAnswers from "@/lib/ai/cached-answers.json";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+const CACHED = cachedAnswers as Record<string, Partial<Record<LanguageId, string>>>;
+
+function cachedAnswer(prompt: unknown, language: LanguageId): string | undefined {
+  if (typeof prompt !== "string" || !Object.hasOwn(CACHED, prompt.trim())) return undefined;
+  return CACHED[prompt.trim()][language];
+}
+
+// Same OpenAI-style SSE framing the upstream streams, so the client parser is unchanged.
+function sseResponse(text: string): Response {
+  const chunk = JSON.stringify({ choices: [{ delta: { content: text } }] });
+  return new Response(`data: ${chunk}\n\ndata: [DONE]\n\n`, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+    },
+  });
+}
 
 export async function POST(request: Request) {
   if (!AI_ENDPOINT) {
@@ -43,6 +62,13 @@ export async function POST(request: Request) {
     prompt: truncate(lastUser?.content, 1000),
     turns: messages.length,
   });
+
+  // A suggested prompt sent as the opening turn is answered from the type-checked cache.
+  const cached = messages.length === 1 ? cachedAnswer(messages[0].content, language) : undefined;
+  if (cached !== undefined) {
+    logEvent({ kind: "ai_cached", ip, language });
+    return sseResponse(cached);
+  }
 
   const payloadMessages = [
     { role: "system", content: buildSystemPrompt(language, code) },
