@@ -8,6 +8,7 @@ import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 import { hx10C05NativeCompareMath, hx10C05SelfTest } from './hx10w2-C05.js'
+import { hx10C05TupleSlotTypes, hx10C05SnippetChecks } from './hx10w3-C05.js' // hx10 wave3 C05: destructured tuple slots
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
@@ -8780,7 +8781,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks () ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...hx10C05SnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9353,7 +9354,7 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true, c31 = true): string {
-    const baseOut = hx10C05NativeCompareMath (hx4C29NativeGetValue (hx4C28NativeHelperCalls (objectNull, hx4C27NativeCompare (hx4C26NativeMath (hx4C22NativeMath (hx4C21NativeHelperCalls (hx4C19NativeMath (hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (hx4C23NativeHelperCalls (hx4C25NativeGetValue (nativeDeclaredHelperCallsBase (hxC08NativeRuntimeStateReads (content), objectNull)))))))))))))))))); // hx10w2 C05, C08
+    const baseOut = hx10C05NativeCompareMath (hx4C29NativeGetValue (hx4C28NativeHelperCalls (objectNull, hx4C27NativeCompare (hx4C26NativeMath (hx4C22NativeMath (hx4C21NativeHelperCalls (hx4C19NativeMath (hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (hx4C23NativeHelperCalls (hx4C25NativeGetValue (nativeDeclaredHelperCallsBase (hx10C05TupleSlotTypes (hxC08NativeRuntimeStateReads (content)), objectNull)))))))))))))))))); // hx10w2 C05, C08
     const c04Out = hx10W2C04NativeHelperCalls (baseOut); // hx10w2 C04
     const c33Out = hx4C33NativeHelperCalls (objectNull, c04Out);
     const c30Out = hx4C30NativeMath (objectNull, c33Out);
