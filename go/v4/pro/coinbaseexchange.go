@@ -84,7 +84,7 @@ func (this *Coinbaseexchange) subscribeBody(ch chan ccxt.AsyncResult[any], name 
 	if messageHashStart == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + name + " subscription requires a messageHashStart argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -141,7 +141,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan ccxt.AsyncResult[any
 	if messageHashStart == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + name + " subscription requires a messageHashStart argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -243,7 +243,7 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan ccxt.AsyncResult[map[stri
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -277,7 +277,7 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan ccxt.AsyncResult[map[stri
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbols).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbols).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -314,7 +314,7 @@ func (this *Coinbaseexchange) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -366,7 +366,7 @@ func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult
 	if symbolsLength == 0 {
 		panic(ccxt.BadRequest(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -421,7 +421,7 @@ func (this *Coinbaseexchange) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -472,7 +472,7 @@ func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan ccxt.AsyncResu
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -523,7 +523,7 @@ func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -580,7 +580,7 @@ func (this *Coinbaseexchange) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Or
 	if symbol == nil {
 		panic(ccxt.BadSymbol(this.Id + " watchMyTrades requires a symbol"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -632,7 +632,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncRes
 		panic(ccxt.BadRequest(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	var name string = "level2"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -693,7 +693,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var name string = "level2"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

@@ -432,7 +432,10 @@ func (this *Btcbox) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var codes []string = ObjectKeys(this.Currencies)
+	var codes []string = nil
+	for k := range this.Currencies() {
+		codes = append(codes, k)
+	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
 		var currency map[string]any = this.Currency(code)
@@ -467,7 +470,7 @@ func (this *Btcbox) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -507,7 +510,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -578,7 +581,7 @@ func (this *Btcbox) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -622,7 +625,7 @@ func (this *Btcbox) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -702,7 +705,7 @@ func (this *Btcbox) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -762,7 +765,7 @@ func (this *Btcbox) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -815,7 +818,7 @@ func (this *Btcbox) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -942,7 +945,7 @@ func (this *Btcbox) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -999,7 +1002,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

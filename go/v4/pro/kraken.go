@@ -950,7 +950,7 @@ func (this *Kraken) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1009,7 +1009,7 @@ func (this *Kraken) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Bidsasks.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1235,12 +1235,12 @@ func (this *Kraken) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Kraken) LoadMarketsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*sync.Map] {
-	ch := make(chan ccxt.AsyncResult[*sync.Map], 1)
+func (this *Kraken) LoadMarketsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.loadMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[*sync.Map], optionalArgs ...any) any {
+func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var reload bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -1269,7 +1269,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[*sync.Map], optiona
 		this.Options["marketsByWsName"] = marketsByWsName
 	}
 
-	ch <- ccxt.AsyncResult[*sync.Map]{Value: markets}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: markets}
 	return nil
 }
 func (this *Kraken) Ping(client any) any {
@@ -1438,14 +1438,9 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		// updates after a reconnect snapshot (a new object would orphan them)
 		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
 		orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
-		var keys []any = []any{"asks", "bids"}
+		var keys []string = []string{"asks", "bids"}
 		for i := 0; i < len(keys); i++ {
-			var key *string = ccxt.SafeStringPtr(func() any {
-				if i >= 0 && i < len(keys) {
-					return ccxt.DerefScalar(keys[i])
-				}
-				return nil
-			}())
+			var key string = keys[i]
 			var bookside any = ccxt.GetValue(orderbook, key)
 			var deltas []any = ccxt.SafeListTypedDefault(first, key, []any{})
 			var deltasLength int = len(deltas)

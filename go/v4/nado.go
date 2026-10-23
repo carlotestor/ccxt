@@ -3982,7 +3982,7 @@ func (this *Nado) CreateOrderNonce(recvWindow any) *string {
 	var entropy int64 = this.RandNumber(6)
 	return Precise.StringAdd(highBits, this.NumberToString(entropy))
 }
-func (this *Nado) CreateOrderAppendix(isTriggerOrder any, optionalArgs ...any) any {
+func (this *Nado) CreateOrderAppendix(isTriggerOrder bool, optionalArgs ...any) any {
 	// | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
 	// | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
 	// | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -4015,7 +4015,7 @@ func (this *Nado) CreateOrderAppendix(isTriggerOrder any, optionalArgs ...any) a
 		appendix = Precise.StringAdd(appendix, Precise.StringMul(builder, "281474976710656"))     // 1<<48
 		appendix = Precise.StringAdd(appendix, Precise.StringMul(builderFeeRate, "274877906944")) // 1<<32
 	}
-	if EvalTruthy(isTriggerOrder) {
+	if isTriggerOrder {
 		appendix = Precise.StringAdd(appendix, "4096")
 	}
 	return appendix

@@ -73,7 +73,7 @@ func (this *Gemini) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -301,7 +301,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
-func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp any) {
+func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp *int64) {
 	if !ccxt.IsEqual(trades, nil) {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var storesForSymbols map[string]any = map[string]any{}
@@ -364,7 +364,7 @@ func (this *Gemini) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -489,7 +489,7 @@ func (this *Gemini) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -663,7 +663,7 @@ func (this *Gemini) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
-func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []any, timestamp any, nonce any) {
+func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []any, timestamp *int64, nonce *int64) {
 	//
 	// {
 	//     eventId: '1683002916916153',
@@ -747,7 +747,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -797,7 +797,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges []any, timestamp any, nonce any) {
+func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges []any, timestamp *int64, nonce *int64) {
 	//
 	// rawOrderBookChanges
 	//
@@ -929,7 +929,7 @@ func (this *Gemini) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		panic(ccxt.ExchangeError(this.Id + " watchOrders() has no websocket url"))
 	}
 	var url string = *wsUrl + "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

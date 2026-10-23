@@ -104,7 +104,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000"))
 		}
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -194,7 +194,7 @@ func (this *Bitopro) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -287,7 +287,7 @@ func (this *Bitopro) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -464,7 +464,7 @@ func (this *Bitopro) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -583,7 +583,7 @@ func (this *Bitopro) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

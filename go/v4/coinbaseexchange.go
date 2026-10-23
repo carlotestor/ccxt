@@ -952,7 +952,7 @@ func (this *Coinbaseexchange) fetchAccountsBody(ch chan AsyncResult[[]Account], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1046,7 +1046,7 @@ func (this *Coinbaseexchange) fetchBalanceBody(ch chan AsyncResult[Balances], op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1086,7 +1086,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan AsyncResult[OrderBook],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1235,7 +1235,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan AsyncResult[map[string]Ti
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1311,7 +1311,7 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan AsyncResult[Ticker], symbo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1503,7 +1503,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan AsyncResult[[]Trade], op
 		}
 		return nil
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1566,7 +1566,7 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan AsyncResult[[]Trade], symb
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1620,7 +1620,7 @@ func (this *Coinbaseexchange) fetchTradingFeesBody(ch chan AsyncResult[map[strin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1706,7 +1706,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1929,7 +1929,7 @@ func (this *Coinbaseexchange) fetchOrderBody(ch chan AsyncResult[Order], id any,
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1989,7 +1989,7 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan AsyncResult[[]Trade],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2088,7 +2088,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2213,7 +2213,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[Order], symbol
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2317,7 +2317,7 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan AsyncResult[Order], id any
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2386,7 +2386,7 @@ func (this *Coinbaseexchange) cancelAllOrdersBody(ch chan AsyncResult[[]Order], 
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2458,7 +2458,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan AsyncResult[Transaction], cod
 	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2630,7 +2630,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code param"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2711,7 +2711,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3034,7 +3034,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan AsyncResult[Depos
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

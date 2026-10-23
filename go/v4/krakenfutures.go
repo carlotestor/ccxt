@@ -698,7 +698,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			"precision": nil,
 		})
 	}
-	this.Currencies = this.MapToSafeMap(this.DeepExtend(currencies, this.Currencies))
+	this.PublishCurrencies(this.DeepExtend(currencies, this.Currencies()))
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
@@ -726,7 +726,7 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan AsyncResult[OrderBook], sy
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -865,7 +865,7 @@ func (this *Krakenfutures) fetchTickersBody(ch chan AsyncResult[map[string]Ticke
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1156,7 +1156,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1291,7 +1291,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1707,7 +1707,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[Order], symbol st
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1814,7 +1814,7 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[[]Order], orders
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1898,7 +1898,7 @@ func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[Order], id string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1952,7 +1952,7 @@ func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[Order], id any, o
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2005,7 +2005,7 @@ func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[[]Order], ids an
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2173,7 +2173,7 @@ func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan AsyncResult[map[stri
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2236,7 +2236,7 @@ func (this *Krakenfutures) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2286,7 +2286,7 @@ func (this *Krakenfutures) fetchOrdersBody(ch chan AsyncResult[[]Order], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2331,7 +2331,7 @@ func (this *Krakenfutures) fetchOrderBody(ch chan AsyncResult[Order], id any, op
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2385,7 +2385,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2477,7 +2477,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3164,7 +3164,7 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3569,7 +3569,7 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3833,7 +3833,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan AsyncResult[map[string]
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3965,7 +3965,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fun
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4037,7 +4037,7 @@ func (this *Krakenfutures) fetchPositionsBody(ch chan AsyncResult[[]Position], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4353,7 +4353,7 @@ func (this *Krakenfutures) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTi
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4533,7 +4533,7 @@ func (this *Krakenfutures) ParseKrakenAccountName(account any) any {
 	}
 	if InOp(accountByType, account) {
 		return GetValue(accountByType, account)
-	} else if (this.Markets != nil) && (InOp(this.Markets, account)) {
+	} else if (this.Markets() != nil) && (InOp(this.Markets(), account)) {
 		var market map[string]any = this.Market(account)
 		var marketId *string = SafeStringPtr(market["id"])
 		var splitId []string = Split(marketId, "_")
@@ -4603,7 +4603,7 @@ func (this *Krakenfutures) transferBody(ch chan AsyncResult[TransferEntry], code
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4681,7 +4681,7 @@ func (this *Krakenfutures) setLeverageBody(ch chan AsyncResult[map[string]any], 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4729,7 +4729,7 @@ func (this *Krakenfutures) fetchLeveragesBody(ch chan AsyncResult[map[string]Lev
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4782,7 +4782,7 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[Leverage], symb
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " fetchLeverage() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

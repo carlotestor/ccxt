@@ -444,7 +444,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -732,7 +732,7 @@ func (this *Binance) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -937,7 +937,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1047,7 +1047,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1188,7 +1188,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1621,7 +1621,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1738,7 +1738,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2161,7 +2161,7 @@ func (this *Binance) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2233,7 +2233,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2437,7 +2437,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2581,7 +2581,7 @@ func (this *Binance) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol str
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2685,7 +2685,7 @@ func (this *Binance) fetchTickerWsBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sy
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2771,7 +2771,7 @@ func (this *Binance) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2900,7 +2900,7 @@ func (this *Binance) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2952,7 +2952,7 @@ func (this *Binance) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], s
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3033,7 +3033,7 @@ func (this *Binance) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccx
 	}
 
 	var resolved1 map[string]any
-	switch resolved1Box := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbols).(type) {
+	switch resolved1Box := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbols).(type) {
 	case map[string]any:
 		resolved1 = resolved1Box
 	case *sync.Map:
@@ -3106,7 +3106,7 @@ func (this *Binance) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		}
 
 		var resolved1 map[string]any
-		switch resolved1Box := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsNormalized).(type) {
+		switch resolved1Box := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized).(type) {
 		case map[string]any:
 			resolved1 = resolved1Box
 		case *sync.Map:
@@ -3145,7 +3145,7 @@ func (this *Binance) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 
 	var resolved3 map[string]any
-	switch resolved3Box := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolved3Box := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved3 = resolved3Box
 	case *sync.Map:
@@ -3234,7 +3234,7 @@ func (this *Binance) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	channelName, paramsName := this.HandleOptionStringAndParams(params, "watchMarkPrices", "name", "markPrice")
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3395,7 +3395,7 @@ func (this *Binance) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3438,7 +3438,7 @@ func (this *Binance) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		}
 
 		var resolved1 map[string]any
-		switch resolved1Box := this.FilterByArray(this.Bidsasks.ToMap(), "symbol", stockSymbols).(type) {
+		switch resolved1Box := this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", stockSymbols).(type) {
 		case map[string]any:
 			resolved1 = resolved1Box
 		case *sync.Map:
@@ -3474,7 +3474,7 @@ func (this *Binance) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	}
 
 	var resolved3 map[string]any
-	switch resolved3Box := this.FilterByArray(this.Bidsasks.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolved3Box := this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved3 = resolved3Box
 	case *sync.Map:
@@ -3500,7 +3500,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 	_ = params
 	var isUnsubscribe bool = ccxt.GetArgBool(optionalArgs, 2, false)
 	_ = isUnsubscribe
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3932,9 +3932,9 @@ func (this *Binance) HandleTickers(client any, message any) {
 func (this *Binance) HandleMarkPrices(client any, message any) {
 	this.HandleTickersAndBidsAsks(client, message, "markPrices")
 }
-func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodType any) {
-	var isBidAsk bool = (ccxt.IsEqual(methodType, "bidasks"))
-	var isMarkPrice bool = (ccxt.IsEqual(methodType, "markPrices"))
+func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodType string) {
+	var isBidAsk bool = (methodType == "bidasks")
+	var isMarkPrice bool = (methodType == "markPrices")
 	var unifiedPrefix string
 	if isBidAsk {
 		unifiedPrefix = "bidask"
@@ -3963,7 +3963,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			continue
 		}
 		var tickerMarketId *string = this.SafeString(ticker, "s")
-		var tickerMarketsByIdList any = this.SafeList(this.Markets_by_id, tickerMarketId)
+		var tickerMarketsByIdList any = this.SafeList(this.Markets_by_id(), tickerMarketId)
 		var numTickerMarkets int = func() int {
 			if tickerMarketsByIdList == nil {
 				return 0
@@ -4695,7 +4695,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 func (this *Binance) SetBalanceCache(client any, typeVar any, optionalArgs ...any) {
 	var isPortfolioMargin bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = isPortfolioMargin
-	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
+	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (this.WsCacheHas("Balance", typeVar)) {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
@@ -4707,7 +4707,7 @@ func (this *Binance) SetBalanceCache(client any, typeVar any, optionalArgs ...an
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar, isPortfolioMargin)
 		}
 	} else {
-		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
+		this.WsCacheSetScalar("Balance", typeVar, map[string]any{})
 	}
 }
 func (this *Binance) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any, isPortfolioMargin any) <-chan ccxt.AsyncResult[bool] {
@@ -4733,12 +4733,12 @@ func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	if !ccxt.StructAbsent(r.Value) {
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
+	this.WsCacheSetScalar("Balance", typeVar, this.Extend(response, this.SafeDict(this.WsCacheSnapshot("Balance"), typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve()
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+		client.(ccxt.ClientInterface).Resolve(this.WsCacheGetScalar("Balance", typeVar), ccxt.Add(typeVar, ":balance"))
 	}
 	return nil
 }
@@ -4767,7 +4767,7 @@ func (this *Binance) fetchBalanceWsBody(ch chan ccxt.AsyncResult[ccxt.Balances],
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4946,7 +4946,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5071,7 +5071,7 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5354,7 +5354,7 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5552,7 +5552,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5748,7 +5748,7 @@ func (this *Binance) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5842,7 +5842,7 @@ func (this *Binance) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelAllOrdersWs() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5916,7 +5916,7 @@ func (this *Binance) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6006,7 +6006,7 @@ func (this *Binance) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6123,7 +6123,7 @@ func (this *Binance) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6203,7 +6203,7 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6924,7 +6924,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6990,7 +6990,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	this.SetPositionsCache(client, typeVar, symbolsNormalized, isPortfolioMargin)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	var cache any = this.SafeValue(this.Positions, typeVar)
+	var cache any = this.SafeValue(this.WsCacheObjGet("Positions"), typeVar)
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
@@ -7035,10 +7035,10 @@ func (this *Binance) SetPositionsCache(client any, typeVar any, optionalArgs ...
 	if ccxt.IsEqual(typeVar, "spot") {
 		return
 	}
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
+	if this.WsCacheObjGet("Positions") == nil {
+		this.WsCacheObjSet("Positions", map[string]any{})
 	}
-	if ccxt.InOp(this.Positions, typeVar) {
+	if ccxt.InOp(this.WsCacheObjGet("Positions"), typeVar) {
 		return
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
@@ -7049,7 +7049,7 @@ func (this *Binance) SetPositionsCache(client any, typeVar any, optionalArgs ...
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar, isPortfolioMargin)
 		}
 	} else {
-		ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
+		ccxt.AddElementToObject(this.WsCacheObjGet("Positions"), typeVar, ccxt.NewArrayCacheBySymbolBySide())
 	}
 }
 func (this *Binance) LoadPositionsSnapshotAsync(client any, messageHash any, typeVar any, isPortfolioMargin any) <-chan ccxt.AsyncResult[bool] {
@@ -7075,8 +7075,8 @@ func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], c
 	if r.Value != nil {
 		positions = ccxt.PositionsToList(r.Value)
 	}
-	ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
-	var cache any = ccxt.GetValue(this.Positions, typeVar)
+	ccxt.AddElementToObject(this.WsCacheObjGet("Positions"), typeVar, ccxt.NewArrayCacheBySymbolBySide())
+	var cache any = ccxt.GetValue(this.WsCacheObjGet("Positions"), typeVar)
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
@@ -7302,7 +7302,7 @@ func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -7385,7 +7385,7 @@ func (this *Binance) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -7508,7 +7508,7 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

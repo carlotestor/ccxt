@@ -1030,7 +1030,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1291,7 +1291,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1518,7 +1518,7 @@ func (this *Tokocrypto) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1599,7 +1599,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1651,7 +1651,7 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker]
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1738,7 +1738,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1862,7 +1862,7 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan AsyncResult[Balances], optional
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2157,7 +2157,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2487,7 +2487,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2732,7 +2732,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2816,7 +2816,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2908,7 +2908,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2997,7 +2997,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3226,7 +3226,7 @@ func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code stri
 	var tagWithdrawTag *string = nil
 	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

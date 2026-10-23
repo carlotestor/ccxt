@@ -76,7 +76,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -163,7 +163,7 @@ func (this *Coincheck) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

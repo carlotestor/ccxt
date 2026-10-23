@@ -1587,7 +1587,7 @@ func (this *Aster) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1791,7 +1791,7 @@ func (this *Aster) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1968,7 +1968,7 @@ func (this *Aster) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2142,7 +2142,7 @@ func (this *Aster) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2226,7 +2226,7 @@ func (this *Aster) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2308,7 +2308,7 @@ func (this *Aster) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice]
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2418,7 +2418,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2542,7 +2542,7 @@ func (this *Aster) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 	if false {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRate() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2597,7 +2597,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2651,7 +2651,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]Fund
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2710,7 +2710,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

@@ -851,7 +851,7 @@ func (this *Luno) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -902,7 +902,7 @@ func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1043,7 +1043,7 @@ func (this *Luno) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArg
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1079,7 +1079,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1290,7 +1290,7 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1345,7 +1345,7 @@ func (this *Luno) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1497,7 +1497,7 @@ func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1564,7 +1564,7 @@ func (this *Luno) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1653,7 +1653,7 @@ func (this *Luno) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1722,7 +1722,7 @@ func (this *Luno) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1784,7 +1784,7 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1860,7 +1860,7 @@ func (this *Luno) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1962,7 +1962,7 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2137,7 +2137,7 @@ func (this *Luno) createDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2200,7 +2200,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

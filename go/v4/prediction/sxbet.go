@@ -654,8 +654,8 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		}()
 		ccxt.AppendToArray(&retRes48412, raw)
 	}
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	var result []any = []any{}
 	var orderLength int = len(order)
@@ -681,7 +681,7 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 				}
 				return nil
 			}()
-			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
+			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
 		}
 		result = append(result, event)
 	}
@@ -3078,17 +3078,17 @@ func (this *Sxbet) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionOr
  * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
  * @returns {object} a dict with sorted 'bids' and 'asks' lists
  */
-func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[string]any {
+func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne bool) map[string]any {
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"
 	var ownLevels any = func() any {
-		if ccxt.EvalTruthy((isOutcomeOne)) {
+		if isOutcomeOne {
 			return this.SafeList(snapshot, "outcomeOne", []any{})
 		}
 		return this.SafeList(snapshot, "outcomeTwo", []any{})
 	}()
 	var oppositeLevels any = func() any {
-		if ccxt.EvalTruthy((isOutcomeOne)) {
+		if isOutcomeOne {
 			return this.SafeList(snapshot, "outcomeTwo", []any{})
 		}
 		return this.SafeList(snapshot, "outcomeOne", []any{})
@@ -3643,7 +3643,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	var client any = this.Client(url)
 	var channel string = "best_odds_v3:global"
 	var hydrated bool = false
-	if ccxt.IsEqual(this.Tickers.Get(sym), nil) {
+	if ccxt.IsEqual(this.WsCacheGet("Tickers", sym), nil) {
 		// hydrate from the REST snapshot so the first call does not hang until the
 		// market's next top-of-book change - the channel is global, so the seed must fire
 		// for every newly watched market, not only on a fresh subscription
@@ -3658,7 +3658,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 		}
 		var raw map[string]any = this.ParseSxbetSnapshotBestOdds(snapshot)
 		var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
-		this.Tickers.Store(sym, ticker)
+		this.WsCacheSet("Tickers", sym, ticker)
 		hydrated = true
 	}
 	var requestId int64 = this.RequestId(url)
@@ -3671,7 +3671,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	}
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if hydrated {
-		client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(sym), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.WsCacheGet("Tickers", sym), messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])

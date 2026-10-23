@@ -2144,7 +2144,7 @@ func (this *Gate) SafeMarket(optionalArgs ...any) map[string]any {
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
 	var isOption bool = (marketId != nil) && ((GetIndexOf(marketId, "-C") > -1) || (GetIndexOf(marketId, "-P") > -1))
-	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
+	if isOption && ((this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), marketId))) {
 		// handle expired option contracts
 		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
@@ -3152,7 +3152,7 @@ func (this *Gate) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3242,7 +3242,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3407,7 +3407,7 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan AsyncResult[DepositAddr
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3485,7 +3485,7 @@ func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3531,7 +3531,7 @@ func (this *Gate) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3604,7 +3604,7 @@ func (this *Gate) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3658,7 +3658,7 @@ func (this *Gate) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3766,7 +3766,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3863,7 +3863,7 @@ func (this *Gate) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]De
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3990,7 +3990,7 @@ func (this *Gate) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4115,7 +4115,7 @@ func (this *Gate) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4292,7 +4292,7 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4508,7 +4508,7 @@ func (this *Gate) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4610,7 +4610,7 @@ func (this *Gate) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4974,7 +4974,7 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5108,7 +5108,7 @@ func (this *Gate) fetchOptionOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5163,7 +5163,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -5296,7 +5296,7 @@ func (this *Gate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5464,7 +5464,7 @@ func (this *Gate) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrderTrades() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5547,7 +5547,7 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5926,7 +5926,7 @@ func (this *Gate) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6003,7 +6003,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6078,7 +6078,7 @@ func (this *Gate) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6312,7 +6312,7 @@ func (this *Gate) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6522,7 +6522,7 @@ func (this *Gate) createOrdersBody(ch chan AsyncResult[[]Order], orders any, opt
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6905,7 +6905,7 @@ func (this *Gate) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], s
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -7013,7 +7013,7 @@ func (this *Gate) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -7548,7 +7548,7 @@ func (this *Gate) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArg
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -7720,7 +7720,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -7876,7 +7876,7 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status a
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -8167,7 +8167,7 @@ func (this *Gate) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -8366,7 +8366,7 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, option
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -8456,7 +8456,7 @@ func (this *Gate) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], order
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -8530,7 +8530,7 @@ func (this *Gate) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -8674,7 +8674,7 @@ func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -8795,7 +8795,7 @@ func (this *Gate) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	if (leverage < 0) || (leverage > 100) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and 100"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9060,7 +9060,7 @@ func (this *Gate) fetchPositionBody(ch chan AsyncResult[Position], symbol any, o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9187,7 +9187,7 @@ func (this *Gate) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9347,7 +9347,7 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9437,7 +9437,7 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTie
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9574,7 +9574,7 @@ func (this *Gate) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9626,7 +9626,7 @@ func (this *Gate) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code str
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9690,7 +9690,7 @@ func (this *Gate) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symb
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9757,7 +9757,7 @@ func (this *Gate) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code st
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -9887,7 +9887,7 @@ func (this *Gate) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -10116,7 +10116,7 @@ func (this *Gate) modifyMarginHelperBody(ch chan AsyncResult[MarginModification]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -10301,7 +10301,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInteres
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -10431,7 +10431,7 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchSettlementHistory() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -10507,7 +10507,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -10733,7 +10733,7 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11071,7 +11071,7 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[[]string], optio
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11140,7 +11140,7 @@ func (this *Gate) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], symb
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11217,7 +11217,7 @@ func (this *Gate) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], op
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyLiquidations() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11405,7 +11405,7 @@ func (this *Gate) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11577,7 +11577,7 @@ func (this *Gate) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11647,7 +11647,7 @@ func (this *Gate) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11712,7 +11712,7 @@ func (this *Gate) fetchOptionBody(ch chan AsyncResult[Option], symbol string, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11795,7 +11795,7 @@ func (this *Gate) fetchOptionChainBody(ch chan AsyncResult[map[string]Option], c
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -11961,7 +11961,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

@@ -1525,7 +1525,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 			return this.SafeDict(this.Outcomes_by_id, key, map[string]any{})
 		}
 	}
-	if ((this.Markets != nil) && (ccxt.InOp(this.Markets, outcomeInput))) || ((this.Markets_by_id != nil) && (ccxt.InOp(this.Markets_by_id, outcomeInput))) {
+	if ((this.Markets() != nil) && (ccxt.InOp(this.Markets(), outcomeInput))) || ((this.Markets_by_id() != nil) && (ccxt.InOp(this.Markets_by_id(), outcomeInput))) {
 		var market map[string]any = this.SafeMarket(outcomeInput)
 		var sideHintOrDefault any = "YES"
 		if sideHint != nil {
@@ -2566,7 +2566,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var marketsDict map[string]any = ccxt.MapTyped(r.Value)
+	var marketsDict map[string]any = r.Value
 	var marketValues []any = this.ToArray(marketsDict)
 	// Group markets by parentSymbol
 	var groupMap map[string]any = map[string]any{}

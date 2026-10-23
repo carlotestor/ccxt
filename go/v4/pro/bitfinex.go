@@ -67,7 +67,7 @@ func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel strin
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -122,7 +122,7 @@ func (this *Bitfinex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channel st
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -178,7 +178,7 @@ func (this *Bitfinex) SubscribePrivateAsync(messageHash any) <-chan ccxt.AsyncRe
 func (this *Bitfinex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHash any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -227,7 +227,7 @@ func (this *Bitfinex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -283,7 +283,7 @@ func (this *Bitfinex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -513,7 +513,7 @@ func (this *Bitfinex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1233,7 +1233,7 @@ func (this *Bitfinex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1561,7 +1561,7 @@ func (this *Bitfinex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

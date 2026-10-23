@@ -368,12 +368,12 @@ func (this *BaseExchange) Describe() any {
 }
 func (this *BaseExchange) CleanRestData() {
 	this.Ids = nil
-	this.Markets = nil
-	this.Markets_by_id = nil
+	this.PublishMarkets(nil)
+	this.PublishMarketsById(nil)
 	this.Symbols = []string{}
 	this.Codes = nil
-	this.Currencies = this.CreateSafeDictionary()
-	this.Currencies_by_id = nil
+	this.PublishCurrencies(map[string]any{})
+	this.PublishCurrenciesById(nil)
 	this.BaseCurrencies = nil
 	this.QuoteCurrencies = nil
 	this.Last_http_response = nil
@@ -382,9 +382,9 @@ func (this *BaseExchange) CleanRestData() {
 	this.Last_request_headers = nil
 }
 func (this *BaseExchange) CleanWsData() {
-	this.Balance = this.CreateSafeDictionary(true)
+	this.WsCacheReset("Balance")
 	this.WsCacheReset("Orderbooks")
-	this.Tickers = &TickerCache{}
+	this.WsCacheReset("Tickers")
 	this.Liquidations = nil
 	this.MyLiquidations = nil
 	this.Orders = nil
@@ -392,7 +392,7 @@ func (this *BaseExchange) CleanWsData() {
 	this.Transactions = this.CreateSafeDictionary()
 	this.WsCacheReset("Ohlcvs")
 	this.MyTrades = nil
-	this.Positions = nil
+	this.WsCacheObjSet("Positions", nil)
 }
 
 func (this *BaseExchange) SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any {
@@ -1896,8 +1896,8 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	this.FeaturesGenerator()
 	this.HasAutocorrect()
 	// init predefined markets if any
-	if this.Markets != nil {
-		this.SetMarkets(this.Markets)
+	if this.Markets() != nil {
+		this.SetMarkets(this.Markets())
 	}
 	// init the request rate limiter
 	this.InitRestRateLimiter()
@@ -1990,32 +1990,22 @@ func (this *BaseExchange) FeaturesGenerator() {
 	// reconstruct
 	var initialFeatures any = this.Features
 	this.Features = map[string]any{}
-	var unifiedMarketTypes []any = []any{"spot", "swap", "future", "option"}
-	var subTypes []any = []any{"linear", "inverse"}
+	var unifiedMarketTypes []string = []string{"spot", "swap", "future", "option"}
+	var subTypes []string = []string{"linear", "inverse"}
 	// atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
 	for i := 0; i < len(unifiedMarketTypes); i++ {
-		var marketType *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(unifiedMarketTypes) {
-				return DerefScalar(unifiedMarketTypes[i])
-			}
-			return nil
-		}())
+		var marketType string = unifiedMarketTypes[i]
 		// if marketType is not filled for this exchange, don't add that in `features`
 		if !(InOp(initialFeatures, marketType)) {
-			AddElementToObject(this.Features, marketType, nil)
+			this.Features[marketType] = nil
 		} else {
-			if marketType != nil && *marketType == "spot" {
-				AddElementToObject(this.Features, marketType, this.FeaturesMapper(initialFeatures, marketType))
+			if marketType == "spot" {
+				this.Features[marketType] = this.FeaturesMapper(initialFeatures, marketType)
 			} else {
-				AddElementToObject(this.Features, marketType, map[string]any{})
+				this.Features[marketType] = map[string]any{}
 				for j := 0; j < len(subTypes); j++ {
-					var subType *string = SafeStringPtr(func() any {
-						if j >= 0 && j < len(subTypes) {
-							return DerefScalar(subTypes[j])
-						}
-						return nil
-					}())
-					AddElementToObject(GetValue(this.Features, marketType), subType, this.FeaturesMapper(initialFeatures, marketType, subType))
+					var subType string = subTypes[j]
+					AddElementToObject(this.Features[marketType], subType, this.FeaturesMapper(initialFeatures, marketType, subType))
 				}
 			}
 		}
@@ -2493,10 +2483,10 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		}
 		values = append(values, MarketTyped(market))
 	}
-	this.Markets = this.MapToSafeMap(this.IndexBy(values, "symbol"))
-	this.Markets_by_id = this.MapToSafeMap(marketsById)
-	var marketsSortedBySymbol map[string]any = this.Keysort(this.Markets)
-	var marketsSortedById map[string]any = this.Keysort(this.Markets_by_id)
+	this.PublishMarkets(this.IndexBy(values, "symbol"))
+	this.PublishMarketsById(marketsById)
+	var marketsSortedBySymbol map[string]any = this.Keysort(this.Markets())
+	var marketsSortedById map[string]any = this.Keysort(this.Markets_by_id())
 	this.Symbols = ObjectKeys(marketsSortedBySymbol)
 	this.Ids = ObjectKeys(marketsSortedById)
 	var numCurrencies int = 0
@@ -2506,7 +2496,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	}
 	if numCurrencies > 0 {
 		// currencies is always undefined when called in constructor but not when called from loadMarkets
-		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
+		this.PublishCurrencies(this.DeepExtend(this.Currencies(), currencies))
 	} else {
 		var baseCurrencies []any = []any{}
 		var quoteCurrencies []any = []any{}
@@ -2584,15 +2574,15 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 			resultingCurrencies = append(resultingCurrencies, highestPrecisionCurrency)
 		}
 		var sortedCurrencies []any = this.SortBy(resultingCurrencies, "code")
-		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, this.IndexBy(sortedCurrencies, "code")))
+		this.PublishCurrencies(this.DeepExtend(this.Currencies(), this.IndexBy(sortedCurrencies, "code")))
 	}
-	this.Currencies_by_id = this.IndexBySafe(this.Currencies, "id")
-	var currenciesSortedByCode map[string]any = this.Keysort(this.Currencies)
+	this.PublishCurrenciesById(this.IndexBy(this.Currencies(), "id"))
+	var currenciesSortedByCode map[string]any = this.Keysort(this.Currencies())
 	this.Codes = ObjectKeys(currenciesSortedByCode)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 		panic(ExchangeError(this.Id + " setMarkets() markets not set"))
 	}
-	return this.Markets
+	return this.Markets()
 }
 func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange) any {
 	// Validate that both exchanges are of the same type
@@ -2600,16 +2590,16 @@ func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange) a
 		panic(ArgumentsRequired(Add(Add(this.Id+" shareMarkets() can only share markets with exchanges of the same type (got ", GetValue(sourceExchange, "id")), ")")))
 	}
 	// Validate that source exchange has loaded markets
-	if (IsEqual(sourceExchange.Markets, nil)) || (IsEqual(sourceExchange.Markets, nil)) {
+	if (IsEqual(sourceExchange.Markets(), nil)) || (IsEqual(sourceExchange.Markets(), nil)) {
 		panic(ExchangeError("setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function"))
 	}
 	// Set all market-related data
-	this.Markets = sourceExchange.Markets
-	this.Markets_by_id = sourceExchange.Markets_by_id
+	this.PublishMarkets(sourceExchange.Markets())
+	this.PublishMarketsById(sourceExchange.Markets_by_id())
 	this.Symbols = sourceExchange.Symbols
 	this.Ids = sourceExchange.Ids
-	this.Currencies = sourceExchange.Currencies
-	this.Currencies_by_id = sourceExchange.Currencies_by_id
+	this.PublishCurrencies(sourceExchange.Currencies())
+	this.PublishCurrenciesById(sourceExchange.Currencies_by_id())
 	this.BaseCurrencies = sourceExchange.BaseCurrencies
 	this.QuoteCurrencies = sourceExchange.QuoteCurrencies
 	this.Codes = sourceExchange.Codes
@@ -3034,7 +3024,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 	if (typeVar == "market") && (takerOrMaker == "maker") {
 		panic(ArgumentsRequired(this.Id + " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee."))
 	}
-	var markets any = this.Markets
+	var markets any = this.Markets()
 	if IsEqual(markets, nil) {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
@@ -4072,9 +4062,13 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	// fall back to scanning loaded currencies
 	var currenciesToCheck any = []any{}
 	if currencyCode == nil {
-		currenciesToCheck = ObjectKeys(this.Currencies)
+		var g04Keys []string = nil
+		for k := range this.Currencies() {
+			g04Keys = append(g04Keys, k)
+		}
+		currenciesToCheck = g04Keys
 	} else {
-		currenciesToCheck = []any{this.SafeDict(this.Currencies, currencyCode)}
+		currenciesToCheck = []any{this.SafeDict(this.Currencies(), currencyCode)}
 	}
 	for i := 0; i < GetArrayLength(currenciesToCheck); i++ {
 		var networks map[string]any = SafeMapTyped(GetValue(currenciesToCheck, i), "networks")
@@ -4327,29 +4321,18 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan AsyncResult[map[string]a
 			}
 			var response map[string]any = r.Value
 			var symbolsArray any = this.RequireValue(symbols, "loadTradingLimits() requires a symbols argument")
-			var markets any = this.Markets
-			if IsEqual(markets, nil) {
+			if IsEqual(this.Markets(), nil) {
 				panic(ExchangeError(this.Id + " markets not loaded"))
 			}
 			for i := 0; i < GetArrayLength(symbolsArray); i++ {
 				var symbol any = GetValue(symbolsArray, i)
-				AddElementToObject(markets, symbol, this.DeepExtend(GetValue(markets, symbol), GetValue(response, symbol)))
+				this.AddMarketsEntry(symbol, this.DeepExtend(GetValue(this.Markets(), symbol), GetValue(response, symbol)))
 			}
 			this.Options["limitsLoaded"] = this.Milliseconds()
 		}
 	}
 
-	var resolved map[string]any
-	switch resolvedBox := any(this.Markets).(type) {
-	case map[string]any:
-		resolved = resolvedBox
-	case *sync.Map:
-		resolved = SafeMapToMap(resolvedBox)
-	case nil:
-	default:
-		panic(ExchangeError("resolved value is not map[string]any"))
-	}
-	ch <- AsyncResult[map[string]any]{Value: resolved}
+	ch <- AsyncResult[map[string]any]{Value: this.Markets()}
 	return nil
 }
 func (this *BaseExchange) SafePosition(position any) Position {
@@ -4359,7 +4342,7 @@ func (this *BaseExchange) SafePosition(position any) Position {
 	var symbol *string = this.SafeString(position, "symbol")
 	var market any = nil
 	if symbol != nil {
-		market = this.SafeValue(this.Markets, symbol)
+		market = this.SafeValue(this.Markets(), symbol)
 	}
 	if (contractSize == nil) && !IsEqual(market, nil) {
 		contractSize = this.SafeNumber(market, "contractSize")
@@ -4934,7 +4917,7 @@ func (this *BaseExchange) CurrencyId(code any) any {
 	if IsEqual(code, nil) {
 		return code
 	}
-	var currencyById any = this.SafeDict(this.Currencies, code)
+	var currencyById any = this.SafeDict(this.Currencies(), code)
 	if currencyById != nil {
 		return GetValue(currencyById, "id")
 	}
@@ -5064,7 +5047,7 @@ func (this *BaseExchange) GetSymbolsForMarketType(optionalArgs ...any) any {
 	_ = symbolWithActiveStatus
 	var symbolWithUnknownStatus bool = GetArgBool(optionalArgs, 3, true)
 	_ = symbolWithUnknownStatus
-	var filteredMarkets any = this.Markets
+	var filteredMarkets any = this.Markets()
 	if marketType != nil {
 		filteredMarkets = this.FilterBy(filteredMarkets, "type", marketType)
 	}
@@ -5371,9 +5354,9 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	// note, default limit value (2147483647) is max int32 value
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, 0)
+	var since int64 = GetArgInt64(optionalArgs, 1, 0)
 	_ = since
-	limit := GetArg(optionalArgs, 2, 2147483647)
+	var limit int64 = GetArgInt64(optionalArgs, 2, 2147483647)
 	_ = limit
 	var ms int64 = this.ParseTimeframe(timeframe) * 1000
 	var ohlcvs []any = []any{}
@@ -5385,17 +5368,17 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	var i_volume int = 5
 	var i_count int = 6
 	var tradesLength int = GetArrayLength(trades)
-	var oldest any = mathMin(tradesLength, limit)
+	var oldest int64 = min(int64(tradesLength), limit)
 	var options map[string]any = SafeMapTyped(this.Options, "buildOHLCVC")
 	var skipZeroPrices *bool = this.SafeBool(options, "skipZeroPrices", true)
-	for i := 0; IsLessThan(i, oldest); i++ {
+	for i := 0; int64(i) < oldest; i++ {
 		var trade map[string]any = SafeMapTyped(trades, i)
 		var ts *int64 = this.SafeInteger(trade, "timestamp")
 		var price any = trade["price"]
 		if (ts == nil) || (IsEqual(price, nil)) {
 			continue
 		}
-		if IsLessThan(ts, since) {
+		if *ts < since {
 			continue
 		}
 		if ts == nil {
@@ -5551,8 +5534,8 @@ func (this *BaseExchange) SafeCurrency(currencyId any, optionalArgs ...any) map[
 	if (IsEqual(currencyId, nil)) && (currency != nil) {
 		return CurrencyTyped(currency)
 	}
-	if (!IsEqual(currencyId, nil)) && (this.Currencies_by_id != nil) && (InOp(this.Currencies_by_id, currencyId)) && (!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)) {
-		return CurrencyTyped(GetValue(this.Currencies_by_id, currencyId))
+	if (!IsEqual(currencyId, nil)) && (this.Currencies_by_id() != nil) && (InOp(this.Currencies_by_id(), currencyId)) && (!IsEqual(GetValue(this.Currencies_by_id(), currencyId), nil)) {
+		return CurrencyTyped(GetValue(this.Currencies_by_id(), currencyId))
 	}
 	var code any = currencyId
 	if !IsEqual(currencyId, nil) {
@@ -5574,8 +5557,8 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
 	if marketId != nil {
-		if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
-			var markets []any = SafeListTyped(this.Markets_by_id, marketId)
+		if (this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), marketId)) {
+			var markets []any = SafeListTyped(this.Markets_by_id(), marketId)
 			var numMarkets int = len(markets)
 			if numMarkets == 1 {
 				return MarketTyped(func() any {
@@ -6824,14 +6807,9 @@ func (this *BaseExchange) MergeBalanceAccount(result any, code any, account any)
 		AddElementToObject(result, code, account)
 		return result
 	}
-	var fields []any = []any{"free", "used", "total", "debt"}
+	var fields []string = []string{"free", "used", "total", "debt"}
 	for i := 0; i < len(fields); i++ {
-		var field *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(fields) {
-				return DerefScalar(fields[i])
-			}
-			return nil
-		}())
+		var field string = fields[i]
 		var current *string = this.SafeString(GetValue(result, code), field)
 		var incoming *string = this.SafeString(account, field)
 		if current == nil {
@@ -6852,14 +6830,17 @@ func (this *BaseExchange) Currency(code any) map[string]any {
 	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(this.Id + " currency() requires a code argument"))
 	}
-	var keys []string = ObjectKeys(this.Currencies)
+	var keys []string = nil
+	for k := range this.Currencies() {
+		keys = append(keys, k)
+	}
 	var numCurrencies int = len(keys)
 	if numCurrencies == 0 {
 		panic(ExchangeError(this.Id + " currencies not loaded"))
 	}
 	if IsString(code) {
-		var currencies any = this.Currencies
-		var currenciesById any = this.Currencies_by_id
+		var currencies any = this.Currencies()
+		var currenciesById any = this.Currencies_by_id()
 		if InOp(currencies, code) {
 			return CurrencyTyped(GetValue(currencies, code))
 		} else if (!IsEqual(currenciesById, nil)) && (InOp(currenciesById, code)) {
@@ -6872,11 +6853,11 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
 	}
-	var markets any = this.Markets
+	var markets any = this.Markets()
 	if IsEqual(markets, nil) {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
-	var marketsById any = this.Markets_by_id
+	var marketsById any = this.Markets_by_id()
 	if InOp(markets, symbol) {
 		return MarketTyped(GetValue(markets, symbol))
 	} else if (!IsEqual(marketsById, nil)) && (InOp(marketsById, symbol)) {
@@ -6902,14 +6883,9 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 	_ = checkBaseCoin
 	var existingCurrencies map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = existingCurrencies
-	var leverageSuffixes []any = []any{"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"}
+	var leverageSuffixes []string = []string{"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"}
 	for i := 0; i < len(leverageSuffixes); i++ {
-		var leverageSuffix *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(leverageSuffixes) {
-				return DerefScalar(leverageSuffixes[i])
-			}
-			return nil
-		}())
+		var leverageSuffix string = leverageSuffixes[i]
 		var endsWithSuffix bool = EndsWith(currencyCode, leverageSuffix)
 		if endsWithSuffix {
 			if !(checkBaseCoin == true) {
@@ -6979,7 +6955,7 @@ func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ..
 	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(this.Id + " currencyToPrecision() requires a code argument"))
 	}
-	var currency map[string]any = MapTyped(GetValue(this.Currencies, code))
+	var currency map[string]any = MapTyped(GetValue(this.Currencies(), code))
 	var precision any = this.SafeValue(currency, "precision")
 	if networkCode != nil {
 		var networks map[string]any = SafeMapTyped(currency, "networks")
@@ -7879,8 +7855,8 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 	if func() bool { _, ok := accountsByType[lowercaseAccount]; return ok }() {
 		return accountsByType[lowercaseAccount]
 	}
-	var markets any = this.Markets
-	var marketsById any = this.Markets_by_id
+	var markets any = this.Markets()
+	var marketsById any = this.Markets_by_id()
 	if ((!IsEqual(markets, nil)) && (InOp(markets, account))) || ((!IsEqual(marketsById, nil)) && (InOp(marketsById, account))) {
 
 		var market map[string]any = this.DerivedExchange.Market(account)
@@ -11790,8 +11766,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11345, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047615 []any = listRecv11345
+	listRecv11331, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1047615 []any = listRecv11331
 	if retRes1047615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

@@ -351,7 +351,10 @@ func (this *Bit2c) ParseBalance(response any) map[string]any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var codes []string = ObjectKeys(this.Currencies)
+	var codes []string = nil
+	for k := range this.Currencies() {
+		codes = append(codes, k)
+	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
 		var account map[string]any = this.Account()
@@ -384,7 +387,7 @@ func (this *Bit2c) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -466,7 +469,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -576,7 +579,7 @@ func (this *Bit2c) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -624,7 +627,7 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -697,7 +700,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -790,7 +793,7 @@ func (this *Bit2c) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -903,7 +906,7 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -950,7 +953,7 @@ func (this *Bit2c) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1128,7 +1131,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1362,7 +1365,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

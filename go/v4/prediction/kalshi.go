@@ -579,13 +579,13 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
 		if !ccxt.IsEqual(response, nil) {
 			var rawMarket any = this.SafeDict(response, "market", response)
 			var parsed any = this.ParseMarket(rawMarket)
-			if this.Markets == nil {
-				this.Markets = this.CreateSafeDictionary()
+			if this.Markets() == nil {
+				this.PublishMarkets(map[string]any{})
 			}
 			if ccxt.IsEqual(parsed, nil) {
 				panic(ccxt.ExchangeError(this.Id + " fetchOutcome() could not resolve parsed"))
 			}
-			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(parsed, "market"), parsed)
+			this.AddMarketsEntry(ccxt.GetValue(parsed, "market"), parsed)
 			// index only the market just fetched, not a full O(markets x outcomes) rebuild of the
 			// whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
 			this.IndexMarketOutcomes(parsed)
@@ -698,8 +698,8 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 			tickers = append(tickers, baseTicker)
 		}
 	}
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	var chunkSize *int64 = this.SafeInteger(this.Options, "fetchOutcomesBatchSize", 100)
 	var tickersLength int = len(tickers)
@@ -739,7 +739,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 			if ccxt.IsEqual(parsed, nil) {
 				panic(ccxt.ExchangeError(this.Id + " fetchOutcomes() could not resolve parsed"))
 			}
-			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(parsed, "market"), parsed)
+			this.AddMarketsEntry(ccxt.GetValue(parsed, "market"), parsed)
 			this.IndexMarketOutcomes(parsed)
 		}
 	}
@@ -896,22 +896,22 @@ func (this *Kalshi) ParseMarket(raw any) any {
 		"price":  pricePrecision,
 	}
 	// Build outcomes
-	var outcomeLabels []any = []any{"YES", "NO"}
+	var outcomeLabels []string = []string{"YES", "NO"}
 	var outcomeIds []any = []any{ticker, ccxt.Add(ticker, "-NO")}
 	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for oi := 0; oi < len(outcomeLabels); oi++ {
-		var label *string = ccxt.SafeStringPtr(func() any {
+		var label string = func() any {
 			if oi >= 0 && oi < len(outcomeLabels) {
-				return ccxt.DerefScalar(outcomeLabels[oi])
+				return outcomeLabels[oi]
 			}
 			return nil
-		}())
+		}().(string)
 		var outcomeHandle any = this.SlugToOutcomeSymbol(eventTicker, subtitleOrTicker, label)
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil
 		if resolved && (result != nil) && (result == nil || *result != "") {
-			winnerRaw = (ccxt.IsEqual(strings.ToLower(*label), result))
+			winnerRaw = (ccxt.IsEqual(strings.ToLower(label), result))
 			settleFractionRaw = func() int {
 				if winnerRaw == true {
 					return 1
@@ -3262,8 +3262,8 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
 	var rest map[string]any = this.OmitDict(paramsOmitted, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"})
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	var eventId *string = this.SafeString2(paramsOmitted, "eventId", "slug")
 	var rawEvents any = []any{}
@@ -3332,7 +3332,7 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 				}
 				return nil
 			}()
-			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
+			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
 		}
 	}
 	this.PopulateOutcomes()

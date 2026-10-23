@@ -4342,8 +4342,8 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			rawQuestions = ccxt.ArrayTyped(this.SafeList(responses, 1, []any{}))
 		}
 	}
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	var seenMarketHandles map[string]any = map[string]any{}
 	var result []any = []any{}
@@ -4373,7 +4373,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 					continue
 				}
 				seenMarketHandles[*marketHandle] = true
-				ccxt.AddElementToObject(this.Markets, marketHandle, m)
+				this.AddMarketsEntry(marketHandle, m)
 			}
 			filteredMarkets = append(filteredMarkets, m)
 		}
@@ -4402,12 +4402,12 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			_, ok := seenMarketHandles[*marketHandle]
 			return ok
 		}()) {
-			ccxt.AddElementToObject(this.Markets, marketHandle, m)
+			this.AddMarketsEntry(marketHandle, m)
 			continue
 		}
 		if marketHandle != nil {
 			seenMarketHandles[*marketHandle] = true
-			ccxt.AddElementToObject(this.Markets, marketHandle, m)
+			this.AddMarketsEntry(marketHandle, m)
 		}
 		var ev map[string]any = this.ParseMarketToEvent(raw, m)
 		result = append(result, ev)
@@ -5285,7 +5285,7 @@ func (this *Myriad) HandleTicker(client any, data map[string]any) {
 	var outcomes []any = ccxt.SafeListTyped(data, "outcomes")
 	var outcomesLength int = len(outcomes)
 	if this.Tickers == nil {
-		this.Tickers = &ccxt.TickerCache{}
+		this.Tickers = ccxt.TickerCache{}
 	}
 	for i := 0; i < outcomesLength; i++ {
 		var oc any = func() any {

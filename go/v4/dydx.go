@@ -844,7 +844,7 @@ func (this *Dydx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -936,7 +936,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1023,7 +1023,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1204,7 +1204,7 @@ func (this *Dydx) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArg
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1258,7 +1258,7 @@ func (this *Dydx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
 	subAccountNumber, paramsSubAccountNumber := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0")
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1524,7 +1524,7 @@ func (this *Dydx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
 	subAccountNumber, paramsSubAccountNumber := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0")
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1966,7 +1966,7 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2074,7 +2074,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	if (!(isTrigger != nil && *isTrigger)) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2211,7 +2211,7 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, option
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2323,7 +2323,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2455,7 +2455,7 @@ func (this *Dydx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2572,7 +2572,7 @@ func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	if code != "USDC" {
 		panic(NotSupported(this.Id + " transfer() only support USDC"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2752,7 +2752,7 @@ func (this *Dydx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2869,7 +2869,7 @@ func (this *Dydx) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	if code != "USDC" {
 		panic(NotSupported(this.Id + " withdraw() only support USDC"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2975,7 +2975,7 @@ func (this *Dydx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3032,7 +3032,7 @@ func (this *Dydx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3089,7 +3089,7 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3295,7 +3295,7 @@ func (this *Dydx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

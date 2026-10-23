@@ -312,7 +312,7 @@ func (this *Lighter) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -355,7 +355,7 @@ func (this *Lighter) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -477,7 +477,7 @@ func (this *Lighter) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -531,7 +531,7 @@ func (this *Lighter) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol st
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -578,7 +578,7 @@ func (this *Lighter) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -627,7 +627,7 @@ func (this *Lighter) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -661,7 +661,7 @@ func (this *Lighter) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -952,7 +952,7 @@ func (this *Lighter) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -994,7 +994,7 @@ func (this *Lighter) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol st
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1236,7 +1236,7 @@ func (this *Lighter) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1471,7 +1471,7 @@ func (this *Lighter) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liqui
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1521,7 +1521,7 @@ func (this *Lighter) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1711,7 +1711,7 @@ func (this *Lighter) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1771,7 +1771,7 @@ func (this *Lighter) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalA
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

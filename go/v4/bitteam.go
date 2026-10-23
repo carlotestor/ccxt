@@ -867,7 +867,7 @@ func (this *Bitteam) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -957,7 +957,7 @@ func (this *Bitteam) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1036,7 +1036,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1172,7 +1172,7 @@ func (this *Bitteam) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1262,7 +1262,7 @@ func (this *Bitteam) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1313,7 +1313,7 @@ func (this *Bitteam) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1364,7 +1364,7 @@ func (this *Bitteam) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1413,7 +1413,7 @@ func (this *Bitteam) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1491,7 +1491,7 @@ func (this *Bitteam) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1542,7 +1542,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1740,7 +1740,7 @@ func (this *Bitteam) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitteam) ParseValueToPricision(valueObject any, valueKey *string, preciseObject map[string]any, precisionKey *string) *string {
+func (this *Bitteam) ParseValueToPricision(valueObject any, valueKey string, preciseObject map[string]any, precisionKey string) *string {
 	var valueRawString *string = this.SafeString(valueObject, valueKey)
 	var precisionRawString *string = this.SafeString(preciseObject, precisionKey)
 	if (valueRawString == nil) || (precisionRawString == nil) {
@@ -1771,7 +1771,7 @@ func (this *Bitteam) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1854,7 +1854,7 @@ func (this *Bitteam) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2215,7 +2215,7 @@ func (this *Bitteam) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2285,7 +2285,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2573,7 +2573,7 @@ func (this *Bitteam) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2691,7 +2691,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2874,7 +2874,7 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	var addressTo *string = this.SafeString(transaction, "recipient")
 	var tag *string = this.SafeString(transaction, "message")
 	var typeVar *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
-	var amount *string = this.ParseValueToPricision(transaction, SafeStringPtr("amount"), currencyObject, SafeStringPtr("decimals"))
+	var amount *string = this.ParseValueToPricision(transaction, "amount", currencyObject, "decimals")
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,

@@ -1332,8 +1332,8 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 		}()
 		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 		if rawMarketsLength > 0 {
-			if this.Markets == nil {
-				this.Markets = this.CreateSafeDictionary()
+			if this.Markets() == nil {
+				this.PublishMarkets(map[string]any{})
 			}
 			var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(map[string]any{
 				"markets": rawMarkets,
@@ -1349,7 +1349,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 				if ccxt.IsEqual(mkt, nil) {
 					panic(ccxt.ExchangeError(this.Id + " fetchOutcome() could not resolve mkt"))
 				}
-				ccxt.AddElementToObject(this.Markets, ccxt.GetValue(mkt, "market"), mkt)
+				this.AddMarketsEntry(ccxt.GetValue(mkt, "market"), mkt)
 			}
 			this.PopulateOutcomes()
 			if !ccxt.IsEqual(this.SafeDict(this.Outcomes_by_id, outcomeSymbol), nil) {
@@ -1398,8 +1398,8 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 	var tokenIdsLength int = len(tokenIds)
 	if tokenIdsLength > 0 {
-		if this.Markets == nil {
-			this.Markets = this.CreateSafeDictionary()
+		if this.Markets() == nil {
+			this.PublishMarkets(map[string]any{})
 		}
 		// token ids are ~78 chars each, so cap the batch to keep the URL under common limits
 		var chunkSize *int64 = this.SafeInteger(this.Options, "fetchOutcomesBatchSize", 50)
@@ -1443,7 +1443,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 				if ccxt.IsEqual(mkt, nil) {
 					panic(ccxt.ExchangeError(this.Id + " fetchOutcomes() could not resolve mkt"))
 				}
-				ccxt.AddElementToObject(this.Markets, ccxt.GetValue(mkt, "market"), mkt)
+				this.AddMarketsEntry(ccxt.GetValue(mkt, "market"), mkt)
 			}
 			startIndex = this.Sum(startIndex, chunkSize)
 		}
@@ -3767,8 +3767,8 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	var result []any = []any{}
 	for rei := 0; rei < ccxt.GetArrayLength(rawEvents); rei++ {
@@ -3810,7 +3810,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 			if m == nil {
 				panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing m"))
 			}
-			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
+			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
 		}
 		var parsedEvent map[string]any = this.ParseEvent(eventForParsing)
 		result = append(result, parsedEvent)
@@ -5044,7 +5044,7 @@ func (this *Polymarket) TokenIdToSymbol(tokenId *string) any {
 	}
 	// safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
 	// but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id, tokenId)
+	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id(), tokenId)
 	return this.SafeString2(market, "market", "symbol")
 }
 func (this *Polymarket) ParsePolyTimestamp(raw *string) any {

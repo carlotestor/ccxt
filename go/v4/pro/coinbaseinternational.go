@@ -379,7 +379,7 @@ func (this *Coinbaseinternational) watchMyTradesBody(ch chan ccxt.AsyncResult[[]
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchMyTrades", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -436,7 +436,7 @@ func (this *Coinbaseinternational) unWatchMyTradesBody(ch chan ccxt.AsyncResult[
 	paramsInterval := intervalparamsIntervalVariable[1]
 	var channel any = ccxt.Add("user.trades.any.any.", interval)
 	if symbol != nil {
-		if this.Markets == nil {
+		if this.Markets() == nil {
 
 			r := <-this.LoadMarketsAsync()
 			if r.Err != nil {
@@ -500,7 +500,7 @@ func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]cc
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchOrders", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -560,7 +560,7 @@ func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncR
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchOrdersForSymbols", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -621,7 +621,7 @@ func (this *Coinbaseinternational) unWatchOrdersBody(ch chan ccxt.AsyncResult[bo
 	paramsInterval := intervalparamsIntervalVariable[1]
 	var channel any = ccxt.Add("user.orders.any.any.", interval)
 	if symbol != nil {
-		if this.Markets == nil {
+		if this.Markets() == nil {
 
 			r := <-this.LoadMarketsAsync()
 			if r.Err != nil {
@@ -690,7 +690,7 @@ func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchPositions", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -740,7 +740,7 @@ func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsResolved, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.WsCacheObjGet("Positions"), symbolsResolved, since, limit, true))}
 	return nil
 }
 
@@ -768,7 +768,7 @@ func (this *Coinbaseinternational) unWatchPositionsBody(ch chan ccxt.AsyncResult
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("unWatchPositions", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -880,7 +880,7 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResul
 	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchFundingRates() requires an array of symbols"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -996,7 +996,7 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan ccxt.AsyncResult[ccxt
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchTicker", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1084,7 +1084,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchTickers", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1120,7 +1120,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsResolved).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsResolved).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1157,7 +1157,7 @@ func (this *Coinbaseinternational) unWatchTickersBody(ch chan ccxt.AsyncResult[b
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("unWatchTickers", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1336,7 +1336,7 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchBidsAsks", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1365,7 +1365,7 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Bidsasks.ToMap(), "symbol", symbolsResolved).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsResolved).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1402,7 +1402,7 @@ func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("unWatchBidsAsks", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1490,7 +1490,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccx
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchOHLCV", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1551,7 +1551,7 @@ func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncRe
 	if (symbolsAndTimeframesLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1661,7 +1661,7 @@ func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.Async
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("unWatchOHLCVForSymbols", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1791,7 +1791,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncR
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchTradesForSymbols", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1879,7 +1879,7 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("unWatchTradesForSymbols", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1996,7 +1996,7 @@ func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.Asy
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("watchOrderBookForSymbols", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2092,7 +2092,7 @@ func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.A
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("unWatchOrderBookForSymbols", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2553,7 +2553,7 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("createOrderWs", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2660,7 +2660,7 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("editOrderWs", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2720,7 +2720,7 @@ func (this *Coinbaseinternational) cancelOrderWsBody(ch chan ccxt.AsyncResult[cc
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("cancelOrderWs", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2773,7 +2773,7 @@ func (this *Coinbaseinternational) cancelAllOrdersWsBody(ch chan ccxt.AsyncResul
 	var method string = "private/cancel_all"
 	var paramsRequest any = paramsResolved
 	if symbol != nil {
-		if this.Markets == nil {
+		if this.Markets() == nil {
 
 			r := <-this.LoadMarketsAsync()
 			if r.Err != nil {
@@ -2826,7 +2826,7 @@ func (this *Coinbaseinternational) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccx
 	var paramsResolved any = this.HandleRouteAndParams("fetchOrderWs", params)
 	var market map[string]any = nil
 	if symbol != nil {
-		if this.Markets == nil {
+		if this.Markets() == nil {
 
 			r := <-this.LoadMarketsAsync()
 			if r.Err != nil {
@@ -2881,7 +2881,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResul
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOpenOrdersWs() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2939,7 +2939,7 @@ func (this *Coinbaseinternational) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOrdersWs() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3055,7 +3055,7 @@ func (this *Coinbaseinternational) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchMyTradesWs() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3106,7 +3106,7 @@ func (this *Coinbaseinternational) fetchPositionsWsBody(ch chan ccxt.AsyncResult
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchPositionsWs", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

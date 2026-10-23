@@ -1168,7 +1168,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchOHLCV", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1311,7 +1311,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan AsyncResu
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1443,7 +1443,7 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan AsyncResult[map[stri
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchTickers", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1498,7 +1498,7 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan AsyncResult[Ticker], 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchTicker", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1638,7 +1638,7 @@ func (this *Coinbaseinternational) fetchOrderBookBody(ch chan AsyncResult[OrderB
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchOrderBook", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1756,7 +1756,7 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan AsyncResult[Balances
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchBalance", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2111,7 +2111,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan AsyncResult[[]Tran
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a currency code argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2280,7 +2280,7 @@ func (this *Coinbaseinternational) fetchPositionBody(ch chan AsyncResult[Positio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchPosition", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2441,7 +2441,7 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan AsyncResult[[]Posi
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchPositions", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2537,7 +2537,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositsWithdrawals() requires a currency code argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2673,7 +2673,7 @@ func (this *Coinbaseinternational) fetchWithdrawalsBody(ch chan AsyncResult[[]Tr
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchWithdrawals", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2728,7 +2728,7 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan AsyncResult[[]Trans
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchDeposits", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2877,7 +2877,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("createOrder", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3266,7 +3266,7 @@ func (this *Coinbaseinternational) cancelOrderBody(ch chan AsyncResult[Order], i
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("cancelOrder", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3351,7 +3351,7 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan AsyncResult[[]Ord
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("cancelAllOrders", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3433,7 +3433,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan AsyncResult[Order], id 
 	if this.IsNativeDeribitCredentials() && (amount == nil) && (this.SafeNumber(paramsResolved, "contracts") == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires amount or params.contracts on Deribit"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3554,7 +3554,7 @@ func (this *Coinbaseinternational) fetchOrderBody(ch chan AsyncResult[Order], id
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchOrder", params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3653,7 +3653,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan AsyncResult[[]Ord
 		}
 		paramsPaginate = paramsFinal
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3758,7 +3758,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan AsyncResult[[]Trade
 		}
 		paramsPaginate = paramsFinal
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4011,7 +4011,7 @@ func (this *Coinbaseinternational) fetchLeverageBody(ch chan AsyncResult[Leverag
 	if this.IsNativeDeribitCredentials() {
 		panic(NotSupported(this.Id + " fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4105,7 +4105,7 @@ func (this *Coinbaseinternational) setLeverageBody(ch chan AsyncResult[map[strin
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4442,7 +4442,7 @@ func (this *Coinbaseinternational) HandleRouteAndParams(methodName string, optio
 	if (previousBackend != nil) && (previousBackend == nil || *previousBackend != deribit) {
 		panic(BadRequest(this.Id + " cannot switch route backend on an initialized instance; use a separate exchange instance"))
 	}
-	if (previousBackend == nil) && ((this.Markets != nil) || hasToken || hasWsState) && (configuredBackend != deribit) {
+	if (previousBackend == nil) && ((this.Markets() != nil) || hasToken || hasWsState) && (configuredBackend != deribit) {
 		panic(BadRequest(this.Id + " cannot switch route backend after markets or authentication state; use a separate exchange instance"))
 	}
 	// Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.

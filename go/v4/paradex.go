@@ -1085,7 +1085,7 @@ func (this *Paradex) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	if false {
 		panic(ArgumentsRequired(this.Id + " fetchTradingFee() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1146,7 +1146,7 @@ func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1225,7 +1225,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1332,7 +1332,7 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1395,7 +1395,7 @@ func (this *Paradex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1514,7 +1514,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1571,7 +1571,7 @@ func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1679,7 +1679,7 @@ func (this *Paradex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1753,7 +1753,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1906,7 +1906,7 @@ func (this *Paradex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2612,7 +2612,7 @@ func (this *Paradex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -2712,7 +2712,7 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -2803,7 +2803,7 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -2910,7 +2910,7 @@ func (this *Paradex) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -2973,7 +2973,7 @@ func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3086,7 +3086,7 @@ func (this *Paradex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3142,7 +3142,7 @@ func (this *Paradex) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3236,7 +3236,7 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3356,7 +3356,7 @@ func (this *Paradex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3436,7 +3436,7 @@ func (this *Paradex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3516,7 +3516,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3613,7 +3613,7 @@ func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3658,7 +3658,7 @@ func (this *Paradex) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3804,7 +3804,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3901,7 +3901,7 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4010,7 +4010,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4119,7 +4119,7 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4321,7 +4321,7 @@ func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4397,7 +4397,7 @@ func (this *Paradex) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4447,7 +4447,7 @@ func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4532,7 +4532,7 @@ func (this *Paradex) setLeverageBody(ch chan AsyncResult[map[string]any], levera
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4574,7 +4574,7 @@ func (this *Paradex) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4653,7 +4653,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4810,7 +4810,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4932,7 +4932,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

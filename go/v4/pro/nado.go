@@ -838,7 +838,7 @@ func (this *Nado) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	}
 
 	var resolved1 map[string]any
-	switch resolved1Box := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolved1Box := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved1 = resolved1Box
 	case *sync.Map:
@@ -979,7 +979,7 @@ func (this *Nado) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	}
 
 	var resolved1 map[string]any
-	switch resolved1Box := this.FilterByArray(this.Bidsasks.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolved1Box := this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved1 = resolved1Box
 	case *sync.Map:
@@ -1397,7 +1397,7 @@ func (this *Nado) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.WsCacheObjGet("Positions"), symbolsNormalized, since, limit, true))}
 	return nil
 }
 
@@ -2313,7 +2313,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool], stre
 	ch <- ccxt.AsyncResult[bool]{Value: true}
 	return nil
 }
-func (this *Nado) ParseWsTimestamp(message any, key *string) any {
+func (this *Nado) ParseWsTimestamp(message any, key string) any {
 	var value *string = this.SafeString(message, key)
 	if value == nil {
 		return nil
@@ -2342,7 +2342,7 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(trade, ccxt.SafeStringPtr("timestamp"))
+	var timestamp any = this.ParseWsTimestamp(trade, "timestamp")
 	var isTakerBuyer *bool = this.SafeBool(trade, "is_taker_buyer")
 	var side *string = nil
 	if isTakerBuyer != nil {
@@ -2393,7 +2393,7 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(trade, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(trade, ccxt.SafeStringPtr("timestamp"))
+	var timestamp any = this.ParseWsTimestamp(trade, "timestamp")
 	var isBid *bool = this.SafeBool(trade, "is_bid")
 	var side *string = nil
 	if isBid != nil {
@@ -2524,7 +2524,7 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(order, ccxt.SafeStringPtr("timestamp"))
+	var timestamp any = this.ParseWsTimestamp(order, "timestamp")
 	var id *string = this.SafeString(order, "digest")
 	var amountString *string = this.SafeString(order, "amount")
 	var remaining any = nil
@@ -2605,7 +2605,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 	_ = market
 	var marketId *string = this.SafeString(position, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(position, ccxt.SafeStringPtr("timestamp"))
+	var timestamp any = this.ParseWsTimestamp(position, "timestamp")
 	var amountString *string = this.SafeString(position, "amount")
 	var vQuoteAmount *string = this.SafeString(position, "v_quote_amount")
 	var side *string = nil
@@ -2696,7 +2696,7 @@ func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(bidask, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(bidask, ccxt.SafeStringPtr("timestamp"))
+	var timestamp any = this.ParseWsTimestamp(bidask, "timestamp")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    marketResolved["symbol"],
 		"timestamp": timestamp,
@@ -2832,7 +2832,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
-	var timestamp any = this.ParseWsTimestamp(message, ccxt.SafeStringPtr("max_timestamp"))
+	var timestamp any = this.ParseWsTimestamp(message, "max_timestamp")
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))

@@ -218,7 +218,7 @@ func (this *Deribit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -229,7 +229,7 @@ func (this *Deribit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -294,7 +294,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -305,7 +305,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -351,7 +351,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -424,7 +424,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -465,7 +465,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Bidsasks.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1034,7 +1034,7 @@ func (this *Deribit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1165,7 +1165,7 @@ func (this *Deribit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1324,7 +1324,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], cha
 	_ = symbolsArray
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

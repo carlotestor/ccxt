@@ -109,7 +109,7 @@ func HelperTestInitMarket() {
 			"BTC/USD": sampleMarket,
 		},
 	}, map[string]any{}, exchange2)
-	Assert((!ccxt.IsEqual(exchange2.Markets, nil)) && (!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets, "BTC/USD"), nil)))
+	Assert((!ccxt.IsEqual(exchange2.Markets(), nil)) && (!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets(), "BTC/USD"), nil)))
 }
 func HelperTestProperties() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -118,15 +118,10 @@ func HelperTestProperties() {
 	//
 	// userAgents
 	//
-	var keys []any = []any{"chrome", "chrome39", "chrome100"}
+	var keys []string = []string{"chrome", "chrome39", "chrome100"}
 	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
 	for i := 0; i < len(keys); i++ {
-		var key *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(keys) {
-				return ccxt.DerefScalar(keys[i])
-			}
-			return nil
-		}())
+		var key string = keys[i]
 		var userAgent any = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
 		Assert(userAgent != nil)
 	}

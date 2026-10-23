@@ -1457,7 +1457,7 @@ func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1523,7 +1523,7 @@ func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1595,7 +1595,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchMyTrades"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1818,7 +1818,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchOHLCV"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1923,7 +1923,7 @@ func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1983,7 +1983,7 @@ func (this *Hashkey) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2074,7 +2074,7 @@ func (this *Hashkey) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPric
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2137,7 +2137,7 @@ func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2283,7 +2283,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2393,7 +2393,7 @@ func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchDeposits"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2474,7 +2474,7 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchWithdrawals"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2563,7 +2563,7 @@ func (this *Hashkey) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2738,7 +2738,7 @@ func (this *Hashkey) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2811,7 +2811,7 @@ func (this *Hashkey) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2924,7 +2924,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	if until == nil {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires an until argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3082,7 +3082,7 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3140,7 +3140,7 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3203,7 +3203,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol stri
 	if triggerPrice != nil {
 		panic(NotSupported(this.Id + " trigger orders are not supported for spot markets"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3437,7 +3437,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan AsyncResult[Order], symbol stri
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3498,7 +3498,7 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3586,7 +3586,7 @@ func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	_ = params
 	var methodName string = "cancelOrder"
 	this.CheckTypeParam(methodName, params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3665,7 +3665,7 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3730,7 +3730,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var methodName string = "cancelOrders"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3801,7 +3801,7 @@ func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = params
 	var methodName string = "fetchOrder"
 	this.CheckTypeParam(methodName, params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3891,7 +3891,7 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = params
 	var methodName string = "fetchOpenOrders"
 	this.CheckTypeParam(methodName, params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3970,7 +3970,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]Order], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4141,7 +4141,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 	_ = params
 	var methodName string = "fetchCanceledAndClosedOrders"
 	this.CheckTypeParam(methodName, params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4497,7 +4497,7 @@ func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4547,7 +4547,7 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4639,7 +4639,7 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4729,7 +4729,7 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 			panic(NotSupported(this.Id + " " + methodName + "() is supported for a symbol argument with one single market symbol only"))
 		}
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4778,7 +4778,7 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4884,7 +4884,7 @@ func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4954,7 +4954,7 @@ func (this *Hashkey) setLeverageBody(ch chan AsyncResult[Leverage], leverage int
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5009,7 +5009,7 @@ func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5122,7 +5122,7 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[MarginModificati
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5221,7 +5221,7 @@ func (this *Hashkey) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], 
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5367,7 +5367,7 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5427,7 +5427,7 @@ func (this *Hashkey) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

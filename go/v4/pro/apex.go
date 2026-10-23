@@ -125,7 +125,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -301,7 +301,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -501,7 +501,7 @@ func (this *Apex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -554,7 +554,7 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -591,7 +591,7 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -727,7 +727,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -887,7 +887,7 @@ func (this *Apex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var messageHash any = "myTrades"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -947,7 +947,7 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -973,7 +973,7 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		panic(r1.Err)
 	}
 	this.SetPositionsCache(client, symbolsNormalized2)
-	var cache any = this.Positions
+	var cache any = this.WsCacheObjGet("Positions")
 	if ccxt.IsEqual(cache, nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -1039,7 +1039,7 @@ func (this *Apex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1192,7 +1192,7 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 func (this *Apex) SetPositionsCache(client any, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	if this.Positions != nil {
+	if this.WsCacheObjGet("Positions") != nil {
 		return
 	}
 	var messageHash string = "fetchPositionsSnapshot"
@@ -1217,8 +1217,8 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 		panic(r.Err)
 	}
 	var promises []any = ccxt.ListTyped(r.Value)
-	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
+	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(promises); i++ {
 		var positions []any = ccxt.ArrayTyped(ccxt.GetValue(promises, i))
 		for ii := 0; ii < len(positions); ii++ {

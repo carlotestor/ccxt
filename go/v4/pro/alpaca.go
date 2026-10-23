@@ -100,7 +100,7 @@ func (this *Alpaca) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -225,7 +225,7 @@ func (this *Alpaca) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -310,7 +310,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -426,7 +426,7 @@ func (this *Alpaca) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -515,7 +515,7 @@ func (this *Alpaca) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		panic(r.Err)
 	}
 	var messageHash any = "myTrades"
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -584,7 +584,7 @@ func (this *Alpaca) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {

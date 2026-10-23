@@ -65,7 +65,7 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -170,7 +170,7 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -303,7 +303,7 @@ func (this *Ndax) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -495,7 +495,7 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

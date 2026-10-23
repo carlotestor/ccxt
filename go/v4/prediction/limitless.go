@@ -3950,8 +3950,8 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	var eventGroups map[string]any = map[string]any{}
 	// group rows carry their tradeable children in a nested `markets` list — expand them
@@ -3974,7 +3974,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		if ccxt.IsEqual(m, nil) {
 			panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing m"))
 		}
-		ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
+		this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
 		if (eventKey != nil) && (!ccxt.IsEqual(eventKey, "")) {
 			if !(ccxt.InOp(eventGroups, eventKey)) {
 				ccxt.AddElementToObject(eventGroups, eventKey, map[string]any{

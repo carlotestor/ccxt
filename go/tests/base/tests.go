@@ -840,7 +840,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	var spot bool = GetArgBool(optionalArgs, 0, true)
 	_ = spot
 	var currentTypeMarkets any = this.GetMarketsFromExchange(exchange, spot)
-	var codes []any = []any{"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"}
+	var codes []string = []string{"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"}
 	var spotSymbols []any = []any{"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"}
 	var swapSymbols []any = []any{"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"}
 	var targetSymbols any = func() any {
@@ -853,12 +853,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
 		for i := 0; i < len(codes); i++ {
-			var currentCode *string = SafeStringPtr(func() any {
-				if i >= 0 && i < len(codes) {
-					return DerefScalar(codes[i])
-				}
-				return nil
-			}())
+			var currentCode string = codes[i]
 			var marketsArrayForCurrentCode []any = exchange.FilterBy(currentTypeMarkets, "base", currentCode)
 			var indexedMkts map[string]any = exchange.IndexBy(marketsArrayForCurrentCode, "symbol")
 			var symbolsArrayForCurrentCode []string = nil

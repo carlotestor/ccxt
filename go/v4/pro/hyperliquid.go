@@ -99,7 +99,7 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -157,7 +157,7 @@ func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order],
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -230,7 +230,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -288,7 +288,7 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -384,7 +384,7 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderB
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -443,7 +443,7 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sy
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -562,7 +562,7 @@ func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -632,7 +632,7 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -699,7 +699,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -754,7 +754,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := any(this.Tickers.ToMap()).(type) {
+	switch resolvedBox := any(this.WsCacheSnapshot("Tickers")).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -788,7 +788,7 @@ func (this *Hyperliquid) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], opti
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -857,7 +857,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	var userAddressResult any = this.HandlePublicAddress("watchMyTrades", params)
 	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -972,7 +972,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 	userAddressparamsValueVariable := this.HandlePublicAddress("watchMyLiquidationsForSymbols", params)
 	userAddress := ccxt.GetValue(userAddressparamsValueVariable, 0)
 	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1055,7 +1055,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], opt
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1344,7 +1344,7 @@ func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1407,7 +1407,7 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1600,7 +1600,7 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1667,7 +1667,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1788,7 +1788,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1878,7 +1878,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], opti
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2117,7 +2117,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2161,7 +2161,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
-	var cache any = this.Positions
+	var cache any = this.WsCacheObjGet("Positions")
 
 	r2 := <-this.Watch(url, messageHash, message, topic)
 	if r2.Err != nil {
@@ -2190,10 +2190,10 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 func (this *Hyperliquid) SetPositionsCache(client any, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	if this.Positions != nil {
+	if this.WsCacheObjGet("Positions") != nil {
 		return
 	}
-	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
+	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 }
 func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
@@ -2259,7 +2259,7 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], op
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2331,7 +2331,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2415,7 +2415,7 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optio
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

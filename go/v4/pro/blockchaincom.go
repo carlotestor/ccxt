@@ -191,7 +191,7 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV]
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -289,7 +289,7 @@ func (this *Blockchaincom) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -436,7 +436,7 @@ func (this *Blockchaincom) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -566,7 +566,7 @@ func (this *Blockchaincom) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -822,7 +822,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

@@ -80,7 +80,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -185,7 +185,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -303,7 +303,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -414,7 +414,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	if (limit != nil) && (limit == nil || *limit != 150) {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook accepts limit = 150 only"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

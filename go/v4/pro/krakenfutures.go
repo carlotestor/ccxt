@@ -178,7 +178,7 @@ func (this *Krakenfutures) subscribePublicBody(ch chan ccxt.AsyncResult[map[stri
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -252,7 +252,7 @@ func (this *Krakenfutures) subscribePrivateBody(ch chan ccxt.AsyncResult[any], n
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -301,7 +301,7 @@ func (this *Krakenfutures) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -351,7 +351,7 @@ func (this *Krakenfutures) watchTickersBody(ch chan ccxt.AsyncResult[map[string]
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -377,7 +377,7 @@ func (this *Krakenfutures) watchTickersBody(ch chan ccxt.AsyncResult[map[string]
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Tickers.ToMap(), "symbol", symbolsNormalized).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -429,7 +429,7 @@ func (this *Krakenfutures) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.Bidsasks.ToMap(), "symbol", symbols).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbols).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -576,7 +576,7 @@ func (this *Krakenfutures) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Po
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -611,7 +611,7 @@ func (this *Krakenfutures) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Po
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.WsCacheObjGet("Positions"), symbolsNormalized, since, limit, true))}
 	return nil
 }
 func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
@@ -779,7 +779,7 @@ func (this *Krakenfutures) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -847,7 +847,7 @@ func (this *Krakenfutures) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -894,7 +894,7 @@ func (this *Krakenfutures) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balanc
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2155,7 +2155,7 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], u
 	_ = subscriptionArgs
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

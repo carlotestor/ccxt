@@ -608,8 +608,8 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	}
 	var rawEventsLength int = len(rawEvents)
 	var parsedEvents []any = []any{}
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	for i := 0; i < rawEventsLength; i++ {
 		var event map[string]any = this.ParseEvent(func() any {
@@ -629,7 +629,7 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 				}
 				return nil
 			}()
-			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
+			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
 		}
 	}
 	this.PopulateOutcomes()
@@ -1322,7 +1322,7 @@ func (this *Opinion) SignOpinionOrder(order map[string]any, exchangeAddress *str
 	var sig any = this.SignMessage(encoded, this.PrivateKey)
 	return "0x" + this.Remove0xPrefix(ccxt.GetValue(sig, "r")) + this.Remove0xPrefix(ccxt.GetValue(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
 }
-func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side string, amount any, price any, decimals *int64) map[string]any {
+func (this *Opinion) OpinionOrderRawAmounts(isMarket bool, side string, amount any, price any, decimals *int64) map[string]any {
 	var decimalsStr string = "1"
 	if decimals != nil {
 		var decimalsCount int64 = this.ParseToInt(decimals)
@@ -1331,7 +1331,7 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side string, amount an
 		}
 	}
 	var amountStr *string = this.NumberToString(amount)
-	if ccxt.EvalTruthy(isMarket) && (side == "BUY") {
+	if isMarket && (side == "BUY") {
 		var marketMakerAmountWei string = this.DecimalToPrecision(ccxt.Precise.StringMul(amountStr, decimalsStr), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
 		return map[string]any{
 			"makerAmount": marketMakerAmountWei,
@@ -2011,11 +2011,11 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	if ccxt.IsEqual(market, nil) {
 		panic(ccxt.ExchangeError(this.Id + " loadTradeMarket() could not parse market " + idStr))
 	}
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	var marketHandle *string = this.SafeString(market, "market", "")
-	ccxt.AddElementToObject(this.Markets, marketHandle, market)
+	this.AddMarketsEntry(marketHandle, market)
 	this.IndexMarketOutcomes(market)
 	ccxt.AddElementToObject(cached, idStr, market)
 	this.Options[cacheKey] = ccxt.DerefScalar(cached)
@@ -2618,13 +2618,16 @@ func (this *Opinion) HandleMessage(client any, message any) {
  * @returns {object} the outcome object, or undefined
  */
 func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId *int64, outcomeSide *int64) any {
-	if (marketId == nil) || (this.Markets == nil) {
+	if (marketId == nil) || (this.Markets() == nil) {
 		return nil
 	}
-	var marketKeys []string = ccxt.ObjectKeys(this.Markets)
+	var marketKeys []string = nil
+	for k := range this.Markets() {
+		marketKeys = append(marketKeys, k)
+	}
 	var marketKeysLength int = len(marketKeys)
 	for i := 0; i < marketKeysLength; i++ {
-		var market map[string]any = ccxt.SafeMapTyped(this.Markets, marketKeys[i])
+		var market map[string]any = ccxt.SafeMapTyped(this.Markets(), marketKeys[i])
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes any = this.SafeList(market, "outcomes", []any{})
