@@ -21,6 +21,7 @@ import { r04Scalars } from './hx10w2-R04.js'; // hx10 R04
 import { r04Callee } from './hx10w3-R04.js'; // hx10w3 R04
 import { r06Push } from './hx10w2-r06.js';
 import { r06w3Push } from './hx10w3-R06.js'; // hx10 W3 R06
+import { r08DictReads } from './hx10w3-R08.js';
 
 ansi.nice;
 
@@ -9044,6 +9045,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = r07StringNatives(rustContent); // hx10 W3 R07
                 rustContent = hx10w3R03(rustContent); // hx10 wave-3 R03
                 rustContent = r05FieldChainInserts(rustContent); // hx10 R05
+                rustContent = r08DictReads(rustContent); // hx10w3 R08
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9788,6 +9790,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = r07StringNatives(finalFile); // hx10 W3 R07
                 finalFile = hx10w3R03(finalFile); // hx10 wave-3 R03
         finalFile = r05FieldChainInserts(finalFile); // hx10 R05
+        finalFile = r08DictReads(finalFile); // hx10w3 R08
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -11083,6 +11086,7 @@ impl std::ops::DerefMut for ${coreName} {
         content = hx10w2R08(content); // hx10 wave-2 R08
                 content = hx10w3R03(content); // hx10 wave-3 R03
         content = r05FieldChainInserts(content); // hx10 R05
+        content = r08DictReads(content); // hx10w3 R08
         return content;
     }
 
