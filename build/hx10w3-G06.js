@@ -18,18 +18,16 @@
 
 import { ts } from './csharp-local-types.js';
 
-// slot indices the Go twin returns as map[string]any; every producer here has arity 2
+// slot indices the Go twin returns as map[string]any. Only the producers whose pair the printed
+// `x, y = this.HandleX (..)` join can absorb: element 0 is a bool / int64 / map, so the write
+// needs no MapTyped wrapper. A *string element 0 (`handleMarginModeAndParams`,
+// `handleMarketTypeAndParams`, `handleSubTypeAndParams`, `handleOptionStringAndParams*`) prints the
+// pair as a `[]any` holder, and typing slot 1 there costs a MapTyped per write -- excluded.
 const HX10G06_TUPLE_MAP_SLOTS = {
-    'handleMarketTypeAndParams': [ 1 ],
-    'handleSubTypeAndParams': [ 1 ],
-    'handleMarginModeAndParams': [ 1 ],
-    'handleNetworkCodeAndParams': [],
     'handleOptionBoolAndParams': [ 1 ],
     'handleOptionBoolAndParams2': [ 1 ],
     'handleOptionIntegerAndParams': [ 1 ],
     'handleOptionIntegerAndParams2': [ 1 ],
-    'handleOptionStringAndParams': [ 1 ],
-    'handleOptionStringAndParams2': [ 1 ],
     'handleUntilOption': [ 0, 1 ],
 };
 
@@ -107,6 +105,26 @@ function hx10G06TupleWriteType (expression, name) {
     }
     // the call must be whole on the right-hand side: `[a, x] = this.handleX (..) ?? y` is not a tuple
     return (expression.right?.kind === ts.SyntaxKind.CallExpression) ? HX10G06_JOIN_TYPE : undefined;
+}
+
+// `x = holder[i]` where the holder is a local the printer already declared `[]map[string]any`
+// (the PromiseAllTyped destructuring): the element is that map on every path, no conversion needed
+function hx10G06IndexWriteType (goTranspiler, right) {
+    if ((right?.kind !== ts.SyntaxKind.ElementAccessExpression) || (right.expression?.kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    const index = right.argumentExpression;
+    if ((index?.kind !== ts.SyntaxKind.NumericLiteral) || !/^\d+$/.test (index.text ?? '')) {
+        return undefined;
+    }
+    if (typeof goTranspiler.goDeclaredTypeOfIdentifier !== 'function') {
+        return undefined;
+    }
+    const holderType = goTranspiler.goDeclaredTypeOfIdentifier (right.expression);
+    if ((typeof holderType !== 'string') || !holderType.startsWith ('[]')) {
+        return undefined;
+    }
+    return (holderType.substring (2) === HX10G06_JOIN_TYPE) ? HX10G06_JOIN_TYPE : undefined;
 }
 
 // a callee whose first argument is read as a dictionary at entry
@@ -187,8 +205,22 @@ function hx10G06ReadKeepsMeaning (goTranspiler, node) {
             return false;
         }
         const callee = hx10G06PrintedCallee (goTranspiler, parent);
+        if (callee === 'len') {
+            return parent.arguments.length === 1;              // len(nil map) is 0
+        }
+        if (callee === 'EvalTruthy') {
+            return true;                                       // nil map is falsy for both
+        }
+        if (callee === 'IsEqual') {
+            const other = (parent.arguments[0] === child) ? parent.arguments[1] : parent.arguments[0];
+            return (other?.kind === ts.SyntaxKind.NullKeyword)
+                || ((other?.kind === ts.SyntaxKind.Identifier) && ((other.text === 'undefined') || (other.text === 'null')));
+        }
         return (callee !== undefined) && HX10G06_ABSENT_SAFE_CALLEES.includes (callee);
     }
+    case ts.SyntaxKind.ForOfStatement:
+    case ts.SyntaxKind.ForInStatement:
+        return parent.expression === child;                     // range over a nil map yields nothing
     }
     return false;
 }
@@ -307,7 +339,8 @@ function hx10G06JoinType (goTranspiler, declaration, name) {
                 && (expression.operatorToken.kind === ts.SyntaxKind.EqualsToken) && isName (expression.left)) {
                 // `x = <rhs>`: the right-hand side must print the joined type
                 readExpression (expression.right, assigned);
-                const goType = goTranspiler.goTypeOfInitializer (expression.right, goTranspiler.printNode (expression.right, 0));
+                const goType = hx10G06IndexWriteType (goTranspiler, expression.right)
+                    ?? goTranspiler.goTypeOfInitializer (expression.right, goTranspiler.printNode (expression.right, 0));
                 joinWrite (goType);
                 return state.ok;
             }
@@ -474,7 +507,8 @@ function hx10G06ClassifyUse (node, assigned, readExpression, joinWrite, fail, sc
     if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === node)) {
         const op = parent.operatorToken.kind;
         if (op === ts.SyntaxKind.EqualsToken) {
-            const goType = goTranspiler.goTypeOfInitializer (parent.right, goTranspiler.printNode (parent.right, 0));
+            const goType = hx10G06IndexWriteType (goTranspiler, parent.right)
+                ?? goTranspiler.goTypeOfInitializer (parent.right, goTranspiler.printNode (parent.right, 0));
             joinWrite (goType);
             return;
         }
@@ -562,6 +596,7 @@ function hx10G06SelfTranspiler () {
         'UNDEFINED_TOKEN': 'nil',
         'goEnclosingFunction': enclosing,
         'goTypeNameIsShadowed': () => false,
+        'goDeclaredTypeOfIdentifier': (node) => (['bank'].includes (node?.text) ? '[]map[string]any' : (node?.text === 'rows' ? '[][NRP_DB90044229752D39BD22822A1CF943F5]' : undefined)),
         'printNode': (node) => ((node === undefined) ? '' : node.getText ().replace (/^this\.([a-z])/, (m, c) => 'this.' + c.toUpperCase ())),
         'goTypeOfInitializer': (node) => {
             if (node === undefined) {
@@ -599,31 +634,41 @@ export function hx10G06Check () {
     // a hand-written twin's map slot types the param bag
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return bag;'), 'bag map[string]any');
     joins (method ('let bag = undefined;\n        let stock = false;\n        [ stock, bag ] = this.handleOptionBoolAndParams (a, b, c, false);\n        return bag;'), 'bag map[string]any');
-    joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleMarginModeAndParams (a, b);\n        return bag;'), 'bag map[string]any');
+    joins (method ('let bag = undefined;\n        let count = 0;\n        [ count, bag ] = this.handleOptionIntegerAndParams (a, b, c, 0);\n        return bag;'), 'bag map[string]any');
     // the same slot written twice joins on one type
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        [ c, bag ] = this.handleUntilOption (a, c);\n        return bag;'), 'bag map[string]any');
-    // a producer whose Go twin answers []any is not provable
-    joins (method ('let postOnly = undefined;\n        [ postOnly, bag ] = this.handlePostOnly (a, b);\n        return postOnly;'), '');
-    joins (method ('let tag = undefined;\n        [ tag, bag ] = this.handleParamString (a, b);\n        return tag;'), '');
+    // a producer whose pair cannot be absorbed (a *string element) stays `any`
+    joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleMarginModeAndParams (a, b);\n        return bag;'), '');
+    joins (method ('let bag = undefined;\n        [ a, bag ] = this.handlePostOnly (a, b);\n        return bag;'), '');
+    joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleParamString (a, b);\n        return bag;'), '');
     // a read reached without a write keeps the box
     joins (method ('let bag = undefined;\n        if (a) {\n            [ a, bag ] = this.handleUntilOption (a, b);\n        }\n        return bag;'), '');
-    // a read the typed nil answers the same way is admitted before the write
+    // reads the typed nil answers the same way are admitted before the write
     joins (method ('let bag = undefined;\n        if (b in bag) {\n            return 1;\n        }\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return bag;'), 'bag map[string]any');
     joins (method ('let bag = undefined;\n        this.safeString (bag, "x");\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return bag;'), 'bag map[string]any');
+    joins (method ('let bag = undefined;\n        if (bag.length > 0) {\n            return 1;\n        }\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return bag;'), 'bag map[string]any');
+    joins (method ('let bag = undefined;\n        for (const k in bag) {\n            return k;\n        }\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return bag;'), 'bag map[string]any');
     // a copy before the write is not
     joins (method ('let bag = undefined;\n        let other = bag;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return bag;'), '');
-    // element writes, push, spread, ++ and closures keep the box
+    // element reads before the write are only admitted through a nil-safe callee
+    joins (method ('let bag = undefined;\n        const v = bag["x"];\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return v;'), 'bag map[string]any');
+    // element writes, push, spread and closures keep the box
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        bag["x"] = 1;\n        return bag;'), '');
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        bag.push (1);\n        return bag;'), '');
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        const f = () => bag;\n        return f ();'), '');
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        [ ...bag ] = c;\n        return bag;'), '');
     // a plain write of another type diverges
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        bag = a;\n        return bag;'), '');
-    joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        bag = this.safeDict (a, b);\n        return bag;'), 'bag map[string]any');
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        bag = [];\n        return bag;'), '');
-    // both map slots of handleUntilOption type, and a slot 0 pointer does not
+    // both map slots of handleUntilOption type
     joins (method ('let bag = undefined;\n        let rest = undefined;\n        [ bag, rest ] = this.handleUntilOption (a, b);\n        return [ bag, rest ];'), 'bag map[string]any;rest map[string]any');
-    joins (method ('let mode = undefined;\n        let bag = undefined;\n        [ mode, bag ] = this.handleMarginModeAndParams (a, b);\n        return bag;'), 'bag map[string]any');
+    // `x = holder[i]` off a `[]map[string]any` local carries that element map
+    joins (method ('let ticker = undefined;\n        if (bank[1] !== undefined) {\n            ticker = bank[1];\n        }\n        this.safeString (ticker, "open");\n        return 1;'), 'ticker map[string]any');
+    joins (method ('let ticker = undefined;\n        if (bank[1] !== undefined) {\n            ticker = bank[1];\n        }\n        return ticker["open"];'), 'ticker map[string]any');
+    joins (method ('let ticker = undefined;\n        if (bank[1] !== undefined) {\n            ticker = bank[1];\n        }\n        return ticker;'), '');
+    // another holder type, or a non-literal index, is not provable
+    joins (method ('let ticker = undefined;\n        if (rows[1] !== undefined) {\n            ticker = rows[1];\n        }\n        return ticker;'), '');
+    joins (method ('let ticker = undefined;\n        ticker = bank[a];\n        return ticker;'), '');
     return problems;
 }
 
