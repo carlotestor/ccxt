@@ -544,6 +544,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { csharpStructReturns } from './csharp-struct-returns.js';
+import { w3c06Types } from './hx10w3-C06.js';
 import * as astTranspilerUtils from 'ast-transpiler/tsUtils';
 
 // The generator hands TS7 nodes/checker objects to these hooks: read enums, guards and parsing
@@ -18447,6 +18448,7 @@ export function installCsharpHx4C10NonNullConcat (transpiler) {
     };
     const upstreamConcat = csharp.csharpNativeStringConcat.bind (csharp);
     csharp.csharpNativeStringConcat = (left, right, leftText, rightText) => {
+        if (process.env.C06_DEBUG) console.error ('[c06w] ', JSON.stringify (leftText), JSON.stringify (rightText));
         const native = upstreamConcat (left, right, leftText, rightText);
         if (native !== undefined || typeof leftText !== 'string' || typeof rightText !== 'string' || leftText === '' || rightText === '') {
             return native;
@@ -18609,3 +18611,6 @@ function hx5X12RegisterReturnTypes () {
     }
 }
 hx5X12RegisterReturnTypes ();
+
+// hx10w3 C06: generated method RETURN types (name-keyed, so every declaration and caller agrees)
+w3c06Types (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES);

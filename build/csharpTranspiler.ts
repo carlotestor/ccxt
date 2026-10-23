@@ -13,17 +13,16 @@ import { hx10C05TupleSlotTypes, hx10C05SnippetChecks } from './hx10w3-C05.js' //
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
 import { csharpTupleReturns } from './csharp-local-types.js'
+import { CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES } from './csharp-local-types.js'
 import { hxC08NativeRuntimeStateReads, hxC08RuntimeStateSnippetChecks } from './hx10w2-C08.js'
 import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { c01NativeDictReads, c01SnippetChecks, c01ChainChecks } from './hx10w2-C01.js'
 import { hx10w3C01ArrayParams, hx10w3C01SnippetChecks, hx10w3C01ChainChecks } from './hx10w3-C01.js'
 import { hx10W2C04NativeHelperCalls, hx10W2C04SelfTest } from './hx10w2-C04.js'
 import { c06_apply, hx10C06SnippetChecks } from './hx10w2-C06.js'
+import { c06w3ParseJson, c06w3Checks } from './hx10w3-C06.js' // hx10w3 C06: parseJson on a string-declared call
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { hx10w2C02ListHelpers, hx10w2C02SnippetChecks } from './hx10w2-c02.js'
-    const w3c02Out = hx10w3C02CandidateReads (c02Out); // hx10w3 C02
-    const c06Out = c06_apply (objectNull, w3c02Out); // hx10w2 C06
-    return hx10w3C03WsStateReads (hx10C07PromiseAll (c06Out)); // hx10w2 C07, hx10w3 C03
 import { c04Apply, c04SnippetChecks } from './hx10w3-C04.js' // hx10 wave3 C04
 import { platform } from 'process'
 import os from 'os'
@@ -8781,7 +8780,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...hx10C05SnippetChecks () ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES) ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9366,7 +9365,8 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const c02Out = hx10w2C02ListHelpers (hx4Out); // hx10w2 C02
     const w3c02Out = hx10w3C02CandidateReads (c02Out); // hx10w3 C02
     const c06Out = c06_apply (objectNull, w3c02Out); // hx10w2 C06
-    return c04Apply (hx10w3C03WsStateReads (hx10C07PromiseAll (c06Out))); // hx10w2 C07, hx10w3 C03, hx10w3 C04
+    const c06w3Out = c06w3ParseJson (c06Out); // hx10w3 C06
+    return c04Apply (hx10w3C03WsStateReads (hx10C07PromiseAll (c06w3Out))); // hx10w2 C07, hx10w3 C03, hx10w3 C04, hx10w3 C06
 }
 
 function nativeC07HelperCalls (content: string): string {

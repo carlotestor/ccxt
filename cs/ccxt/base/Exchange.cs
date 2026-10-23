@@ -1033,7 +1033,7 @@ public partial class BaseExchange
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }
 
-    public object extendedStarknetSign(object msgHash, object privateKey)
+    public string extendedStarknetSign(object msgHash, object privateKey)
     {
         var privateKeyString = privateKey.ToString();
         var msgHashStr = msgHash.ToString();
