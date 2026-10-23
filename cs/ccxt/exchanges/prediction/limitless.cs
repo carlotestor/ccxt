@@ -354,7 +354,7 @@ public partial class limitless : PredictionExchange
             Dictionary<string, object> firstPageResponse = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
             List<object> firstData = this.safeList(firstPageResponse, "data", new List<object>() {});
             allRaw = this.arrayConcat(allRaw, firstData);
-            List<object> promises = new List<object>() {};
+            List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             double cappedPages = Math.Ceiling(Convert.ToDouble(((double?)maxMarkets / pageSize)));
             Int64? knownTotal = this.safeInteger(firstPageResponse, "totalMarketsCount", 0);
             Int64? allPages = this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)knownTotal / pageSize))));
@@ -368,7 +368,7 @@ public partial class limitless : PredictionExchange
                 request["page"] = page;
                 promises.Add(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
             }
-            List<object> responses = await promiseAll(promises);
+            List<object> responses = new List<object>(await Task.WhenAll(promises));
             int length = (responses?.Count ?? 0);
             for (int j = 0; j < length; j++)
             {
@@ -1379,7 +1379,7 @@ public partial class limitless : PredictionExchange
                 outcomesBySlug[(string)slug] = grouped;
             }
         }
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         for (int i = 0; i < (slugs?.Count ?? 0); i++)
         {
             string? slug = ((string)slugs[i]);
@@ -1390,7 +1390,7 @@ public partial class limitless : PredictionExchange
                 { "slug", slug },
             }));
         }
-        List<object> responses = await promiseAll(promises);
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         for (int i = 0; i < (slugs?.Count ?? 0); i++)
         {
             string? slug = ((string)slugs[i]);

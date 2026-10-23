@@ -3752,7 +3752,7 @@ public partial class bitget : Exchange
             // for backward-compatibility
             types = this.safeList(this.options, "fetchMarkets", defaultMarkets);
         }
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         bool fetchMargins = false;
         for (int i = 0; i < (types?.Count ?? 0); i++)
         {
@@ -3776,7 +3776,7 @@ public partial class bitget : Exchange
                 throw new NotSupported ((((this.id + " does not support ") + type) + " market")) ;
             }
         }
-        List<object> results = await promiseAll(promises);
+        List<object> results = new List<object>(await Task.WhenAll(promises));
         List<object> markets = new List<object>() {};
         this.options["crossMarginPairsData"] = new List<object>() {};
         this.options["isolatedMarginPairsData"] = new List<object>() {};
@@ -4044,7 +4044,7 @@ public partial class bitget : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchUtaMarkets(object parameters)
     {
         List<object> subTypes = new List<object>() {"SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"};
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         for (int i = 0; i < (subTypes?.Count ?? 0); i++)
         {
             Dictionary<string, object> req = this.extend(parameters, new Dictionary<string, object>() {
@@ -4052,7 +4052,7 @@ public partial class bitget : Exchange
             });
             promises.Add(this.publicUtaGetV3MarketInstruments(req));
         }
-        List<object> results = await promiseAll(promises);
+        List<object> results = new List<object>(await Task.WhenAll(promises));
         List<object> markets = new List<object>() {};
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {

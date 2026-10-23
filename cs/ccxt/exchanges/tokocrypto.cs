@@ -1591,7 +1591,7 @@ public partial class tokocrypto : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "until"}));
-        object limitValue = ((limit == null)) ? defaultLimit : mathMin(limit, maxLimit);
+        object limitValue = ((limit == null)) ? defaultLimit : Math.Min(limit.Value, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitValue },
@@ -3043,7 +3043,7 @@ public partial class tokocrypto : Exchange
             {
                 try
                 {
-                    parsedMessage = parseJson(messageInner);
+                    parsedMessage = JsonHelper.Deserialize(messageInner);
                 } catch(Exception e)
                 {
                     // do nothing

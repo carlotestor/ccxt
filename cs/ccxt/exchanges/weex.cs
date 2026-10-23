@@ -1829,7 +1829,7 @@ public partial class weex : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsHistorical, new List<object>() {"historical", "until", "price"});
         List<object> response = null;
         // hardcap threshold
-        object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
+        object limitResolved = ((limit == null)) ? null : Math.Min(limit.Value, 1000);
         if ((historical == true))
         {
             if ((priceType != null))

@@ -3786,8 +3786,8 @@ public partial class modetrade : Exchange
             object auth = "";
             string ts = this.nonce().ToString();
             url = url + pathWithParams;
-            object apiKey = this.apiKey;
-            if (getIndexOf(apiKey, "ed25519:") < 0)
+            string? apiKey = this.apiKey;
+            if ((apiKey?.IndexOf("ed25519:", StringComparison.Ordinal) ?? -1) < 0)
             {
                 apiKey = ("ed25519:" + (apiKey));
             }

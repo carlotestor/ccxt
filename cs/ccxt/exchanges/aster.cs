@@ -1392,8 +1392,8 @@ public partial class aster : Exchange
             { "contract", isContract },
             { "linear", linear },
             { "inverse", inverse },
-            { "taker", getValue(getValue(this.fees, "trading"), "taker") },
-            { "maker", getValue(getValue(this.fees, "trading"), "maker") },
+            { "taker", getValue((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker") },
+            { "maker", getValue((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker") },
             { "contractSize", contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -4212,7 +4212,7 @@ public partial class aster : Exchange
         if ((leverageString != null))
         {
             Int64? leverage = this.parseToInt(leverageString);
-            bool rational = this.isRoundNumber(mod(1000, leverage));
+            bool rational = this.isRoundNumber((1000 % leverage));
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (!rational)
             {
@@ -4428,7 +4428,7 @@ public partial class aster : Exchange
         {
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             Int64? leverage = this.parseToInt(leverageString);
-            bool rational = this.isRoundNumber(mod(1000, leverage));
+            bool rational = this.isRoundNumber((1000 % leverage));
             if (!rational)
             {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
@@ -5067,7 +5067,7 @@ public partial class aster : Exchange
         {
             object key = keys[i];
             object value = (values != null && key != null && values.ContainsKey((string)key) ? values[(string)key] : null);
-            bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || isTrue(this.isDictionary(value));
+            bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || this.isDictionary(value);
             string? valueJsonified = isObj ? this.json(value) : value.ToString();
             string encoded = this.encodeURIComponent(valueJsonified);
             encodedString = add(encodedString, add(add(add(key, "="), encoded), "&"));

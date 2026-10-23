@@ -1145,7 +1145,7 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object v2ProductsPromise = this.v2GetPublicProducts(parameters);
+        Task<Dictionary<string, object>> v2ProductsPromise = this.v2GetPublicProducts(parameters);
         //
         //     {
         //         "code":0,
@@ -1295,8 +1295,8 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object v1ProductsPromise = this.v1GetExchangePublicProducts(parameters);
-        var v2Productsv1ProductsVariable = await promiseAll(new List<object>() {v2ProductsPromise, v1ProductsPromise});
+        Task<Dictionary<string, object>> v1ProductsPromise = this.v1GetExchangePublicProducts(parameters);
+        var v2Productsv1ProductsVariable = new List<object>(await Task.WhenAll(new List<Task<Dictionary<string, object>>>() {v2ProductsPromise, v1ProductsPromise}));
         var v2Products = ((IList<object>) v2Productsv1ProductsVariable)[0];
         var v1Products = ((IList<object>) v2Productsv1ProductsVariable)[1];
         List<object> v1ProductsData = this.safeList(v1Products, "data", new List<object>() {});

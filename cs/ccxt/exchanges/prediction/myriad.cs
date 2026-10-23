@@ -3223,7 +3223,7 @@ public partial class myriad : PredictionExchange
             ((IList<object>)grouped).Add(outcomeObj);
             outcomesByMarket[(string)key] = grouped;
         }
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         for (int i = 0; i < (marketKeys?.Count ?? 0); i++)
         {
             string? key = ((string)marketKeys[i]);
@@ -3235,7 +3235,7 @@ public partial class myriad : PredictionExchange
                 { "network_id", this.safeString(info, "networkId") },
             }, parameters)));
         }
-        List<object> responses = await promiseAll(promises);
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         for (int i = 0; i < (marketKeys?.Count ?? 0); i++)
         {
             string? key = ((string)marketKeys[i]);
@@ -3656,7 +3656,7 @@ public partial class myriad : PredictionExchange
                 string? line = ((string)(lines != null && i < lines.Count ? lines[i] : null));
                 if (line.Length > 0)
                 {
-                    object parsed = parseJson(line);
+                    object parsed = JsonHelper.Deserialize(line);
                     this.handleCentrifugoFrame(client, parsed);
                 }
             }

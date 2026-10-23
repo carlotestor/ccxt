@@ -2888,14 +2888,14 @@ public partial class okx : Exchange
         if ((type is "option"))
         {
             List<object> optionsUnderlying = this.safeList(this.options, "defaultUnderlying", new List<object>() {"BTC-USD", "ETH-USD"});
-            List<object> promises = new List<object>() {};
+            List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             for (int i = 0; i < (optionsUnderlying?.Count ?? 0); i++)
             {
                 object underlying = optionsUnderlying[i];
                 request["uly"] = underlying;
                 promises.Add(this.publicGetPublicInstruments(this.extend(request, parameters)));
             }
-            List<object> promisesResult = await promiseAll(promises);
+            List<object> promisesResult = new List<object>(await Task.WhenAll(promises));
             List<object> markets = new List<object>() {};
             for (int i = 0; i < (promisesResult?.Count ?? 0); i++)
             {
@@ -3724,7 +3724,7 @@ public partial class okx : Exchange
         object limitResolved = 100;
         if ((limit != null))
         {
-            limitResolved = mathMin(limit, requestMaxLimit);
+            limitResolved = Math.Min(limit.Value, requestMaxLimit);
         }
         int duration = this.parseTimeframe(timeframeVar);
         object bar = this.safeString(this.timeframes, timeframeVar, timeframeVar);

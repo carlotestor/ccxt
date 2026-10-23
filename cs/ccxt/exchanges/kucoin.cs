@@ -2515,7 +2515,7 @@ public partial class kucoin : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchUTAMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         promises.Add(this.utaGetMarketInstrument(this.extend(parameters, new Dictionary<string, object>() {
             { "tradeType", "SPOT" },
         })));
@@ -2591,7 +2591,7 @@ public partial class kucoin : Exchange
         //         }
         //     }
         //
-        List<object> responses = await promiseAll(promises);
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         IDictionary<string, object> data = this.safeDict((responses != null && 0 < responses.Count ? responses[0] : null), "data", new Dictionary<string, object>() {});
         IDictionary<string, object> contractData = this.safeDict((responses != null && 1 < responses.Count ? responses[1] : null), "data", new Dictionary<string, object>() {});
         List<object> spotData = this.safeList(data, "list", new List<object>() {});
@@ -10280,7 +10280,7 @@ public partial class kucoin : Exchange
         {
             try
             {
-                object parsed = parseJson(context);
+                object parsed = JsonHelper.Deserialize(context);
                 string? orderId = this.safeString(parsed, "orderId");
                 string? tradeId = this.safeString(parsed, "tradeId");
                 // transactions only have an orderId but for trades we wish to use tradeId

@@ -2535,7 +2535,7 @@ public partial class sxbet : PredictionExchange
                 string? line = ((string)(lines != null && i < lines.Count ? lines[i] : null));
                 if (line.Length > 0)
                 {
-                    object parsed = parseJson(line);
+                    object parsed = JsonHelper.Deserialize(line);
                     this.handleCentrifugoFrame(client, parsed);
                 }
             }

@@ -628,8 +628,8 @@ public partial class upbit : Exchange
             { "contract", false },
             { "linear", null },
             { "inverse", null },
-            { "taker", this.safeNumber((this.options.ContainsKey("tradingFeesByQuoteCurrency") ? this.options["tradingFeesByQuoteCurrency"] : null), quote, getValue(getValue(this.fees, "trading"), "taker")) },
-            { "maker", this.safeNumber((this.options.ContainsKey("tradingFeesByQuoteCurrency") ? this.options["tradingFeesByQuoteCurrency"] : null), quote, getValue(getValue(this.fees, "trading"), "maker")) },
+            { "taker", this.safeNumber((this.options.ContainsKey("tradingFeesByQuoteCurrency") ? this.options["tradingFeesByQuoteCurrency"] : null), quote, getValue((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker")) },
+            { "maker", this.safeNumber((this.options.ContainsKey("tradingFeesByQuoteCurrency") ? this.options["tradingFeesByQuoteCurrency"] : null), quote, getValue((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker")) },
             { "contractSize", null },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -934,7 +934,7 @@ public partial class upbit : Exchange
         } else
         {
             IList<object> ids = this.marketIds(symbolsNormalized);
-            List<object> promises = new List<object>() {};
+            List<Task<List<object>>> promises = new List<Task<List<object>>>() {};
             List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (int i = 0; i < (queries?.Count ?? 0); i++)
             {
@@ -943,7 +943,7 @@ public partial class upbit : Exchange
                     { "markets", idsQuery },
                 }, parameters)));
             }
-            List<object> responses = await promiseAll(promises);
+            List<object> responses = new List<object>(await Task.WhenAll(promises));
             tickers = this.arraysConcat(responses);
         }
         //

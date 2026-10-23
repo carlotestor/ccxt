@@ -762,7 +762,7 @@ public partial class digifinex : Exchange
         (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("fetchMarketsV2", parameters);
         string? marginMode = marginModequeryVariable.Item1;
         IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
-        List<object> promisesRaw = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promisesRaw = new List<Task<Dictionary<string, object>>>() {};
         if ((marginMode != null))
         {
             promisesRaw.Add(this.publicSpotGetMarginSymbols(query));
@@ -771,7 +771,7 @@ public partial class digifinex : Exchange
             promisesRaw.Add(this.publicSpotGetTradesSymbols(query));
         }
         promisesRaw.Add(this.publicSwapGetPublicInstruments(parameters));
-        List<object> promises = await promiseAll(promisesRaw);
+        List<object> promises = new List<object>(await Task.WhenAll(promisesRaw));
         IDictionary<string, object> spotMarkets = this.safeDict(promises, 0);
         IDictionary<string, object> swapMarkets = this.safeDict(promises, 1);
         //

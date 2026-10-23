@@ -2252,7 +2252,7 @@ public partial class grvt : Exchange
         {
             return false;
         }
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         promises.Add(this.privateTradingPostFullV1AggregatedAccountSummary());
         //
         //     {
@@ -2288,7 +2288,7 @@ public partial class grvt : Exchange
         //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
         //     }
         //
-        List<object> responses = await promiseAll(promises);
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         IDictionary<string, object> result1 = this.safeDict((responses != null && 0 < responses.Count ? responses[0] : null), "result", new Dictionary<string, object>() {});
         string? mainAccountId = this.safeString(result1, "main_account_id");
         this.options["userMainAccountId"] = mainAccountId;

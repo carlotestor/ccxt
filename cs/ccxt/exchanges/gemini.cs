@@ -969,7 +969,7 @@ public partial class gemini : Exchange
         }
         if ((this.safeBool(options, "fetchDetailsForAllSymbols", false) == true))
         {
-            List<object> promises = new List<object>() {};
+            List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             for (int i = 0; i < (marketIds?.Count ?? 0); i++)
             {
                 object marketId = marketIds[i];
@@ -978,7 +978,7 @@ public partial class gemini : Exchange
                 };
                 promises.Add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
             }
-            List<object> responses = await promiseAll(promises);
+            List<object> responses = new List<object>(await Task.WhenAll(promises));
             for (int i = 0; i < (responses?.Count ?? 0); i++)
             {
                 Dictionary<string, object> parsed = this.parseMarket(responses[i]);
@@ -2417,8 +2417,8 @@ public partial class gemini : Exchange
         if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
-            object apiKey = this.apiKey;
-            if (getIndexOf(apiKey, "account") < 0)
+            string? apiKey = this.apiKey;
+            if ((apiKey?.IndexOf("account", StringComparison.Ordinal) ?? -1) < 0)
             {
                 throw new AuthenticationError ((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }

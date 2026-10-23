@@ -463,7 +463,7 @@ public partial class BaseExchange
         {
             return defaultValue as IDictionary<string, object>;
         }
-        if (isTrue(this.isDictionary(value)))
+        if (this.isDictionary(value))
         {
             return (IDictionary<string, object>)value;
         }
@@ -483,7 +483,7 @@ public partial class BaseExchange
         {
             return defaultValue as IDictionary<string, object>;
         }
-        if (isTrue(this.isDictionary(value)))
+        if (this.isDictionary(value))
         {
             return (IDictionary<string, object>)value;
         }
@@ -499,12 +499,12 @@ public partial class BaseExchange
          * @returns {object | undefined}
          */
         object value = this.safeValue(dictionaryOrList, key1);
-        if (isTrue(this.isDictionary(value)))
+        if (this.isDictionary(value))
         {
             return (IDictionary<string, object>)value;
         }
         object value2 = this.safeValue(dictionaryOrList, key2);
-        if (isTrue(this.isDictionary(value2)))
+        if (this.isDictionary(value2))
         {
             return (IDictionary<string, object>)value2;
         }
@@ -2178,7 +2178,7 @@ public partial class BaseExchange
             Dictionary<string, object> market = this.deepExtend(this.safeMarketStructure(), new Dictionary<string, object>() {
                 { "precision", this.precision },
                 { "limits", this.limits },
-            }, getValue(this.fees, "trading"), valueDefined);
+            }, (this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), valueDefined);
             if ((((object)((market.ContainsKey("linear") ? market["linear"] : null))) is true))
             {
                 market["subType"] = "linear";
@@ -5140,7 +5140,7 @@ public partial class BaseExchange
             string? key = ((string)keys[i]);
             object credentialValue = getValue(this, key);
             bool credentialMissing = ((credentialValue == null)) || ((credentialValue == null)) || ((credentialValue is false)) || ((credentialValue is ""));
-            if (((getValue(this.requiredCredentials, key) is true)) && credentialMissing)
+            if (((((object)((this.requiredCredentials != null && key != null && this.requiredCredentials.ContainsKey(key) ? this.requiredCredentials[key] : null))) is true)) && credentialMissing)
             {
                 if (isTrue(error))
                 {
@@ -8203,9 +8203,9 @@ public partial class BaseExchange
                 }
                 if (((this.ohlcvs != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
                 {
-                    if (inOp(getValue(this.ohlcvs, symbol), timeframe))
+                    if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
                     {
-                        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove(timeframe);
+                        ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
                     }
                 }
             }
@@ -8299,23 +8299,23 @@ public partial class BaseExchange
         Int64 hour = (60 * minute);
         Int64 day = (24 * hour);
         Int64 week = (7 * day);
-        if (isEqual(mod(msInt, week), 0))
+        if (isEqual((msInt % week), 0))
         {
             return (((object)this.parseToInt(((double?)msInt / week))).ToString() + "w");
         }
-        if (isEqual(mod(msInt, day), 0))
+        if (isEqual((msInt % day), 0))
         {
             return (((object)this.parseToInt(((double?)msInt / day))).ToString() + "d");
         }
-        if (isEqual(mod(msInt, hour), 0))
+        if (isEqual((msInt % hour), 0))
         {
             return (((object)this.parseToInt(((double?)msInt / hour))).ToString() + "h");
         }
-        if (isEqual(mod(msInt, minute), 0))
+        if (isEqual((msInt % minute), 0))
         {
             return (((object)this.parseToInt(((double?)msInt / minute))).ToString() + "m");
         }
-        if (isEqual(((Int64?)((double?)msInt % 1000)), 0))
+        if ((((Int64?)((double?)msInt % 1000)) == 0))
         {
             return (((object)this.parseToInt(((double?)msInt / 1000))).ToString() + "s");
         }

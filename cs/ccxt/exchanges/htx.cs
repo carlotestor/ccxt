@@ -5450,9 +5450,9 @@ public partial class htx : Exchange
             {
                 // pick the first account
                 await this.loadAccounts();
-                for (int i = 0; i < getArrayLength(this.accounts); i++)
+                for (int i = 0; i < (this.accounts?.Count ?? 0); i++)
                 {
-                    IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
+                    IDictionary<string, object> account = ((IDictionary<string, object>)(this.accounts != null && i < this.accounts.Count ? this.accounts[i] : null));
                     if ((this.safeString(account, "type") == "spot"))
                     {
                         accountId = this.safeString(account, "id");

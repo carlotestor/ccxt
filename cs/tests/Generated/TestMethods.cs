@@ -2771,7 +2771,8 @@ public partial class testMainClass
         object accounts = exchange.safeList(exchangeData, "accounts");
         if ((accounts != null) && (accounts != null))
         {
-            exchange.accounts = accounts;
+            // the field is a List<object>: assign the call, not the untyped local
+            exchange.accounts = exchange.safeList(exchangeData, "accounts");
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);

@@ -2825,7 +2825,7 @@ public partial class whitebit : Exchange
             string? id = ((string)balanceKeys[i]);
             string? code = this.safeCurrencyCode(id);
             object balance = getValue(response, id);
-            if ((balance != null) && isTrue(this.isDictionary(balance)))
+            if ((balance != null) && this.isDictionary(balance))
             {
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString2(balance, "available", "main_balance");

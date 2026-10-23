@@ -1436,7 +1436,7 @@ public partial class cryptocom : Exchange
             request["start_ts"] = (since - (duration * 1000L));
             if ((limit != null))
             {
-                Int64? countLimit = this.parseToInt(mathMin(limit, 300));
+                Int64? countLimit = this.parseToInt(Math.Min(limit.Value, 300));
                 request["end_ts"] = this.sum(since, ((duration * countLimit) * 1000));
             } else
             {

@@ -232,7 +232,7 @@ public partial class binance : ccxt.binance
             IDictionary<string, object> streamLimits = this.safeDict(this.options, "streamLimits");
             Int64? streamLimit = this.safeInteger(streamLimits, type);
             Int64? streamIndex = (previousStreamIndex + 1);
-            Int64? normalizedIndex = mod(streamIndex, streamLimit);
+            Int64? normalizedIndex = (streamIndex % streamLimit);
             this.options["streamIndex"] = streamIndex;
             stream = this.numberToString(normalizedIndex);
             if ((subscriptionHash != null))

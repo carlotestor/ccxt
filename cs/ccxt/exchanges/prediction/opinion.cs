@@ -407,8 +407,8 @@ public partial class opinion : PredictionExchange
             { "expiryDatetime", this.iso8601(expiryTimestamp) },
             { "strike", null },
             { "optionType", null },
-            { "taker", getValue(getValue(this.fees, "trading"), "taker") },
-            { "maker", getValue(getValue(this.fees, "trading"), "maker") },
+            { "taker", getValue((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker") },
+            { "maker", getValue((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker") },
             { "percentage", true },
             { "tierBased", false },
             { "feeSide", "get" },
@@ -830,7 +830,7 @@ public partial class opinion : PredictionExchange
         }
         await this.loadOutcomes(outcomes);
         int outcomesLength = outcomes?.Count ?? 0;
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
@@ -842,7 +842,7 @@ public partial class opinion : PredictionExchange
                 { "token_id", tokenId },
             }, parameters)));
         }
-        List<object> responses = await promiseAll(promises);
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < outcomesLength; i++)
         {

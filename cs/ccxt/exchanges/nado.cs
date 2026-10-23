@@ -1792,10 +1792,10 @@ public partial class nado : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbolsRequest = this.gatewayPublicGetSymbols(parameters);
-        object pairsRequest = this.gatewayV2PublicGetPairs(parameters);
-        object assetsRequest = this.gatewayV2PublicGetAssets(parameters);
-        List<object> responses = await promiseAll(new List<object>() {symbolsRequest, pairsRequest, assetsRequest});
+        Task<List<object>> symbolsRequest = this.gatewayPublicGetSymbols(parameters);
+        Task<List<object>> pairsRequest = this.gatewayV2PublicGetPairs(parameters);
+        Task<List<object>> assetsRequest = this.gatewayV2PublicGetAssets(parameters);
+        List<object> responses = new List<object>(await Task.WhenAll(new List<Task<List<object>>>() {symbolsRequest, pairsRequest, assetsRequest}));
         List<object> symbols = this.safeList(responses, 0, new List<object>() {});
         List<object> pairs = this.safeList(responses, 1, new List<object>() {});
         List<object> assets = this.safeList(responses, 2, new List<object>() {});

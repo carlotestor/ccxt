@@ -1542,7 +1542,7 @@ public partial class bittrade : Exchange
         await this.loadAccounts();
         string method = ((string)this.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", getValue(getValue(this.accounts, 0), "id") },
+            { "id", getValue((this.accounts != null && 0 < this.accounts.Count ? this.accounts[0] : null), "id") },
         };
         Dictionary<string, object> response = null;
         if (method == "privateGetAccountAccountsIdBalance")
@@ -1706,9 +1706,9 @@ public partial class bittrade : Exchange
         {
             // pick the first account
             await this.loadAccounts();
-            for (int i = 0; i < getArrayLength(this.accounts); i++)
+            for (int i = 0; i < (this.accounts?.Count ?? 0); i++)
             {
-                IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
+                IDictionary<string, object> account = ((IDictionary<string, object>)(this.accounts != null && i < this.accounts.Count ? this.accounts[i] : null));
                 if ((this.safeString(account, "type") == "spot"))
                 {
                     accountId = this.safeString(account, "id");
@@ -1905,7 +1905,7 @@ public partial class bittrade : Exchange
         await this.loadAccounts();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "account-id", getValue(getValue(this.accounts, 0), "id") },
+            { "account-id", getValue((this.accounts != null && 0 < this.accounts.Count ? this.accounts[0] : null), "id") },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", ((side + "-") + type) },
         };

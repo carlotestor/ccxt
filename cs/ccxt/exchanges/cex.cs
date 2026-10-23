@@ -364,7 +364,7 @@ public partial class cex : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         promises.Add(this.publicPostGetCurrenciesInfo(parameters));
         //
         //    {
@@ -402,7 +402,7 @@ public partial class cex : Exchange
         //            },
         //            ...
         //
-        List<object> responses = await promiseAll(promises);
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         List<object> dataCurrencies = this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {});
         IDictionary<string, object> dataNetworks = this.safeDict((responses != null && 1 < responses.Count ? responses[1] : null), "data", new Dictionary<string, object>() {});
         Dictionary<string, object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");

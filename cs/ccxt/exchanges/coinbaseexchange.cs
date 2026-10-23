@@ -842,7 +842,7 @@ public partial class coinbaseexchange : Exchange
                 continue;
             }
             string? status = this.safeString(market, "status");
-            result.Add(this.extend(getValue(this.fees, "trading"), new Dictionary<string, object>() {
+            result.Add(this.extend((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
@@ -1512,7 +1512,7 @@ public partial class coinbaseexchange : Exchange
         object until = this.safeValue2(paramsPaginate, "until", "end");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        Int64? cappedLimit = this.parseToInt(((limit == null)) ? 300 : mathMin(limit, 300));
+        Int64? cappedLimit = this.parseToInt(((limit == null)) ? 300 : Math.Min(limit.Value, 300));
         Int64? limitResolved = ((since != null)) ? cappedLimit : limit;
         if ((since != null))
         {
@@ -1522,7 +1522,7 @@ public partial class coinbaseexchange : Exchange
                 if ((parsedTimeframe != null))
                 {
                     Int64? parsedTimeframeMilliseconds = (parsedTimeframe * 1000);
-                    if (this.isRoundNumber(mod(since, parsedTimeframeMilliseconds)))
+                    if (this.isRoundNumber((since % parsedTimeframeMilliseconds)))
                     {
                         request["end"] = this.iso8601(this.sum(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(((cappedLimit * parsedTimeframeMilliseconds)), parsedTimeframeMilliseconds), since));
                     } else

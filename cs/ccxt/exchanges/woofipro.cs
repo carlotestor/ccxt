@@ -1002,7 +1002,7 @@ public partial class woofipro : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object tokenPromise = this.v1PublicGetPublicToken(parameters);
+        Task<Dictionary<string, object>> tokenPromise = this.v1PublicGetPublicToken(parameters);
         //
         // {
         //     "success": true,
@@ -1025,8 +1025,8 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object chainPromise = this.v1PublicGetPublicChainInfo(parameters);
-        var tokenResponsechainResponseVariable = await promiseAll(new List<object>() {tokenPromise, chainPromise});
+        Task<Dictionary<string, object>> chainPromise = this.v1PublicGetPublicChainInfo(parameters);
+        var tokenResponsechainResponseVariable = new List<object>(await Task.WhenAll(new List<Task<Dictionary<string, object>>>() {tokenPromise, chainPromise}));
         var tokenResponse = ((IList<object>) tokenResponsechainResponseVariable)[0];
         var chainResponse = ((IList<object>) tokenResponsechainResponseVariable)[1];
         IDictionary<string, object> tokenData = this.safeDict(tokenResponse, "data", new Dictionary<string, object>() {});
@@ -4096,8 +4096,8 @@ public partial class woofipro : Exchange
             object auth = "";
             string ts = this.nonce().ToString();
             url = url + pathWithParams;
-            object apiKey = this.apiKey;
-            if (getIndexOf(apiKey, "ed25519:") < 0)
+            string? apiKey = this.apiKey;
+            if ((apiKey?.IndexOf("ed25519:", StringComparison.Ordinal) ?? -1) < 0)
             {
                 apiKey = ("ed25519:" + (apiKey));
             }

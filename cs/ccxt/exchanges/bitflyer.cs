@@ -432,8 +432,8 @@ public partial class bitflyer : Exchange
                 continue;
             }
             string symbol = ((bs + "/") + quote);
-            object taker = getValue(getValue(this.fees, "trading"), "taker");
-            object maker = getValue(getValue(this.fees, "trading"), "maker");
+            object taker = getValue((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker");
+            object maker = getValue((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker");
             bool contract = swap || future;
             if (contract)
             {

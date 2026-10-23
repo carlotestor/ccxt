@@ -2130,9 +2130,9 @@ public partial class gate : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object marginPromise = this.publicMarginGetCurrencyPairs(parameters);
-        object spotMarketsPromise = this.publicSpotGetCurrencyPairs(parameters);
-        var marginResponsespotMarketsResponseVariable = await promiseAll(new List<object>() {marginPromise, spotMarketsPromise});
+        Task<List<object>> marginPromise = this.publicMarginGetCurrencyPairs(parameters);
+        Task<List<object>> spotMarketsPromise = this.publicSpotGetCurrencyPairs(parameters);
+        var marginResponsespotMarketsResponseVariable = new List<object>(await Task.WhenAll(new List<Task<List<object>>>() {marginPromise, spotMarketsPromise}));
         var marginResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[0];
         var spotMarketsResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[1];
         Dictionary<string, object> marginMarkets = this.indexBy(marginResponse, "id");
@@ -4495,7 +4495,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)requestparamsRequestVariable[1]);
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         int maxLimit = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) ? 1999 : 1000;
-        object limitValue = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);
+        object limitValue = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);
         Int64? untilMs = this.safeInteger(paramsRequest, "until");
         Int64? until = null;
         if ((untilMs != null))
@@ -5468,7 +5468,7 @@ public partial class gate : Exchange
                 amountString = Precise.stringAbs(amountString);
             } else
             {
-                type = this.parseTransactionType(getValue(id, 0));
+                type = this.parseTransactionType((id != null && 0 < id.Length ? id[0].ToString () : null));
             }
         }
         string? feeCostString = this.safeString2(transaction, "fee", "fee_amount");
@@ -8100,7 +8100,7 @@ public partial class gate : Exchange
             throw new BadRequest ((this.id + " fetchLeverageTiers only supports swap and future")) ;
         }
         Int64? requestedLimit = this.safeInteger(requestParams, "limit", 100);
-        Int64? limit = this.parseToInt(((requestedLimit == null)) ? 100 : mathMax(1, mathMin(requestedLimit, 100)));
+        Int64? limit = this.parseToInt(((requestedLimit == null)) ? 100 : mathMax(1, Math.Min(requestedLimit.Value, 100)));
         object offset = this.safeInteger(requestParams, "offset", 0);
         string? contract = this.safeString(requestParams, "contract", "");
         Dictionary<string, object> paramsOmitted = this.omit(requestParams, new List<object>() {"limit", "offset"});

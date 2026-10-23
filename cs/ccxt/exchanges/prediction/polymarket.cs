@@ -701,7 +701,7 @@ public partial class polymarket : PredictionExchange
             {
                 remainingPages.Add(p);
             }
-            List<object> restPromises = new List<object>() {};
+            List<Task<Dictionary<string, object>>> restPromises = new List<Task<Dictionary<string, object>>>() {};
             for (int pi = 0; pi < (remainingPages?.Count ?? 0); pi++)
             {
                 Dictionary<string, object> pageRequest = new Dictionary<string, object>() {
@@ -710,7 +710,7 @@ public partial class polymarket : PredictionExchange
                 pageRequest = this.extend(this.extend(pageRequest, baseRequest), rest);
                 restPromises.Add(this.gammaPublicGetPublicSearch(pageRequest));
             }
-            List<object> restResponses = await promiseAll(restPromises);
+            List<object> restResponses = new List<object>(await Task.WhenAll(restPromises));
             List<object> allEvents = new List<object>() {};
             for (int fi = 0; fi < firstEvents.Count; fi++)
             {
@@ -880,7 +880,7 @@ public partial class polymarket : PredictionExchange
             {
                 offsets.Add((p * pageSize));
             }
-            List<object> restPromises = new List<object>() {};
+            List<Task<List<object>>> restPromises = new List<Task<List<object>>>() {};
             for (int oi = 0; oi < (offsets?.Count ?? 0); oi++)
             {
                 Dictionary<string, object> pageRequest = new Dictionary<string, object>() {
@@ -889,7 +889,7 @@ public partial class polymarket : PredictionExchange
                 pageRequest = this.extend(pageRequest, baseRequest);
                 restPromises.Add(this.gammaPublicGetEvents(pageRequest));
             }
-            List<object> restPages = await promiseAll(restPromises);
+            List<object> restPages = new List<object>(await Task.WhenAll(restPromises));
             for (int ri = 0; ri < (restPages?.Count ?? 0); ri++)
             {
                 List<object> page = this.safeList(restPages, ri, new List<object>() {});

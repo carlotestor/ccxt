@@ -3642,7 +3642,7 @@ public partial class bitrue : Exchange
             {
                 try
                 {
-                    parsedMessage = parseJson(messageInner);
+                    parsedMessage = JsonHelper.Deserialize(messageInner);
                 } catch(Exception e)
                 {
                     // do nothing

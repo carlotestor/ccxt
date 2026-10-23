@@ -653,13 +653,13 @@ public partial class bithumb : Exchange
         {
             IDictionary<string, object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
             List<object> quotes = new List<object>(quoteCurrencies.Keys);
-            List<object> promises = new List<object>() {};
+            List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             for (int i = 0; i < quotes.Count; i++)
             {
                 request["quoteId"] = quotes[i];
                 promises.Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
             }
-            List<object> results = await promiseAll(promises);
+            List<object> results = new List<object>(await Task.WhenAll(promises));
             for (int i = 0; i < quotes.Count; i++)
             {
                 string? quote = ((string)quotes[i]);
@@ -1172,7 +1172,7 @@ public partial class bithumb : Exchange
             for (int i = 0; i < responsesLength; i++)
             {
                 object response = (responses != null && i < responses.Count ? responses[i] : null);
-                if (isTrue(this.isDictionary(response)) && (inOp(response, "data")) && (!(getValue(response, "data") == null)))
+                if (this.isDictionary(response) && (inOp(response, "data")) && (!(getValue(response, "data") == null)))
                 {
                     response = getValue(response, "data");
                 }
@@ -1187,7 +1187,7 @@ public partial class bithumb : Exchange
                 if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
                     tickers = response;
-                } else if (isTrue(this.isDictionary(response)))
+                } else if (this.isDictionary(response))
                 {
                     if ((inOp(response, "market")) || (inOp(response, "trade_date")) || (inOp(response, "trade_timestamp")))
                     {

@@ -4698,13 +4698,13 @@ public partial class binance : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        List<object> promises = new List<object> {this.sapiGetCapitalConfigGetall(parameters)};
+        List<Task<List<object>>> promises = new List<Task<List<object>>> {this.sapiGetCapitalConfigGetall(parameters)};
         bool? fetchMargins = this.safeBool(this.options, "fetchMargins", false);
         if ((fetchMargins == true))
         {
             promises.Add(this.sapiGetMarginAllPairs(parameters));
         }
-        List<object> results = await promiseAll(promises);
+        List<object> results = new List<object>(await Task.WhenAll(promises));
         object responseCurrencies = (results != null && 0 < results.Count ? results[0] : null);
         Dictionary<string, object> marginablesById = null;
         if ((fetchMargins == true))
@@ -7364,7 +7364,7 @@ public partial class binance : Exchange
             bool isFutureOrSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true));
             bool isHistoricalEndpoint = ((method != null)) && (method.IndexOf("GetHistoricalTrades", StringComparison.Ordinal) >= 0);
             int maxLimitForContractHistorical = isHistoricalEndpoint ? 500 : 1000;
-            request["limit"] = isFutureOrSwap ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
+            request["limit"] = isFutureOrSwap ? Math.Min(limit.Value, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until", "fetchTradesMethod"});
         if ((method == null))
@@ -10025,7 +10025,7 @@ public partial class binance : Exchange
         object limitResolved = limit;
         if ((limit != null) && (stock == true))
         {
-            limitResolved = mathMin(limit, 100);
+            limitResolved = Math.Min(limit.Value, 100);
         }
         if (!(limitResolved == null))
         {
@@ -11457,7 +11457,7 @@ public partial class binance : Exchange
         object limitContract = limit;
         if ((limit != null) && isContractLimit)
         {
-            limitContract = mathMin(limit, 1000);
+            limitContract = Math.Min(limit.Value, 1000);
         }
         object limitResolved = limitContract;
         if (!(limitContract == null) && (stock == true))
@@ -13257,13 +13257,13 @@ public partial class binance : Exchange
             List<object> symbols = new List<object>(markets.Keys);
             Dictionary<string, object> linearFees = new Dictionary<string, object>() {};
             Int64? feeTier = this.safeInteger(response, "feeTier");
-            object feeTiers = getValue(getValue(getValue(this.fees, "linear"), "trading"), "tiers");
+            object feeTiers = getValue(getValue((this.fees != null && this.fees.ContainsKey("linear") ? this.fees["linear"] : null), "trading"), "tiers");
             object maker = getValue(getValue(getValue(feeTiers, "maker"), feeTier), 1);
             object taker = getValue(getValue(getValue(feeTiers, "taker"), feeTier), 1);
             for (int i = 0; i < symbols.Count; i++)
             {
                 object symbol = symbols[i];
-                object market = getValue(markets, symbol);
+                object market = (markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null);
                 if ((this.safeBool(market, "linear", false) == true))
                 {
                     linearFees[(string)symbol] = new Dictionary<string, object>() {
@@ -13296,13 +13296,13 @@ public partial class binance : Exchange
             List<object> symbols = new List<object>(markets.Keys);
             Dictionary<string, object> inverseFees = new Dictionary<string, object>() {};
             Int64? feeTier = this.safeInteger(response, "feeTier");
-            object feeTiers = getValue(getValue(getValue(this.fees, "inverse"), "trading"), "tiers");
+            object feeTiers = getValue(getValue((this.fees != null && this.fees.ContainsKey("inverse") ? this.fees["inverse"] : null), "trading"), "tiers");
             object maker = getValue(getValue(getValue(feeTiers, "maker"), feeTier), 1);
             object taker = getValue(getValue(getValue(feeTiers, "taker"), feeTier), 1);
             for (int i = 0; i < symbols.Count; i++)
             {
                 object symbol = symbols[i];
-                object market = getValue(markets, symbol);
+                object market = (markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null);
                 if ((this.safeBool(market, "inverse", false) == true))
                 {
                     inverseFees[(string)symbol] = new Dictionary<string, object>() {
@@ -13650,8 +13650,8 @@ public partial class binance : Exchange
                 if ((code is string inOpKey6 && balances.ContainsKey(inOpKey6)))
                 {
                     Dictionary<string, object> parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
-                        { "crossMargin", getValue(getValue(balances, code), "crossMargin") },
-                        { "crossWalletBalance", getValue(getValue(balances, code), "crossWalletBalance") },
+                        { "crossMargin", getValue((balances != null && code != null && balances.ContainsKey((string)code) ? balances[(string)code] : null), "crossMargin") },
+                        { "crossWalletBalance", getValue((balances != null && code != null && balances.ContainsKey((string)code) ? balances[(string)code] : null), "crossWalletBalance") },
                     }), market);
                     result.Add(parsed);
                 }
@@ -13760,7 +13760,7 @@ public partial class binance : Exchange
         {
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             Int64? leverage = this.parseToInt(leverageString);
-            bool rational = this.isRoundNumber(mod(1000, leverage));
+            bool rational = this.isRoundNumber((1000 % leverage));
             if (!rational)
             {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
@@ -14138,7 +14138,7 @@ public partial class binance : Exchange
         if ((leverageString != null))
         {
             Int64? leverage = this.parseToInt(leverageString);
-            bool rational = this.isRoundNumber(mod(1000, leverage));
+            bool rational = this.isRoundNumber((1000 % leverage));
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (!rational)
             {
@@ -16077,7 +16077,7 @@ public partial class binance : Exchange
             {
                 try
                 {
-                    parsedMessage = parseJson(messageNew);
+                    parsedMessage = JsonHelper.Deserialize(messageNew);
                 } catch(Exception e)
                 {
                     // do nothing

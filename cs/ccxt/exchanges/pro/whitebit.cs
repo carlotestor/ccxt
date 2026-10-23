@@ -1063,7 +1063,7 @@ public partial class whitebit : ccxt.whitebit
                     { "method", method },
                     { "params", marketIdsNew },
                 };
-                if (inOp(client.subscriptions, method))
+                if ((client.subscriptions != null && method is string hx10w2Key0 && client.subscriptions.ContainsKey(hx10w2Key0)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)method);
                 }

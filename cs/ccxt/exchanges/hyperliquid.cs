@@ -647,7 +647,7 @@ public partial class hyperliquid : Exchange
                 fetchDexesList.Add(dexName);
             }
         }
-        List<object> rawPromises = new List<object>() {};
+        List<Task<object>> rawPromises = new List<Task<object>>() {};
         for (int i = 0; i < (fetchDexesList?.Count ?? 0); i++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -656,13 +656,13 @@ public partial class hyperliquid : Exchange
             };
             rawPromises.Add(this.publicPostInfo(this.extend(request, parameters)));
         }
-        List<object> promises = await promiseAll(rawPromises);
+        List<object> promises = new List<object>(await Task.WhenAll(rawPromises));
         this.options["hip3TokensByName"] = new Dictionary<string, object>() {};
         List<object> markets = new List<object>() {};
         for (int i = 0; i < (promises?.Count ?? 0); i++)
         {
             object dexName = (fetchDexesList != null && i < fetchDexesList.Count ? fetchDexesList[i] : null);
-            object offset = getValue(perpDexesOffset, dexName);
+            object offset = (perpDexesOffset != null && dexName != null && perpDexesOffset.ContainsKey((string)dexName) ? perpDexesOffset[(string)dexName] : null);
             List<object> response = this.safeList(promises, i);
             IDictionary<string, object> meta = this.safeDict(response, 0, new Dictionary<string, object>() {});
             string? collateralToken = this.safeString(meta, "collateralToken");

@@ -1483,7 +1483,7 @@ public partial class xt : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchSwapAndFutureMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> markets = await promiseAll(new List<object> {this.publicLinearGetFutureMarketV1PublicSymbolList(parameters), this.publicInverseGetFutureMarketV1PublicSymbolList(parameters)});
+        List<object> markets = new List<object>(await Task.WhenAll(new List<Task<Dictionary<string, object>>> {this.publicLinearGetFutureMarketV1PublicSymbolList(parameters), this.publicInverseGetFutureMarketV1PublicSymbolList(parameters)}));
         //
         //     {
         //         "returnCode": 0,
@@ -1886,7 +1886,7 @@ public partial class xt : Exchange
         if ((limit != null))
         {
             int maxLimit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 1000 : 1500; // spot : derivatives max limit
-            limitResolved = mathMin(limit, maxLimit);
+            limitResolved = Math.Min(limit.Value, maxLimit);
             request["limit"] = limitResolved;
         } else
         {
@@ -6139,7 +6139,7 @@ public partial class xt : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchPosition", market, parameters);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        List<object> promisesUnresolved = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promisesUnresolved = new List<Task<Dictionary<string, object>>>() {};
         if ((subType == "inverse"))
         {
             promisesUnresolved.Add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, paramsSubType)));
@@ -6149,7 +6149,7 @@ public partial class xt : Exchange
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, paramsSubType)));
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, paramsSubType)));
         }
-        var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
+        var responsebreakResponseVariable = new List<object>(await Task.WhenAll(promisesUnresolved));
         var response = ((IList<object>) responsebreakResponseVariable)[0];
         var breakResponse = ((IList<object>) responsebreakResponseVariable)[1];
         //
@@ -6231,7 +6231,7 @@ public partial class xt : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchPositions", null, parameters);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        List<object> promisesUnresolved = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promisesUnresolved = new List<Task<Dictionary<string, object>>>() {};
         if ((subType == "inverse"))
         {
             promisesUnresolved.Add(this.privateInverseGetFutureUserV1PositionList(paramsSubType));
@@ -6241,7 +6241,7 @@ public partial class xt : Exchange
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionList(paramsSubType));
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionBreakList(paramsSubType));
         }
-        var responsebreakResponseVariable = await promiseAll(promisesUnresolved);
+        var responsebreakResponseVariable = new List<object>(await Task.WhenAll(promisesUnresolved));
         var response = ((IList<object>) responsebreakResponseVariable)[0];
         var breakResponse = ((IList<object>) responsebreakResponseVariable)[1];
         //

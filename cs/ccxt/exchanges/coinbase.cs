@@ -955,9 +955,9 @@ public partial class coinbase : Exchange
         if ((accountId == null))
         {
             await this.loadAccounts();
-            for (int i = 0; i < getArrayLength(this.accounts); i++)
+            for (int i = 0; i < (this.accounts?.Count ?? 0); i++)
             {
-                IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
+                IDictionary<string, object> account = ((IDictionary<string, object>)(this.accounts != null && i < this.accounts.Count ? this.accounts[i] : null));
                 if (((this.safeString(account, "code") == code)) && ((this.safeString(account, "type") == "wallet")))
                 {
                     accountId = this.safeString(account, "id");
@@ -1674,7 +1674,7 @@ public partial class coinbase : Exchange
         (bool?, object) usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "usePrivate", false);
         bool? usePrivate = usePrivateparamsUsePrivateVariable.Item1;
         IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable.Item2);
-        List<object> spotUnresolvedPromises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> spotUnresolvedPromises = new List<Task<Dictionary<string, object>>>() {};
         if ((usePrivate == true))
         {
             spotUnresolvedPromises.Add(this.v3PrivateGetBrokerageProducts(paramsUsePrivate));
@@ -1754,7 +1754,7 @@ public partial class coinbase : Exchange
         //        has_promo_fee: false
         //    }
         //
-        List<object> promises = await promiseAll(spotUnresolvedPromises);
+        List<object> promises = new List<object>(await Task.WhenAll(spotUnresolvedPromises));
         List<object> unresolvedContractPromises = new List<object>() {};
         try
         {
@@ -1893,8 +1893,8 @@ public partial class coinbase : Exchange
         string? marketType = this.safeStringLower(market, "product_type");
         bool? tradingDisabled = this.safeBool(market, "trading_disabled");
         List<object> stablePairs = this.safeList(this.options, "stablePairs", new List<object>() {});
-        double? defaultTakerFee = this.safeNumber(getValue(this.fees, "trading"), "taker");
-        double? defaultMakerFee = this.safeNumber(getValue(this.fees, "trading"), "maker");
+        double? defaultTakerFee = this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker");
+        double? defaultMakerFee = this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker");
         double? takerFee = this.inArray(id, stablePairs) ? 0.00001 : this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee);
         double? makerFee = this.inArray(id, stablePairs) ? 0 : this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee);
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -3353,9 +3353,9 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         await this.loadAccounts(false, parameters);
-        for (int i = 0; i < getArrayLength(this.accounts); i++)
+        for (int i = 0; i < (this.accounts?.Count ?? 0); i++)
         {
-            IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
+            IDictionary<string, object> account = ((IDictionary<string, object>)(this.accounts != null && i < this.accounts.Count ? this.accounts[i] : null));
             if ((this.safeString(account, "code") == code))
             {
                 return this.safeString(account, "id");

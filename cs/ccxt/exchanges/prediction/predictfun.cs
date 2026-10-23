@@ -1038,7 +1038,7 @@ public partial class predictfun : PredictionExchange
         string digits = "0123456789";
         List<object> chars = this.stringToCharsArray(text);
         string stripped = "";
-        for (Int64 i = 0; isLessThan(i, (chars?.Count ?? 0)); i++)
+        for (Int64 i = 0; (i < (chars?.Count ?? 0)); i++)
         {
             string? ch = ((string)(chars != null && i < chars.Count ? chars[(int)i] : null));
             bool keep = true;
