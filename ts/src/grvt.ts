@@ -1763,7 +1763,7 @@ export default class grvt extends Exchange {
         return this.toArray (filteredResults[1]);
     }
 
-    filterTransfersByType (transfers: any, transferType: string, onlyMainAccount = true): List[] {
+    filterTransfersByType (transfers: Dict[], transferType: string, onlyMainAccount = true): List[] {
         const matchedResults: List = [];
         const nonMatchedResults: List = [];
         for (let i = 0; i < transfers.length; i++) {
