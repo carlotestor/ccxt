@@ -3849,7 +3849,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Double refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
             Long tokenRefreshInMilliseconds = this.parseToInt(((expiresIn * 1000L) * refreshRatio));
             this.token = accessToken;
-            Helpers.addElementToObject(this.options, "v2AccessToken", accessToken);
+            this.options.put("v2AccessToken", accessToken);
             this.options.put("v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
             return accessToken;
         }).thenApply(res -> (String) res);
@@ -4031,7 +4031,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             this.options.put("route", "coinbase");
         }
-        Helpers.addElementToObject(this.options, "routeBackend", deribit);
+        this.options.put("routeBackend", deribit);
         Helpers.addElementToObject(this.has, "fetchLeverage", !Boolean.TRUE.equals(deribit));
         Helpers.addElementToObject(this.has, "setLeverage", !Boolean.TRUE.equals(deribit));
         return this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("route", "defaultRoute", "callerMethodName")));

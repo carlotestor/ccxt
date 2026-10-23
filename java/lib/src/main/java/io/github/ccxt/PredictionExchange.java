@@ -861,7 +861,7 @@ public Object describe()
             String marketHandle = this.safeString2(m, "market", "symbol");
             if (!java.util.Objects.equals(marketHandle, null))
             {
-                Helpers.addElementToObject(this.markets, marketHandle, m);
+                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(marketHandle, m);
             }
         }
         this.populateOutcomes();

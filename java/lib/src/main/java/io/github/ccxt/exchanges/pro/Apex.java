@@ -137,7 +137,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 String messageHash = ("trade:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            List<Object> trades = (List<Object>) (this.watchTopics(url, messageHashes, topics, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchTopics((String) (url), messageHashes, topics, parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -295,13 +295,13 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 String messageHash = ("orderbook:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchTopics(url, messageHashes, topics, parameters)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchTopics((String) (url), messageHashes, topics, parameters)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
 
-    public CompletableFuture<Object> watchTopics(Object url, Object messageHashes, Object topics, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchTopics(String url, Object messageHashes, Object topics, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -346,7 +346,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             String timeStamp = String.valueOf(this.milliseconds());
             url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public") + "&timestamp=") + timeStamp);
-            Helpers.addElementToObject(this.options, "wsPublicUrl", url);
+            this.options.put("wsPublicUrl", url);
         }
         return url;
     }
@@ -358,7 +358,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             String timeStamp = String.valueOf(this.milliseconds());
             url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "&timestamp=") + timeStamp);
-            Helpers.addElementToObject(this.options, "wsPrivateUrl", url);
+            this.options.put("wsPrivateUrl", url);
         }
         return url;
     }
@@ -466,7 +466,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String messageHash = ("ticker:" + symbolValue);
             String topic = (("instrumentInfo" + ".H.") + this.safeString(market, "id2"));
             List<Object> topics = new ArrayList<Object>(Arrays.asList(topic));
-            return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+            return (this.watchTopics((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -502,7 +502,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 String messageHash = ("ticker:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            Object ticker = (this.watchTopics(url, messageHashes, topics, parameters)).join();
+            Object ticker = (this.watchTopics((String) (url), messageHashes, topics, parameters)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -628,7 +628,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 rawHashes.add(((("candle." + timeframeId) + ".") + symbolString));
                 messageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + unfiedTimeframe));
             }
-            var symboltimeframestoredVariable = (this.watchTopics(url, messageHashes, rawHashes, parameters)).join();
+            var symboltimeframestoredVariable = (this.watchTopics((String) (url), messageHashes, rawHashes, parameters)).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
@@ -751,8 +751,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             String url = this.getWsPrivateUrl();
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
-            List<Object> trades = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList("myTrades")), parameters)).join();
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.watchTopics((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList("myTrades")), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -799,7 +799,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String url = this.getWsPrivateUrl();
             messageHash = ("positions" + messageHash);
             Client client = this.client(url);
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             this.setPositionsCache(client, ((List<String>) (switch ((Object) (symbolsNormalized2)) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })));
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             if (java.util.Objects.equals(cache, null))
@@ -808,7 +808,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 return this.filterBySymbolsSinceLimit(snapshot, ((List<String>) (switch ((Object) (symbolsNormalized2)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), since, limit, true);
             }
             List<String> topics = new ArrayList<String>(Arrays.asList("positions"));
-            List<Object> newPositions = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchTopics((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -846,9 +846,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             String url = this.getWsPrivateUrl();
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             List<String> topics = new ArrayList<String>(Arrays.asList("orders"));
-            List<Object> orders = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchTopics((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -973,7 +973,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1073,7 +1073,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(newPositions, "positions");
     }
 
-    public CompletableFuture<Object> authenticate(Object url, Map<String, Object> parameters)
+    public CompletableFuture<Object> authenticate(String url, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

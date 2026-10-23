@@ -1848,7 +1848,7 @@ public class Grvt extends GrvtApi
             if (Boolean.TRUE.equals(useTransfersEndpoint))
             {
                 Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
-                List<Object> filteredResults = (List<Object>) this.filterTransfersByType(transfers, "deposit", true);
+                List<Object> filteredResults = this.filterTransfersByType(transfers, "deposit", true);
                 List<Object> transactions = this.getListFromObjectValues((filteredResults == null || 0 >= ((List<?>)filteredResults).size() ? null : ((List<?>)filteredResults).get(0)), "info");
                 return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
             } else
@@ -1919,7 +1919,7 @@ public class Grvt extends GrvtApi
             if (Boolean.TRUE.equals(useTransfersEndpoint))
             {
                 Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
-                List<Object> filteredResults = (List<Object>) this.filterTransfersByType(transfers, "withdrawal", true);
+                List<Object> filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
                 List<Object> transactions = this.getListFromObjectValues((filteredResults == null || 0 >= ((List<?>)filteredResults).size() ? null : ((List<?>)filteredResults).get(0)), "info");
                 return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
             } else
@@ -2191,13 +2191,13 @@ public class Grvt extends GrvtApi
             //
             List<Object> rows = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
-            List<Object> filteredResults = (List<Object>) this.filterTransfersByType(transfers, "internal", false);
+            List<Object> filteredResults = this.filterTransfersByType(transfers, "internal", false);
             return this.toArray((filteredResults == null || 1 >= ((List<?>)filteredResults).size() ? null : ((List<?>)filteredResults).get(1)));
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
 
-    public Object filterTransfersByType(Object transfers, String transferType, Boolean onlyMainAccount)
+    public List<Object> filterTransfersByType(Object transfers, String transferType, Boolean onlyMainAccount)
     {
         List<Object> matchedResults = new ArrayList<Object>(Arrays.asList());
         List<Object> nonMatchedResults = new ArrayList<Object>(Arrays.asList());
@@ -2399,7 +2399,7 @@ public class Grvt extends GrvtApi
             Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> result1 = (Map<String, Object>) this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
             String mainAccountId = this.safeString(result1, "main_account_id");
-            Helpers.addElementToObject(this.options, "userMainAccountId", mainAccountId);
+            this.options.put("userMainAccountId", mainAccountId);
             if (Boolean.TRUE.equals(accountIsUndefined))
             {
                 List<Object> subAccountIds = (List<Object>) this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
@@ -2413,7 +2413,7 @@ public class Grvt extends GrvtApi
                     throw new ArgumentsRequired(((this.id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ") + this.json(subAccountIds))) ;
                 }
                 String subAccountId = this.safeString(subAccountIds, 0);
-                Helpers.addElementToObject(this.options, "accountId", subAccountId);
+                this.options.put("accountId", subAccountId);
             }
             return true;
         }).thenApply(res -> (Boolean) res);
@@ -2720,7 +2720,7 @@ public class Grvt extends GrvtApi
         return Helpers.parseInt(x);
     }
 
-    public Object eipMessageForOrder(Map<String, Object> order, String structureType)
+    public Map<String, Object> eipMessageForOrder(Map<String, Object> order, String structureType)
     {
         Long priceMultiplier = 1000000000L;
         List<Object> orderLegs = (List<Object>) this.safeList(order, "legs", new ArrayList<Object>(Arrays.asList()));
@@ -3834,7 +3834,7 @@ public class Grvt extends GrvtApi
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public Map<String, Object> createSignedRequest(Map<String, Object> request, Object structureType, Object currencyObj, String signerAddress)
+    public Map<String, Object> createSignedRequest(Map<String, Object> request, String structureType, Object currencyObj, String signerAddress)
     {
         Map<String, Object> messageData = null;
         if (java.util.Objects.equals(structureType, "EIP712_TRANSFER_TYPE"))
@@ -3904,14 +3904,14 @@ public class Grvt extends GrvtApi
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         String privateKeyWithoutZero = (String) this.remove0xPrefix(secretOrPrivkey);
         Map<String,Object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
-        Helpers.addElementToObject(request.get("signature"), "r", this.formatSignatureRS(signature.get("r")));
-        Helpers.addElementToObject(request.get("signature"), "s", this.formatSignatureRS(signature.get("s")));
+        Helpers.addElementToObject(request.get("signature"), "r", this.formatSignatureRS((String) (signature.get("r"))));
+        Helpers.addElementToObject(request.get("signature"), "s", this.formatSignatureRS((String) (signature.get("s"))));
         Helpers.addElementToObject(request.get("signature"), "v", this.sum(27, signature.get("v")));
         Helpers.addElementToObject(request.get("signature"), "signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
         return request;
     }
 
-    public String formatSignatureRS(Object value)
+    public String formatSignatureRS(String value)
     {
         String padded = (((String)value).length() >= 64 ? ((String)value).substring(((String)value).length() - 64) : String.format("%" + (64 - ((String)value).length()) + "s", "").replace(' ', '0') + ((String)value));
         if ((padded.startsWith(((String)"0x"))))
@@ -4037,12 +4037,12 @@ public class Grvt extends GrvtApi
         if (((String)url).endsWith("auth/api_key/login") || ((String)url).endsWith("auth/wallet/login"))
         {
             String accountId = this.safeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id");
-            Helpers.addElementToObject(this.options, "AuthAccountId", accountId);
+            this.options.put("AuthAccountId", accountId);
             String cookie = this.safeString2(headers, "Set-Cookie", "set-cookie");
             if (!java.util.Objects.equals(cookie, null))
             {
                 Object cookieValue = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)cookie).split(java.util.regex.Pattern.quote(";")))), 0);
-                Helpers.addElementToObject(this.options, "AuthCookieValue", cookieValue);
+                this.options.put("AuthCookieValue", cookieValue);
             }
             if (java.util.Objects.equals(this.safeString(this.options, "AuthCookieValue"), null) || java.util.Objects.equals(this.safeString(this.options, "AuthAccountId"), null))
             {

@@ -234,7 +234,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String subMessageHash = (String) this.implodeParams(channel, new HashMap<String, Object>() {{
                 put( "marketId", market.get("id") );
             }});
-            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic((Map<String, Object>) (market), (String) (subMessageHash), topic, parameters)).join();
         });
 
     }
@@ -359,7 +359,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String subMessageHash = (String) this.implodeParams(channel, new HashMap<String, Object>() {{
                 put( "marketId", market.get("id") );
             }});
-            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic((Map<String, Object>) (market), (String) (subMessageHash), topic, parameters)).join();
         });
 
     }
@@ -628,7 +628,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 parameters.put("data_type", "incremental");
             }
-            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic((Map<String, Object>) (market), (String) (subMessageHash), topic, parameters)).join();
         });
 
     }
@@ -1068,7 +1068,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))
             {
-                List<Object> channelAndMessageHashAndParams = (List<Object>) this.getV5LinearChannelAndMessageHash("trade", market, paramsRequest);
+                List<Object> channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("trade", market, paramsRequest);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
                 messageHash = this.safeString(channelAndMessageHashAndParams, 1);
                 paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
@@ -1165,7 +1165,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         return new ArrayList<Object>(Arrays.asList(channel, messageHash));
     }
 
-    public Object getV5LinearChannelAndMessageHash(String topic, Map<String, Object> market, Map<String, Object> parameters)
+    public List<Object> getV5LinearChannelAndMessageHash(String topic, Map<String, Object> market, Map<String, Object> parameters)
     {
         Object contractCode = null;
         if (!java.util.Objects.equals(market, null))
@@ -1240,7 +1240,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))
             {
-                List<Object> channelAndMessageHashAndParams = (List<Object>) this.getV5LinearChannelAndMessageHash("orders", market, paramsRequest);
+                List<Object> channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("orders", market, paramsRequest);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
                 messageHash = this.safeString(channelAndMessageHashAndParams, 1);
                 paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
@@ -1893,7 +1893,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     v5Market = market;
                 }
-                List<Object> channelAndMessageHashAndParams = (List<Object>) this.getV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest);
+                List<Object> channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
                 paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             }
@@ -2005,7 +2005,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Map<String, Object> clientPositions = (Map<String, Object>) this.safeDict(this.positions, url, (Object) null);
         if (java.util.Objects.equals(clientPositions, null))
         {
-            Helpers.addElementToObject(this.positions, url, new HashMap<String, Object>() {{}});
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(url, new HashMap<String, Object>() {{}});
         }
         List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (this.isEmpty(rawPositions))
@@ -2035,11 +2035,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 marginMode = defaultMarginMode;
             }
-            Object cache = this.safeValue(Helpers.GetValue(this.positions, url), marginMode);
+            Object cache = this.safeValue((url == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(url)), marginMode);
             if (java.util.Objects.equals(cache, null))
             {
                 cache = new ArrayCache.ArrayCacheBySymbolBySide();
-                Helpers.addElementToObject(Helpers.GetValue(this.positions, url), marginMode, cache);
+                Helpers.addElementToObject((url == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(url)), marginMode, cache);
             }
             ((List<Object>)newPositions).add(position);
             positionsByMarginMode.put((String)marginMode, this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
@@ -3312,7 +3312,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     }
 
-    public CompletableFuture<Object> unsubscribePublic(Map<String, Object> market, Object subMessageHash, Object topic, Map<String, Object> parameters)
+    public CompletableFuture<Object> unsubscribePublic(Map<String, Object> market, String subMessageHash, String topic, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

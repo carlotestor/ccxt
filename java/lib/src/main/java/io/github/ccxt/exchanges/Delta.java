@@ -796,19 +796,19 @@ public class Delta extends DeltaApi
             Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
             if ((java.util.Objects.equals(currenciesByNumericId, null)) || Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexByStringifiedNumericId(this.currencies));
+                this.options.put("currenciesByNumericId", this.indexByStringifiedNumericId(this.currencies));
             }
             Map<String, Object> marketsByNumericId = (Map<String, Object>) this.safeDict(this.options, "marketsByNumericId", (Object) null);
             if ((java.util.Objects.equals(marketsByNumericId, null)) || Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                Helpers.addElementToObject(this.options, "marketsByNumericId", this.indexByStringifiedNumericId(this.markets));
+                this.options.put("marketsByNumericId", this.indexByStringifiedNumericId(this.markets));
             }
             return markets;
         });
 
     }
 
-    public Object indexByStringifiedNumericId(Object input)
+    public Map<String, Object> indexByStringifiedNumericId(Object input)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(input, null))
@@ -3243,7 +3243,7 @@ public class Delta extends DeltaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -3263,12 +3263,12 @@ public class Delta extends DeltaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

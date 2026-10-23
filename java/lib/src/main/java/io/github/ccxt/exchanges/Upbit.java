@@ -443,12 +443,12 @@ public class Upbit extends UpbitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            return (this.fetchCurrencyById(currency.get("id"), parameters)).join();
+            return (this.fetchCurrencyById((String) (currency.get("id")), parameters)).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
-    public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencyById(String id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1612,7 +1612,7 @@ public class Upbit extends UpbitApi
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     request.put("ord_type", "price");
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, parameters);
                     request.put("price", orderPrice);
                 } else
                 {
@@ -1633,7 +1633,7 @@ public class Upbit extends UpbitApi
                 request.put("ord_type", "best");
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOrdType);
                     request.put("price", orderPrice);
                 } else
                 {
@@ -1815,7 +1815,7 @@ public class Upbit extends UpbitApi
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     request.put("new_ord_type", "price");
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOmitted);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOmitted);
                     request.put("new_price", orderPrice);
                 } else
                 {
@@ -1836,7 +1836,7 @@ public class Upbit extends UpbitApi
                 request.put("new_ord_type", "best");
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOrdType);
                     request.put("new_price", orderPrice);
                 } else
                 {

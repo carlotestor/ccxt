@@ -2454,7 +2454,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public String networkCodeToChainId(Object networkCode, Map<String, Object> currency)
+    public String networkCodeToChainId(String networkCode, Map<String, Object> currency)
     {
         Map<String, Object> aliases = (Map<String, Object>) this.safeDict(this.options, "networkCodeAliases", new HashMap<String, Object>() {{}});
         String aliasedCode = this.safeString(aliases, networkCode, networkCode);
@@ -2900,7 +2900,7 @@ public class Blofin extends BlofinApi
                     return this.parseTransaction((Map<String, Object>) (entry), currency);
                 }
             }
-            Object reference = (((!java.util.Objects.equals(id, null)))) ? id : clientId;
+            String reference = (((!java.util.Objects.equals(id, null)))) ? id : clientId;
             throw new ExchangeError(((this.id + " fetchWithdrawal() could not find withdrawal ") + reference)) ;
         });
 

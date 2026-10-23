@@ -2308,7 +2308,7 @@ public class Coinbase extends CoinbaseApi
                 List<Object> fiatData = (List<Object>) this.safeList(fiatResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 List<Object> cryptoData = (List<Object>) this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> exchangeRates = (this.v2PublicGetExchangeRates(parameters)).join();
-                Helpers.addElementToObject(this.options, "fetchCurrencies", this.extend(options, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                this.options.put("fetchCurrencies", this.extend(options, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                     j39v2.put("currencies", this.arrayConcat(fiatData, cryptoData));
                     j39v2.put("exchangeRates", exchangeRates);
                     j39v2.put("timestamp", now);
@@ -2447,8 +2447,8 @@ public class Coinbase extends CoinbaseApi
                     }
                 }
             }
-            Helpers.addElementToObject(this.options, "networks", this.extend(networks, this.options.get("networks")));
-            Helpers.addElementToObject(this.options, "networksById", this.extend(networksById, this.options.get("networksById")));
+            this.options.put("networks", this.extend(networks, this.options.get("networks")));
+            this.options.put("networksById", this.extend(networksById, this.options.get("networksById")));
             return result;
         });
 
@@ -2629,9 +2629,9 @@ public class Coinbase extends CoinbaseApi
             String method = this.safeString(this.options, "fetchTicker", "fetchTickerV3");
             if (java.util.Objects.equals(method, "fetchTickerV3"))
             {
-                return (this.fetchTickerV3(symbol, parameters)).join();
+                return (this.fetchTickerV3((String) (symbol), parameters)).join();
             }
-            return (this.fetchTickerV2(symbol, parameters)).join();
+            return (this.fetchTickerV2((String) (symbol), parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -5506,7 +5506,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseDepositMethodIds(List<Object> ids, Map<String, Object> parameters)
+    public List<Object> parseDepositMethodIds(List<Object> ids, Map<String, Object> parameters)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)

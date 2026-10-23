@@ -2317,7 +2317,7 @@ public class Bybit extends BybitApi
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
+        this.options.put("enableDemoTrading", enable);
     }
 
     public Long nonce()
@@ -2325,7 +2325,7 @@ public class Bybit extends BybitApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object addPaginationCursorToResult(Map<String, Object> response)
+    public List<Object> addPaginationCursorToResult(Map<String, Object> response)
     {
         Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeListN(result, new ArrayList<Object>(Arrays.asList("list", "rows", "data", "dataList")), new ArrayList<Object>(Arrays.asList()));
@@ -2433,7 +2433,7 @@ public class Bybit extends BybitApi
                 Map<String, Object> accountResult = (Map<String, Object>) this.safeDict(accountInfo, "result", new HashMap<String, Object>() {{}});
                 this.options.put("enableUnifiedMargin", java.util.Objects.equals(this.safeInteger(result, "unified"), 1L));
                 this.options.put("enableUnifiedAccount", java.util.Objects.equals(this.safeInteger(result, "uta"), 1L));
-                Helpers.addElementToObject(this.options, "unifiedMarginStatus", this.safeInteger(accountResult, "unifiedMarginStatus", 6)); // default to uta 2.0 pro if not found
+                this.options.put("unifiedMarginStatus", this.safeInteger(accountResult, "unifiedMarginStatus", 6)); // default to uta 2.0 pro if not found
             }
             return new ArrayList<Object>(Arrays.asList(this.options.get("enableUnifiedMargin"), this.options.get("enableUnifiedAccount")));
         });
@@ -6220,7 +6220,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object cancelOrderRequest(Object id, String symbol, Map<String, Object> parameters)
+    public Object cancelOrderRequest(String id, String symbol, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6271,7 +6271,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> requestExtended = (Map<String, Object>) this.cancelOrderRequest(id, symbol, parameters);
+            Map<String, Object> requestExtended = (Map<String, Object>) this.cancelOrderRequest((String) (id), symbol, parameters);
             Map<String, Object> response = (this.privatePostV5OrderCancel(requestExtended)).join();
             //
             //     {
@@ -6655,7 +6655,7 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrderClassic(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrderClassic(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -6719,7 +6719,7 @@ public class Bybit extends BybitApi
             Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
             if (!Boolean.TRUE.equals(isUnifiedAccount))
             {
-                return (this.fetchOrderClassic(id, symbol, parameters)).join();
+                return (this.fetchOrderClassic((String) (id), symbol, parameters)).join();
             }
             Pair<Boolean, Map<String, Object>> acknowledgeparamsAcknowledgedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrder", "acknowledged", false);
             Boolean acknowledge = acknowledgeparamsAcknowledgedVariable.first();
@@ -6936,7 +6936,7 @@ public class Bybit extends BybitApi
             //         "time": 1672221263862
             //     }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
@@ -7166,7 +7166,7 @@ public class Bybit extends BybitApi
             //         "time": 1758187806376
             //     }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -7374,7 +7374,7 @@ public class Bybit extends BybitApi
             //         "time": 1758187806376
             //     }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -7508,7 +7508,7 @@ public class Bybit extends BybitApi
             //         "time": 1672283754510
             //     }
             //
-            Object trades = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> trades = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -7704,7 +7704,7 @@ public class Bybit extends BybitApi
             //         "time": 1672191992512
             //     }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -7799,7 +7799,7 @@ public class Bybit extends BybitApi
             //         "time": 1672194949928
             //     }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -8092,7 +8092,7 @@ public class Bybit extends BybitApi
             //         "time": 1672132481405
             //     }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -8493,11 +8493,11 @@ public class Bybit extends BybitApi
             //         "time": 1657713693182
             //     }
             //
-            Object positions = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> positions = this.addPaginationCursorToResult((Map<String, Object>) (response));
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object rawPosition = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
+                Object rawPosition = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 if (((switch ((Object)(rawPosition)) { case List<?> j39v8 -> j39v8.contains("data"); case Map<?, ?> j39v7 -> j39v7.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v6 -> j39v6.contains("is_valid"); case Map<?, ?> j39v5 -> j39v5.containsKey("is_valid"); case null, default -> false; })))
                 {
                     // futures only
@@ -9161,7 +9161,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             String id = this.safeString(result, "symbol");
             Map<String, Object> safeMarketObj = this.safeMarket(id, market, (String) null, "contract");
             return this.parseOpenInterestsHistory(data, safeMarketObj, since, limit);
@@ -9238,7 +9238,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String id = this.safeString(result, "symbol");
             Map<String, Object> safeMarketObj = this.safeMarket(id, market, (String) null, "contract");
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), safeMarketObj);
         }).thenApply(OpenInterest::new);
 
@@ -9290,7 +9290,7 @@ public class Bybit extends BybitApi
             {
                 request.put("limit", limit);
             }
-            return (this.fetchDerivativesOpenInterestHistory(symbol, java.util.Objects.requireNonNullElse(timeframe, "1h"), since, limit, parameters)).join();
+            return (this.fetchDerivativesOpenInterestHistory((String) (symbol), java.util.Objects.requireNonNullElse(timeframe, "1h"), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
     }
@@ -9696,7 +9696,7 @@ public class Bybit extends BybitApi
             //         "time": 1670988271677
             //     }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTransfers(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -9945,7 +9945,7 @@ public class Bybit extends BybitApi
                 throw new BadRequest(((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + symbol)) ;
             }
             request.put("symbol", market.get("id"));
-            return (this.fetchDerivativesMarketLeverageTiers(symbol, parameters)).join();
+            return (this.fetchDerivativesMarketLeverageTiers((String) (symbol), parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
     }
@@ -10475,7 +10475,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseVolatilityHistory(Object volatility)
+    public List<Object> parseVolatilityHistory(Object volatility)
     {
         //
         //     {
@@ -10809,7 +10809,7 @@ public class Bybit extends BybitApi
             //         "time": 1672283754510
             //     }
             //
-            Object liquidations = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> liquidations = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseLiquidations(liquidations, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
@@ -10893,7 +10893,7 @@ public class Bybit extends BybitApi
                 put( "category", subType );
             }};
             Map<String, Object> response = (this.publicGetV5MarketRiskLimit(this.extend(request, paramsSubType))).join();
-            Object result = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> result = this.addPaginationCursorToResult((Map<String, Object>) (response));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
             Integer total = ((List<?>)result).size();
             Long lastIndex = (((long) total) - 1L);
@@ -11086,7 +11086,7 @@ public class Bybit extends BybitApi
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(requestUntil, paramsUntil))).join();
-            Object fundings = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> fundings = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseIncomes(fundings, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 

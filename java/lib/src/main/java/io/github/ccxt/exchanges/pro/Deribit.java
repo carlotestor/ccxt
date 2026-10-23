@@ -1077,7 +1077,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
-    public CompletableFuture<Object> watchMultipleWrapper(Object channelName, String channelDescriptor, Object symbolsArray, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultipleWrapper(String channelName, String channelDescriptor, Object symbolsArray, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

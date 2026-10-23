@@ -1324,7 +1324,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                List<Object> orderRequestResult = (List<Object>) this.orderRequest(symbol, type, amount, (Map<String, Object>) (request), price, query);
+                List<Object> orderRequestResult = (List<Object>) this.orderRequest((String) (symbol), (String) (type), amount, (Map<String, Object>) (request), price, query);
                 response = (this.privateSpotPostV2ExOrders(this.extend((orderRequestResult == null || 0 >= ((List<?>)orderRequestResult).size() ? null : ((List<?>)orderRequestResult).get(0)), (orderRequestResult == null || 1 >= ((List<?>)orderRequestResult).size() ? null : ((List<?>)orderRequestResult).get(1))))).join();
             } else
             {
@@ -1373,7 +1373,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object orderRequest(Object symbol, Object type, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
+    public Object orderRequest(String symbol, String type, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
     {
         String upperCaseType = ((String)type).toUpperCase();
         String triggerPrice = this.safeString(parameters, "stopLossPrice");

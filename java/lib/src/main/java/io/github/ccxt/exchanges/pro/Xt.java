@@ -209,13 +209,13 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(delta, "i", "u"));
+        orderbook.put("nonce", this.safeInteger2(delta, "i", "u"));
         List<Object> obAsks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
         List<Object> obBids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
-        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
-        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         for (var i = 0; i < ((List<?>)obBids).size(); i++)
         {
             List<Object> bid = (List<Object>) this.safeList(obBids, i, (Object) null);
@@ -246,7 +246,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribe(Object name, Object access, Object methodName, Map<String, Object> market, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(String name, String access, String methodName, Map<String, Object> market, List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -288,7 +288,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 messageHash = ((messageHash + "::") + String.join(",", (List<String>)symbols));
             }
             Map<String, Object> request = this.extend(subscribe, paramsMarketType);
-            Object tail = access;
+            String tail = access;
             if (Boolean.TRUE.equals(isContract))
             {
                 tail = ((Boolean.TRUE.equals(privateAccess))) ? "user" : "market";
@@ -320,7 +320,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> unSubscribe(Object messageHash, Object name, Object access, Object methodName, Object topic, Map<String, Object> market, List<String> symbols, Map<String, Object> parameters, Object subscriptionParams)
+    public CompletableFuture<Object> unSubscribe(String messageHash, String name, String access, String methodName, String topic, Map<String, Object> market, List<String> symbols, Map<String, Object> parameters, Object subscriptionParams)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -358,7 +358,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             String subMessageHash = ((name + "::") + tradeType);
             Map<String, Object> request = this.extend(unsubscribe, paramsMarketType);
-            Object tail = access;
+            String tail = access;
             if (Boolean.TRUE.equals(isContract))
             {
                 tail = ((Boolean.TRUE.equals(privateAccess))) ? "user" : "market";
@@ -440,7 +440,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             String method = this.safeString(parameters, "method", defaultMethod);
             String name = ((method + "@") + market.get("id"));
             String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, (List<String>) null, parameters, new HashMap<String, Object>() {{}})).join();
+            return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", (String) (defaultMethod), market, (List<String>) null, parameters, new HashMap<String, Object>() {{}})).join();
         });
 
     }
@@ -473,7 +473,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
-            Object tickers = (this.subscribe(name, "public", "watchTickers", market, symbols, parameters)).join();
+            Object tickers = (this.subscribe((String) (name), "public", "watchTickers", market, symbols, parameters)).join();
             if (this.newUpdates)
             {
                 return tickers;
@@ -511,7 +511,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 throw new NotSupported((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
             }
             String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", (Map<String, Object>) null, symbols, parameters, new HashMap<String, Object>() {{}})).join();
+            return (this.unSubscribe(messageHash, (String) (name), "public", "unWatchTickers", "ticker", (Map<String, Object>) null, symbols, parameters, new HashMap<String, Object>() {{}})).join();
         });
 
     }
@@ -972,7 +972,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {

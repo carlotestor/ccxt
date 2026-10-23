@@ -1393,7 +1393,7 @@ public class Bitstamp extends BitstampApi
                 HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
                 mapLiteral1.put("response", response);
                 mapLiteral1.put("timestamp", now);
-                Helpers.addElementToObject(this.options, "fetchMarkets", this.extend(options, mapLiteral1));
+                this.options.put("fetchMarkets", this.extend(options, mapLiteral1));
             }
             Map<String, Object> cache = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
             List<Object> markets = (List<Object>) this.safeList(cache, "response", new ArrayList<Object>(Arrays.asList()));
@@ -2192,7 +2192,7 @@ public class Bitstamp extends BitstampApi
         }};
     }
 
-    public Object parseTradingFees(Object fees)
+    public Map<String, Object> parseTradingFees(Object fees)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fees );
@@ -2282,7 +2282,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object parseTransactionFees(Object response, Object codes)
+    public Map<String, Object> parseTransactionFees(Object response, Object codes)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String,Object> currencies = this.indexBy(response, "currency");
@@ -3469,7 +3469,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public String getCurrencyName(Object code)
+    public String getCurrencyName(String code)
     {
         /**
          * @ignore
@@ -3503,7 +3503,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new NotSupported((((this.id + " fiat fetchDepositAddress() for ") + code) + " is not supported!")) ;
             }
-            String name = this.getCurrencyName(code);
+            String name = this.getCurrencyName((String) (code));
             // the per-currency implicit methods (privatePostBtcAddress etc.) all route
             // through request(), called here directly to avoid dynamic dispatch
             Object response = (this.request((name + "_address/"), new ArrayList<Object>(Arrays.asList("private")), "POST", parameters, new HashMap<String, Object>() {{}})).join();
@@ -3556,7 +3556,7 @@ public class Bitstamp extends BitstampApi
             Object response = null;
             if (!this.isFiat((String) (code)))
             {
-                String name = this.getCurrencyName(code);
+                String name = this.getCurrencyName((String) (code));
                 if (java.util.Objects.equals(code, "XRP"))
                 {
                     if (!java.util.Objects.equals(tagWithdrawTag, null))

@@ -953,7 +953,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, String marketType)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String marketType)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1275,7 +1275,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public void setPositionsCache(Client client, Object type, List<String> symbols)
+    public void setPositionsCache(Client client, String type, List<String> symbols)
     {
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -1292,23 +1292,23 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
-            Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash, Object type)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, String type)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>(); j39v6.put("type", type); yield j39v6; } });
             List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
-            Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
-            Object cache = Helpers.GetValue(this.positions, type);
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
@@ -1359,9 +1359,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
         if (!((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(accountType)) != null && j39v11.contains(accountType); case Map<?, ?> j39v10 -> ((Object)(accountType)) instanceof String && j39v10.containsKey(accountType); case null, default -> false; })))
         {
-            Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
-        Object cache = Helpers.GetValue(this.positions, accountType);
+        Object cache = (accountType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(accountType));
         // handleMessage's fallback dispatches one item at a time
         Object rawPositions = message;
         if (!(message instanceof List))

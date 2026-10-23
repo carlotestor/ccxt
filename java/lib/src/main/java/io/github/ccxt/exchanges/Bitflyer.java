@@ -318,7 +318,7 @@ public class Bitflyer extends BitflyerApi
         }});
     }
 
-    public Object parseExpiryDate(Object expiry)
+    public Object parseExpiryDate(String expiry)
     {
         String day = (expiry == null ? null : ((String)expiry).substring(0, Math.min(2, ((String)expiry).length())));
         String monthName = (expiry == null ? null : ((String)expiry).substring(Math.min(2, ((String)expiry).length()), Math.min(5, ((String)expiry).length())));

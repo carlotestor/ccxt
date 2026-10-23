@@ -1636,7 +1636,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByStates(Object states, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByStates(String states, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2209,7 +2209,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public Object parseCancelOrders(Map<String, Object> orders)
+    public List<Object> parseCancelOrders(Map<String, Object> orders)
     {
         //
         //    {

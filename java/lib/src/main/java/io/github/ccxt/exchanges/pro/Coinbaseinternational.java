@@ -156,7 +156,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
             this.options.put("wsAuthRefreshAt", this.sum(this.milliseconds(), 60000));
             Object requestId = this.requestId();
-            Helpers.addElementToObject(this.options, "wsAuthRequestId", requestId);
+            this.options.put("wsAuthRequestId", requestId);
             Map<String, Object> parameters = new HashMap<String, Object>() {{
                 put( "grant_type", "client_credentials" );
                 put( "client_id", Coinbaseinternational.this.apiKey );
@@ -1751,7 +1751,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                     client.subscriptions.remove((String)((String)channel));
                 }
                 client.reject(new ExchangeError((this.id + " order book update has a nonce mismatch")), channel);
-                this.spawn(() -> { try { this.resubscribeOrderBook(channel); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.resubscribeOrderBook((String) (channel)); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 return;
             }
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
@@ -1768,7 +1768,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
     }
 
-    public CompletableFuture<Object> resubscribeOrderBook(Object channel)
+    public CompletableFuture<Object> resubscribeOrderBook(String channel)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1992,7 +1992,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 this.checkRequiredCredentials(true);
                 Object requestId = this.requestId();
-                Helpers.addElementToObject(this.options, "wsAuthRequestId", requestId);
+                this.options.put("wsAuthRequestId", requestId);
                 Map<String, Object> paramsAuth = new HashMap<String, Object>() {{
                     put( "grant_type", "client_credentials" );
                     put( "client_id", Coinbaseinternational.this.apiKey );
@@ -2030,7 +2030,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @param {boolean} [isPrivate] whether to authenticate before sending the request
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> requestWs(Object method, Map<String, Object> parameters, Object isPrivate)
+    public CompletableFuture<Object> requestWs(String method, Map<String, Object> parameters, Object isPrivate)
     {
 
         return BaseExchange.supplyAsync(() -> {

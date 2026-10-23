@@ -68,7 +68,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }});
     }
 
-    public CompletableFuture<Object> watchPublic(Object path, Object messageHash, String marketId)
+    public CompletableFuture<Object> watchPublic(String path, String messageHash, String marketId)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -501,7 +501,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
     }
 
-    public void authenticate(Object url)
+    public void authenticate(String url)
     {
         if ((!java.util.Objects.equals(this.clients, null)) && (((Map<?, ?>)this.clients).containsKey(url)))
         {

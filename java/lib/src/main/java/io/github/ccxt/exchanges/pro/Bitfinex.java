@@ -70,7 +70,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }});
     }
 
-    public CompletableFuture<Object> subscribe(Object channel, Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(String channel, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -110,7 +110,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
     }
 
-    public CompletableFuture<Object> unSubscribe(Object channel, Object topic, Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribe(String channel, String topic, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -145,7 +145,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
     }
 
-    public CompletableFuture<Object> subscribePrivate(Object messageHash)
+    public CompletableFuture<Object> subscribePrivate(String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -353,7 +353,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> trades = (List<Object>) (this.subscribe("trades", symbol, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribe("trades", (String) (symbol), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -377,7 +377,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unSubscribe("trades", "trades", symbol, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+            return (this.unSubscribe("trades", "trades", (String) (symbol), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         });
 
     }
@@ -435,7 +435,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.subscribe("ticker", symbol, parameters)).join();
+            return (this.subscribe("ticker", (String) (symbol), parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -453,7 +453,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unSubscribe("ticker", "ticker", symbol, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+            return (this.unSubscribe("ticker", "ticker", (String) (symbol), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
         });
 
     }
@@ -814,7 +814,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             {
                 request.put("len", limit); // string, number of price points, '25', '100', default = '25'
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe("book", symbol, this.deepExtend(request, parameters))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe("book", (String) (symbol), this.deepExtend(request, parameters))).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 

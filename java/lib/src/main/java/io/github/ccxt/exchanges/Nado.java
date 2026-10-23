@@ -502,7 +502,7 @@ public class Nado extends NadoApi
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = (this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+            Map<String, Object> request = (this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict(request, "place_order", new HashMap<String, Object>() {{}});
             Boolean isTriggerOrder = (placeOrder.containsKey("trigger"));
             Map<String, Object> response = null;
@@ -544,7 +544,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    public CompletableFuture<Map<String, Object>> createOrderRequest(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -704,7 +704,7 @@ public class Nado extends NadoApi
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = (this.editOrderRequest(id, symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+            Map<String, Object> request = (this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             Map<String, Object> response = (this.gatewayPrivatePostExecute(request)).join();
             //
             //     {
@@ -739,7 +739,7 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_and_place execute
      */
-    public CompletableFuture<Map<String, Object>> editOrderRequest(Object id, Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> editOrderRequest(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3494,7 +3494,7 @@ public class Nado extends NadoApi
         {
             throw new BadRequest((this.id + " createOrder() subaccount must fit in 12 bytes")) ;
         }
-        return (("0x" + address) + this.padHex(encoded, 24, false));
+        return (("0x" + address) + this.padHex((String) (encoded), 24, false));
     }
 
     public CompletableFuture<Map<String, Object>> queryContracts(Map<String, Object> parameters)
@@ -3508,7 +3508,7 @@ public class Nado extends NadoApi
                     put( "type", "contracts" );
                 }};
                 Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
-                Helpers.addElementToObject(this.options, "gatewayContracts", this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
+                this.options.put("gatewayContracts", this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
             }
             return this.safeDict(this.options, "gatewayContracts", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
@@ -3517,10 +3517,10 @@ public class Nado extends NadoApi
 
     public String orderVerifyingContract(Object productId)
     {
-        return ("0x" + this.padHex(this.intToBase16(productId), 40, true));
+        return ("0x" + this.padHex((String) (this.intToBase16(productId)), 40, true));
     }
 
-    public String padHex(Object value, Object length, Boolean left)
+    public String padHex(String value, Object length, Boolean left)
     {
         if (java.util.Objects.equals(length, null))
         {
@@ -3646,7 +3646,7 @@ public class Nado extends NadoApi
         return this.signHash(hash, (String) (this.privateKey));
     }
 
-    public String signHash(Object hash, String privateKey)
+    public String signHash(String hash, String privateKey)
     {
         if (java.util.Objects.equals(privateKey, null))
         {
@@ -3656,7 +3656,7 @@ public class Nado extends NadoApi
         Object r = signature.get("r");
         Object s = signature.get("s");
         String v = ((String)this.intToBase16(this.sum(27, signature.get("v")))).toLowerCase();
-        return ((("0x" + this.padHex(r, 64, true)) + this.padHex(s, 64, true)) + v);
+        return ((("0x" + this.padHex((String) (r), 64, true)) + this.padHex((String) (s), 64, true)) + v);
     }
 
     public Object removeMarketSuffix(String marketId)

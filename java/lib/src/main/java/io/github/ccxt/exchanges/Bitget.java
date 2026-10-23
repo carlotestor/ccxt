@@ -3628,7 +3628,7 @@ public class Bitget extends BitgetApi
      */
     public void setSandboxMode(Boolean enabled)
     {
-        Helpers.addElementToObject(this.options, "sandboxMode", enabled);
+        this.options.put("sandboxMode", enabled);
     }
 
     /**
@@ -12707,7 +12707,7 @@ public class Bitget extends BitgetApi
             {
                 throw new ArgumentsRequired((this.id + " reduceMargin() requires a holdSide parameter, either long or short")) ;
             }
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -12732,7 +12732,7 @@ public class Bitget extends BitgetApi
             {
                 throw new ArgumentsRequired((this.id + " addMargin() requires a holdSide parameter, either long or short")) ;
             }
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }

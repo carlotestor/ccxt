@@ -1033,7 +1033,7 @@ public class Cex extends CexApi
 
     }
 
-    public Object parseTradingFees(Map<String, Object> response, Boolean useKeyAsId)
+    public Map<String, Object> parseTradingFees(Map<String, Object> response, Boolean useKeyAsId)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<String> keys = new ArrayList<String>(response.keySet());
@@ -1224,7 +1224,7 @@ public class Cex extends CexApi
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1950,10 +1950,10 @@ public class Cex extends CexApi
             Object transfer = null;
             if (!java.util.Objects.equals(toAccount, "") && !java.util.Objects.equals(fromAccount, ""))
             {
-                transfer = (this.transferBetweenSubAccounts(code, amount, fromAccount, toAccount, parameters)).join();
+                transfer = (this.transferBetweenSubAccounts((String) (code), amount, (String) (fromAccount), (String) (toAccount), parameters)).join();
             } else
             {
-                transfer = (this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, parameters)).join();
+                transfer = (this.transferBetweenMainAndSubAccount((String) (code), amount, (String) (fromAccount), (String) (toAccount), parameters)).join();
             }
             Object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
             Map<String, Object> filled = new HashMap<String, Object>() {{}};
@@ -1967,7 +1967,7 @@ public class Cex extends CexApi
 
     }
 
-    public CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1978,7 +1978,7 @@ public class Cex extends CexApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Boolean fromMain = (java.util.Objects.equals(fromAccount, ""));
-            Object targetAccount = fromAccount;
+            String targetAccount = fromAccount;
             if (Boolean.TRUE.equals(fromMain))
             {
                 targetAccount = toAccount;
@@ -2016,7 +2016,7 @@ public class Cex extends CexApi
 
     }
 
-    public CompletableFuture<Object> transferBetweenSubAccounts(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferBetweenSubAccounts(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

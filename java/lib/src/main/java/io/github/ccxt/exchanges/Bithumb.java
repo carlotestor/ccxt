@@ -1898,7 +1898,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public Map<String, Object> createOrderRequest(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -2034,7 +2034,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> response = null;
             if ((generation != null && generation == 2))
             {
-                request = this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, paramsGeneration);
+                request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGeneration);
                 response = (this.privatePostV2Orders(request)).join();
             } else
             {

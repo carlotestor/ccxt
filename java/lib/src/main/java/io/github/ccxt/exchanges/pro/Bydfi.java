@@ -1136,7 +1136,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {

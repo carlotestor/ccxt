@@ -236,7 +236,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }};
     }
 
-    public Long requestId(Object url)
+    public Long requestId(String url)
     {
         Object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
@@ -261,7 +261,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Long streamLimit = this.safeInteger(streamLimits, type);
             Long streamIndex = (Long) (previousStreamIndex + 1L);
             Object normalizedIndex = (streamIndex == null || streamLimit == null ? null : ((double) streamIndex) % ((double) streamLimit));
-            Helpers.addElementToObject(this.options, "streamIndex", streamIndex);
+            this.options.put("streamIndex", streamIndex);
             stream = this.numberToString(normalizedIndex);
             if (!java.util.Objects.equals(subscriptionHash, null))
             {
@@ -284,7 +284,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return stream;
     }
 
-    public Object getWsUrl(Object type, Object category)
+    public Object getWsUrl(String type, String category)
     {
         if ((java.util.Objects.equals(type, "option")) || (java.util.Objects.equals(type, "optionMarket")) || (java.util.Objects.equals(type, "optionPrivate")))
         {
@@ -335,7 +335,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         if (java.util.Objects.equals(type, "linear"))
         {
-            return ((this.getWsUrl(type, "private") + "?listenKey=") + listenKey);
+            return ((this.getWsUrl((String) (type), "private") + "?listenKey=") + listenKey);
         }
         String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
         if (java.util.Objects.equals(wsUrl, null))
@@ -397,7 +397,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> {
 
             Object url = this.getStockWsUrl("market");
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -496,7 +496,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new NotSupported((this.id + " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")) ;
             }
             Integer numSubscriptions = ((List<?>)subscriptionHashes).size();
-            String url = ((this.getWsUrl(type, this.getFutureWsCategory("forceOrder")) + "/") + this.stream((String) (type), streamHash, ((long) numSubscriptions)));
+            String url = ((this.getWsUrl((String) (type), (String) (this.getFutureWsCategory("forceOrder"))) + "/") + this.stream((String) (type), streamHash, ((long) numSubscriptions)));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -932,7 +932,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)subParams).add(symbolHash);
             }
             Integer messageHashesLength = ((List<?>)messageHashes).size();
-            String url = ((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, ((long) messageHashesLength)));
+            String url = ((this.getWsUrl(type, (String) (this.getFutureWsCategory(name))) + "/") + this.stream(type, streamHash, ((long) messageHashesLength)));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -1012,7 +1012,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)subParams).add(symbolHash);
             }
             Integer messageHashesLength = ((List<?>)subMessageHashes).size();
-            String url = ((this.getWsUrl(type, this.getFutureWsCategory("depth")) + "/") + this.stream(type, streamHash, ((long) messageHashesLength)));
+            String url = ((this.getWsUrl(type, (String) (this.getFutureWsCategory("depth"))) + "/") + this.stream(type, streamHash, ((long) messageHashesLength)));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
@@ -1101,7 +1101,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrderBookWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -1200,7 +1200,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // every comparison against an undefined nonce is false, only pu === undefined matches
                         if ((java.util.Objects.equals(type, "linear")) && (java.util.Objects.equals(pu, null)))
                         {
-                            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), (io.github.ccxt.ws.WsOrderBook) (orderbook));
                         }
                         continue;
                     }
@@ -1214,7 +1214,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         if (((U == null || (snapshotNonce != null && U <= snapshotNonce))) && ((snapshotNonce == null || (u != null && u >= snapshotNonce))) || (java.util.Objects.equals(pu, snapshotNonce)))
                         {
-                            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), (io.github.ccxt.ws.WsOrderBook) (orderbook));
                         }
                     } else
                     {
@@ -1226,7 +1226,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                         if ((((snapshotNonce != null && ((U - 1L)) <= snapshotNonce))) && ((snapshotNonce == null || ((u - 1L)) >= snapshotNonce)))
                         {
-                            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), (io.github.ccxt.ws.WsOrderBook) (orderbook));
                         }
                     }
                 }
@@ -1260,15 +1260,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         Long u = this.safeInteger(message, "u");
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(message, "a", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(message, "b", new ArrayList<Object>(Arrays.asList())));
-        Helpers.addElementToObject(orderbook, "nonce", u);
+        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(message, "a", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(message, "b", new ArrayList<Object>(Arrays.asList())));
+        orderbook.put("nonce", u);
         Long timestamp = this.safeInteger(message, "E");
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         return orderbook;
     }
 
@@ -1359,7 +1359,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         }
                         if (Boolean.TRUE.equals(conditional))
                         {
-                            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (message), (io.github.ccxt.ws.WsOrderBook) (orderbook));
                             Long newNonce = this.safeInteger(orderbook, "nonce", 0);
                             if ((newNonce != null && (nonce == null || nonce < newNonce)))
                             {
@@ -1384,7 +1384,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if (((U == null || (nonce != null && U <= nonce))) || (java.util.Objects.equals(pu, nonce)))
                         {
-                            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (message), (io.github.ccxt.ws.WsOrderBook) (orderbook));
                             Long newNonce = this.safeInteger(orderbook, "nonce", 0);
                             if ((nonce == null || (newNonce != null && nonce <= newNonce)))
                             {
@@ -1563,7 +1563,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> query = this.omit(paramsOmitted, "type");
             Integer subParamsLength = ((List<?>)subParams).size();
-            String url = ((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, ((long) subParamsLength)));
+            String url = ((this.getWsUrl(type, (String) (this.getFutureWsCategory(name))) + "/") + this.stream(type, streamHash, ((long) subParamsLength)));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -1672,7 +1672,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> query = this.omit(paramsOmitted, "type");
             Integer subParamsLength = ((List<?>)subParams).size();
-            String url = ((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, ((long) subParamsLength)));
+            String url = ((this.getWsUrl(type, (String) (this.getFutureWsCategory(name))) + "/") + this.stream(type, streamHash, ((long) subParamsLength)));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
@@ -2120,7 +2120,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)rawHashes).add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
                 messageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + timeframeString));
             }
-            String url = ((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV", 1L));
+            String url = ((this.getWsUrl(wsUrlType, (String) (this.getFutureWsCategory(klineType))) + "/") + this.stream(wsUrlType, "multipleOHLCV", 1L));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -2223,7 +2223,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 subMessageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + timeframeString));
                 messageHashes.add(((("unsubscribe::ohlcv::" + market.get("symbol")) + "::") + timeframeString));
             }
-            String url = ((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV", 1L));
+            String url = ((this.getWsUrl(wsUrlType, (String) (this.getFutureWsCategory(klineType))) + "/") + this.stream(wsUrlType, "multipleOHLCV", 1L));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
@@ -2381,7 +2381,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleTickerWs");
@@ -2441,7 +2441,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCVWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -3041,7 +3041,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 streamHash = ((channelName + "::") + String.join(",", (List<String>)symbolsNormalized));
             }
-            String url = ((this.getWsUrl(rawMarketType, this.getFutureWsCategory((String) (channelName))) + "/") + this.stream(rawMarketType, streamHash, 1L));
+            String url = ((this.getWsUrl(rawMarketType, (String) (this.getFutureWsCategory((String) (channelName)))) + "/") + this.stream(rawMarketType, streamHash, 1L));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", ((java.util.Objects.requireNonNullElse(isUnsubscribe, false))) ? "UNSUBSCRIBE" : "SUBSCRIBE" );
@@ -3489,7 +3489,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 client.future(messageHash).getFuture().join();
                 return null;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String requestHash = String.valueOf(requestId);
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", requestHash );
@@ -3618,7 +3618,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     }
                     Long expirationTime = this.safeInteger(response, "expirationTime");
                     // Step 2: Subscribe to user data stream via WebSocket API
-                    Long requestId = this.requestId(url);
+                    Long requestId = this.requestId((String) (url));
                     String requestHash = String.valueOf(requestId);
                     Map<String, Object> message = new HashMap<String, Object>();
                     message.put("id", requestHash);
@@ -3853,10 +3853,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // subType alone and would flip 'stock' to 'linear' - the stock branch
                 // below would never run, and the bucket lookup would renew the
                 // FUTURES listen key while the stock key silently expires
-                if (this.isLinear(type, subType))
+                if (this.isLinear((String) (type), subType))
                 {
                     type = "linear";
-                } else if (this.isInverse(type, subType))
+                } else if (this.isInverse((String) (type), subType))
                 {
                     type = "inverse";
                 }
@@ -3985,7 +3985,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void setBalanceCache(Client client, Object type, Object isPortfolioMargin)
+    public void setBalanceCache(Client client, String type, Object isPortfolioMargin)
     {
         if ((client.subscriptions.containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
         {
@@ -3999,15 +3999,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type), java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
-            Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
+            this.balance.put(type, new HashMap<String, Object>() {{}});
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type, Object isPortfolioMargin)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type, Object isPortfolioMargin)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4064,7 +4064,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchBalanceWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -4228,7 +4228,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositionsWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -4601,7 +4601,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, "sor", "SOR");
@@ -4787,13 +4787,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Boolean isSwap = (java.util.Objects.equals(marketType, "linear") || java.util.Objects.equals(marketType, "inverse"));
             Map<String, Object> payload = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                payload = (Map<String, Object>) this.editSpotOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                payload = (Map<String, Object>) this.editSpotOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             } else
             {
                 payload = (Map<String, Object>) this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
@@ -4963,7 +4963,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelOrderWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -5044,7 +5044,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelAllOrdersWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -5101,7 +5101,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrderWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -5169,7 +5169,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrdersWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -5253,7 +5253,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrdersWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -5326,7 +5326,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 Object stockUrl = this.getStockWsUrl("user");
                 String stockStreamName = (stockListenKey + "@orderReport");
-                Long stockRequestId = this.requestId(stockUrl);
+                Long stockRequestId = this.requestId((String) (stockUrl));
                 String stockMessageHash = "orders";
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -6100,7 +6100,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void setPositionsCache(Client client, Object type, List<String> symbols, Object isPortfolioMargin)
+    public void setPositionsCache(Client client, String type, List<String> symbols, Object isPortfolioMargin)
     {
         if (java.util.Objects.equals(type, "spot"))
         {
@@ -6121,15 +6121,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type, java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (String) (type), java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
-            Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash, Object type, Object isPortfolioMargin)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, String type, Object isPortfolioMargin)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -6140,8 +6140,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((Map<String, Object>)parameters).put("portfolioMargin", true);
             }
             List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
-            Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
-            Object cache = Helpers.GetValue(this.positions, type);
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
@@ -6203,9 +6203,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         if (!((switch ((Object)(this.positions)) { case List<?> j39v9 -> ((Object)(accountType)) != null && j39v9.contains(accountType); case Map<?, ?> j39v8 -> ((Object)(accountType)) instanceof String && j39v8.containsKey(accountType); case null, default -> false; })))
         {
-            Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
-        Object cache = Helpers.GetValue(this.positions, accountType);
+        Object cache = (accountType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(accountType));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
         List<Object> rawPositions = (List<Object>) this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
@@ -6384,7 +6384,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTradesWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -6453,7 +6453,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Long requestId = this.requestId(url);
+            Long requestId = this.requestId((String) (url));
             String messageHash = String.valueOf(requestId);
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTradesWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
@@ -6821,9 +6821,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         if (!((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(accountType)) != null && j39v11.contains(accountType); case Map<?, ?> j39v10 -> ((Object)(accountType)) instanceof String && j39v10.containsKey(accountType); case null, default -> false; })))
         {
-            Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
-        Object cache = Helpers.GetValue(this.positions, accountType);
+        Object cache = (accountType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(accountType));
         List<Object> P = (List<Object>) this.safeList(message, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)P).size(); i++)

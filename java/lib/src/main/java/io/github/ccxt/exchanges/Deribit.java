@@ -3608,7 +3608,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object parseVolatilityHistory(Map<String, Object> volatility)
+    public List<Object> parseVolatilityHistory(Map<String, Object> volatility)
     {
         //
         //     {

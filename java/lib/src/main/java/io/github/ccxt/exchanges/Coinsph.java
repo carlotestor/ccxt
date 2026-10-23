@@ -2709,7 +2709,7 @@ public class Coinsph extends CoinsphApi
         }
     }
 
-    public String parseArrayParam(Object array, Object key)
+    public String parseArrayParam(Object array, String key)
     {
         String stringifiedArray = this.json(array);
         stringifiedArray = (stringifiedArray == null ? null : ((String)stringifiedArray).replaceFirst(java.util.regex.Pattern.quote("["), "%5B"));

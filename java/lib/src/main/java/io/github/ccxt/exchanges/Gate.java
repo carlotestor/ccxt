@@ -1981,7 +1981,7 @@ public class Gate extends GateApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
     /**
@@ -3513,7 +3513,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseTradingFees(Map<String, Object> response)
+    public Map<String, Object> parseTradingFees(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<String> symbols = this.symbols;
@@ -4264,7 +4264,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseBalanceHelper(Map<String, Object> entry)
+    public Map<String, Object> parseBalanceHelper(Map<String, Object> entry)
     {
         Map<String, Object> account = this.account();
         account.put("used", this.safeString2(entry, "freeze", "locked"));
@@ -4634,7 +4634,7 @@ public class Gate extends GateApi
             }
             if (java.util.Objects.equals(market.get("option"), true))
             {
-                return (this.fetchOptionOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, paramsPaginate)).join();
+                return (this.fetchOptionOHLCV((String) (symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, paramsPaginate)).join();
             }
             String price = this.safeString(paramsPaginate, "price");
             var requestparamsRequestVariable = this.prepareRequest(market, (String) null, paramsPaginate);
@@ -5850,7 +5850,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object createOrdersRequest(Object orders, Map<String, Object> parameters)
+    public List<Object> createOrdersRequest(Object orders, Map<String, Object> parameters)
     {
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
@@ -5912,7 +5912,7 @@ public class Gate extends GateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
-            List<Object> ordersRequests = (List<Object>) this.createOrdersRequest(orders, parameters);
+            List<Object> ordersRequests = this.createOrdersRequest(orders, parameters);
             Object firstOrder = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
             Map<String, Object> market = this.market(((Map<String, Object>)firstOrder).get("symbol"));
             List<Object> response = null;
@@ -6304,7 +6304,7 @@ public class Gate extends GateApi
 
     }
 
-    public Map<String, Object> editOrderRequest(Object id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> editOrderRequest(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("editOrder", market, parameters, (String) null);
@@ -6385,7 +6385,7 @@ public class Gate extends GateApi
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> extendedRequest = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> extendedRequest = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
@@ -6828,13 +6828,13 @@ public class Gate extends GateApi
         return this.safeOrder(mapLiteral18, market);
     }
 
-    public Object fetchOrderRequest(Object id, String symbol, Map<String, Object> parameters)
+    public Object fetchOrderRequest(String id, String symbol, Map<String, Object> parameters)
     {
         Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
         Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
         String clientOrderId = this.safeString2(paramsOmitted, "text", "clientOrderId");
-        Object orderId = id;
+        String orderId = id;
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             if (!java.util.Objects.equals((clientOrderId == null || 0 >= clientOrderId.length() ? null : String.valueOf(clientOrderId.charAt(0))), "t"))
@@ -6889,7 +6889,7 @@ public class Gate extends GateApi
             Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
             String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrder", market, parameters, (String) null)).get(0);
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
-            var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
+            var requestrequestParamsVariable = this.fetchOrderRequest((String) (id), symbol, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Map<String, Object> response = null;
@@ -8440,7 +8440,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseEmulatedLeverageTiers(Map<String, Object> info, Map<String, Object> market)
+    public List<Object> parseEmulatedLeverageTiers(Map<String, Object> info, Map<String, Object> market)
     {
         String marketId = this.safeString(info, "name");
         String maintenanceMarginUnit = this.safeString(info, "maintenance_rate"); // '0.005',
@@ -9097,7 +9097,7 @@ public class Gate extends GateApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, ((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(amount), parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), ((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(amount), parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -9118,7 +9118,7 @@ public class Gate extends GateApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }

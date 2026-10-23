@@ -966,7 +966,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByState(Object state, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByState(String state, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

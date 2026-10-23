@@ -4320,12 +4320,12 @@ public class Binance extends BinanceApi
         }});
     }
 
-    public Boolean isInverse(Object type, String subType)
+    public Boolean isInverse(String type, String subType)
     {
         return java.util.Objects.equals(subType, "inverse");
     }
 
-    public Boolean isLinear(Object type, String subType)
+    public Boolean isLinear(String type, String subType)
     {
         if (java.util.Objects.equals(subType, null))
         {
@@ -4339,7 +4339,7 @@ public class Binance extends BinanceApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
     public MarketInterface createExpiredOptionMarket(Object symbol)
@@ -4685,7 +4685,7 @@ public class Binance extends BinanceApi
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
+        this.options.put("enableDemoTrading", enable);
     }
 
     /**
@@ -4781,7 +4781,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseCurrenciesCustom(Object responseCurrencies, Object marginablesById)
+    public Map<String, Object> parseCurrenciesCustom(Object responseCurrencies, Object marginablesById)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)responseCurrencies).size(); i++)
@@ -5620,7 +5620,7 @@ public class Binance extends BinanceApi
         return this.safeMarketStructure(entry);
     }
 
-    public Object parseBalanceHelper(Map<String, Object> entry)
+    public Map<String, Object> parseBalanceHelper(Map<String, Object> entry)
     {
         Map<String, Object> account = this.account();
         account.put("used", this.safeString(entry, "locked"));
@@ -7850,7 +7850,7 @@ public class Binance extends BinanceApi
         return this.extend(request, paramsOmitted);
     }
 
-    public Object editContractOrderRequest(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> editContractOrderRequest(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -7921,7 +7921,7 @@ public class Binance extends BinanceApi
             Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "editContractOrder", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
-            Map<String, Object> request = (Map<String, Object>) this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsPapi);
+            Map<String, Object> request = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsPapi);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("linear"), true))
             {
@@ -8010,10 +8010,10 @@ public class Binance extends BinanceApi
             }
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return (this.editSpotOrder(id, symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.editSpotOrder((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             } else
             {
-                return (this.editContractOrder(id, symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.editContractOrder((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             }
         }).thenApply(Order::new);
 
@@ -8059,7 +8059,7 @@ public class Binance extends BinanceApi
                 {
                     throw new NotSupported((this.id + " editOrders() does not support portfolio margin orders")) ;
                 }
-                Map<String, Object> orderRequest = (Map<String, Object>) this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             List<String> symbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
@@ -13884,7 +13884,7 @@ public class Binance extends BinanceApi
         }
     }
 
-    public Object parseAccountPositions(Map<String, Object> account, Object filterClosed)
+    public List<Object> parseAccountPositions(Map<String, Object> account, Object filterClosed)
     {
         List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
@@ -15011,7 +15011,7 @@ public class Binance extends BinanceApi
                 throw new NotSupported((this.id + " fetchPositions() supports linear and inverse contracts only")) ;
             }
             Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (paramsPapi), "fetchAccountPositions", "filterClosed", false)).get(0);
-            List<Object> result = (List<Object>) this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
+            List<Object> result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         });
@@ -16638,7 +16638,7 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 2, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -16659,7 +16659,7 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }

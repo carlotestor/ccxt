@@ -698,7 +698,7 @@ public class Ndax extends NdaxApi
             String sessionToken = this.safeString(response, "SessionToken");
             if (!java.util.Objects.equals(sessionToken, null))
             {
-                Helpers.addElementToObject(this.options, "sessionToken", sessionToken);
+                this.options.put("sessionToken", sessionToken);
                 return response;
             }
             String pending2faToken = this.safeString(response, "Pending2FaToken");
@@ -708,7 +708,7 @@ public class Ndax extends NdaxApi
                 {
                     throw new AuthenticationError((this.id + " signIn() requires exchange.twofa credentials")) ;
                 }
-                Helpers.addElementToObject(this.options, "pending2faToken", pending2faToken);
+                this.options.put("pending2faToken", pending2faToken);
                 request = new HashMap<String, Object>() {{
                     put( "Code", totp(Ndax.this.twofa) );
                 }};
@@ -721,7 +721,7 @@ public class Ndax extends NdaxApi
                 //     }
                 //
                 sessionToken = this.safeString(responseInner, "SessionToken");
-                Helpers.addElementToObject(this.options, "sessionToken", sessionToken);
+                this.options.put("sessionToken", sessionToken);
                 return responseInner;
             }
             return response;

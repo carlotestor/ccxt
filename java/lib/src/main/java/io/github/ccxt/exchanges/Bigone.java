@@ -1202,7 +1202,7 @@ public class Bigone extends BigoneApi
                 //        from: '0'
                 //    }
                 //
-                return this.parseContractOrderBook((Map<String, Object>) (response), market.get("symbol"), limit);
+                return this.parseContractOrderBook((Map<String, Object>) (response), (String) (market.get("symbol")), limit);
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1247,7 +1247,7 @@ public class Bigone extends BigoneApi
         return result;
     }
 
-    public Map<String, Object> parseContractOrderBook(Map<String, Object> orderbook, Object symbol, Long limit)
+    public Map<String, Object> parseContractOrderBook(Map<String, Object> orderbook, String symbol, Long limit)
     {
         Map<String, Object> responseBids = (Map<String, Object>) this.safeDict(orderbook, "bids", (Object) null);
         Map<String, Object> responseAsks = (Map<String, Object>) this.safeDict(orderbook, "asks", (Object) null);

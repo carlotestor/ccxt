@@ -726,7 +726,7 @@ public class Gemini extends GeminiApi
             //        ]
             //    }
             //
-            Helpers.addElementToObject(this.options, "tradingPairs", this.safeList(data, "tradingPairs", (Object) null));
+            this.options.put("tradingPairs", this.safeList(data, "tradingPairs", (Object) null));
             List<Object> currenciesArray = (List<Object>) this.safeList(data, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currenciesArray);
         });
@@ -1361,8 +1361,8 @@ public class Gemini extends GeminiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tickerPromiseA = this.fetchTickerV1(symbol, parameters);
-            Object tickerPromiseB = this.fetchTickerV2(symbol, parameters);
+            Object tickerPromiseA = this.fetchTickerV1((String) (symbol), parameters);
+            Object tickerPromiseB = this.fetchTickerV2((String) (symbol), parameters);
             var tickerAtickerBVariable = (CompletableFuture.allOf(((CompletableFuture<?>) tickerPromiseA), ((CompletableFuture<?>) tickerPromiseB)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) tickerPromiseA).join(), ((CompletableFuture<?>) tickerPromiseB).join())))).join();
             var tickerA = ((List<Object>) tickerAtickerBVariable).get(0);
             var tickerB = ((List<Object>) tickerAtickerBVariable).get(1);
@@ -1398,13 +1398,13 @@ public class Gemini extends GeminiApi
             String method = this.safeString(this.options, "fetchTickerMethod", "fetchTickerV1");
             if (java.util.Objects.equals(method, "fetchTickerV1"))
             {
-                return (this.fetchTickerV1(symbol, parameters)).join();
+                return (this.fetchTickerV1((String) (symbol), parameters)).join();
             }
             if (java.util.Objects.equals(method, "fetchTickerV2"))
             {
-                return (this.fetchTickerV2(symbol, parameters)).join();
+                return (this.fetchTickerV2((String) (symbol), parameters)).join();
             }
-            return (this.fetchTickerV1AndV2(symbol, parameters)).join();
+            return (this.fetchTickerV1AndV2((String) (symbol), parameters)).join();
         }).thenApply(Ticker::new);
 
     }

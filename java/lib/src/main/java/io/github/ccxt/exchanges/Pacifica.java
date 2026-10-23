@@ -1258,14 +1258,14 @@ public class Pacifica extends PacificaApi
             {
                 this.options.put("settings", this.createSafeDictionary());
                 settings = (this.fetchAccountSettings(parameters)).join();
-                Helpers.addElementToObject(this.options, "settings", settings);
+                this.options.put("settings", settings);
             }
             return null;
         });
 
     }
 
-    public Object parseAccountSettings(List<Object> settings)
+    public Map<String, Object> parseAccountSettings(List<Object> settings)
     {
         Integer settingsLen = ((List<?>)settings).size();
         if (java.util.Objects.equals(settingsLen, 0))
@@ -2493,7 +2493,7 @@ public class Pacifica extends PacificaApi
             }
             (this.initializeClient()).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, (Map<String, Object>) (market), parameters);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderId")));
             Map<String, Object> response = (this.privatePostOrdersEdit(this.extend(request, paramsOmitted))).join();
             //
@@ -2514,7 +2514,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Map<String, Object> editOrderRequest(Object id, String symbol, Object type, String side, Object amount, Object price, Map<String, Object> market, Map<String, Object> parameters)
+    public Map<String, Object> editOrderRequest(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> market, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(side, null))
         {
@@ -4216,7 +4216,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> mainSigPayload = new HashMap<String, Object>() {{
                 put( "signature", subaccountSignature );
             }};
-            Object main_signature = this.signMessage((Map<String, Object>) (mainSignatureHeader), (Map<String, Object>) (mainSigPayload), this.privateKey);
+            Object main_signature = this.signMessage((Map<String, Object>) (mainSignatureHeader), (Map<String, Object>) (mainSigPayload), (String) (this.privateKey));
             finalHeaders.put("main_account", originAddress);
             finalHeaders.put("subaccount", subAccountAddress);
             finalHeaders.put("sub_signature", subaccountSignature);
@@ -4558,7 +4558,7 @@ public class Pacifica extends PacificaApi
         return this.json(sorted);
     }
 
-    public Object signMessage(Map<String, Object> header, Map<String, Object> payload, Object privateKey)
+    public Object signMessage(Map<String, Object> header, Map<String, Object> payload, String privateKey)
     {
         String message = this.prepareMessage((Map<String, Object>) (header), (Map<String, Object>) (payload));
         Object messageBytes = this.encode(message);
@@ -4602,7 +4602,7 @@ public class Pacifica extends PacificaApi
         signatureHeader.put("timestamp", timestamp);
         signatureHeader.put("expiry_window", expiryWindow);
         signatureHeader.put("type", operationType);
-        Object signature = this.signMessage((Map<String, Object>) (signatureHeader), (Map<String, Object>) (sigPayload), this.privateKey);
+        Object signature = this.signMessage((Map<String, Object>) (signatureHeader), (Map<String, Object>) (sigPayload), (String) (this.privateKey));
         Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
         Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsExpiryWindow), "postActionRequest", "agentAddress", (String) null);
         String agentAddress = agentAddressparamsAgentAddressVariable.first();

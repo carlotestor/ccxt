@@ -86,7 +86,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         headers.put("Partner-Id", brokerId);
         innerOptions.put("headers", headers);
         wsOptions.put("options", innerOptions);
-        Helpers.addElementToObject(this.options, "ws", wsOptions);
+        this.options.put("ws", wsOptions);
     }
 
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)

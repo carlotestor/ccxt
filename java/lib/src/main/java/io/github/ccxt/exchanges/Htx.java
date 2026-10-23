@@ -2897,7 +2897,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object tryGetSymbolFromFutureMarkets(Object symbolOrMarketId)
+    public Object tryGetSymbolFromFutureMarkets(String symbolOrMarketId)
     {
         if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbolOrMarketId)))
         {
@@ -3003,7 +3003,7 @@ public class Htx extends HtxApi
         //
         String marketId = this.safeString2(ticker, "symbol", "contract_code");
         Object symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        symbol = this.tryGetSymbolFromFutureMarkets(symbol);
+        symbol = this.tryGetSymbolFromFutureMarkets((String) (symbol));
         Long timestamp = (Long) this.safeInteger2(ticker, "ts", "quoteTime");
         String bid = null;
         String bidVolume = null;
@@ -3694,7 +3694,7 @@ public class Htx extends HtxApi
             {
                 throw new NotSupported((this.id + " fetchOrderTrades() is only supported for spot markets")) ;
             }
-            return (this.fetchSpotOrderTrades(id, symbol, since, limit, paramsMarketType)).join();
+            return (this.fetchSpotOrderTrades((String) (id), symbol, since, limit, paramsMarketType)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -4319,7 +4319,7 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public CompletableFuture<String> fetchAccountIdByType(Object type, String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<String> fetchAccountIdByType(String type, String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4330,7 +4330,7 @@ public class Htx extends HtxApi
             {
                 return accountId;
             }
-            Object accountType = type;
+            String accountType = type;
             if (java.util.Objects.equals(type, "spot"))
             {
                 if (java.util.Objects.equals(marginMode, "cross"))
@@ -5112,7 +5112,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseMarginBalanceHelper(Map<String, Object> balance, Object code, Map<String, Object> result)
+    public Map<String, Object> parseMarginBalanceHelper(Map<String, Object> balance, String code, Map<String, Object> result)
     {
         Map<String, Object> account = null;
         if (result.containsKey(code))
@@ -6443,7 +6443,7 @@ public class Htx extends HtxApi
             Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            String accountId = (this.fetchAccountIdByType(market.get("type"), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
+            String accountId = (this.fetchAccountIdByType((String) (market.get("type")), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account-id", accountId );
                 put( "symbol", market.get("id") );

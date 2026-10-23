@@ -835,7 +835,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
-            Helpers.addElementToObject(this.options, "exchangeInfo", response); // we store it in options for later use in fetchMarkets
+            this.options.put("exchangeInfo", response); // we store it in options for later use in fetchMarkets
             //
             //    {
             //        "timezone": "UTC",
@@ -3177,7 +3177,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Object parseTransactionWithType(Map<String, Object> transaction, Map<String, Object> currency, String transactType)
+    public Map<String, Object> parseTransactionWithType(Map<String, Object> transaction, Map<String, Object> currency, String transactType)
     {
         Map<String, Object> result = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (transaction), currency);
         if (!java.util.Objects.equals(transactType, null))

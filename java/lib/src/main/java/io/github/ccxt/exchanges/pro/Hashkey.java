@@ -76,7 +76,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }});
     }
 
-    public CompletableFuture<Object> wathPublic(Map<String, Object> market, Object topic, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> wathPublic(Map<String, Object> market, String topic, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -92,7 +92,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash)
+    public CompletableFuture<Object> watchPrivate(String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -875,7 +875,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String messageHash = ("balance:" + typeMarketType);
             String url = this.getPrivateUrl((String) (listenKey));
             Client client = this.client(url);
-            this.setBalanceCache(client, typeMarketType, messageHash);
+            this.setBalanceCache(client, (String) (typeMarketType), messageHash);
             Boolean fetchBalanceSnapshot = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (this.options), "watchBalance", "fetchBalanceSnapshot", true)).get(0);
             Boolean awaitBalanceSnapshot = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (this.options), "watchBalance", "awaitBalanceSnapshot", false)).get(0);
             if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
@@ -887,7 +887,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void setBalanceCache(Client client, Object type, Object subscribeHash)
+    public void setBalanceCache(Client client, String type, String subscribeHash)
     {
         if (client.subscriptions.containsKey(subscribeHash))
         {
@@ -901,13 +901,13 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }
-        Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
+        this.balance.put(type, new HashMap<String, Object>() {{}});
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1020,7 +1020,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 {
                     throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                 }
-                Helpers.addElementToObject(this.options, "listenKey", listenKey);
+                this.options.put("listenKey", listenKey);
                 Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
                 // settle the flight: client.resolve () wakes every waiter and

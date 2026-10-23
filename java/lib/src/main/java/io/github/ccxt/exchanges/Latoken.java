@@ -560,7 +560,7 @@ public class Latoken extends LatokenApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", new HashMap<String, Object>() {{}});
+            Map<String, Object> currencies = (Map<String, Object>) this.cachedCurrenciesForLoadOrEmpty();
             Map<String,Object> currenciesById = this.indexBy(currencies, "id");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> rawMarkets = this.toArray(response);
@@ -1213,10 +1213,10 @@ public class Latoken extends LatokenApi
             Map<String, Object> paramsOmitted = this.omit(parameters, "method");
             if (java.util.Objects.equals(method, "fetchPrivateTradingFee"))
             {
-                return (this.fetchPrivateTradingFee(symbol, paramsOmitted)).join();
+                return (this.fetchPrivateTradingFee((String) (symbol), paramsOmitted)).join();
             } else if (java.util.Objects.equals(method, "fetchPublicTradingFee"))
             {
-                return (this.fetchPublicTradingFee(symbol, paramsOmitted)).join();
+                return (this.fetchPublicTradingFee((String) (symbol), paramsOmitted)).join();
             } else
             {
                 throw new NotSupported((this.id + " not support this method")) ;

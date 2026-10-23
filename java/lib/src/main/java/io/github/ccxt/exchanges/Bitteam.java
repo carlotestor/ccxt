@@ -739,7 +739,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
-            Helpers.addElementToObject(this.options, "_temp_currencies_statuses", statusesResponse);
+            this.options.put("_temp_currencies_statuses", statusesResponse);
             Object result = this.parseCurrencies(currencies);
             ((Map<String,Object>)this.options).remove("_temp_currencies_statuses");
             return result;

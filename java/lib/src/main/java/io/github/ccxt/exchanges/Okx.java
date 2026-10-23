@@ -2748,7 +2748,7 @@ public class Okx extends OkxApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                ((List<Object>)promises).add(this.fetchMarketsByType((types == null || i < 0 || i >= types.size() ? null : types.get(i)), parameters));
+                ((List<Object>)promises).add(this.fetchMarketsByType((String) ((types == null || i < 0 || i >= types.size() ? null : types.get(i))), parameters));
             }
             Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             for (var i = 0; i < ((List<?>)responses).size(); i++)
@@ -2951,7 +2951,7 @@ public class Okx extends OkxApi
             yield j39v3; } })));
     }
 
-    public CompletableFuture<Object> fetchMarketsByType(Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchMarketsByType(String type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -9213,7 +9213,7 @@ public class Okx extends OkxApi
         }};
     }
 
-    public Object parseBorrowRateHistories(Object response, Object codes, Long since, Long limit)
+    public Map<String, Object> parseBorrowRateHistories(Object response, Object codes, Long since, Long limit)
     {
         //
         //    [
@@ -9493,7 +9493,7 @@ public class Okx extends OkxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -9513,7 +9513,7 @@ public class Okx extends OkxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -10113,7 +10113,7 @@ public class Okx extends OkxApi
      * @param {int} [params.until] the latest time in ms of the entries to fetch
      * @returns {object[]} the request and the remaining params
      */
-    public Object handleTradingStatisticsWindow(Map<String, Object> request, Object period, Long since, Long limit, Map<String, Object> parameters)
+    public List<Object> handleTradingStatisticsWindow(Map<String, Object> request, String period, Long since, Long limit, Map<String, Object> parameters)
     {
         Integer maxLimit = 100;
         Long effectiveLimit = ((((java.util.Objects.equals(limit, null)) || ((limit > 100))))) ? 100L : limit;
@@ -10239,7 +10239,7 @@ public class Okx extends OkxApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
         if (Boolean.TRUE.equals(enable))
         {
             Helpers.addElementToObject(this.headers, "x-simulated-trading", "1");

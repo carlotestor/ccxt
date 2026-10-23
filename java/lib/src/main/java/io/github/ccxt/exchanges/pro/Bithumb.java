@@ -554,7 +554,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 this.orderbooks.put(legacySymbol, ob);
             }
             io.github.ccxt.ws.WsOrderBook legacyOrderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(legacySymbol);
-            this.handleBookDeltas(legacyOrderbook, list);
+            this.handleBookDeltas((io.github.ccxt.ws.WsOrderBook) (legacyOrderbook), list);
             legacyOrderbook.put("timestamp", legacyTimestamp);
             legacyOrderbook.put("datetime", this.iso8601(legacyTimestamp));
             String legacyMessageHash = (("orderbook" + ":") + legacySymbol);
@@ -612,7 +612,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         //
         //    {
@@ -630,11 +630,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             side = "bids";
         }
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "quantity", 2);
-        io.github.ccxt.ws.OrderBookSide orderbookSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
+        io.github.ccxt.ws.OrderBookSide orderbookSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null || side == null || !orderbook.containsKey(side) ? null : orderbook.get(side));
         orderbookSide.storeArray(bidAsk);
     }
 
-    public void handleBookDeltas(Object orderbook, Object deltas)
+    public void handleBookDeltas(io.github.ccxt.ws.WsOrderBook orderbook, Object deltas)
     {
         for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
@@ -990,13 +990,13 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {object} subscription the subscription entry for that type
      * @returns {object[]} the SUBSCRIBE frame to send
      */
-    public Object buildGen2SubscriptionRequest(Object subscriptionType, Map<String, Object> subscription)
+    public Object buildGen2SubscriptionRequest(String subscriptionType, Map<String, Object> subscription)
     {
         Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(wsOptions, "gen2Subscriptions", new HashMap<String, Object>() {{}});
-        subscriptions.put((String)subscriptionType, subscription);
+        subscriptions.put(subscriptionType, subscription);
         wsOptions.put("gen2Subscriptions", subscriptions);
-        Helpers.addElementToObject(this.options, "ws", wsOptions);
+        this.options.put("ws", wsOptions);
         List<Object> request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "ticket", "ccxt" );
 }}));
@@ -1030,7 +1030,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             put( "authorization", ("Bearer " + jwtToken) );
         }} );
     }});
-                Helpers.addElementToObject(this.options, "ws", wsOptions);
+                this.options.put("ws", wsOptions);
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateGen2");
             Client client = this.client(url);

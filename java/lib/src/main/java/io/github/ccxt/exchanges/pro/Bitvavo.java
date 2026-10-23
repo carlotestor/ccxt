@@ -98,7 +98,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }});
     }
 
-    public CompletableFuture<Object> watchPublic(Object name, Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublic(String name, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -122,7 +122,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public CompletableFuture<Object> watchPublicMultiple(Object methodName, Object channelName, Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublicMultiple(String methodName, String channelName, Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -167,7 +167,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchPublic("ticker24h", symbol, parameters)).join();
+            return (this.watchPublic("ticker24h", (String) (symbol), parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -325,7 +325,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            List<Object> trades = (List<Object>) (this.watchPublic("trades", symbolValue, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPublic("trades", (String) (symbolValue), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1071,7 +1071,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             Helpers.addElementToObject(limits, symbol, limit);
-            Helpers.addElementToObject(this.options, "orderBookLimits", limits);
+            this.options.put("orderBookLimits", limits);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("nonce", null);
@@ -1328,7 +1328,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             return (this.watchRequest("privateUpdateOrder", (Map<String, Object>) (request))).join();
         }).thenApply(Order::new);
 
@@ -1497,7 +1497,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         return Helpers.parseInt((ts + randomPart));
     }
 
-    public CompletableFuture<Object> watchRequest(Object action, Map<String, Object> request)
+    public CompletableFuture<Object> watchRequest(String action, Map<String, Object> request)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1634,7 +1634,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = (Map<String, Object>) this.withdrawRequest((String) (code), amount, address, tagWithdrawTag, paramsWithdrawTag);
+            Map<String, Object> request = (Map<String, Object>) this.withdrawRequest((String) (code), amount, (String) (address), tagWithdrawTag, paramsWithdrawTag);
             return (this.watchRequest("privateWithdrawAssets", (Map<String, Object>) (request))).join();
         }).thenApply(Transaction::new);
 
@@ -2032,20 +2032,20 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         return messageHash;
     }
 
-    public Object actionAndMarketMessageHash(Object action, Map<String, Object> parameters)
+    public Object actionAndMarketMessageHash(String action, Map<String, Object> parameters)
     {
         String symbol = this.safeString(parameters, "market", "");
-        return ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(action, symbol);
+        return (action + symbol);
     }
 
-    public Object actionAndOrderIdMessageHash(Object action, Map<String, Object> parameters)
+    public Object actionAndOrderIdMessageHash(String action, Map<String, Object> parameters)
     {
         String orderId = this.safeString(parameters, "orderId");
         if (java.util.Objects.equals(orderId, null))
         {
             throw new ExchangeError((this.id + " privateUpdateOrderMessageHash requires a orderId parameter")) ;
         }
-        return ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(action, orderId);
+        return (action + orderId);
     }
 
     public void handleOrder(Client client, Map<String, Object> message)

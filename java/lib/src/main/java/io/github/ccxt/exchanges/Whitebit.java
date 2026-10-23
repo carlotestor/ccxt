@@ -3552,7 +3552,7 @@ public class Whitebit extends WhitebitApi
                 put( "ticker", currency.get("id") );
             }};
             Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.isFiat(code)))
+            if (Boolean.TRUE.equals(this.isFiat((String) (code))))
             {
                 String provider = this.safeString(parameters, "provider");
                 if (java.util.Objects.equals(provider, null))
@@ -3872,7 +3872,7 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("memo", tag);
             }
-            if (Boolean.TRUE.equals(this.isFiat(code)))
+            if (Boolean.TRUE.equals(this.isFiat((String) (code))))
             {
                 Object provider = this.safeValue(paramsWithdrawTag, "provider");
                 if (java.util.Objects.equals(provider, null))
@@ -5047,7 +5047,7 @@ public class Whitebit extends WhitebitApi
         }});
     }
 
-    public Boolean isFiat(Object currency)
+    public Boolean isFiat(String currency)
     {
         List<Object> fiatCurrencies = (List<Object>) this.safeList(this.options, "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         return this.inArray(currency, fiatCurrencies);

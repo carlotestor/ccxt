@@ -150,7 +150,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return (String) (((url + "/private") + sandboxSuffix));
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object access, Object channel, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribeMultiple(String access, String channel, List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -198,7 +198,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     }
 
-    public CompletableFuture<Object> subscribe(Object access, Object messageHash, Object channel, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(String access, String messageHash, String channel, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -211,11 +211,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> firstArgument = new HashMap<String, Object>() {{
                 put( "channel", channel );
             }};
-            Object messageHashResolved = messageHash;
+            String messageHashResolved = messageHash;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                messageHashResolved = ((Object) (switch ((Object) (messageHashResolved)) { case null -> (Object) ("null" + ((":" + market.get("id")))); case Double hx4J40v6 -> (Object) (hx4J40v6 + 0.0); case Object hx4J40v6 -> (Object) (String.valueOf(hx4J40v6) + ((":" + market.get("id")))); }));
+                messageHashResolved = (messageHashResolved + (":" + market.get("id")));
                 firstArgument.put("instId", market.get("id"));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -641,7 +641,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "tickers");
             var channel = ((List<Object>) channelparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
-            Object newTickers = (this.subscribeMultiple("public", channel, symbolsNormalized, paramsChannel)).join();
+            Object newTickers = (this.subscribeMultiple("public", (String) (channel), symbolsNormalized, paramsChannel)).join();
             if (this.newUpdates)
             {
                 return newTickers;
@@ -705,7 +705,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "channel", "mark-price");
             var channel = ((List<Object>) channelparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
-            Object newTickers = (this.subscribeMultiple("public", channel, symbolsNormalized, paramsChannel)).join();
+            Object newTickers = (this.subscribeMultiple("public", (String) (channel), symbolsNormalized, paramsChannel)).join();
             if (this.newUpdates)
             {
                 return newTickers;
@@ -1748,7 +1748,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook, Object messageHash, Map<String, Object> market)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook, String messageHash, Map<String, Object> market)
     {
         //
         //     {
@@ -1771,8 +1771,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         List<Object> asks = (List<Object>) this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
-        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
-        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
         String marketId = this.safeString(message, "instId");
@@ -1792,9 +1792,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             return orderbook;
         }
         Long timestamp = this.safeInteger(message, "ts");
-        Helpers.addElementToObject(orderbook, "nonce", seqId);
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("nonce", seqId);
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         return orderbook;
     }
 
@@ -1910,7 +1910,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}}, limit);
                 this.orderbooks.put(symbol, orderbook);
                 orderbook.put("symbol", symbol);
-                this.handleOrderBookMessage(client, (Map<String, Object>) (update), orderbook, messageHash, market);
+                this.handleOrderBookMessage(client, (Map<String, Object>) (update), (io.github.ccxt.ws.WsOrderBook) (orderbook), messageHash, market);
                 if (!(client.subscriptions.containsKey(messageHash)))
                 {
                     break;
@@ -1925,7 +1925,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 for (var i = 0; i < ((List<?>)data).size(); i++)
                 {
                     Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                    this.handleOrderBookMessage(client, (Map<String, Object>) (update), orderbook, messageHash, market);
+                    this.handleOrderBookMessage(client, (Map<String, Object>) (update), (io.github.ccxt.ws.WsOrderBook) (orderbook), messageHash, market);
                     if (!(client.subscriptions.containsKey(messageHash)))
                     {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
@@ -3244,7 +3244,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
     }
 
-    public void handleUnSubscriptionTrades(Client client, String symbol, Object channel)
+    public void handleUnSubscriptionTrades(Client client, String symbol, String channel)
     {
         String subMessageHash = ((channel + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
@@ -3255,7 +3255,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
     }
 
-    public void handleUnsubscriptionOrderBook(Client client, String symbol, Object channel)
+    public void handleUnsubscriptionOrderBook(Client client, String symbol, String channel)
     {
         String subMessageHash = ((channel + ":") + symbol);
         String messageHash = ("unsubscribe:orderbook:" + symbol);
@@ -3266,7 +3266,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
     }
 
-    public void handleUnsubscriptionOHLCV(Client client, String symbol, Object channel)
+    public void handleUnsubscriptionOHLCV(Client client, String symbol, String channel)
     {
         String tf = (channel == null ? null : ((String)channel).replaceFirst("candle", ""));
         String timeframe = this.findTimeframe(tf, (Object) null);
@@ -3288,7 +3288,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
     }
 
-    public void handleUnsubscriptionTicker(Client client, String symbol, Object channel)
+    public void handleUnsubscriptionTicker(Client client, String symbol, String channel)
     {
         String subMessageHash = ((channel + "::") + symbol);
         String messageHash = ("unsubscribe:ticker:" + symbol);

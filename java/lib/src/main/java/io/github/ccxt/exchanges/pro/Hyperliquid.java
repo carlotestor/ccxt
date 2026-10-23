@@ -157,7 +157,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), symbol, (String) (type), (String) (side), amount, price, parameters);
+            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
             List<Order> orders = (this.createOrdersWs(new ArrayList<Object>(Arrays.asList(((Object)order))), globalParams)).join();
@@ -204,7 +204,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             Map<String, Object> market = this.market(symbol);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), symbol, (String) (type), (String) (side), amount, price, parameters);
+            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
             Map<String, Object> postRequest = (Map<String, Object>) this.editOrdersRequest(new ArrayList<Object>(Arrays.asList(order)), globalParams);
@@ -1986,7 +1986,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} subHash the subscription hash the watch call is about to register
      * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
      */
-    public CompletableFuture<Object> waitForPendingUnsubscribe(Object url, Object subHash)
+    public CompletableFuture<Object> waitForPendingUnsubscribe(String url, String subHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2017,7 +2017,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
 
     }
 
-    public CompletableFuture<Object> expirePendingUnsubscribe(Client client, Object subHash, Object unsubHash)
+    public CompletableFuture<Object> expirePendingUnsubscribe(Client client, String subHash, String unsubHash)
     {
 
         return BaseExchange.supplyAsync(() -> {

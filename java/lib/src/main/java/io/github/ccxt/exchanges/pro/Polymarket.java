@@ -1074,7 +1074,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1152,7 +1152,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {

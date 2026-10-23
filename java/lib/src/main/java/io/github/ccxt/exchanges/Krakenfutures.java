@@ -4133,7 +4133,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
     }
 
-    public Object parseKrakenAccountName(Object account)
+    public Object parseKrakenAccountName(String account)
     {
         Map<String, Object> accountByType = new HashMap<String, Object>() {{
             put( "main", "cash" );
@@ -4218,7 +4218,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(toAccount, "spot"))
             {
-                if (!java.util.Objects.equals(this.parseKrakenAccountName(fromAccount), "cash"))
+                if (!java.util.Objects.equals(this.parseKrakenAccountName((String) (fromAccount)), "cash"))
                 {
                     throw new BadRequest(((((this.id + " transfer cannot transfer from ") + fromAccount) + " to ") + toAccount)) ;
                 }
@@ -4226,8 +4226,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 response = (this.privatePostWithdrawal(this.extend(request, parameters))).join();
             } else
             {
-                request.put("fromAccount", this.parseKrakenAccountName(fromAccount));
-                request.put("toAccount", this.parseKrakenAccountName(toAccount));
+                request.put("fromAccount", this.parseKrakenAccountName((String) (fromAccount)));
+                request.put("toAccount", this.parseKrakenAccountName((String) (toAccount)));
                 request.put("unit", currency.get("id"));
                 response = (this.privatePostTransfer(this.extend(request, parameters))).join();
             }

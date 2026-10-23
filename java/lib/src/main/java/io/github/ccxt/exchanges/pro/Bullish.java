@@ -111,7 +111,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         return message;  // current line is for transpilation compatibility
     }
 
-    public CompletableFuture<Object> watchPublic(Object url, Object messageHash, Object request, Object parameters)
+    public CompletableFuture<Object> watchPublic(String url, String messageHash, Object request, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -135,7 +135,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Object subscribeHash, Object request, Object parameters)
+    public CompletableFuture<Object> watchPrivate(String messageHash, String subscribeHash, Object request, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -483,7 +483,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 request.put("tradingAccountId", tradingAccountId);
             }
-            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), subscribeHash, request, paramsOmitted)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -621,7 +621,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 request.put("tradingAccountId", tradingAccountId);
             }
-            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate((String) (messageHash), subscribeHash, request, paramsOmitted)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -868,7 +868,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "derivativesPositionsV2" );
             }};
-            List<Object> positions = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, parameters)).join();
+            List<Object> positions = (List<Object>) (this.watchPrivate((String) (messageHash), subscribeHash, request, parameters)).join();
             if (this.newUpdates)
             {
                 return positions;

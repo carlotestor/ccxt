@@ -1198,7 +1198,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1436,7 +1436,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> paramsValue = this.editOrderRequest(id, (String) (symbol), amount, price, parameters);
+            Map<String, Object> paramsValue = this.editOrderRequest((String) (id), (String) (symbol), amount, price, parameters);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "private/amend-order" );
                 put( "params", paramsValue );
@@ -1585,7 +1585,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     }
 
-    public CompletableFuture<Object> unWatchPublicMultiple(Object topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtend)
+    public CompletableFuture<Object> unWatchPublicMultiple(String topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtend)
     {
 
         return BaseExchange.supplyAsync(() -> {

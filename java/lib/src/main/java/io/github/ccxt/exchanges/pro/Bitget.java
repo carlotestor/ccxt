@@ -212,7 +212,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })))).join();
+            return (this.unWatchChannel((String) (symbol), "ticker", "ticker", "watchTicker", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })))).join();
         });
 
     }
@@ -742,7 +742,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 args.put("instId", market.get("id"));
                 messageHash = ("candles:" + interval);
             }
-            return (this.unWatchChannel(symbol, channel, messageHash, "watchOHLCV", paramsRequest)).join();
+            return (this.unWatchChannel((String) (symbol), (String) (channel), (String) (messageHash), "watchOHLCV", paramsRequest)).join();
         });
 
     }
@@ -969,12 +969,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 channel = (channel + String.valueOf(limit));
             }
-            return (this.unWatchChannel(symbol, channel, "orderbook", "watchOrderBook", paramsOmitted)).join();
+            return (this.unWatchChannel((String) (symbol), channel, "orderbook", "watchOrderBook", paramsOmitted)).join();
         });
 
     }
 
-    public CompletableFuture<Object> unWatchChannel(Object symbol, Object channel, Object messageHashTopic, Object methodName, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchChannel(String symbol, String channel, String messageHashTopic, String methodName, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1266,7 +1266,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
-    public CompletableFuture<Object> handleCheckSumError(Client client, Object symbol, Object messageHash)
+    public CompletableFuture<Object> handleCheckSumError(Client client, String symbol, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1432,7 +1432,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 channelTopic = "publicTrade";
             }
-            return (this.unWatchChannel(symbol, channelTopic, "trade", "watchTrades", parameters)).join();
+            return (this.unWatchChannel((String) (symbol), channelTopic, "trade", "watchTrades", parameters)).join();
         });
 
     }
@@ -1813,9 +1813,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String action = this.safeString(message, "action");
         if (!((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(instType)) != null && j39v2.contains(instType); case Map<?, ?> j39v1 -> ((Object)(instType)) instanceof String && j39v1.containsKey(instType); case null, default -> false; })) || (java.util.Objects.equals(action, "snapshot")))
         {
-            Helpers.addElementToObject(this.positions, instType, new ArrayCache.ArrayCacheBySymbolBySide());
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(instType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
-        Object cache = Helpers.GetValue(this.positions, instType);
+        Object cache = (instType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(instType));
         List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
@@ -3045,7 +3045,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         client.resolve(this.balance, messageHash);
     }
 
-    public CompletableFuture<Object> watchPublic(Object uta, Object messageHash, Map<String, Object> args, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublic(Object uta, String messageHash, Map<String, Object> args, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3076,7 +3076,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public CompletableFuture<Object> unWatchPublic(Object uta, Object messageHash, Map<String, Object> args, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchPublic(Object uta, String messageHash, Map<String, Object> args, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3201,7 +3201,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object uta, Object messageHash, Object subscriptionHash, Map<String, Object> args, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(Object uta, String messageHash, String subscriptionHash, Map<String, Object> args, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

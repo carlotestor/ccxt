@@ -2213,7 +2213,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), amount, price, parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), amount, price, parameters);
             Map<String, Object> response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, (Map<String, Object>) null);
@@ -2221,7 +2221,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Map<String, Object> editOrderRequest(Object id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> editOrderRequest(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(id, null))
@@ -4337,7 +4337,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseTradingFees(Map<String, Object> response)
+    public Map<String, Object> parseTradingFees(Map<String, Object> response)
     {
         //
         // {

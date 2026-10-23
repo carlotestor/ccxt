@@ -247,7 +247,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, (Map<String, Object>) (market), parameters);
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
             if (Boolean.TRUE.equals(isTestnet))

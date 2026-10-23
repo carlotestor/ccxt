@@ -516,12 +516,12 @@ public class Lighter extends LighterApi
         }});
     }
 
-    public CompletableFuture<Object> loadAccount(Object chainId, String privateKey, Object apiKeyIndex, Object accountIndex, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadAccount(Object chainId, String privateKey, String apiKeyIndex, String accountIndex, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.initAuthObject(accountIndex, apiKeyIndex);
+            this.initAuthObject((String) (accountIndex), (String) (apiKeyIndex));
             Map<String, Object> cachedAuths = (Map<String, Object>) this.safeDict(Helpers.GetValue(this.options.get("auths"), accountIndex), apiKeyIndex, (Object) null);
             Object signer = this.safeValue(cachedAuths, "signer");
             if (!java.util.Objects.equals(signer, null))
@@ -556,7 +556,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public void initAuthObject(Object strAccountIndex, Object strApiKeyIndex)
+    public void initAuthObject(String strAccountIndex, String strApiKeyIndex)
     {
         if (!(((Map<?, ?>)this.options).containsKey("auths")))
         {
@@ -577,7 +577,7 @@ public class Lighter extends LighterApi
         }
     }
 
-    public Object getLighterPrivateKey(Object strAccountIndex, Object strApiKeyIndex)
+    public Object getLighterPrivateKey(String strAccountIndex, String strApiKeyIndex)
     {
         Map<String, Object> auths = (Map<String, Object>) this.safeDict(this.options, "auths", (Object) null);
         Map<String, Object> accountAuths = (Map<String, Object>) this.safeDict(auths, strAccountIndex, (Object) null);
@@ -697,7 +697,7 @@ public class Lighter extends LighterApi
                         throw new ArgumentsRequired((((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + " or ") + optionName2) + " parameter")) ;
                     }
                     accountIndex = account.get("index");
-                    Helpers.addElementToObject(this.options, "accountIndex", accountIndex);
+                    this.options.put("accountIndex", accountIndex);
                 }
             }
             return new ArrayList<Object>(Arrays.asList(this.parseToInt(accountIndex), paramsAccountIndex));
@@ -772,7 +772,7 @@ public class Lighter extends LighterApi
         return token;
     }
 
-    public String pow(Object n, Object m)
+    public String pow(String n, String m)
     {
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
@@ -795,7 +795,7 @@ public class Lighter extends LighterApi
         return r;
     }
 
-    public String hashMessage(Object message)
+    public String hashMessage(String message)
     {
         Object binaryMessage = this.encode(message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
@@ -805,7 +805,7 @@ public class Lighter extends LighterApi
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         this.checkRequiredCredentials(true);
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
@@ -815,10 +815,10 @@ public class Lighter extends LighterApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signL1AndPrepareTxInfo(Object txInfo, Object message, Object privateKey)
+    public String signL1AndPrepareTxInfo(String txInfo, String message, String privateKey)
     {
-        String hashMessage = this.hashMessage(message);
-        String signature = this.signHash(hashMessage, privateKey);
+        String hashMessage = this.hashMessage((String) (message));
+        String signature = this.signHash(hashMessage, (String) (privateKey));
         Object decTxInfo = this.parseJson(txInfo);
         ((Map<String, Object>)decTxInfo).put("L1Sig", signature);
         return this.json(decTxInfo);
@@ -902,7 +902,7 @@ public class Lighter extends LighterApi
             String tier = this.safeString(accountLimits, "user_tier");
             Boolean isStandard = (java.util.Objects.equals(tier, "standard"));
             tiersForAccountIndexes.put(accountIndexStr, isStandard);
-            Helpers.addElementToObject(this.options, "tiersForAccountIndexes", tiersForAccountIndexes);
+            this.options.put("tiersForAccountIndexes", tiersForAccountIndexes);
             return isStandard;
         }).thenApply(res -> (Boolean) res);
 
@@ -933,7 +933,7 @@ public class Lighter extends LighterApi
             var txType = ((List<Object>) txTypetxInfomessageToSignVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfomessageToSignVariable).get(1);
             var messageToSign = ((List<Object>) txTypetxInfomessageToSignVariable).get(2);
-            String newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
+            String newTxInfo = this.signL1AndPrepareTxInfo((String) (txInfo), (String) (messageToSign), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx_type", txType );
                 put( "tx_info", newTxInfo );
@@ -976,7 +976,7 @@ public class Lighter extends LighterApi
             var txType = ((List<Object>) txTypetxInfomessageToSignVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfomessageToSignVariable).get(1);
             var messageToSign = ((List<Object>) txTypetxInfomessageToSignVariable).get(2);
-            String newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
+            String newTxInfo = this.signL1AndPrepareTxInfo((String) (txInfo), (String) (messageToSign), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx_type", txType );
                 put( "tx_info", newTxInfo );
@@ -993,7 +993,7 @@ public class Lighter extends LighterApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
         this.options.put("chainId", ((Boolean.TRUE.equals(enable))) ? 300 : 304);
     }
 
@@ -1105,8 +1105,8 @@ public class Lighter extends LighterApi
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         String amountStr = null;
         String priceStr = this.priceToPrecision(symbol, price);
-        String amountScale = this.pow("10", marketInfo.get("size_decimals"));
-        String priceScale = this.pow("10", marketInfo.get("price_decimals"));
+        String amountScale = this.pow("10", (String) (marketInfo.get("size_decimals")));
+        String priceScale = this.pow("10", (String) (marketInfo.get("price_decimals")));
         String triggerPriceStr = "0"; // default is 0
         Object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Long clientOrderId = (Long) this.safeInteger2(paramsOmitted, "client_order_index", "clientOrderId", defaultClientOrderId);
@@ -1400,8 +1400,8 @@ public class Lighter extends LighterApi
             Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            String amountScale = this.pow("10", marketInfo.get("size_decimals"));
-            String priceScale = this.pow("10", marketInfo.get("price_decimals"));
+            String amountScale = this.pow("10", (String) (marketInfo.get("size_decimals")));
+            String priceScale = this.pow("10", (String) (marketInfo.get("price_decimals")));
             String triggerPrice = this.safeStringN(paramsAccountIndex, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             Map<String, Object> paramsOmitted = this.omit(paramsAccountIndex, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             String amountStr = null;
@@ -3824,12 +3824,12 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires an leverage parameter")) ;
             }
-            return (this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsLeverage)).join();
+            return (this.modifyLeverageAndMarginMode(leverage, (String) (marginMode), symbol, paramsLeverage)).join();
         });
 
     }
 
-    public CompletableFuture<Map<String, Object>> modifyLeverageAndMarginMode(Object leverage, Object marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> modifyLeverageAndMarginMode(Object leverage, String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3942,7 +3942,7 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrder", id, symbol, parameters)).join();
+            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrder", (String) (id), symbol, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             Map<String, Object> market = this.market(symbol);

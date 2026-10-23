@@ -5077,7 +5077,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "SUB", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "SUB", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5097,7 +5097,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "ADD", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -6856,7 +6856,7 @@ public class Mexc extends MexcApi
         }};
     }
 
-    public Object parseTransactionFee(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransactionFee(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         //    {

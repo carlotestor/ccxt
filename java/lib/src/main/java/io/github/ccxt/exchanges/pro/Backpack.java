@@ -180,7 +180,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 {
                     continue;
                 }
-                List<Object> marketSelection = (List<Object>) this.handleStockParams(methodName, (Map<String, Object>) (query), market);
+                List<Object> marketSelection = this.handleStockParams(methodName, (Map<String, Object>) (query), market);
                 Boolean marketStock = (Boolean) this.safeBool(marketSelection, 0, false);
                 Map<String, Object> marketParams = (Map<String, Object>) this.safeDict(marketSelection, 1, new HashMap<String, Object>() {{}});
                 Boolean isRfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
@@ -358,7 +358,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public void handleUnsubscriptions(Object url, Object messageHashes, Map<String, Object> message)
+    public void handleUnsubscriptions(String url, Object messageHashes, Map<String, Object> message)
     {
         Client client = this.client(url);
         this.watchMultiple((String) (url), messageHashes, message, messageHashes, null);
@@ -1457,21 +1457,21 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             return;
         }
-        this.handleBookDelta(storedOrderBook, data);
+        this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (storedOrderBook), data);
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         Long microseconds = this.safeInteger(delta, "T", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
+        orderbook.put("nonce", this.safeInteger(delta, "u"));
         List<Object> bids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
-        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
-        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }
@@ -1693,7 +1693,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {object} [market] resolved RFQ market
      * @returns {object} unified order
      */
-    public Object parseWsRfqOrder(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseWsRfqOrder(Map<String, Object> data, Map<String, Object> market)
     {
         String eventVar = this.safeString(data, "e", "");
         Boolean quoteEvent = (((String)eventVar).indexOf("quote") == 0);
@@ -1824,7 +1824,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     put( "locked", Backpack.this.safeString(data, "L") );
     put( "staked", Backpack.this.safeString(data, "S") );
 }});
-        Helpers.addElementToObject(this.options, "wsBalanceAssets", assets);
+        this.options.put("wsBalanceAssets", assets);
         Map<String, Object> response = (Map<String, Object>) this.parseBalance(assets);
         Map<String, Object> parsed = (Map<String, Object>) this.safeDict(new HashMap<String, Object>() {{
             put( "balances", response );

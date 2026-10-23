@@ -553,7 +553,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         client.resolve(this.balance, messageHash);
     }
 
-    public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublic(String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -569,7 +569,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -588,7 +588,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 expires = String.valueOf(expires);
                 // we need to memoize these values to avoid generating a new url on each method execution
                 // that would trigger a new connection on each received message
-                Helpers.addElementToObject(this.options, "ws-expires", expires);
+                this.options.put("ws-expires", expires);
             }
             Object url = ((Map<String, Object>)this.urls.get("api")).get("ws");
             String auth = (("CONNECT" + "/stream") + expires);

@@ -2814,7 +2814,7 @@ public class Kucoin extends KucoinApi
             if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.options.get("hf"), null)) || java.util.Objects.requireNonNullElse(force, false))
             {
                 Map<String, Object> result = (this.privateGetHfAccountsOpened(new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.options, "hf", this.safeBool(result, "data", (Object) null));
+                this.options.put("hf", this.safeBool(result, "data", (Object) null));
             }
             return true;
         }).thenApply(res -> (Boolean) res);
@@ -3984,7 +3984,7 @@ public class Kucoin extends KucoinApi
             }
             if (Boolean.TRUE.equals(uta))
             {
-                return (this.fetchUTAOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, paramsRequest)).join();
+                return (this.fetchUTAOHLCV((String) (symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, paramsRequest)).join();
             } else if (java.util.Objects.equals(market.get("contract"), true))
             {
                 return (this.fetchContractOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, paramsRequest)).join();
@@ -4781,13 +4781,13 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
             if (Boolean.TRUE.equals(utaOption))
             {
-                return (this.createUtaOrder(symbol, (String) (type), (String) (side), amount, price, paramsUta)).join();
+                return (this.createUtaOrder((String) (symbol), (String) (type), (String) (side), amount, price, paramsUta)).join();
             } else if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, paramsUta)).join();
+                return (this.createSpotOrder((String) (symbol), (String) (type), (String) (side), amount, price, paramsUta)).join();
             } else if (java.util.Objects.equals(market.get("contract"), true))
             {
-                return (this.createContractOrder(symbol, (String) (type), (String) (side), amount, price, paramsUta)).join();
+                return (this.createContractOrder((String) (symbol), (String) (type), (String) (side), amount, price, paramsUta)).join();
             } else
             {
                 throw new NotSupported(((this.id + " createOrder() does not support market ") + market.get("type"))) ;
@@ -4840,7 +4840,7 @@ public class Kucoin extends KucoinApi
      * @param {bool} [params.sync] set to true to use the hf sync call
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5061,7 +5061,7 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createContractOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createContractOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5945,7 +5945,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
             if (Boolean.TRUE.equals(utaOption))
             {
-                return (this.cancelUtaOrder(id, symbol, paramsUta)).join();
+                return (this.cancelUtaOrder((String) (id), symbol, paramsUta)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -7164,7 +7164,7 @@ public class Kucoin extends KucoinApi
             }
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
-                return (this.fetchSpotOrder(id, symbol, paramsOmitted)).join();
+                return (this.fetchSpotOrder((String) (id), symbol, paramsOmitted)).join();
             } else
             {
                 return (this.fetchContractOrder((String) (id), symbol, paramsOmitted)).join();
@@ -7194,7 +7194,7 @@ public class Kucoin extends KucoinApi
      * @param {object} [params.marginMode] 'cross' or 'isolated'
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchSpotOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchSpotOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -10160,9 +10160,9 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
             if (Boolean.TRUE.equals(utaOption))
             {
-                return (this.transferUta(code, amount, fromAccount, toAccount, paramsUta)).join();
+                return (this.transferUta((String) (code), amount, (String) (fromAccount), (String) (toAccount), paramsUta)).join();
             }
-            return (this.transferClassic(code, amount, fromAccount, toAccount, paramsUta)).join();
+            return (this.transferClassic((String) (code), amount, (String) (fromAccount), (String) (toAccount), paramsUta)).join();
         }).thenApply(TransferEntry::new);
 
     }
@@ -10182,7 +10182,7 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<Object> transferUta(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferUta(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -10294,7 +10294,7 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<Object> transferClassic(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferClassic(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -11352,7 +11352,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseBorrowRateHistories(Object response, Object codes, Long since, Long limit)
+    public Map<String, Object> parseBorrowRateHistories(Object response, Object codes, Long since, Long limit)
     {
         //
         //     [

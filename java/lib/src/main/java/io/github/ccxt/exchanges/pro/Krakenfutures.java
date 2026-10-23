@@ -153,7 +153,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribePublic(Object name, Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePublic(String name, Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -168,7 +168,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 put( "feed", name );
             }};
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
-            Object messageHash = name;
+            String messageHash = name;
             Object symbolsValue = (((java.util.Objects.equals(symbols, null)))) ? new ArrayList<Object>(Arrays.asList()) : symbols;
             for (var i = 0; i < ((List<?>)symbolsValue).size(); i++)
             {
@@ -197,7 +197,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribePrivate(Object name, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePrivate(String name, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -594,7 +594,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + market.get("symbol")));
             }
-            List<Object> orders = (List<Object>) (this.subscribePrivate(name, messageHash, paramsVerbose)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (name), messageHash, paramsVerbose)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -674,7 +674,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 messageHash = (messageHash + (":" + account));
             }
-            return (this.subscribePrivate(name, messageHash, paramsAccount)).join();
+            return (this.subscribePrivate(name, (String) (messageHash), paramsAccount)).join();
         }).thenApply(Balances::new);
 
     }
@@ -1908,7 +1908,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         return this.safeTrade(mapLiteral5, (Map<String, Object>) null);
     }
 
-    public CompletableFuture<Object> watchMultiHelper(Object unifiedName, Object channelName, Object symbols, Object subscriptionArgs, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultiHelper(String unifiedName, String channelName, Object symbols, Object subscriptionArgs, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1924,7 +1924,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             List<Object> rawSubs = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                String messageHash = this.getMessageHash(unifiedName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
+                String messageHash = this.getMessageHash((String) (unifiedName), (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
                 ((List<Object>)messageHashes).add(messageHash);
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 if (!this.subscriptionExistsForHash(url, messageHash))
@@ -1953,12 +1953,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         return (client.subscriptions.containsKey(hash));
     }
 
-    public String getMessageHash(Object unifiedElementName, String subChannelName, String symbol)
+    public String getMessageHash(String unifiedElementName, String subChannelName, String symbol)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         Boolean withSymbol = !java.util.Objects.equals(symbol, null);
-        Object messageHash = unifiedElementName;
+        String messageHash = unifiedElementName;
         if (!Boolean.TRUE.equals(withSymbol))
         {
             messageHash = (messageHash + "s");
@@ -2066,8 +2066,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object hashedChallenge = this.hash(this.encode(challenge), sha256(), "binary");
             Object base64Secret = this.base64ToBinary(this.secret);
             String signature = (String) this.hmac(hashedChallenge, base64Secret, sha512(), "base64");
-            Helpers.addElementToObject(this.options, "challenge", challenge);
-            Helpers.addElementToObject(this.options, "signedChallenge", signature);
+            this.options.put("challenge", challenge);
+            this.options.put("signedChallenge", signature);
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
             future.resolve(true);
         } else

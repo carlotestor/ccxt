@@ -995,7 +995,7 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
             if ((java.util.Objects.equals(currenciesByNumericId, null)) || Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexBy(this.currencies, "numericId"));
+                this.options.put("currenciesByNumericId", this.indexBy(this.currencies, "numericId"));
             }
             return markets;
         });
@@ -2464,7 +2464,7 @@ public class Poloniex extends PoloniexApi
                 put( "side", ((String)((String)side)).toUpperCase() );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
-            var requestValueparamsValueVariable = this.orderRequest(symbol, (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
+            var requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
@@ -2603,7 +2603,7 @@ public class Poloniex extends PoloniexApi
         return this.createOrders(orders, (Object) (parameters));
     }
 
-    public Object orderRequest(Object symbol, String type, String side, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
+    public Object orderRequest(String symbol, String type, String side, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
     {
         Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
         Map<String, Object> market = this.market(symbol);
@@ -2764,7 +2764,7 @@ public class Poloniex extends PoloniexApi
                 put( "id", id );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
-            var requestValueparamsValueVariable = this.orderRequest(symbol, (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
+            var requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
@@ -3449,7 +3449,7 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
+            var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress((String) (code), parameters);
             var request = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(0);
             var extraParams = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(1);
             var currency = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(2);
@@ -3481,7 +3481,7 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
+            var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress((String) (code), parameters);
             var request = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(0);
             var extraParams = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(1);
             var currency = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(2);
@@ -3504,7 +3504,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object prepareRequestForDepositAddress(String code, Map<String, Object> parameters)
+    public List<Object> prepareRequestForDepositAddress(String code, Map<String, Object> parameters)
     {
         if (!(((Map<?, ?>)this.currencies).containsKey(code)))
         {
@@ -4615,7 +4615,7 @@ public class Poloniex extends PoloniexApi
         return this.safePosition(mapLiteral10);
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4691,7 +4691,7 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
 
             // modifyMarginHelper sends Precise.stringAbs (amountToPrecision (amount)), so the sign is irrelevant
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4710,7 +4710,7 @@ public class Poloniex extends PoloniexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }

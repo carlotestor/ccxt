@@ -349,7 +349,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    public CompletableFuture<Map<String, Object>> fetchRawTopicDetail(Object topicId, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchRawTopicDetail(String topicId, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -398,7 +398,7 @@ public class Binance extends BinanceApi
                     String topicId = this.safeString(rawTopic, "marketTopicId");
                     if (!java.util.Objects.equals(topicId, null))
                     {
-                        Map<String, Object> detail = (this.fetchRawTopicDetail(topicId, new HashMap<String, Object>() {{}})).join();
+                        Map<String, Object> detail = (this.fetchRawTopicDetail((String) (topicId), new HashMap<String, Object>() {{}})).join();
                         ((List<Object>)result).add(detail);
                     }
                 }
@@ -474,7 +474,7 @@ public class Binance extends BinanceApi
                 rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
             } else if (!java.util.Objects.equals(eventId, null))
             {
-                Map<String, Object> detail = (this.fetchRawTopicDetail(eventId, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+                Map<String, Object> detail = (this.fetchRawTopicDetail((String) (eventId), ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
                 rawTopics = new ArrayList<Object>(Arrays.asList(detail));
             } else
             {
@@ -526,7 +526,7 @@ public class Binance extends BinanceApi
                     String handle = this.safeString(m, "market");
                     if (!java.util.Objects.equals(handle, null))
                     {
-                        Helpers.addElementToObject(this.markets, handle, m);
+                        ((Map<Object, Object>) (Map<?, ?>) this.markets).put(handle, m);
                     }
                 }
             }
@@ -1841,7 +1841,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    public CompletableFuture<Object> fetchWallet(Object methodName, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchWallet(String methodName, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1866,7 +1866,7 @@ public class Binance extends BinanceApi
             List<Object> wallets = (List<Object>) this.safeList(response, "wallets", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(walletAddress, null))
             {
-                Helpers.addElementToObject(this.options, "wallet", this.safeDict(wallets, 0, (Object) null));
+                this.options.put("wallet", this.safeDict(wallets, 0, (Object) null));
                 return this.safeDict(this.options, "wallet", (Object) null);
             }
             Integer walletLength = ((List<?>)wallets).size();
@@ -1875,7 +1875,7 @@ public class Binance extends BinanceApi
                 String w = this.safeString((wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)), "walletAddress", "");
                 if (java.util.Objects.equals(w, walletAddress))
                 {
-                    Helpers.addElementToObject(this.options, "wallet", (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)));
+                    this.options.put("wallet", (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)));
                     return this.safeDict(this.options, "wallet", (Object) null);
                 }
             }

@@ -1500,7 +1500,7 @@ public class Phemex extends PhemexApi
         return this.safeCurrencyStructure(mapLiteral3);
     }
 
-    public Object customParseBidAsk(Object bidask, Object priceKey, Object amountKey, Map<String, Object> market)
+    public List<Object> customParseBidAsk(Object bidask, Object priceKey, Object amountKey, Map<String, Object> market)
     {
         if (java.util.Objects.equals(market, null))
         {
@@ -1514,7 +1514,7 @@ public class Phemex extends PhemexApi
         return new ArrayList<Object>(Arrays.asList(this.parseNumber(this.fromEp(this.safeString(bidask, java.util.Objects.requireNonNullElse(priceKey, 0)), market)), this.parseNumber(amount)));
     }
 
-    public Object customParseOrderBook(Map<String, Object> orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Map<String, Object> market)
+    public Map<String, Object> customParseOrderBook(Map<String, Object> orderbook, String symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Map<String, Object> market)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1606,7 +1606,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(result, "book", "orderbook_p", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
-            Map<String, Object> orderbook = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> orderbook = this.customParseOrderBook((Map<String, Object>) (book), (String) (symbol), timestamp, "bids", "asks", 0, 1, market);
             Long nonce = this.safeInteger(result, "sequence");
             return this.extend(orderbook, new HashMap<String, Object>() {{
                 put( "nonce", nonce );

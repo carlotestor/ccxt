@@ -390,7 +390,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 }} );
                 put( "req_id", requestId );
             }};
-            var requestValueparamsValueVariable = this.orderRequestWs("createOrderWs", symbol, type, (Map<String, Object>) (request), amount, price, parameters);
+            var requestValueparamsValueVariable = this.orderRequestWs("createOrderWs", (String) (symbol), type, (Map<String, Object>) (request), amount, price, parameters);
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             return (this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash, null)).join();
@@ -465,7 +465,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 }} );
                 put( "req_id", requestId );
             }};
-            var requestValueparamsValueVariable = this.orderRequestWs("editOrderWs", symbol, type, (Map<String, Object>) (request), amount, price, parameters);
+            var requestValueparamsValueVariable = this.orderRequestWs("editOrderWs", (String) (symbol), type, (Map<String, Object>) (request), amount, price, parameters);
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             return (this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash, null)).join();
@@ -1041,7 +1041,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         marketsByWsName.put(wsName, market);
                     }
                 }
-                Helpers.addElementToObject(this.options, "marketsByWsName", marketsByWsName);
+                this.options.put("marketsByWsName", marketsByWsName);
             }
             return markets;
         });
@@ -1193,7 +1193,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 // e.g. a re-subscription with a different limit
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
                 depths.put((String)symbol, depth);
-                Helpers.addElementToObject(this.options, "wsOrderBookDepths", depths);
+                this.options.put("wsOrderBookDepths", depths);
             }
             // reset in place so that references held by users keep receiving
             // updates after a reconnect snapshot (a new object would orphan them)
@@ -1228,13 +1228,13 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 for (var i = 0; i < 10; i++)
                 {
                     Object currentAsk = this.safeValue(checkAsks, i, new HashMap<String, Object>() {{}});
-                    Object formattedAsk = ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(this.formatNumber(Helpers.GetValue(currentAsk, 0)), this.formatNumber(Helpers.GetValue(currentAsk, 1)));
+                    Object formattedAsk = ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(this.formatNumber((String) (Helpers.GetValue(currentAsk, 0))), this.formatNumber((String) (Helpers.GetValue(currentAsk, 1))));
                     ((List<Object>)payloadArray).add(formattedAsk);
                 }
                 for (var i = 0; i < 10; i++)
                 {
                     Object currentBid = this.safeValue(checkBids, i, new HashMap<String, Object>() {{}});
-                    Object formattedBid = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(this.formatNumber(Helpers.GetValue(currentBid, 0)), this.formatNumber(Helpers.GetValue(currentBid, 1)));
+                    Object formattedBid = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(this.formatNumber((String) (Helpers.GetValue(currentBid, 0))), this.formatNumber((String) (Helpers.GetValue(currentBid, 1))));
                     ((List<Object>)payloadArray).add(formattedBid);
                 }
             }
@@ -1264,7 +1264,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
     }
 
-    public Object formatNumber(Object data)
+    public Object formatNumber(String data)
     {
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)data).split(java.util.regex.Pattern.quote("."))));
         String integer = this.safeString(parts, 0, "");
@@ -1383,7 +1383,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object name, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String name, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1391,7 +1391,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String subscriptionHash = "executions";
-            Object messageHash = name;
+            String messageHash = name;
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
             if (!java.util.Objects.equals(symbolResolved, null))
             {
@@ -1750,7 +1750,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }}, (Map<String, Object>) null);
     }
 
-    public CompletableFuture<Object> watchMultiHelper(Object unifiedName, Object channelName, List<String> symbols, Object subscriptionArgs, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultiHelper(String unifiedName, String channelName, List<String> symbols, Object subscriptionArgs, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1768,10 +1768,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String eventTrigger = this.safeString(parameters, "event_trigger");
                 if (!java.util.Objects.equals(eventTrigger, null))
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash((String) (channelName), (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 } else
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash((String) (unifiedName), (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1865,12 +1865,12 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), channel);
     }
 
-    public String getMessageHash(Object unifiedElementName, String subChannelName, String symbol)
+    public String getMessageHash(String unifiedElementName, String subChannelName, String symbol)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         Boolean withSymbol = !java.util.Objects.equals(symbol, null);
-        Object messageHash = unifiedElementName;
+        String messageHash = unifiedElementName;
         if (!Boolean.TRUE.equals(withSymbol))
         {
             messageHash = (messageHash + "s");

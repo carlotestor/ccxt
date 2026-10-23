@@ -1135,7 +1135,7 @@ public class Bitvavo extends BitvavoApi
 
     }
 
-    public Object parseTradingFees(Object fees, Map<String, Object> market)
+    public Map<String, Object> parseTradingFees(Object fees, Map<String, Object> market)
     {
         //
         //     {
@@ -1929,7 +1929,7 @@ public class Bitvavo extends BitvavoApi
 
     }
 
-    public Map<String, Object> editOrderRequest(Object id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> editOrderRequest(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = this.market(symbol);
@@ -1998,7 +1998,7 @@ public class Bitvavo extends BitvavoApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePutOrder(request)).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
@@ -2734,7 +2734,7 @@ public class Bitvavo extends BitvavoApi
         return this.safeLedgerEntry(mapLiteral5, currencyResolved);
     }
 
-    public Object withdrawRequest(String code, Object amount, Object address, String tag, Map<String, Object> parameters)
+    public Object withdrawRequest(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
         Map<String, Object> currency = this.currency((String) (code));
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2775,7 +2775,7 @@ public class Bitvavo extends BitvavoApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = (Map<String, Object>) this.withdrawRequest((String) (code), amount, address, tagWithdrawTag, paramsWithdrawTag);
+            Map<String, Object> request = (Map<String, Object>) this.withdrawRequest((String) (code), amount, (String) (address), tagWithdrawTag, paramsWithdrawTag);
             Map<String, Object> response = (this.privatePostWithdrawal(request)).join();
             //
             //     {

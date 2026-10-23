@@ -1066,7 +1066,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object insertMissingCandles(List<Object> candles, Object distanceInMs, Object since, Object limit)
+    public List<Object> insertMissingCandles(List<Object> candles, Object distanceInMs, Object since, Object limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
@@ -1414,7 +1414,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseCancelOrders(Object data)
+    public List<Object> parseCancelOrders(Object data)
     {
         List<Object> dataKeys = ((List<Object>) switch ((Object)(data)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); });
         List<Object> orders = new ArrayList<Object>(Arrays.asList());

@@ -251,7 +251,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 throw new NotSupported((((((this.id + " ") + callerMethodName) + "() at this moment ") + channelName) + " is not supported, coming soon")) ;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, paramsChannel)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper(true, (String) (channelName), (String) (callerMethodName), symbols, paramsChannel)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -886,7 +886,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         client.resolve(fundingRate, messageHash);
     }
 
-    public CompletableFuture<Object> watchMultipleWrapper(Object isPublic, Object channelName, Object callerMethodName, Object symbolsArray, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultipleWrapper(Object isPublic, String channelName, String callerMethodName, Object symbolsArray, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -896,7 +896,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> callerMethodNameOptionparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", java.util.Objects.toString(callerMethodName, null));
+            List<Object> callerMethodNameOptionparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", callerMethodName);
             String callerMethodNameOption = (String) ((List<Object>) callerMethodNameOptionparamsCallerMethodNameVariable).get(0);
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) callerMethodNameOptionparamsCallerMethodNameVariable).get(1);
             // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array

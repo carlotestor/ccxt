@@ -124,7 +124,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }});
     }
 
-    public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Map<String, Object> market, Object methodName, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatch(String messageHash, String subMessageHash, String subscribeHash, String dataType, String topic, Map<String, Object> market, String methodName, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -257,7 +257,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "ticker";
             String methodName = "unWatchTicker";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
+            return (this.unWatch(messageHash, (String) (subMessageHash), messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -415,9 +415,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         return limit;
     }
 
-    public String getMessageHash(Object unifiedChannel, String symbol, String extra)
+    public String getMessageHash(String unifiedChannel, String symbol, String extra)
     {
-        Object hash = unifiedChannel;
+        String hash = unifiedChannel;
         if (!java.util.Objects.equals(symbol, null))
         {
             hash = (hash + ("::" + symbol));
@@ -530,7 +530,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "trades";
             String methodName = "unWatchTrades";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
+            return (this.unWatch(messageHash, (String) (subMessageHash), messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -1418,7 +1418,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public void setBalanceCache(Client client, Object type, String subType, Object subscriptionHash, Map<String, Object> parameters)
+    public void setBalanceCache(Client client, String type, String subType, String subscriptionHash, Map<String, Object> parameters)
     {
         if (client.subscriptions.containsKey(subscriptionHash))
         {
@@ -1431,15 +1431,15 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, (String) (subType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type), (String) (subType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
-            Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
+            this.balance.put(type, new HashMap<String, Object>() {{}});
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type, String subType)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type, String subType)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1560,7 +1560,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash, String type)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, String type)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1831,7 +1831,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
-                    Helpers.addElementToObject(this.options, "listenKey", listenKey);
+                    this.options.put("listenKey", listenKey);
                     this.options.put("lastAuthenticatedTime", time);
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
                     // settle the flight: client.resolve () removes the future from

@@ -398,7 +398,7 @@ public class Hyperliquid extends HyperliquidApi
     public void setSandboxMode(Boolean enabled)
     {
         super.setSandboxMode(enabled);
-        Helpers.addElementToObject(this.options, "sandboxMode", enabled);
+        this.options.put("sandboxMode", enabled);
     }
 
     public Long nonce()
@@ -1888,7 +1888,7 @@ public class Hyperliquid extends HyperliquidApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public Map<String, Object> signHash(Object hash, Object privateKey)
+    public Map<String, Object> signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         return new HashMap<String, Object>() {{
@@ -1898,9 +1898,9 @@ public class Hyperliquid extends HyperliquidApi
         }};
     }
 
-    public Map<String, Object> signMessage(Object message, Object privateKey)
+    public Map<String, Object> signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public Map<String, Object> constructPhantomAgent(Object hash, Boolean isTestnet)
@@ -1934,7 +1934,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.hash(this.base16ToBinary(data), keccak(), "binary");
     }
 
-    public Object signL1Action(Object action, Object nonce, String vaultAdress, Long expiresAfter)
+    public Map<String, Object> signL1Action(Object action, Object nonce, String vaultAdress, Long expiresAfter)
     {
         Object hash = this.actionHash(action, (String) (vaultAdress), nonce, expiresAfter);
         Boolean isTestnet = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -1979,11 +1979,11 @@ public class Hyperliquid extends HyperliquidApi
 }})) );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
-        Map<String, Object> signature = this.signMessage(msg, this.privateKey);
+        Map<String, Object> signature = this.signMessage(msg, (String) (this.privateKey));
         return signature;
     }
 
-    public Object signUserSignedAction(Map<String, Object> messageTypes, Map<String, Object> message)
+    public Map<String, Object> signUserSignedAction(Map<String, Object> messageTypes, Map<String, Object> message)
     {
         String zeroAddress = this.safeString(this.options, "zeroAddress");
         Integer chainId = 421614; // check this out
@@ -1994,11 +1994,11 @@ public class Hyperliquid extends HyperliquidApi
             put( "version", "1" );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        Map<String, Object> signature = this.signMessage(msg, this.privateKey);
+        Map<String, Object> signature = this.signMessage(msg, (String) (this.privateKey));
         return signature;
     }
 
-    public Object buildUsdSendSig(Map<String, Object> message)
+    public Map<String, Object> buildUsdSendSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:UsdSend", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2018,7 +2018,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildUsdClassSendSig(Map<String, Object> message)
+    public Map<String, Object> buildUsdClassSendSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:UsdClassTransfer", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2038,7 +2038,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildSendAssetSig(Map<String, Object> message)
+    public Map<String, Object> buildSendAssetSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:SendAsset", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2070,7 +2070,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildWithdrawSig(Map<String, Object> message)
+    public Map<String, Object> buildWithdrawSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:Withdraw", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2090,7 +2090,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildUserDexAbstractionSig(Map<String, Object> message)
+    public Map<String, Object> buildUserDexAbstractionSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:UserDexAbstraction", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2110,7 +2110,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildUserAbstractionSig(Map<String, Object> message)
+    public Map<String, Object> buildUserAbstractionSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:UserSetAbstraction", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2130,7 +2130,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildApproveBuilderFeeSig(Map<String, Object> message)
+    public Map<String, Object> buildApproveBuilderFeeSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:ApproveBuilderFee", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2165,7 +2165,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "code", Hyperliquid.this.safeString(Hyperliquid.this.options, "ref", "CCXT1") );
             }};
             Object nonce = this.incrementingNonce();
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(action, nonce, (String) null, (Long) null);
+            Map<String, Object> signature = this.signL1Action(action, nonce, (String) null, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", action );
                 put( "nonce", nonce );
@@ -2185,7 +2185,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public CompletableFuture<Object> approveBuilderFee(Object builder, Object maxFeeRate)
+    public CompletableFuture<Object> approveBuilderFee(String builder, String maxFeeRate)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2198,7 +2198,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "builder", builder );
                 put( "nonce", nonce );
             }};
-            Object sig = this.buildApproveBuilderFeeSig((Map<String, Object>) (payload));
+            Map<String, Object> sig = this.buildApproveBuilderFeeSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );
@@ -2286,7 +2286,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    public CompletableFuture<Object> isUnifiedEnabled(Object method, String address, Boolean shouldRefresh, Map<String, Object> parameters)
+    public CompletableFuture<Object> isUnifiedEnabled(String method, String address, Boolean shouldRefresh, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2339,7 +2339,7 @@ public class Hyperliquid extends HyperliquidApi
                     enableUnifiedMargin = java.util.Objects.equals(response, "unifiedAccount");
                 }
                 // don't cache this result if this is a different addresss
-                Helpers.addElementToObject(this.options, "enableUnifiedMargin", enableUnifiedMargin); // cache this for future calls
+                this.options.put("enableUnifiedMargin", enableUnifiedMargin); // cache this for future calls
             }
             return new ArrayList<Object>(Arrays.asList(enableUnifiedMargin, paramsEnableUnifiedMargin));
         });
@@ -2356,7 +2356,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
      * @returns dictionary response from the exchange
      */
-    public CompletableFuture<Object> setUserAbstraction(Object abstraction, Map<String, Object> parameters)
+    public CompletableFuture<Object> setUserAbstraction(String abstraction, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2373,7 +2373,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "abstraction", abstraction );
                 put( "nonce", nonce );
             }};
-            Object sig = this.buildUserAbstractionSig((Map<String, Object>) (payload));
+            Map<String, Object> sig = this.buildUserAbstractionSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );
@@ -2427,7 +2427,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "enabled", enabled );
                 put( "nonce", nonce );
             }};
-            Object sig = this.buildUserDexAbstractionSig((Map<String, Object>) (payload));
+            Map<String, Object> sig = this.buildUserDexAbstractionSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );
@@ -2476,7 +2476,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "type", "agentSetAbstraction" );
                 put( "abstraction", abstraction );
             }};
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(action, nonce, (String) null, (Long) null);
+            Map<String, Object> signature = this.signL1Action(action, nonce, (String) null, (Long) null);
             request.put("action", action);
             request.put("signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
@@ -2515,7 +2515,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), symbol, (String) (type), (String) (side), amount, price, parameters);
+            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
             List<Order> orders = (this.createOrders(new ArrayList<Object>(Arrays.asList(order)), globalParams)).join();
@@ -2572,7 +2572,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "type", "twapOrder" );
                 put( "twap", orderObj );
             }};
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(orderAction, nonce, vaultAddress, (Long) null);
+            Map<String, Object> signature = this.signL1Action(orderAction, nonce, vaultAddress, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", orderAction );
                 put( "nonce", nonce );
@@ -2674,7 +2674,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, String price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, String amount, String price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -2823,7 +2823,7 @@ public class Hyperliquid extends HyperliquidApi
             Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             orderParams = this.omit(orderParams, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
-            Map<String, Object> mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, ((Map<String, Object>) (switch ((Object) (orderParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+            Map<String, Object> mainOrderObj = this.createOrderRequest(symbol, type, side, (String) (amount), price, ((Map<String, Object>) (switch ((Object) (orderParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
                 // grouping opposed orders for sl/tp
@@ -2857,7 +2857,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
-                    Map<String, Object> orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
+                    Map<String, Object> orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, (String) (amount), takeProfitOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "takeProfitPrice", takeProfitOrderTriggerPrice );
                         put( "reduceOnly", true );
                     }}));
@@ -2865,7 +2865,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
-                    Map<String, Object> orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
+                    Map<String, Object> orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, (String) (amount), stopLossOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "stopLossPrice", stopLossOrderTriggerPrice );
                         put( "reduceOnly", true );
                     }}));
@@ -2900,7 +2900,7 @@ public class Hyperliquid extends HyperliquidApi
             mapLiteral7.put("f", feeInt);
             orderAction.put("builder", mapLiteral7);
         }
-        Map<String, Object> signature = (Map<String, Object>) this.signL1Action(orderAction, nonce, vaultAddress, (Long) null);
+        Map<String, Object> signature = this.signL1Action(orderAction, nonce, vaultAddress, (Long) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "action", orderAction );
             put( "nonce", nonce );
@@ -2936,7 +2936,7 @@ public class Hyperliquid extends HyperliquidApi
 
             if (Boolean.TRUE.equals(this.safeBool(parameters, "twap", false)))
             {
-                return (this.cancelTwapOrder(id, symbol, this.omit(parameters, "twap"))).join();
+                return (this.cancelTwapOrder((String) (id), symbol, this.omit(parameters, "twap"))).join();
             }
             List<Order> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
             Map<String, Object> canceled = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
@@ -3044,7 +3044,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "t", Hyperliquid.this.parseToNumeric(id) );
             }};
             Object nonce = this.incrementingNonce();
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(action, nonce, vaultAddress, (Long) null);
+            Map<String, Object> signature = this.signL1Action(action, nonce, vaultAddress, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", action );
                 put( "nonce", nonce );
@@ -3142,7 +3142,7 @@ public class Hyperliquid extends HyperliquidApi
         vaultAddress = vaultAddressparams2Variable.first();
         params2 = vaultAddressparams2Variable.second();
         vaultAddress = this.formatVaultAddress(vaultAddress);
-        Map<String, Object> signature = (Map<String, Object>) this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);
+        Map<String, Object> signature = this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);
         request.put("action", cancelAction);
         request.put("signature", signature);
         if (!java.util.Objects.equals(vaultAddress, null))
@@ -3216,7 +3216,7 @@ public class Hyperliquid extends HyperliquidApi
             cancelAction.put("cancels", cancelReq);
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress", (String) null)).get(0);
             String vaultAddress = this.formatVaultAddress(vaultAddressOption);
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);
+            Map<String, Object> signature = this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);
             request.put("action", cancelAction);
             request.put("signature", signature);
             if (!java.util.Objects.equals(vaultAddress, null))
@@ -3277,7 +3277,7 @@ public class Hyperliquid extends HyperliquidApi
             vaultAddress = vaultAddressparams2Variable.first();
             params2 = vaultAddressparams2Variable.second();
             vaultAddress = this.formatVaultAddress(vaultAddress);
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);
+            Map<String, Object> signature = this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);
             request.put("action", cancelAction);
             request.put("signature", signature);
             if (!java.util.Objects.equals(vaultAddress, null))
@@ -3297,7 +3297,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object editOrdersRequest(Object orders, Map<String, Object> parameters)
+    public Map<String, Object> editOrdersRequest(Object orders, Map<String, Object> parameters)
     {
         this.checkRequiredCredentials(true);
         Boolean hasClientOrderId = false;
@@ -3430,7 +3430,7 @@ public class Hyperliquid extends HyperliquidApi
         vaultAddress = vaultAddressparams2Variable.first();
         params2 = vaultAddressparams2Variable.second();
         vaultAddress = this.formatVaultAddress(vaultAddress);
-        Map<String, Object> signature = (Map<String, Object>) this.signL1Action(modifyAction, nonce, vaultAddress, (Long) null);
+        Map<String, Object> signature = this.signL1Action(modifyAction, nonce, vaultAddress, (Long) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "action", modifyAction );
             put( "nonce", nonce );
@@ -3477,7 +3477,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an id argument")) ;
             }
-            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), symbol, (String) (type), (String) (side), amount, price, parameters);
+            var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
             List<Order> orders = (this.editOrders(new ArrayList<Object>(Arrays.asList(order)), globalParams)).join();
@@ -3506,7 +3506,7 @@ public class Hyperliquid extends HyperliquidApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.initializeClient()).join();
-            Map<String, Object> request = (Map<String, Object>) this.editOrdersRequest(orders, parameters);
+            Map<String, Object> request = this.editOrdersRequest(orders, parameters);
             Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
@@ -3561,7 +3561,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> createVault(Object name, Object description, Object initialUsd, Map<String, Object> parameters)
+    public CompletableFuture<Object> createVault(String name, String description, Object initialUsd, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3583,7 +3583,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "initialUsd", usd );
                 put( "nonce", nonce );
             }};
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(action, nonce, (String) null, (Long) null);
+            Map<String, Object> signature = this.signL1Action(action, nonce, (String) null, (Long) null);
             request.put("action", action);
             request.put("signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
@@ -4802,7 +4802,7 @@ public class Hyperliquid extends HyperliquidApi
                     vaultAddress = vaultAddress.replaceFirst("0x", "");
                 }
             }
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
+            Map<String, Object> signature = this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", updateAction );
                 put( "nonce", nonce );
@@ -4866,7 +4866,7 @@ public class Hyperliquid extends HyperliquidApi
             vaultAddress = vaultAddressparams2Variable.first();
             params2 = vaultAddressparams2Variable.second();
             vaultAddress = this.formatVaultAddress(vaultAddress);
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
+            Map<String, Object> signature = this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", updateAction );
                 put( "nonce", nonce );
@@ -4908,7 +4908,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4930,12 +4930,12 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4957,7 +4957,7 @@ public class Hyperliquid extends HyperliquidApi
             }};
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "modifyMargin", "vaultAddress", "subAccountAddress", (String) null)).get(0);
             String vaultAddress = this.formatVaultAddress(vaultAddressOption);
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
+            Map<String, Object> signature = this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", updateAction );
                 put( "nonce", nonce );
@@ -5058,7 +5058,7 @@ public class Hyperliquid extends HyperliquidApi
                 transferPayload.put("amount", strAmountFinal);
                 transferPayload.put("toPerp", toPerp);
                 transferPayload.put("nonce", nonce);
-                Object transferSig = this.buildUsdClassSendSig((Map<String, Object>) (transferPayload));
+                Map<String, Object> transferSig = this.buildUsdClassSendSig((Map<String, Object>) (transferPayload));
                 Map<String, Object> transferRequest = new HashMap<String, Object>() {{
                     put( "action", new HashMap<String, Object>() {{
                         put( "hyperliquidChain", transferPayload.get("hyperliquidChain") );
@@ -5136,7 +5136,7 @@ public class Hyperliquid extends HyperliquidApi
                 sendAssetPayload.put("amount", this.numberToString(amount));
                 sendAssetPayload.put("fromSubAccount", ((Boolean.TRUE.equals(isDeposit))) ? "" : subAccountAddress);
                 sendAssetPayload.put("nonce", nonce);
-                Object sendAssetSig = this.buildSendAssetSig((Map<String, Object>) (sendAssetPayload));
+                Map<String, Object> sendAssetSig = this.buildSendAssetSig((Map<String, Object>) (sendAssetPayload));
                 Map<String, Object> sendAssetRequest = new HashMap<String, Object>() {{
                     put( "action", new HashMap<String, Object>() {{
                         put( "hyperliquidChain", sendAssetPayload.get("hyperliquidChain") );
@@ -5172,7 +5172,7 @@ public class Hyperliquid extends HyperliquidApi
                 action.put("subAccountUser", subAccountAddress);
                 action.put("isDeposit", isDeposit);
                 action.put("usd", usd);
-                Object sig = this.signL1Action(action, nonce, (String) null, (Long) null);
+                Map<String, Object> sig = this.signL1Action(action, nonce, (String) null, (Long) null);
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "action", action );
                     put( "nonce", nonce );
@@ -5202,7 +5202,7 @@ public class Hyperliquid extends HyperliquidApi
                 action.put("isDeposit", isDeposit);
                 action.put("token", token);
                 action.put("amount", this.numberToString(amount));
-                Object sig = this.signL1Action(action, nonce, (String) null, (Long) null);
+                Map<String, Object> sig = this.signL1Action(action, nonce, (String) null, (Long) null);
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "action", action );
                     put( "nonce", nonce );
@@ -6001,7 +6001,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "type", "reserveRequestWeight" );
                 put( "weight", weight );
             }};
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(action, nonce, (String) null, (Long) null);
+            Map<String, Object> signature = this.signL1Action(action, nonce, (String) null, (Long) null);
             request.put("action", action);
             request.put("signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
@@ -6037,7 +6037,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 request.put("expiresAfter", expiresAfter);
             }
-            Map<String, Object> signature = (Map<String, Object>) this.signL1Action(action, nonce, (String) null, expiresAfter);
+            Map<String, Object> signature = this.signL1Action(action, nonce, (String) null, expiresAfter);
             request.put("action", action);
             request.put("signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, this.omit(parameters, "expiresAfter")))).join();
@@ -6071,7 +6071,7 @@ public class Hyperliquid extends HyperliquidApi
         return address;
     }
 
-    public Object handlePublicAddress(Object methodName, Map<String, Object> parameters)
+    public Object handlePublicAddress(String methodName, Map<String, Object> parameters)
     {
         Pair<String, Map<String, Object>> userAuxparamsUserVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), methodName, "user", "subAccountAddress", (String) null);
         String userAux = userAuxparamsUserVariable.first();
@@ -6230,7 +6230,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.safeValue(config, "cost", 1);
     }
 
-    public Object parseCreateEditOrderArgs(String id, Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Object parseCreateEditOrderArgs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
         String vaultAddress = null;

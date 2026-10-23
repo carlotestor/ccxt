@@ -2145,7 +2145,7 @@ public class Bydfi extends BydfiApi
 
     }
 
-    public Object handleSinceAndUntil(Object methodName, Long since, Map<String, Object> parameters)
+    public Object handleSinceAndUntil(String methodName, Long since, Map<String, Object> parameters)
     {
         List<Object> untilParamparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime", (Long) null);
         Long untilParam = (Long) ((List<Object>) untilParamparamsUntilVariable).get(0);
@@ -3380,7 +3380,7 @@ public class Bydfi extends BydfiApi
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(Object type, String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchTransactionsHelper(String type, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

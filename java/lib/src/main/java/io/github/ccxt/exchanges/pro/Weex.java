@@ -146,7 +146,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     }
 
-    public CompletableFuture<Object> subscribePrivate(Object messageHash, Object subscribeHash, String channel, Boolean isContract, Map<String, Object> parameters, Map<String, Object> subscription)
+    public CompletableFuture<Object> subscribePrivate(String messageHash, String subscribeHash, String channel, Boolean isContract, Map<String, Object> parameters, Map<String, Object> subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -177,7 +177,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     }
 
-    public void authenticate(Object url)
+    public void authenticate(String url)
     {
         this.checkRequiredCredentials(true);
         if ((!java.util.Objects.equals(this.clients, null)) && (((Map<?, ?>)this.clients).containsKey(url)))
@@ -1381,7 +1381,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
             String channel = "fill";
-            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash, (String) (subscriptionHash), channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1629,7 +1629,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
             String channel = "orders";
-            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, (String) (subscriptionHash), channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1958,7 +1958,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), urlType) + "/private");
             this.authenticate(url);
             Client client = this.client(url);
-            this.setBalanceCache(client, type);
+            this.setBalanceCache(client, (String) (type));
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
@@ -1967,12 +1967,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
             String messageHash = ((type + ":") + "balance");
-            return (this.subscribePrivate(messageHash, type, "account", isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
+            return (this.subscribePrivate(messageHash, (String) (type), "account", isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 
     }
 
-    public void setBalanceCache(Client client, Object type)
+    public void setBalanceCache(Client client, String type)
     {
         if ((client.subscriptions.containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
         {
@@ -1986,15 +1986,15 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
-            Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
+            this.balance.put(type, new HashMap<String, Object>() {{}});
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2147,7 +2147,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            List<Object> newPositions = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters, new HashMap<String, Object>() {{}})).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(messageHash, (String) (subscriptionHash), channel, true, parameters, new HashMap<String, Object>() {{}})).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2174,7 +2174,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

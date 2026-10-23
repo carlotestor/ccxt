@@ -377,12 +377,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(paramsMarketType, "settle"), "USDT");
             Object messageHash = ":balance";
             messageHash = ((Boolean.TRUE.equals(usePerpetualApi))) ? ("perpetual" + messageHash) : Helpers.add(type, messageHash);
-            return (this.subscribePrivate((String) (type), messageHash, paramsMarketType)).join();
+            return (this.subscribePrivate((String) (type), (String) (messageHash), paramsMarketType)).join();
         }).thenApply(Balances::new);
 
     }
 
-    public void handleBalance(Object type, Client client, Object message)
+    public void handleBalance(String type, Client client, Object message)
     {
         // spot
         //    [
@@ -837,7 +837,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public void customHandleDelta(Object bookside, Object delta, Map<String, Object> market)
     {
-        List<Object> bidAsk = (List<Object>) this.customParseBidAsk(delta, 0, 1, market);
+        List<Object> bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
@@ -1761,7 +1761,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
     }
 
-    public CompletableFuture<Object> subscribePrivate(String type, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePrivate(String type, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

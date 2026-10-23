@@ -2669,7 +2669,7 @@ public class Limitless extends LimitlessApi
 }})) );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, signRequest);
-        return this.signMessage(msg, this.privateKey);
+        return this.signMessage(msg, (String) (this.privateKey));
     }
 
     public String hashMessage(Object message)
@@ -2677,7 +2677,7 @@ public class Limitless extends LimitlessApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = signature.get("r");
@@ -2689,9 +2689,9 @@ public class Limitless extends LimitlessApi
         return result.toLowerCase();
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public Object signEvmTransaction(Map<String, Object> tx, Object privateKey)
@@ -3556,7 +3556,7 @@ public class Limitless extends LimitlessApi
                 {
                     throw new ExchangeError((this.id + " fetchEvents() missing m")) ;
                 }
-                Helpers.addElementToObject(this.markets, ((Map<String, Object>)m).get("market"), m);
+                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
                 if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
                 {
                     if (!(eventGroups.containsKey(eventKey)))

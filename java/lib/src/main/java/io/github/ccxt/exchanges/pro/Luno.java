@@ -276,7 +276,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
         if (java.util.Objects.equals(asks, null))
         {
-            Boolean inSequence = this.isOrderBookDeltaInSequence(client, (Map<String, Object>) (message), symbol);
+            Boolean inSequence = this.isOrderBookDeltaInSequence(client, (Map<String, Object>) (message), (String) (symbol));
             if (!Boolean.TRUE.equals(inSequence))
             {
                 return;
@@ -288,7 +288,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             orderbook.reset(snapshot);
         } else
         {
-            this.handleBookDelta(orderbook, message);
+            this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (orderbook), message);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
@@ -335,7 +335,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         return result;
     }
 
-    public void handleBookDelta(Object orderbook, Object message)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object message)
     {
         //
         //  create
@@ -380,8 +380,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
-        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
         List<Object> tradeUpdates = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
@@ -470,7 +470,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {string} symbol unified market symbol of the book
      * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
      */
-    public Boolean isOrderBookDeltaInSequence(Client client, Map<String, Object> message, Object symbol)
+    public Boolean isOrderBookDeltaInSequence(Client client, Map<String, Object> message, String symbol)
     {
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long storedNonce = this.safeInteger(orderbook, "nonce");

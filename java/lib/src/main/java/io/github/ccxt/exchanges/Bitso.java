@@ -616,7 +616,7 @@ public class Bitso extends BitsoApi
             //         ]
             //     }
             List<Object> markets = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", (Object) null);
+            Map<String, Object> currencies = (Map<String, Object>) this.cachedCurrenciesForLoad();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {

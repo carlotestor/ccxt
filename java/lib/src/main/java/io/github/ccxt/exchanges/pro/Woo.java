@@ -102,7 +102,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }});
     }
 
-    public Long requestId(Object url)
+    public Long requestId(String url)
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
@@ -111,7 +111,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return newValue;
     }
 
-    public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message)
+    public CompletableFuture<Object> watchPublic(String messageHash, Map<String, Object> message)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -132,7 +132,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public CompletableFuture<Object> unwatchPublic(Object subHash, String symbol, Object topic, Map<String, Object> parameters)
+    public CompletableFuture<Object> unwatchPublic(String subHash, String symbol, String topic, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -309,7 +309,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     }
                     if ((ts != null && (timestamp == null || ts > timestamp)))
                     {
-                        this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
+                        this.handleOrderBookMessage(client, (Map<String, Object>) (message), (io.github.ccxt.ws.WsOrderBook) (orderbook));
                         client.resolve(orderbook, topic);
                     }
                 } catch(Exception e)
@@ -395,7 +395,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                         continue;
                     } else
                     {
-                        this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
+                        this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), (io.github.ccxt.ws.WsOrderBook) (orderbook));
                     }
                 }
                 if (!java.util.Objects.equals(symbol, null))
@@ -416,14 +416,14 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
         Long timestamp = this.safeInteger(message, "ts");
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         return orderbook;
     }
 
@@ -595,7 +595,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            Object tickers = (this.watchPublic((String) (topic), (Map<String, Object>) (message))).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -704,7 +704,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object bidsasks = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            Object bidsasks = (this.watchPublic((String) (topic), (Map<String, Object>) (message))).join();
             if (this.newUpdates)
             {
                 return bidsasks;
@@ -1155,7 +1155,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Map<String, Object> message, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String messageHash, Map<String, Object> message, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1228,7 +1228,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             request.put("event", "subscribe");
             request.put("topic", topic);
             Map<String, Object> message = this.extend(request, paramsOmitted);
-            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1634,7 +1634,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1737,7 +1737,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            return (this.watchPrivate((String) (messageHash), (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 
     }

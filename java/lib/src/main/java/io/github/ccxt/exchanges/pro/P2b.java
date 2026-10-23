@@ -94,7 +94,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
      * @param {object} [params] extra parameters specific to the p2b api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribe(Object name, Object messageHash, Object request, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(String name, String messageHash, Object request, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

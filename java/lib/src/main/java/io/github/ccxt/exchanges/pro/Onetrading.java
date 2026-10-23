@@ -452,7 +452,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         } else if (java.util.Objects.equals(type, "ORDER_BOOK_UPDATE"))
         {
             List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
-            this.handleBookDeltas(orderbook, changes);
+            this.handleBookDeltas((io.github.ccxt.ws.WsOrderBook) (orderbook), changes);
         } else
         {
             throw new NotSupported(((this.id + " watchOrderBook() did not recognize message type ") + type)) ;
@@ -464,7 +464,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(orderbook, channel);
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         //
         //   [ 'BUY', "0.053595", "0" ]
@@ -473,11 +473,11 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String type = this.safeString(delta, 0);
         if (java.util.Objects.equals(type, "BUY"))
         {
-            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
             bids.storeArray(bidAsk);
         } else if (java.util.Objects.equals(type, "SELL"))
         {
-            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             asks.storeArray(bidAsk);
         } else
         {
@@ -485,7 +485,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
     }
 
-    public void handleBookDeltas(Object orderbook, Object deltas)
+    public void handleBookDeltas(io.github.ccxt.ws.WsOrderBook orderbook, Object deltas)
     {
         //
         //    [
@@ -1447,7 +1447,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public CompletableFuture<Object> watchMany(Object messageHash, Map<String, Object> request, Object subscriptionHash, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMany(String messageHash, Map<String, Object> request, String subscriptionHash, List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

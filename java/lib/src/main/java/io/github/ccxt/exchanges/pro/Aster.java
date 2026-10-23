@@ -109,7 +109,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }});
     }
 
-    public String getAccountTypeFromUrl(Object url)
+    public String getAccountTypeFromUrl(String url)
     {
         if (((String)url).indexOf("fstream") > -1)
         {
@@ -518,7 +518,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //             "T": 1754668800000
         //     }
         //
-        String marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = this.getAccountTypeFromUrl((String) (client.url));
         Map<String, Object> ticker = message;
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, (String) (marketType));
         String symbol = (String) parsed.get("symbol");
@@ -702,7 +702,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //             "E": 1754896692926
         //     }
         //
-        String marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = this.getAccountTypeFromUrl((String) (client.url));
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
@@ -923,7 +923,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //         "m": false
         //     }
         //
-        String marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = this.getAccountTypeFromUrl((String) (client.url));
         Map<String, Object> trade = message;
         String marketId = this.safeString(trade, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
@@ -1308,7 +1308,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //             ]
         //     }
         //
-        String marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = this.getAccountTypeFromUrl((String) (client.url));
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Long timestamp = this.safeInteger(data, "T");
@@ -1558,7 +1558,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //             }
         //     }
         //
-        String marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = this.getAccountTypeFromUrl((String) (client.url));
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
@@ -1747,7 +1747,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             (this.authenticate(typeMarketType, paramsMarketType)).join();
             String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
-            this.setBalanceCache(client, typeMarketType);
+            this.setBalanceCache(client, (String) (typeMarketType));
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
@@ -1762,7 +1762,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void setBalanceCache(Client client, Object type)
+    public void setBalanceCache(Client client, String type)
     {
         if ((client.subscriptions.containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
         {
@@ -1776,15 +1776,15 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
-            Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
+            this.balance.put(type, new HashMap<String, Object>() {{}});
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1859,7 +1859,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //         }
         //     }
         //
-        String accountType = this.getAccountTypeFromUrl(client.url);
+        String accountType = this.getAccountTypeFromUrl((String) (client.url));
         String messageHash = (accountType + ":balance");
         if (java.util.Objects.equals((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), null))
         {
@@ -1968,7 +1968,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2168,7 +2168,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
-            this.setBalanceCache(client, typeMarketType);
+            this.setBalanceCache(client, (String) (typeMarketType));
             List<Object> orders = (this.<List<Object>>watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), null, new ArrayList<Object>(Arrays.asList(typeMarketType)), null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -2225,7 +2225,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
-            this.setBalanceCache(client, typeMarketType);
+            this.setBalanceCache(client, (String) (typeMarketType));
             List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), null, new ArrayList<Object>(Arrays.asList(typeMarketType)), null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -2514,7 +2514,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     public Object getMarketFromOrder(Client client, Map<String, Object> order)
     {
         String marketId = this.safeString(order, "s");
-        String marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = this.getAccountTypeFromUrl((String) (client.url));
         return this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
     }
 

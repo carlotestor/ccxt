@@ -2256,14 +2256,14 @@ public class Lbank extends LbankApi
             }
             if (java.util.Objects.equals(method, "fetchOrderSupplement"))
             {
-                return (this.fetchOrderSupplement(id, symbol, parameters)).join();
+                return (this.fetchOrderSupplement((String) (id), symbol, parameters)).join();
             }
-            return (this.fetchOrderDefault(id, symbol, parameters)).join();
+            return (this.fetchOrderDefault((String) (id), symbol, parameters)).join();
         }).thenApply(Order::new);
 
     }
 
-    public CompletableFuture<Object> fetchOrderSupplement(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrderSupplement(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2309,7 +2309,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public CompletableFuture<Object> fetchOrderDefault(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrderDefault(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2702,10 +2702,10 @@ public class Lbank extends LbankApi
             Object response = null;
             if (java.util.Objects.equals(method, "fetchDepositAddressSupplement"))
             {
-                response = (this.fetchDepositAddressSupplement(code, paramsOmitted)).join();
+                response = (this.fetchDepositAddressSupplement((String) (code), paramsOmitted)).join();
             } else
             {
-                response = (this.fetchDepositAddressDefault(code, paramsOmitted)).join();
+                response = (this.fetchDepositAddressDefault((String) (code), paramsOmitted)).join();
             }
             return response;
         }).thenApply(DepositAddress::new);
@@ -3447,7 +3447,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parsePublicDepositWithdrawFees(List<Object> response, Object codes)
+    public Map<String, Object> parsePublicDepositWithdrawFees(List<Object> response, Object codes)
     {
         //
         //    [
@@ -3643,7 +3643,7 @@ public class Lbank extends LbankApi
                     if (java.util.Objects.equals(cachedPem, null))
                     {
                         pem = this.convertSecretToPem(this.encode(this.secret));
-                        Helpers.addElementToObject(this.options, "pem", pem);
+                        this.options.put("pem", pem);
                     } else
                     {
                         pem = cachedPem;

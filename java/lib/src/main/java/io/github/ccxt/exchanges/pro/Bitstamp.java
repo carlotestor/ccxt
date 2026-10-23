@@ -149,7 +149,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchChannel(Object channel, Object subHash, Object topic, Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchChannel(String channel, String subHash, String topic, Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -230,20 +230,20 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        this.handleBookDelta(storedOrderBook, delta);
+        this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (storedOrderBook), delta);
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         Long timestamp = this.safeTimestamp(delta, "timestamp");
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "microtimestamp"));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
+        orderbook.put("nonce", this.safeInteger(delta, "microtimestamp"));
         List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
-        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
-        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }
@@ -1209,8 +1209,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                     String userId = this.safeString(response, "user_id");
                     Long validity = this.safeIntegerProduct(response, "valid_sec", 1000);
                     this.options.put("expiresIn", this.sum(time, validity));
-                    Helpers.addElementToObject(this.options, "userId", userId);
-                    Helpers.addElementToObject(this.options, "wsSessionToken", sessionToken);
+                    this.options.put("userId", userId);
+                    this.options.put("wsSessionToken", sessionToken);
                     // settle the flight: client.resolve deletes the future from
                     // client.futures and wakes every waiter parked on it
                     client.resolve(sessionToken, messageHash);
@@ -1229,7 +1229,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     }
 
-    public CompletableFuture<Object> subscribePrivate(Map<String, Object> subscription, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePrivate(Map<String, Object> subscription, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

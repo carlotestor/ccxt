@@ -81,7 +81,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }};
     }
 
-    public CompletableFuture<Object> subscribe(Object name, String symbol, String messageHashStart, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(String name, String symbol, String messageHashStart, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -124,7 +124,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object name, List<String> symbols, String messageHashStart, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribeMultiple(String name, List<String> symbols, String messageHashStart, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

@@ -141,7 +141,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // so that multiple calls don't asynchronously
             // fetch different urls and overwrite each other
             urls.put(connectId, this.spawnWithResult("negotiateHelper", privateChannel, connectId, parameters));
-            Helpers.addElementToObject(this.options, "urls", urls);
+            this.options.put("urls", urls);
             future = (urls == null || connectId == null ? null : urls.get(connectId));
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -208,7 +208,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return requestId;
     }
 
-    public CompletableFuture<Object> subscribe(Object url, Object messageHash, Object subscriptionHash, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> subscribe(String url, String messageHash, String subscriptionHash, Map<String, Object> parameters, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -230,7 +230,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> subscribePublicUta(String messageHash, Object channel, Object symbol, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> subscribePublicUta(String messageHash, String channel, String symbol, Map<String, Object> parameters, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -267,7 +267,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> subscribePrivateUta(Object messageHashes, Object subscribeHash, Object channel, String symbol, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> subscribePrivateUta(Object messageHashes, String subscribeHash, String channel, String symbol, Map<String, Object> parameters, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -349,7 +349,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                         String utaTokenString = this.safeString(data, "token");
                         this.options.put("utaTokenLastUpdate", now);
-                        Helpers.addElementToObject(this.options, "utaToken", utaTokenString);
+                        this.options.put("utaToken", utaTokenString);
                         client.resolve(utaTokenString, messageHash);
                     } catch(Exception e)
                     {
@@ -363,17 +363,17 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> unSubscribe(Object url, Object messageHash, Object topic, Object subscriptionHash, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> unSubscribe(String url, String messageHash, String topic, String subscriptionHash, Map<String, Object> parameters, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unSubscribeMultiple(url, new ArrayList<Object>(Arrays.asList(messageHash)), topic, new ArrayList<Object>(Arrays.asList(subscriptionHash)), parameters, subscription)).join();
+            return (this.unSubscribeMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), (String) (topic), new ArrayList<Object>(Arrays.asList(subscriptionHash)), parameters, subscription)).join();
         });
 
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object url, Object messageHashes, Object topic, Object subscriptionHashes, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> subscribeMultiple(String url, Object messageHashes, String topic, Object subscriptionHashes, Map<String, Object> parameters, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -400,7 +400,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> unSubscribeMultiple(Object url, Object messageHashes, Object topic, Object subscriptionHashes, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> unSubscribeMultiple(String url, Object messageHashes, String topic, Object subscriptionHashes, Map<String, Object> parameters, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -472,7 +472,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String method = (((java.util.Objects.equals(isFuturesMethod, true)))) ? "/contractMarket/ticker" : spotMethod;
             Map<String, Object> query = (((java.util.Objects.equals(isFuturesMethod, true)))) ? paramsUta : paramsSpotMethod;
             String topic = ((method + ":") + market.get("id"));
-            return (this.subscribe(url, messageHash, topic, query, (Object) null)).join();
+            return (this.subscribe((String) (url), messageHash, topic, query, (Object) null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -529,7 +529,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 String messageHash = ("unsubscribe:" + subMessageHash);
                 subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash, topic)));
                 subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash, topic)));
-                return (this.unSubscribe(url, messageHash, topic, subMessageHash, query, subscription)).join();
+                return (this.unSubscribe((String) (url), messageHash, topic, subMessageHash, query, subscription)).join();
             }
         });
 
@@ -602,7 +602,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (java.util.Objects.equals(symbolsNormalized, null))
             {
                 String allTopic = (method + ":all");
-                tickers = (this.subscribe(url, messageHash, allTopic, query, (Object) null)).join();
+                tickers = (this.subscribe((String) (url), messageHash, allTopic, query, (Object) null)).join();
                 if (this.newUpdates)
                 {
                     return tickers;
@@ -611,7 +611,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 List<String> marketIds = this.marketIds(symbolsNormalized);
                 String symbolsTopic = ((method + ":") + String.join(",", (List<String>)marketIds));
-                tickers = (this.subscribeMultiple(url, messageHashes, symbolsTopic, topics, query, (Object) null)).join();
+                tickers = (this.subscribeMultiple((String) (url), messageHashes, symbolsTopic, topics, query, (Object) null)).join();
                 if (this.newUpdates)
                 {
                     Map<String, Object> newDict = new HashMap<String, Object>() {{}};
@@ -959,7 +959,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> watchMultiHelper(Object methodName, Object channelName, Object isFuturesChannel, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultiHelper(String methodName, String channelName, Object isFuturesChannel, List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1127,7 +1127,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     channelName = "/contractMarket/limitCandle:";
                 }
                 String topic = (((channelName + market.get("id")) + "_") + period);
-                ohlcv = (this.subscribe(url, messageHash, topic, paramsUta, (Object) null)).join();
+                ohlcv = (this.subscribe((String) (url), messageHash, topic, paramsUta, (Object) null)).join();
             }
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1202,7 +1202,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
                 subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash, topic)));
                 subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash, topic)));
-                return (this.unSubscribe(url, messageHash, topic, messageHash, paramsUta, subscription)).join();
+                return (this.unSubscribe((String) (url), messageHash, topic, messageHash, paramsUta, subscription)).join();
             }
         });
 
@@ -1412,7 +1412,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)subscriptionHashes).add((channelName + marketId));
             }
-            List<Object> trades = (List<Object>) (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters, (Object) null)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple((String) (url), messageHashes, topic, subscriptionHashes, parameters, (Object) null)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -1475,7 +1475,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "unsubscribe", true );
                 put( "symbols", symbolsNormalized );
             }};
-            return (this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, parameters, subscription)).join();
+            return (this.unSubscribeMultiple((String) (url), messageHashes, topic, messageHashes, parameters, subscription)).join();
         });
 
     }
@@ -1858,7 +1858,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     subscription = hx4NewMap1;
                 }
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, paramsMethod, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple((String) (url), messageHashes, topic, subscriptionHashes, paramsMethod, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1941,7 +1941,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "topic", "orderbook" );
                 put( "subMessageHashes", subscriptionHashes );
             }};
-            return (this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, paramsMethod, subscription)).join();
+            return (this.unSubscribeMultiple((String) (url), messageHashes, topic, messageHashes, paramsMethod, subscription)).join();
         });
 
     }
@@ -2044,7 +2044,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return;
             }
         }
-        this.handleBookDelta(((Map<?, ?>)this.orderbooks).get(symbol), data);
+        this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (((Map<?, ?>)this.orderbooks).get(symbol)), data);
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
@@ -2110,7 +2110,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return;
             }
         }
-        this.handleBookDelta(((Map<?, ?>)this.orderbooks).get(symbol), data);
+        this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (((Map<?, ?>)this.orderbooks).get(symbol)), data);
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
@@ -2144,20 +2144,20 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         Long timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
         if (java.util.Objects.equals(timestamp, null))
         {
             timestamp = (Long) this.safeInteger2(delta, "time", "timestamp");
         }
-        Helpers.addElementToObject(orderbook, "nonce", this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceEnd", "sequence", "C")), timestamp));
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("nonce", this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceEnd", "sequence", "C")), timestamp));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         String change = this.safeString(delta, "change");
         Object changes = this.safeDict(delta, "changes", delta);
-        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
-        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         if (!java.util.Objects.equals(change, null))
         {
             // handling futures orderbook update
@@ -2227,7 +2227,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             Helpers.addElementToObject(limits, symbol, limit);
         }
-        Helpers.addElementToObject(this.options, "orderBookLimits", limits);
+        this.options.put("orderBookLimits", limits);
     }
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)
@@ -2401,7 +2401,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "privateChannel", true );
                 }};
-                orders = (this.subscribe(url, messageHash, topic, this.extend(request, paramsMarketType), (Object) null)).join();
+                orders = (this.subscribe((String) (url), messageHash, topic, this.extend(request, paramsMarketType), (Object) null)).join();
             }
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -2871,7 +2871,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     String suffix = this.getMyTradesMessageHashSuffix(topic);
                     messageHash = (messageHash + suffix);
                 }
-                trades = (this.subscribe(url, messageHash, topic, this.extend(request, paramsTopic), (Object) null)).join();
+                trades = (this.subscribe((String) (url), messageHash, (String) (topic), this.extend(request, paramsTopic), (Object) null)).join();
             }
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -3115,7 +3115,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 url = (this.negotiate(true, isClassicFuturesMethod, new HashMap<String, Object>() {{}})).join();
             }
             Client client = this.client(url);
-            this.setBalanceCache(client, uniformType);
+            this.setBalanceCache(client, (String) (uniformType));
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
@@ -3129,7 +3129,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> extendedParams = new HashMap<String, Object>();
                 extendedParams.put("accountType", uniformType);
                 String channel = "balance";
-                return (this.subscribePrivateUta(new ArrayList<Object>(Arrays.asList(messageHash)), subscriptionHash, channel, (String) null, this.extend(extendedParams, paramsOmitted), (Object) null)).join();
+                return (this.subscribePrivateUta(new ArrayList<Object>(Arrays.asList(messageHash)), (String) (subscriptionHash), channel, (String) null, this.extend(extendedParams, paramsOmitted), (Object) null)).join();
             } else
             {
                 String requestId = String.valueOf(this.requestId());
@@ -3150,7 +3150,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public void setBalanceCache(Client client, Object type)
+    public void setBalanceCache(Client client, String type)
     {
         if ((client.subscriptions.containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
         {
@@ -3164,15 +3164,15 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
-            Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
+            this.balance.put(type, new HashMap<String, Object>() {{}});
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3381,16 +3381,16 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }};
             String messageHash = ("position:" + market.get("symbol"));
             Client client = this.client(url);
-            this.setPositionCache(client, symbol);
+            this.setPositionCache(client, (String) (symbol));
             Object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", true);
             Object awaitPositionSnapshot = this.handleOption("watchPosition", "awaitPositionSnapshot", true);
-            Object currentPosition = this.getCurrentPosition(symbol);
+            Object currentPosition = this.getCurrentPosition((String) (symbol));
             if ((java.util.Objects.equals(fetchPositionSnapshot, true)) && (java.util.Objects.equals(awaitPositionSnapshot, true)) && (java.util.Objects.equals(currentPosition, null)))
             {
                 Object snapshot = client.future(("fetchPositionSnapshot:" + symbol)).getFuture().join();
                 return snapshot;
             }
-            return (this.subscribe(url, messageHash, topic, this.extend(request, parameters), (Object) null)).join();
+            return (this.subscribe((String) (url), messageHash, topic, this.extend(request, parameters), (Object) null)).join();
         }).thenApply(Position::new);
 
     }
@@ -3464,7 +3464,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public Object getCurrentPosition(Object symbol)
+    public Object getCurrentPosition(String symbol)
     {
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -3497,7 +3497,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash, Object uta)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, Object uta)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3528,7 +3528,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public void setPositionCache(Client client, Object symbol)
+    public void setPositionCache(Client client, String symbol)
     {
         Object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", false);
         if (java.util.Objects.equals(fetchPositionSnapshot, true))
@@ -3537,12 +3537,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionSnapshot(client, messageHash, symbol); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadPositionSnapshot(client, messageHash, (String) (symbol)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }
     }
 
-    public CompletableFuture<Object> loadPositionSnapshot(Client client, String messageHash, Object symbol)
+    public CompletableFuture<Object> loadPositionSnapshot(Client client, String messageHash, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3662,7 +3662,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "", (String) null);
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Object currentPosition = this.getCurrentPosition(symbol);
+        Object currentPosition = this.getCurrentPosition((String) (symbol));
         String messageHash = ("position:" + symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object newPosition = this.parsePosition((Map<String, Object>) (data), (Map<String, Object>) null);
@@ -3715,7 +3715,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String marketId = this.safeString(data, "s");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Object currentPosition = this.getCurrentPosition(symbol);
+        Object currentPosition = this.getCurrentPosition((String) (symbol));
         Object newPosition = this.parseWsUtaPosition((Map<String, Object>) (data), (Map<String, Object>) null);
         List<String> keys = new ArrayList<String>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -3820,7 +3820,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
             String channel = "funding-fee";
             String messageHash = ("fundingRate:" + symbolValue);
-            return (this.subscribePublicUta(messageHash, channel, symbolValue, parameters, (Object) null)).join();
+            return (this.subscribePublicUta(messageHash, channel, (String) (symbolValue), parameters, (Object) null)).join();
         }).thenApply(FundingRate::new);
 
     }
@@ -3854,7 +3854,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)) );
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(unSubMessageHash)) );
             }};
-            return (this.subscribePublicUta(unSubMessageHash, channel, symbolValue, parameters, subscription)).join();
+            return (this.subscribePublicUta(unSubMessageHash, channel, (String) (symbolValue), parameters, subscription)).join();
         });
 
     }
@@ -3947,7 +3947,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
             String channel = "mark-price";
             String messageHash = ("uta:ticker:" + symbolValue);
-            return (this.subscribePublicUta(messageHash, channel, symbolValue, parameters, (Object) null)).join();
+            return (this.subscribePublicUta(messageHash, channel, (String) (symbolValue), parameters, (Object) null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -3981,7 +3981,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)) );
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(unSubMessageHash)) );
             }};
-            return (this.subscribePublicUta(unSubMessageHash, channel, symbolValue, parameters, subscription)).join();
+            return (this.subscribePublicUta(unSubMessageHash, channel, (String) (symbolValue), parameters, subscription)).join();
         });
 
     }
@@ -4158,7 +4158,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
     }
 
-    public String getMessageHash(Object elementName, String symbol)
+    public String getMessageHash(String elementName, String symbol)
     {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...

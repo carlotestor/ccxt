@@ -2977,7 +2977,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3038,7 +3038,7 @@ public class Polymarket extends PolymarketApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -3058,7 +3058,7 @@ public class Polymarket extends PolymarketApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -3160,7 +3160,7 @@ public class Polymarket extends PolymarketApi
                 put( "secret", Polymarket.this.safeString(response, "secret") );
                 put( "expires", expiry );
             }};
-            Helpers.addElementToObject(this.options, "proxyCredentials", credentials);
+            this.options.put("proxyCredentials", credentials);
             return credentials;
         }).thenApply(res -> (Map<String, Object>) res);
 

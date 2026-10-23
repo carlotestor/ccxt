@@ -1036,7 +1036,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
             }
-            Map<String, Object> request = (this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
+            Map<String, Object> request = (this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsExtended)).join();
             Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict(request, "place_order", new HashMap<String, Object>() {{}});
             if (placeOrder.containsKey("trigger"))
             {
@@ -1103,7 +1103,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
             }
-            Map<String, Object> request = (this.editOrderRequest(id, symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
+            Map<String, Object> request = (this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsExtended)).join();
             Object response = (this.watchExecuteRequest((String) (requestIdString), (Map<String, Object>) (request))).join();
             //
             //     {
@@ -1288,7 +1288,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> watchPublic(String streamType, Object market, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublic(String streamType, Object market, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1325,7 +1325,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> watchPrivate(String streamType, Map<String, Object> stream, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String streamType, Map<String, Object> stream, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1356,7 +1356,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> unWatchPrivate(Map<String, Object> stream, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchPrivate(Map<String, Object> stream, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1510,7 +1510,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> unWatchPublic(String streamType, Map<String, Object> market, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchPublic(String streamType, Map<String, Object> market, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1985,7 +1985,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(tickers, "ticker");
     }
 
-    public Object parseWsAllBidsAsks(Map<String, Object> message)
+    public Map<String, Object> parseWsAllBidsAsks(Map<String, Object> message)
     {
         //
         //     {
@@ -2027,7 +2027,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     public void handleAllBidsAsks(Client client, Map<String, Object> message)
     {
-        Map<String, Object> tickers = (Map<String, Object>) this.parseWsAllBidsAsks((Map<String, Object>) (message));
+        Map<String, Object> tickers = this.parseWsAllBidsAsks((Map<String, Object>) (message));
         List<String> symbols = new ArrayList<String>(tickers.keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {

@@ -42,7 +42,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return this.deepExtend(superDescribe, this.describeData());
     }
 
-    public Object describeData()
+    public Map<String, Object> describeData()
     {
         return new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -389,7 +389,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> extendedRequest = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> extendedRequest = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_amend");
             Object url = this.getUrlByMarket(market);
@@ -432,7 +432,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 market = this.market(symbol);
             }
-            var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
+            var requestrequestParamsVariable = this.fetchOrderRequest((String) (id), symbol, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
@@ -763,7 +763,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 return;
             }
-            this.handleBookDelta(orderbook, result);
+            this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (orderbook), result);
         }
         client.resolve(orderbook, messageHash);
     }
@@ -873,7 +873,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             return;
         } else if ((!java.util.Objects.equals(deltaStart, null)) && (!java.util.Objects.equals(nonce, null)) && (((nonce != null && nonce >= (deltaStart - 1L)))))
         {
-            this.handleBookDelta(storedOrderBook, delta);
+            this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (storedOrderBook), delta);
         } else
         {
             client.subscriptions.remove(messageHash);
@@ -928,16 +928,16 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         Long timestamp = this.safeInteger(delta, "t");
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
+        orderbook.put("nonce", this.safeInteger(delta, "u"));
         List<Object> bids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
-        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
-        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }
@@ -1799,7 +1799,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void setPositionsCache(Client client, Object type, List<String> symbols)
+    public void setPositionsCache(Client client, String type, List<String> symbols)
     {
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -1816,15 +1816,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
         {
-            Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash, Object type)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, String type)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1832,8 +1832,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("type", type);
             List<Position> positions = (this.fetchPositions((List<String>) null, mapLiteral1)).join();
-            Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
-            Object cache = Helpers.GetValue(this.positions, type);
+            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
@@ -1887,9 +1887,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //        }]
         //    }
         //
-        Object type = this.getMarketTypeByUrl(client.url);
+        Object type = this.getMarketTypeByUrl((String) (client.url));
         List<Object> data = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
-        Object cache = Helpers.GetValue(this.positions, type);
+        Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -2738,7 +2738,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public Object getMarketTypeByUrl(Object url)
+    public Object getMarketTypeByUrl(String url)
     {
         Map<String, Object> findBy = new HashMap<String, Object>() {{
             put( "op-", "option" );
@@ -2771,7 +2771,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return reqid;
     }
 
-    public CompletableFuture<Object> subscribePublic(String url, Object messageHash, Object payload, String channel, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> subscribePublic(String url, String messageHash, Object payload, String channel, Map<String, Object> parameters, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2912,7 +2912,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public CompletableFuture<Object> subscribePrivate(String url, Object messageHash, Object payload, String channel, Map<String, Object> parameters, Boolean requiresUid)
+    public CompletableFuture<Object> subscribePrivate(String url, String messageHash, Object payload, String channel, Map<String, Object> parameters, Boolean requiresUid)
     {
 
         return BaseExchange.supplyAsync(() -> {

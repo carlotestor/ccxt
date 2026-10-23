@@ -2879,10 +2879,10 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.createSpotOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             } else if (java.util.Objects.equals(market.get("swap"), true))
             {
-                return (this.createSwapOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.createSwapOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             } else
             {
                 throw new NotSupported((((this.id + " createOrder() is not supported for ") + market.get("type")) + " type of markets")) ;
@@ -2941,7 +2941,7 @@ public class Hashkey extends HashkeyApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3164,7 +3164,7 @@ public class Hashkey extends HashkeyApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSwapOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSwapOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3798,7 +3798,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public void checkTypeParam(Object methodName, Map<String, Object> parameters)
+    public void checkTypeParam(String methodName, Map<String, Object> parameters)
     {
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
@@ -3810,7 +3810,7 @@ public class Hashkey extends HashkeyApi
         }
     }
 
-    public Object handleTriggerOptionAndParams(Object parameters, Object methodName, Object defaultValue)
+    public Object handleTriggerOptionAndParams(Object parameters, String methodName, Object defaultValue)
     {
         Object isTrigger = defaultValue;
         Pair<Boolean, Map<String, Object>> isTriggerStopparamsStopVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), methodName, "stop", "trigger", isTrigger);
@@ -4522,7 +4522,7 @@ public class Hashkey extends HashkeyApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4543,12 +4543,12 @@ public class Hashkey extends HashkeyApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

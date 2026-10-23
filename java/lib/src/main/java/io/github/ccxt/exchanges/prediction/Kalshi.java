@@ -452,7 +452,7 @@ public class Kalshi extends KalshiApi
                 for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
                 {
                     Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
-                    List<Object> parsed = (List<Object>) this.parseBinaryMarketToOutcomes((Map<String, Object>) (raw));
+                    List<Object> parsed = this.parseBinaryMarketToOutcomes((Map<String, Object>) (raw));
                     String eventTicker = this.safeString(raw, "event_ticker");
                     String eventTitle = this.safeString(raw, "title", eventTicker);
                     String eventKey = (((!java.util.Objects.equals(eventTitle, null) && !java.util.Objects.equals(eventTitle, "")))) ? this.shortenSlug((String) (eventTitle)) : "";
@@ -500,7 +500,7 @@ public class Kalshi extends KalshiApi
 
     }
 
-    public Object parseBinaryMarketToOutcomes(Map<String, Object> raw)
+    public List<Object> parseBinaryMarketToOutcomes(Map<String, Object> raw)
     {
         return new ArrayList<Object>(Arrays.asList(this.parseMarket(raw)));
     }
@@ -563,7 +563,7 @@ public class Kalshi extends KalshiApi
                     {
                         throw new ExchangeError((this.id + " fetchOutcome() could not resolve parsed")) ;
                     }
-                    Helpers.addElementToObject(this.markets, ((Map<String, Object>)parsed).get("market"), parsed);
+                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)parsed).get("market"), parsed);
                     // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                     // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
                     this.indexMarketOutcomes(parsed);
@@ -673,7 +673,7 @@ public class Kalshi extends KalshiApi
                     {
                         throw new ExchangeError((this.id + " fetchOutcomes() could not resolve parsed")) ;
                     }
-                    Helpers.addElementToObject(this.markets, ((Map<String, Object>)parsed).get("market"), parsed);
+                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)parsed).get("market"), parsed);
                     this.indexMarketOutcomes(parsed);
                 }
             }
@@ -2755,7 +2755,7 @@ public class Kalshi extends KalshiApi
             } else if (!java.util.Objects.equals(eventId, null))
             {
                 // kalshi's event id (and slug) is the event_ticker — fetch it directly
-                Map<String, Object> fullEvent = (this.fetchRawEventByTicker(eventId, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+                Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) (eventId), ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
                 rawEvents = new ArrayList<Object>(Arrays.asList(fullEvent));
             } else
             {
@@ -2780,7 +2780,7 @@ public class Kalshi extends KalshiApi
                 for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
                     Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
-                    Helpers.addElementToObject(this.markets, ((Map<String, Object>)m).get("market"), m);
+                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
                 }
             }
             this.populateOutcomes();
@@ -2850,7 +2850,7 @@ public class Kalshi extends KalshiApi
                 }
                 try
                 {
-                    Map<String, Object> fullEvent = (this.fetchRawEventByTicker((eventTickers == null || ei < 0 || ei >= eventTickers.size() ? null : eventTickers.get(ei)), rest)).join();
+                    Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) ((eventTickers == null || ei < 0 || ei >= eventTickers.size() ? null : eventTickers.get(ei))), rest)).join();
                     ((List<Object>)rawEvents).add(fullEvent);
                 } catch(Exception e)
                 {
@@ -2874,7 +2874,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [params] extra params forwarded verbatim to the events endpoint
      * @returns {object} the raw kalshi event object with nested markets
      */
-    public CompletableFuture<Map<String, Object>> fetchRawEventByTicker(Object ticker, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchRawEventByTicker(String ticker, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3070,7 +3070,7 @@ public class Kalshi extends KalshiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> fullEvent = (this.fetchRawEventByTicker(id, parameters)).join();
+            Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) (id), parameters)).join();
             Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (fullEvent));
             this.indexEventOutcomes(eventVar);
             return eventVar;

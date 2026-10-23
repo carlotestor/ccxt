@@ -880,7 +880,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         String symbol = ((base + "/") + quote);
         Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
-        remains = this.currencyFromPrecision(base, remains);
+        remains = this.currencyFromPrecision((String) (base), remains);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -968,7 +968,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return null;
             }
-            remaining = this.currencyFromPrecision(market.get("base"), remainsPrecision);
+            remaining = this.currencyFromPrecision((String) (market.get("base")), remainsPrecision);
         }
         String amount = this.safeString(order, "amount");
         if (!Boolean.TRUE.equals(isTransaction))
@@ -977,7 +977,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return null;
             }
-            this.currencyFromPrecision(market.get("base"), amount);
+            this.currencyFromPrecision((String) (market.get("base")), amount);
         }
         String baseId = this.safeString(order, "symbol");
         String quoteId = this.safeString(order, "symbol2");
@@ -1056,7 +1056,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         return String.valueOf(precise);
     }
 
-    public String currencyFromPrecision(Object currency, Object amount)
+    public String currencyFromPrecision(String currency, Object amount)
     {
         Long scale = this.safeInteger(Helpers.GetValue(this.currencies, currency), "precision", 0);
         return this.fromPrecision(amount, scale);
@@ -1242,8 +1242,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long timestamp = this.safeInteger(data, "time");
         List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas(((Map<String, Object>)storedOrderBook).get("asks"), asks);
-        this.handleDeltas(((Map<String, Object>)storedOrderBook).get("bids"), bids);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
         storedOrderBook.put("timestamp", timestamp);
         storedOrderBook.put("datetime", this.iso8601(timestamp));
         ((Map<String, Object>)storedOrderBook).put("nonce", incrementalId);

@@ -450,11 +450,11 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         put( "authorization", ("Bearer " + token) );
     }} );
 }});
-            Helpers.addElementToObject(this.options, "ws", wsOptions);
+            this.options.put("ws", wsOptions);
         }
     }
 
-    public CompletableFuture<Object> watchPrivate(String symbol, Object channel, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String symbol, String channel, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -472,7 +472,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 List<String> marketIds = this.marketIds(symbols);
                 request.put("codes", marketIds);
             }
-            Object messageHashResolved = messageHash;
+            String messageHashResolved = messageHash;
             if (!java.util.Objects.equals(symbolResolved, null))
             {
                 messageHashResolved = ((messageHash + ":") + symbolResolved);
@@ -488,7 +488,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 client.subscriptions.put(subscriptionsKey, this.createSafeDictionary(true));
             }
-            Object channelKey = channel;
+            String channelKey = channel;
             if (!java.util.Objects.equals(symbolResolved, null))
             {
                 channelKey = ((channel + ":") + symbolResolved);

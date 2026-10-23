@@ -1154,7 +1154,7 @@ public class Aster extends AsterApi
         }});
     }
 
-    public Boolean isInverse(Object type, String subType)
+    public Boolean isInverse(String type, String subType)
     {
         if (java.util.Objects.equals(subType, null))
         {
@@ -1165,7 +1165,7 @@ public class Aster extends AsterApi
         }
     }
 
-    public Boolean isLinear(Object type, String subType)
+    public Boolean isLinear(String type, String subType)
     {
         if (java.util.Objects.equals(subType, null))
         {
@@ -4054,7 +4054,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 2, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4074,7 +4074,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4574,7 +4574,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseAccountPositions(Map<String, Object> account, Object filterClosed)
+    public List<Object> parseAccountPositions(Map<String, Object> account, Object filterClosed)
     {
         List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
@@ -4844,7 +4844,7 @@ public class Aster extends AsterApi
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> response = (this.fapiPrivateGetV4Account(parameters)).join();
             Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchAccountPositions", "filterClosed", false)).get(0);
-            List<Object> result = (List<Object>) this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
+            List<Object> result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         });
@@ -4915,9 +4915,9 @@ public class Aster extends AsterApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.keccakMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.keccakMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public String signWithdrawPayload(Object withdrawPayload, Object network)
@@ -4967,7 +4967,7 @@ public class Aster extends AsterApi
             put( "aster chain", "Mainnet" );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, request);
-        String signature = this.signMessage(msg, this.privateKey);
+        String signature = this.signMessage(msg, (String) (this.privateKey));
         return signature;
     }
 
@@ -5150,7 +5150,7 @@ public class Aster extends AsterApi
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         this.checkRequiredCredentials(true);
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
@@ -5188,8 +5188,8 @@ public class Aster extends AsterApi
             if ((java.util.Objects.equals(walletAddress, null)) || (!java.util.Objects.equals(cachedPrivateKeyHash, privateKeyHash)))
             {
                 walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
-                Helpers.addElementToObject(this.options, "cachedWalletAddress", walletAddress);
-                Helpers.addElementToObject(this.options, "privateKeyHashForCachedWalletAddress", privateKeyHash);
+                this.options.put("cachedWalletAddress", walletAddress);
+                this.options.put("privateKeyHashForCachedWalletAddress", privateKeyHash);
             }
             String signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (java.util.Objects.equals(signerAddress, null))
@@ -5255,7 +5255,7 @@ public class Aster extends AsterApi
                 }
             }
             Object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
-            String signature = this.signMessage(encodedMessage, this.privateKey);
+            String signature = this.signMessage(encodedMessage, (String) (this.privateKey));
             String queryString = (((paramString + "&") + "signature=") + signature);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
@@ -5301,7 +5301,7 @@ public class Aster extends AsterApi
         return (encodedString == null ? null : ((String)encodedString).substring(0, Math.max(((String)encodedString).length() - 1, 0)));
     }
 
-    public Object capitalizeKeys(Map<String, Object> dict)
+    public Map<String, Object> capitalizeKeys(Map<String, Object> dict)
     {
         Map<String, Object> capitalized = new HashMap<String, Object>() {{}};
         List<String> keys = new ArrayList<String>(dict.keySet());

@@ -1465,7 +1465,7 @@ public class Dydx extends DydxApi
         return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
     }
 
-    public Object signOnboardingAction()
+    public Map<String, Object> signOnboardingAction()
     {
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "action", "dYdX Chain Onboarding" );
@@ -1509,13 +1509,13 @@ public class Dydx extends DydxApi
         Object privateKey = this.safeString(this.options, "privateKey");
         if (java.util.Objects.equals(privateKey, null))
         {
-            Map<String, Object> signature = (Map<String, Object>) this.signOnboardingAction();
+            Map<String, Object> signature = this.signOnboardingAction();
             privateKey = this.hashMessage(this.base16ToBinary(Helpers.add(signature.get("r"), signature.get("s"))));
         }
         credentials = this.retrieveDydxCredentials((String) (privateKey));
         ((Map<String, Object>)credentials).put("privateKey", this.binaryToBase16(((Map<String, Object>)credentials).get("privateKey")));
         ((Map<String, Object>)credentials).put("publicKey", this.binaryToBase16(((Map<String, Object>)credentials).get("publicKey")));
-        Helpers.addElementToObject(this.options, "dydxCredentials", credentials);
+        this.options.put("dydxCredentials", credentials);
         return credentials;
     }
 
@@ -1560,13 +1560,13 @@ public class Dydx extends DydxApi
             account.put("pub_key", new HashMap<String, Object>() {{
         put( "key", Helpers.GetValue(account.get("pub_key"), "key") );
     }});
-            Helpers.addElementToObject(this.options, "dydxAccount", account);
+            this.options.put("dydxAccount", account);
             return this.safeDict(this.options, "dydxAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
-    public String pow(Object n, String m)
+    public String pow(String n, String m)
     {
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
@@ -1742,7 +1742,7 @@ public class Dydx extends DydxApi
         return new ArrayList<Object>(Arrays.asList(orderId, this.extend(signingPayload, paramsOmitted)));
     }
 
-    public String createOrderIdFromParts(Object address, Object subAccountNumber, Object clientOrderId, Object orderFlags, Object clobPairId)
+    public String createOrderIdFromParts(String address, Object subAccountNumber, Object clientOrderId, Object orderFlags, Object clobPairId)
     {
         String nameSp = this.safeString(this.options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d");
         String prefixAddress = ((address + "-") + String.valueOf(subAccountNumber));

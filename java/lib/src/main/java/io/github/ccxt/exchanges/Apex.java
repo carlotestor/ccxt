@@ -617,7 +617,7 @@ public class Apex extends ApexApi
             // }
             List<Object> rows = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             List<Object> chains = (List<Object>) this.safeList(multiChain, "chains", new ArrayList<Object>(Arrays.asList()));
-            Helpers.addElementToObject(this.options, "_temp_currencies_chains", chains);
+            this.options.put("_temp_currencies_chains", chains);
             Object result = this.parseCurrencies(rows);
             ((Map<String,Object>)this.options).remove("_temp_currencies_chains");
             return result;
@@ -1483,7 +1483,7 @@ public class Apex extends ApexApi
                 marketResolved = (marketsById == null || marketId == null ? null : marketsById.get(marketId));
             } else
             {
-                Object newMarketId = this.addHyphenBeforeUsdt(marketId);
+                String newMarketId = this.addHyphenBeforeUsdt((String) (marketId));
                 if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(newMarketId)))
                 {
                     Object markets = (marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId));
@@ -1515,14 +1515,14 @@ public class Apex extends ApexApi
         return ((((("apexomni-" + accountId) + "-") + String.valueOf(this.milliseconds())) + "-") + String.valueOf(this.randNumber(6)));
     }
 
-    public Object addHyphenBeforeUsdt(Object symbol)
+    public String addHyphenBeforeUsdt(String symbol)
     {
         String uppercaseSymbol = ((String)symbol).toUpperCase();
         Object index = ((String)uppercaseSymbol).indexOf("USDT");
         String symbolChar = this.safeString(symbol, ((((Number) index).longValue()) - 1L));
         if ((((Integer) index) > 0) && !java.util.Objects.equals(symbolChar, "-"))
         {
-            return (((symbol == null ? null : ((String)symbol).substring(0, (int) Math.min(((Number)index).intValue() < 0 ? ((String)symbol).length() + ((Number)index).intValue() : ((Number)index).intValue(), ((String)symbol).length()))) + "-") + Helpers.slice(symbol, index, null));
+            return (((symbol == null ? null : symbol.substring(0, (int) Math.min(((Number)index).intValue() < 0 ? symbol.length() + ((Number)index).intValue() : ((Number)index).intValue(), symbol.length()))) + "-") + (symbol == null ? null : symbol.substring((int) Math.min(Math.max(((Number)index).intValue() < 0 ? symbol.length() + ((Number)index).intValue() : ((Number)index).intValue(), 0), symbol.length()))));
         }
         return symbol;
     }
@@ -1546,7 +1546,7 @@ public class Apex extends ApexApi
             if (java.util.Objects.equals(accountId, "0"))
             {
                 Object accountData = (this.fetchAccount(new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.options, "accountId", this.safeString(accountData, "id", "0"));
+                this.options.put("accountId", this.safeString(accountData, "id", "0"));
             }
             return this.safeString(this.options, "accountId");
         }).thenApply(res -> (String) res);

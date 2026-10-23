@@ -769,7 +769,7 @@ public class Kraken extends KrakenApi
             //     }
             //
             Map<String, Object> markets = (Map<String, Object>) this.safeDict(assetsResponse, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> cachedCurrencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", new HashMap<String, Object>() {{}});
+            Map<String, Object> cachedCurrencies = (Map<String, Object>) this.cachedCurrenciesForLoadOrEmpty();
             List<String> keys = new ArrayList<String>(markets.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -888,7 +888,7 @@ public class Kraken extends KrakenApi
                     j39v4.put("info", market);
                     yield j39v4; } }));
             }
-            Helpers.addElementToObject(this.options, "marketsByAltname", this.indexBy(result, "altname"));
+            this.options.put("marketsByAltname", this.indexBy(result, "altname"));
             return result;
         });
 
@@ -2531,7 +2531,7 @@ public class Kraken extends KrakenApi
         return this.safeOrder(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
     }
 
-    public Object orderRequest(Object method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
+    public Object orderRequest(String method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
     {
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
@@ -3802,7 +3802,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object addPaginationCursorToResult(Map<String, Object> result)
+    public List<Object> addPaginationCursorToResult(Map<String, Object> result)
     {
         String cursor = this.safeString(result, "next_cursor");
         List<Object> data = (List<Object>) this.safeList(result, "withdrawals", new ArrayList<Object>(Arrays.asList()));
@@ -3847,7 +3847,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
-    public CompletableFuture<Object> fetchDepositMethods(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchDepositMethods(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3927,7 +3927,7 @@ public class Kraken extends KrakenApi
             // we pass it as is, otherwise we take the 'network' unified param
             if (java.util.Objects.equals(depositMethod, null))
             {
-                Object depositMethods = (this.fetchDepositMethods(codeResolved, new HashMap<String, Object>() {{}})).join();
+                Object depositMethods = (this.fetchDepositMethods((String) (codeResolved), new HashMap<String, Object>() {{}})).join();
                 if (!java.util.Objects.equals(network, null))
                 {
                     // find best matching deposit method, or fallback to the first one

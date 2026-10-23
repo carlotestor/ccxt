@@ -179,7 +179,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribe(Object name, Object messageHash, Object isPrivate, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(String name, String messageHash, Object isPrivate, List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -210,7 +210,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 marketIds = this.marketIds(symbols);
             }
             Object symbolsSuffix = (((java.util.Objects.equals(symbols, null)))) ? "" : String.join((String)",", (List<String>)symbols);
-            Object symbolsHash = null;
+            String symbolsHash = null;
             if (this.isEmpty(symbols))
             {
                 symbolsHash = messageHash;
@@ -236,7 +236,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> tradeRequest(Object name, Map<String, Object> parameters)
+    public CompletableFuture<Object> tradeRequest(String name, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -480,7 +480,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 throw new BadRequest(((this.id + " watchOHLCV cannot take a timeframe of ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
             }
-            List<Object> ohlcv = (List<Object>) (this.subscribe(channel, channel, false, new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribe((String) (channel), (String) (channel), false, new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -641,7 +641,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
             Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(nameOption, nameOption, false, new ArrayList<String>(Arrays.asList(symbol)), paramsName)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe((String) (nameOption), (String) (nameOption), false, new ArrayList<String>(Arrays.asList(symbol)), paramsName)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -756,7 +756,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     }
 
-    public void setBalanceCache(Client client, Object type)
+    public void setBalanceCache(Client client, String type)
     {
         if (client.subscriptions.containsKey(type))
         {
@@ -770,12 +770,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
 
         return BaseExchange.supplyAsync(() -> {

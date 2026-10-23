@@ -2912,7 +2912,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public List<Object> createOrderRequest(Map<String, Object> market, Object marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public List<Object> createOrderRequest(Map<String, Object> market, String marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         Boolean isLimit = (java.util.Objects.equals(type, "limit"));
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
@@ -4143,7 +4143,7 @@ public class Hitbtc extends HitbtcApi
             {
                 throw new BadRequest((this.id + " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
             }
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4166,7 +4166,7 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }

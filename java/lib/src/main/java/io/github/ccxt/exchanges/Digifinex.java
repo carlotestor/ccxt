@@ -4259,7 +4259,7 @@ public class Digifinex extends DigifinexApi
         }};
     }
 
-    public Object parseBorrowRates(List<Object> info, String codeKey)
+    public Map<String, Object> parseBorrowRates(List<Object> info, String codeKey)
     {
         //
         //     {
@@ -5388,7 +5388,7 @@ public class Digifinex extends DigifinexApi
 
             String side = this.safeString(parameters, "side");
             this.checkRequiredArgument("addMargin", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
-            return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5411,7 +5411,7 @@ public class Digifinex extends DigifinexApi
 
             String side = this.safeString(parameters, "side");
             this.checkRequiredArgument("reduceMargin", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
-            return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 2, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }

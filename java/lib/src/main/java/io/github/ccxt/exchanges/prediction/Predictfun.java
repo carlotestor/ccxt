@@ -392,9 +392,9 @@ public class Predictfun extends PredictfunApi
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
             if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
             {
-                this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
+                this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
             }
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
+            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
             Integer queriesLength = ((List<?>)queries).size();
             Object paramsValue = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             // keys dropped before the client-side pass; the categories listing also drops its limit
@@ -424,7 +424,7 @@ public class Predictfun extends PredictfunApi
                 // a query/queries scope is answered by the dedicated search endpoint — the categories
                 // listing has no text filter, so paging it and matching client-side would both miss
                 // the venue's semantic matches and cost one request per page
-                rawTopics = (this.fetchRawTopicsByQueries(queries, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+                rawTopics = (this.fetchRawTopicsByQueries(queries, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -640,7 +640,7 @@ public class Predictfun extends PredictfunApi
                     String handle = this.safeString(m, "market");
                     if (!java.util.Objects.equals(handle, null))
                     {
-                        Helpers.addElementToObject(this.markets, handle, m);
+                        ((Map<Object, Object>) (Map<?, ?>) this.markets).put(handle, m);
                     }
                 }
             }
@@ -663,7 +663,7 @@ public class Predictfun extends PredictfunApi
                     put( "status", "closed" );
                 }});
             }
-            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })), queries);
+            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -1904,7 +1904,7 @@ public class Predictfun extends PredictfunApi
         super.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
         this.options.put("chainId", ((Boolean.TRUE.equals(enable))) ? 97 : 56);
         Helpers.addElementToObject(this.requiredCredentials, "apiKey", !Boolean.TRUE.equals(enable));
         if (!java.util.Objects.equals(wasSandbox, enable))
@@ -1914,14 +1914,14 @@ public class Predictfun extends PredictfunApi
             // costs no re-authentication. the sandbox token is not kept: it dies with the switch
             if (Boolean.TRUE.equals(enable))
             {
-                Helpers.addElementToObject(this.options, "backupJwtToken", this.safeString(this.options, "jwtToken"));
-                Helpers.addElementToObject(this.options, "backupJwtTokenExpiresAt", this.safeInteger(this.options, "jwtTokenExpiresAt", 0));
+                this.options.put("backupJwtToken", this.safeString(this.options, "jwtToken"));
+                this.options.put("backupJwtTokenExpiresAt", this.safeInteger(this.options, "jwtTokenExpiresAt", 0));
                 this.options.remove("jwtToken");
                 this.options.put("jwtTokenExpiresAt", 0);
             } else
             {
-                Helpers.addElementToObject(this.options, "jwtToken", this.safeString(this.options, "backupJwtToken"));
-                Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", this.safeInteger(this.options, "backupJwtTokenExpiresAt", 0));
+                this.options.put("jwtToken", this.safeString(this.options, "backupJwtToken"));
+                this.options.put("jwtTokenExpiresAt", this.safeInteger(this.options, "backupJwtTokenExpiresAt", 0));
                 this.options.remove("backupJwtToken");
                 this.options.put("backupJwtTokenExpiresAt", 0);
             }
@@ -1936,7 +1936,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} message the message to hash
      * @returns {string} the 0x prefixed hash
      */
-    public String hashMessage(Object message)
+    public String hashMessage(String message)
     {
         Object binaryMessage = this.encode(message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
@@ -1955,7 +1955,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} privateKey the wallet private key
      * @returns {string} the 65 byte signature, 0x prefixed
      */
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
@@ -2008,7 +2008,7 @@ public class Predictfun extends PredictfunApi
             {
                 throw new AuthenticationError((this.id + " authenticate() got an auth reply without the \"message\" field to sign")) ;
             }
-            String signature = this.signHash(this.hashMessage(message), this.privateKey);
+            String signature = this.signHash((String) (this.hashMessage((String) (message))), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("signer", this.walletAddress);
             request.put("message", message);
@@ -2023,7 +2023,7 @@ public class Predictfun extends PredictfunApi
             {
                 throw new AuthenticationError((this.id + " authenticate() did not return a token")) ;
             }
-            Helpers.addElementToObject(this.options, "jwtToken", token);
+            this.options.put("jwtToken", token);
             // measured from before the round trip, so the cached window closes a little early rather
             // than a little late
             Long tokenExpiresIn = this.safeInteger(this.options, "tokenExpiresIn", 86400000);
@@ -2102,7 +2102,7 @@ public class Predictfun extends PredictfunApi
         String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return new HashMap<String, Object>() {{
             put( "hash", hash );
-            put( "signature", Predictfun.this.signHash(hash, Predictfun.this.privateKey) );
+            put( "signature", Predictfun.this.signHash(hash, (String) (Predictfun.this.privateKey)) );
         }};
     }
 
@@ -3645,7 +3645,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} whatever the channel resolves with
      */
-    public CompletableFuture<Object> watchWalletEvents(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchWalletEvents(String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3663,7 +3663,7 @@ public class Predictfun extends PredictfunApi
                 put( "id", Predictfun.this.numberToString(requestId) );
                 put( "topic", "walletEvents" );
                 put( "subscribeHash", "walletEvents" );
-                put( "messageHashes", Predictfun.this.walletEventMessageHashes(client, java.util.Objects.toString(messageHash, null)) );
+                put( "messageHashes", Predictfun.this.walletEventMessageHashes(client, messageHash) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), "walletEvents", subscription)).join();
         });
@@ -3712,7 +3712,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public CompletableFuture<Object> unWatchWalletEvents(Object channel, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchWalletEvents(String channel, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

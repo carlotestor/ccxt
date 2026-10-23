@@ -89,7 +89,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> subscribe(Object name, Object isPrivate, Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(String name, Object isPrivate, Object symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -99,7 +99,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object messageHash = name;
+            String messageHash = name;
             List<String> productIds = new ArrayList<String>(Arrays.asList());
             if ((symbol instanceof List))
             {
@@ -144,7 +144,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> unSubscribe(Object topic, Object name, Object isPrivate, Object symbol)
+    public CompletableFuture<Object> unSubscribe(String topic, String name, Object isPrivate, Object symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -159,7 +159,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             this.options.put("unSubscriptionPending", true);
             Map<String, Object> market = null;
-            Object watchMessageHash = name;
+            String watchMessageHash = name;
             String unWatchMessageHash = ("unsubscribe:" + name);
             List<String> productIds = new ArrayList<String>(Arrays.asList());
             if ((symbol instanceof List))
@@ -218,7 +218,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> subscribeMultiple(Object name, Object isPrivate, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribeMultiple(String name, Object isPrivate, List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -264,7 +264,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> unSubscribeMultiple(Object topic, Object name, Object isPrivate, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribeMultiple(String topic, String name, Object isPrivate, List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -307,7 +307,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 put( "unsubscribe", true );
                 put( "symbols", symbolsNormalized );
             }};
-            Helpers.addElementToObject(this.options, "unSubscription", subscription);
+            this.options.put("unSubscription", subscription);
             Object res = (this.watchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription)).join();
             this.options.put("unSubscriptionPending", false);
             this.options.remove("unSubscription");
@@ -316,7 +316,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 
     }
 
-    public Object createWSAuth(Object name, Object productIds)
+    public Map<String, Object> createWSAuth(String name, Object productIds)
     {
         Map<String, Object> subscribe = new HashMap<String, Object>() {{}};
         String timestamp = this.numberToString(this.seconds());
@@ -342,7 +342,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 // we should generate new token
                 String token = this.createAuthToken(seconds, (String) null, (String) null, false);
-                Helpers.addElementToObject(this.options, "wsToken", token);
+                this.options.put("wsToken", token);
                 this.options.put("wsTokenTimestamp", seconds);
             }
             subscribe.put("jwt", this.safeString(this.options, "wsToken"));
@@ -1164,7 +1164,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
     }
 
-    public void tryResolveUsdc(Client client, Object messageHash, Object result)
+    public void tryResolveUsdc(Client client, String messageHash, Object result)
     {
         if (((String)messageHash).endsWith("/USD") || ((String)messageHash).endsWith("-USD"))
         {

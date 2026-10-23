@@ -85,9 +85,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }});
     }
 
-    public String getMessageHash(Object unifiedChannel, String symbol, String extra)
+    public String getMessageHash(String unifiedChannel, String symbol, String extra)
     {
-        Object hash = unifiedChannel;
+        String hash = unifiedChannel;
         if (!java.util.Objects.equals(symbol, null))
         {
             hash = (hash + ("::" + symbol));
@@ -102,7 +102,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return (String) (hash);
     }
 
-    public CompletableFuture<Object> subscribePublic(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePublic(String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -138,7 +138,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public CompletableFuture<Object> unsubscribe(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> unsubscribe(String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -156,14 +156,14 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public CompletableFuture<Object> subscribePrivate(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePrivate(String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             (this.preLoadLighterLibrary(new HashMap<String, Object>() {{}})).join();
             Helpers.addElementToObject(parameters, "auth", this.createAuth(parameters));
-            return (this.subscribePublic(messageHash, parameters)).join();
+            return (this.subscribePublic((String) (messageHash), parameters)).join();
         });
 
     }
@@ -183,15 +183,15 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "order_book", new HashMap<String, Object>() {{}});
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "offset"));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        orderbook.put("nonce", this.safeInteger(data, "offset"));
         Long timestamp = this.safeInteger(message, "timestamp");
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         return orderbook;
     }
 
@@ -242,7 +242,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             orderbook.reset(parsed);
         } else if (java.util.Objects.equals(type, "update/order_book"))
         {
-            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) (message), (io.github.ccxt.ws.WsOrderBook) (orderbook));
         }
         String messageHash = this.getMessageHash("orderbook", symbol, (String) null);
         client.resolve(orderbook, messageHash);
@@ -273,7 +273,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "channel", ("order_book/" + market.get("id")) );
             }};
             String messageHash = this.getMessageHash("orderbook", symbolValue, (String) null);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (messageHash), this.extend(request, parameters))).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -416,7 +416,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "channel", ("market_stats/" + market.get("id")) );
             }};
             String messageHash = this.getMessageHash("ticker", symbolValue, (String) null);
-            return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
+            return (this.subscribePublic((String) (messageHash), this.extend(request, parameters))).join();
         }).thenApply(Ticker::new);
 
     }
@@ -783,7 +783,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "channel", ("trade/" + market.get("id")) );
             }};
             String messageHash = this.getMessageHash("trade", this.safeString(market, "symbol"), (String) null);
-            List<Object> trades = (List<Object>) (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic((String) (messageHash), this.extend(request, parameters))).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1028,7 +1028,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", ("account_all_trades/" + Lighter.this.numberToString(accountIndex)) );
             }};
-            List<Object> trades = (List<Object>) (this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex))).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic((String) (messageHash), this.extend(request, paramsAccountIndex))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1218,7 +1218,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "channel", ("trade/" + market.get("id")) );
             }};
             String messageHash = this.getMessageHash("liquidations", symbol, (String) null);
-            return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
+            return (this.subscribePublic((String) (messageHash), this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
@@ -1253,11 +1253,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             if (java.util.Objects.equals(type, "spot"))
             {
                 request.put("channel", ("account_all_assets/" + this.numberToString(accountIndex)));
-                return (this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex))).join();
+                return (this.subscribePrivate((String) (messageHash), this.extend(request, paramsAccountIndex))).join();
             } else
             {
                 request.put("channel", ("user_stats/" + this.numberToString(accountIndex)));
-                return (this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex))).join();
+                return (this.subscribePublic((String) (messageHash), this.extend(request, paramsAccountIndex))).join();
             }
         }).thenApply(Balances::new);
 
@@ -1396,7 +1396,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 messageHash = this.getMessageHash("orders", (String) null, (String) null);
                 request.put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
             }
-            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (messageHash), this.extend(request, paramsAccountIndex))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1446,7 +1446,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public String requestId(Object url)
+    public String requestId(String url)
     {
         Object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
@@ -1527,7 +1527,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String requestId = this.requestId(url);
             String messageHash = ("jsonapi/sendtx:" + requestId);
-            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrderWs", id, symbol, parameters)).join();
+            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrderWs", (String) (id), symbol, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             Map<String, Object> market = this.market(symbol);

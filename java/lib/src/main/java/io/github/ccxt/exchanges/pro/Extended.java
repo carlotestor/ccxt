@@ -182,7 +182,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Object subscription)
+    public CompletableFuture<Object> watchPrivate(String messageHash, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {

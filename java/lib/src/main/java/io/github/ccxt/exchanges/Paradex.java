@@ -1826,7 +1826,7 @@ public class Paradex extends ParadexApi
         return ("0x" + hashed);
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = signature.get("r");
@@ -1835,9 +1835,9 @@ public class Paradex extends ParadexApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public CompletableFuture<Map<String, Object>> getSystemConfig()
@@ -1848,7 +1848,7 @@ public class Paradex extends ParadexApi
             if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", (Object) null), null))
             {
                 Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.options, "systemConfig", response);
+                this.options.put("systemConfig", response);
             }
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
@@ -1900,9 +1900,9 @@ public class Paradex extends ParadexApi
                     put( "action", "STARK Key" );
                 }};
                 Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-                String signature = this.signMessage(msg, this.privateKey);
+                String signature = this.signMessage(msg, (String) (this.privateKey));
                 Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
-                Helpers.addElementToObject(this.options, "paradexAccount", account);
+                this.options.put("paradexAccount", account);
             }
             return this.safeDict(this.options, "paradexAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
@@ -1996,8 +1996,8 @@ public class Paradex extends ParadexApi
             // }
             //
             String token = this.safeString(response, "jwt_token");
-            Helpers.addElementToObject(this.options, "authToken", token);
-            Helpers.addElementToObject(this.options, "expires", expires);
+            this.options.put("authToken", token);
+            this.options.put("expires", expires);
             return token;
         }).thenApply(res -> (String) res);
 
@@ -2138,7 +2138,7 @@ public class Paradex extends ParadexApi
         return this.safeStringLower(types, type, type);
     }
 
-    public String scaleNumber(Object num)
+    public String scaleNumber(String num)
     {
         return Precise.stringMul(num, "100000000");
     }
@@ -2267,8 +2267,8 @@ public class Paradex extends ParadexApi
             orderReq.put("market", this.stringToBase16(request.get("market")));
             orderReq.put("side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2");
             orderReq.put("orderType", this.stringToBase16(request.get("type")));
-            orderReq.put("size", this.scaleNumber(request.get("size")));
-            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(request.get("price")));
+            orderReq.put("size", this.scaleNumber((String) (request.get("size"))));
+            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber((String) (request.get("price"))));
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "felt" );

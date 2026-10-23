@@ -2744,7 +2744,7 @@ public class Bullish extends BullishApi
             {
                 throw new ArgumentsRequired((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
             }
-            Helpers.addElementToObject(this.options, "tradingAccountId", tradingAccountId);
+            this.options.put("tradingAccountId", tradingAccountId);
             return this.safeString(this.options, "tradingAccountId");
         });
 
@@ -3638,7 +3638,7 @@ public class Bullish extends BullishApi
             //
             String token = this.safeString(response, "token");
             String authorizer = this.safeString(response, "authorizer");
-            Helpers.addElementToObject(this.options, "authorizer", authorizer);
+            this.options.put("authorizer", authorizer);
             this.token = token;
             this.options.put("tokenExpires", this.sum(this.milliseconds(), (((1000L * 60L) * 60L) * 24L))); // token expires in 24 hours
             return token;

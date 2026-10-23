@@ -129,7 +129,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 Object channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + market.get("id"));
-                return (this.watchSpotPublic(channel, messageHash, parameters)).join();
+                return (this.watchSpotPublic((String) (channel), messageHash, parameters)).join();
             } else
             {
                 String channel = "sub.ticker";
@@ -562,7 +562,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }}, marketResolved);
     }
 
-    public CompletableFuture<Object> watchSpotPublic(Object channel, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchSpotPublic(String channel, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -583,7 +583,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     }
 
-    public CompletableFuture<Object> watchSpotPrivate(Object channel, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchSpotPrivate(String channel, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -605,7 +605,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     }
 
-    public CompletableFuture<Object> watchSwapPublic(Object channel, Object messageHash, Map<String, Object> requestParams, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchSwapPublic(String channel, String messageHash, Map<String, Object> requestParams, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -621,7 +621,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     }
 
-    public CompletableFuture<Object> watchSwapPrivate(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchSwapPrivate(String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -677,7 +677,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 Object channel = ((("spot@public.kline.v3.api.pb@" + market.get("id")) + "@") + timeframeId);
-                ohlcv = (this.watchSpotPublic(channel, messageHash, parameters)).join();
+                ohlcv = (this.watchSpotPublic((String) (channel), messageHash, parameters)).join();
             } else
             {
                 String channel = "sub.kline";
@@ -889,7 +889,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 String frequency = frequencyparamsFrequencyVariable.first();
                 Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
                 Object channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + market.get("id"));
-                orderbook = (this.watchSpotPublic(channel, messageHash, paramsFrequency)).join();
+                orderbook = (this.watchSpotPublic((String) (channel), messageHash, paramsFrequency)).join();
             } else
             {
                 String channel = "sub.depth";
@@ -1047,7 +1047,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         try
         {
-            this.handleBookDelta(storedOrderBook, data);
+            this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (storedOrderBook), data);
             Long timestamp = this.safeIntegerN(message, new ArrayList<Object>(Arrays.asList("t", "ts", "sendTime")));
             storedOrderBook.put("timestamp", timestamp);
             storedOrderBook.put("datetime", this.iso8601(timestamp));
@@ -1088,7 +1088,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         Long existingNonce = this.safeInteger(orderbook, "nonce");
         Long deltaNonce = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
@@ -1098,11 +1098,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             // so, we just skip old updates
             return;
         }
-        Helpers.addElementToObject(orderbook, "nonce", deltaNonce);
+        orderbook.put("nonce", deltaNonce);
         List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
-        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
-        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         this.handleBooksideDelta(asksOrderSide, asks);
         this.handleBooksideDelta(bidsOrderSide, bids);
     }
@@ -1135,7 +1135,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 Object channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + market.get("id"));
-                trades = (this.watchSpotPublic(channel, messageHash, parameters)).join();
+                trades = (this.watchSpotPublic((String) (channel), messageHash, parameters)).join();
             } else
             {
                 String channel = "sub.deal";
@@ -2134,7 +2134,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
                 Object channel = ((("spot@public.kline.v3.api.pb@" + market.get("id")) + "@") + timeframeId);
                 parameters.put("unsubscribed", true);
-                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.watchSpotPublic((String) (channel), messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
@@ -2182,7 +2182,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
                 Object channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + market.get("id"));
                 ((Map<String, Object>)paramsFrequency).put("unsubscribed", true);
-                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, paramsFrequency); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.watchSpotPublic((String) (channel), messageHash, paramsFrequency); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
@@ -2226,7 +2226,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
                 Object channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + market.get("id"));
                 parameters.put("unsubscribed", true);
-                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.watchSpotPublic((String) (channel), messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
@@ -2352,7 +2352,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             //    }
             //
             listenKey = this.safeString(response, "listenKey");
-            Helpers.addElementToObject(this.options, "listenKey", listenKey);
+            this.options.put("listenKey", listenKey);
             client.resolve(listenKey, messageHash);
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);

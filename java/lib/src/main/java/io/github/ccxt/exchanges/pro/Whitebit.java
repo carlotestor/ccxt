@@ -913,12 +913,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             // an empty params array subscribes to updates for all assets,
             // listing all tickers explicitly is rejected with "invalid argument"
-            return (this.watchPrivate(messageHash, method, new ArrayList<Object>(Arrays.asList()), paramsAwaitBalanceSnapshot)).join();
+            return (this.watchPrivate(messageHash, (String) (method), new ArrayList<Object>(Arrays.asList()), paramsAwaitBalanceSnapshot)).join();
         }).thenApply(Balances::new);
 
     }
 
-    public void setBalanceCache(Client client, String type, Object subscriptionHash)
+    public void setBalanceCache(Client client, String type, String subscriptionHash)
     {
         if (client.subscriptions.containsKey(subscriptionHash))
         {
@@ -931,12 +931,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type), subscriptionHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type), (String) (subscriptionHash)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, String type, Object subscriptionHash)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type, String subscriptionHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1048,7 +1048,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         client.resolve(this.balance, messageHash);
     }
 
-    public CompletableFuture<Object> watchPublic(Object messageHash, Object method, Object reqParams, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublic(String messageHash, String method, Object reqParams, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1067,7 +1067,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public CompletableFuture<Object> watchMultipleSubscription(Object messageHash, Object method, String symbol, Boolean isNested, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultipleSubscription(String messageHash, String method, String symbol, Boolean isNested, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1148,7 +1148,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Object method, Object reqParams, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String messageHash, String method, Object reqParams, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

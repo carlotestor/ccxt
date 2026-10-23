@@ -843,7 +843,7 @@ public class Bitfinex extends BitfinexApi
         return ((code != null && fiat.containsKey(code)));
     }
 
-    public Object getCurrencyName(Object code)
+    public Object getCurrencyName(String code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
         if ((switch ((Object)(this.options.get("currencyNames"))) { case List<?> j39v2 -> ((Object)(code)) != null && j39v2.contains(code); case Map<?, ?> j39v1 -> ((Object)(code)) instanceof String && j39v1.containsKey(code); case null, default -> false; }))
@@ -1171,7 +1171,7 @@ public class Bitfinex extends BitfinexApi
 
     }
 
-    public Object parseCurrenciesCustom(Object ids, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
+    public Map<String, Object> parseCurrenciesCustom(Object ids, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
     {
         List<Object> allowedIds = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
@@ -1187,14 +1187,14 @@ public class Bitfinex extends BitfinexApi
         List<Object> arr = this.toArray(allowedIds);
         for (var i = 0; i < ((List<?>)arr).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrencyCustom((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i)), (Map<String, Object>) (indexed), (Map<String, Object>) (indexedNetworks));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrencyCustom((String) ((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i))), (Map<String, Object>) (indexed), (Map<String, Object>) (indexedNetworks));
             Object code = ((Map<String, Object>)parsed).get("code");
             ((Map<Object, Object>) (Map<?, ?>) result).put(code, parsed);
         }
         return result;
     }
 
-    public Object parseCurrencyCustom(Object id, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
+    public Object parseCurrencyCustom(String id, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
     {
         String code = this.safeCurrencyCode((String) (id), (Map<String, Object>) null);
         List<Object> label = (List<Object>) this.safeList(indexed.get("label"), id, new ArrayList<Object>(Arrays.asList()));
@@ -1374,8 +1374,8 @@ public class Bitfinex extends BitfinexApi
                 throw new ArgumentsRequired(((this.id + " transfer() toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Object fromCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), fromAccount);
-            Object toCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), toAccount);
+            Object fromCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), (String) (fromAccount));
+            Object toCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), (String) (toAccount));
             String requestedAmount = (String) this.currencyToPrecision((String) (code), amount, (String) null);
             // this request is slightly different from v1 fromAccount -> from
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1476,7 +1476,7 @@ public class Bitfinex extends BitfinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object convertDerivativesId(Map<String, Object> currency, Object type)
+    public Object convertDerivativesId(Map<String, Object> currency, String type)
     {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
