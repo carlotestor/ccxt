@@ -2949,7 +2949,7 @@ export default class poloniex extends Exchange {
         }
         const currency = this.currency (code);
         let networkCode: Str = undefined;
-        let query = undefined;
+        let query: NullableDict = undefined;
         [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             // we need to know the network to find out the currency-junction
