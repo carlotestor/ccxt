@@ -99,6 +99,13 @@ function callHead (masked: string, recvStart: number): { name: string; start: nu
     return name.length === 0 ? undefined : { name: name, start: i + 1 };
 }
 
+// a read that initialises an `any` local keeps the base call: the nil-compare pass proves that
+// local pointer-free from the helper name, and a method call there would lose the native compare
+function initAnyLocal (content: string, callStart: number): boolean {
+    const lineStart = content.lastIndexOf ('\n', callStart - 1) + 1;
+    return /(?:^|\s)var \w+ any = $/.test (content.substring (lineStart, callStart));
+}
+
 export function g01SubsHandOff (content: string): string {
     if ((content.indexOf ('.GetSubscriptions()') < 0) && (content.indexOf ('.Subscriptions') < 0)) {
         return content;
@@ -118,7 +125,7 @@ export function g01SubsHandOff (content: string): string {
         const close = rule === undefined ? -1 : matchParen (masked, start - 1);
         const spans = (rule === undefined) || (close < 0) ? undefined : splitArgs (masked, start, close);
         let stop = end;
-        if ((head !== undefined) && (rule !== undefined) && (spans !== undefined) && (spans.length === rule.args)) {
+        if ((head !== undefined) && (rule !== undefined) && (spans !== undefined) && (spans.length === rule.args) && !((rule.callee === 'GetValue') && initAnyLocal (content, head.start))) {
             const args = spans.slice (1).map ((span) => content.substring (span[0], span[1]).trim ());
             out += content.substring (last, head.start) + objOf (recv) + '.' + rule.method + '(' + args.join (', ') + ')';
             stop = close + 1;
@@ -145,8 +152,12 @@ export function g01SubsCheck (): string[] {
     ok (inop.includes ('if !(' + r + '.SubscriptionHas(h)) {'), 'inop', inop);
     const set = f (tab + 'ccxt.AddElementToObject(' + get + ', ccxt.Add("a", h), map[string]any{"b": ccxt.Add("c", h)})\n');
     ok (set.includes (tab + r + '.SubscriptionSet(ccxt.Add("a", h), map[string]any{"b": ccxt.Add("c", h)})\n'), 'set', set);
-    const got = f (tab + 'var s any = ccxt.GetValue(' + get + ', h)\n');
+    const got = f (tab + 'return ccxt.GetValue(' + get + ', h)\n');
     ok (got.includes (r + '.SubscriptionGet(h)') && !got.includes ('ccxt.GetValue('), 'get', got);
+    const anyDecl = f (tab + 'var s any = ccxt.GetValue(' + get + ', h)\n');
+    ok (anyDecl.includes ('ccxt.GetValue(' + r + '.SubscriptionsSnapshot(), h)'), 'any-local keeps the deref-aware read', anyDecl);
+    const nestedGet = f (tab + 'var s *string = this.SafeString(ccxt.GetValue(' + get + ', h), "id")\n');
+    ok (nestedGet.includes (r + '.SubscriptionGet(h)'), 'nested read', nestedGet);
     const keys = f (tab + 'var k []string = ccxt.ObjectKeys(' + get + ')\n');
     ok (keys.includes (r + '.SubscriptionKeys()'), 'keys', keys);
     const values = f (tab + 'var v []any = ccxt.ObjectValues(' + get + ')\n');
