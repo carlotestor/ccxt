@@ -8108,7 +8108,7 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true): [Str, Str, Str, Dict] {
+    handleTriggerPricesAndParams (symbol: any, params: Dict, omitParams = true): [Str, Str, Str, Dict] {
         //
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
@@ -8142,7 +8142,7 @@ export class BaseExchange {
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted ];
     }
 
-    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): [Str, Dict] {
+    handleTriggerDirectionAndParams (params: Dict, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -8225,7 +8225,7 @@ export class BaseExchange {
             } else if (isMarketOrder) {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else {
-                let keysToOmit = undefined;
+                let keysToOmit: string[] = [];
                 if (po) {
                     keysToOmit = [ 'timeInForce', 'postOnly' ];
                 } else {
@@ -8500,7 +8500,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
 
-    depositWithdrawFee (info: any): any {
+    depositWithdrawFee (info: NullableDict): Dict {
         return {
             'info': info,
             'withdraw': {
@@ -8515,7 +8515,7 @@ export class BaseExchange {
         };
     }
 
-    assignDefaultDepositWithdrawFees (fee: any, currency: Currency = undefined): any {
+    assignDefaultDepositWithdrawFees (fee: Dict, currency: Currency = undefined): Dict {
         /**
          * @ignore
          * @method
@@ -8589,7 +8589,7 @@ export class BaseExchange {
         return market;
     }
 
-    parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
+    parseWsOHLCVs (ohlcvs: object[], market: Market = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
         const results: OHLCV[] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseWsOHLCV (ohlcvs[i], market));
@@ -8701,7 +8701,7 @@ export class BaseExchange {
                     }
                     errors = 0;
                     result = this.arrayConcat (result, response);
-                    const firstElement = this.safeValue (response, 0);
+                    const firstElement = this.safeDict (response, 0);
                     paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
                     if (paginationTimestamp === undefined) {
                         shouldBreak = true;
@@ -8728,7 +8728,7 @@ export class BaseExchange {
                     }
                     errors = 0;
                     result = this.arrayConcat (result, response);
-                    const last = this.safeValue (response, responseLength - 1);
+                    const last = this.safeDict (response, responseLength - 1);
                     const lastTimestamp = this.safeInteger (last, 'timestamp', 0);
                     if (lastTimestamp === undefined) {
                         shouldBreak = true;
@@ -10085,7 +10085,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
-    async loadOrderBook (client: any, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
+    async loadOrderBook (client: any, messageHash: string, symbol: string, limit: Int = undefined, params: Dict = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
