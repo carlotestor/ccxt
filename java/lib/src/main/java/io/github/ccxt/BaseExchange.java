@@ -4641,7 +4641,7 @@ public Object describe()
         throw new NotSupported((this.id + " handleDelta not supported yet")) ;
     }
 
-    public void handleBookDeltas(Object orderbook, Object deltas)
+    public void handleBookDeltas(io.github.ccxt.ws.WsOrderBook orderbook, Object deltas)
     {
         for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
@@ -4649,7 +4649,7 @@ public Object describe()
         }
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         throw new NotSupported((this.id + " handleBookDelta not supported yet")) ;
     }
