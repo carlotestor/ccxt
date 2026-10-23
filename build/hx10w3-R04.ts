@@ -80,7 +80,7 @@ function hx10R04Regions (masked: string): Hx10R04Region[] {
 
 /** Value expressions a `return`/tail can hand back, `undefined` when not a `Value` fn. */
 function hx10R04RetExprs (region: Hx10R04Region): string[] | undefined {
-    if (!/\b(?:crate::)?Value\b/.test(region.ret.replace(/\s+/g, ' '))) return undefined
+    if (!/^\s*->\s*(?:crate::)?Value\s*$/.test(region.ret.replace(/\s+/g, ' '))) return undefined
     const body = region.body
     const rets: string[] = []
     for (const m of body.matchAll(/\breturn\b/g)) {
@@ -158,8 +158,8 @@ function hx10R04Variant (expr: string, masked: string, byName: Map<string, Hx10R
         if (a !== undefined && b !== undefined) return new Set<any>([...a, ...b])
         return undefined
     }
-    const precise = /^crate::precise::Precise::(\w+)\s*\(/.exec(e)
-    if (precise !== null && HX10R04_BOOL_PRECISE.test(precise[1])) return new Set<any>(['bool'])
+    const precise = /^crate::precise::Precise::(\w+)\((?:(?!\()[^()]|\((?!\()(?:[^()]|\([^()]*\))*\))*\)$/.exec(e)
+    if (precise !== null && /^string(?:Eq|Gt|Ge|Lt|Le|Equals)$/.test(precise[1])) return new Set<any>(['bool'])
     if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
         const writes = hx10R04Writes(masked, e, region)
         if (writes === undefined) return undefined
@@ -344,12 +344,17 @@ const HX10R04_CASES: Array<[string, string, string]> = [
     ['negated callee', 'if !is_true(&self.is_linear(t.clone(), &[])) {', 'self.is_linear(t.clone(), &[]).as_bool() == Some(false)'],
     ['mixed arm callee', 'if is_true(&self.mixed()) {', 'is_true(&self.mixed()'],
     ['unproven local', 'let mut u: Value = get_arg(o, 0, Value::Bool(false));\nif is_true(&u) {', 'is_true(&u'],
+    ['option return', 'if is_true(&self.opt()) {', 'is_true(&self.opt()'],
     ['value slot', 'm.insert("k".into(), is_true(&self.is_linear(t.clone(), &[])));', 'is_true(&self.is_linear'],
 ]
 
 /** Three arg shapes per callee body: every arm Bool, one arm mixed, unknown local. */
 function hx10R04Fixture (body: string): string {
-    return `    pub fn is_linear(&self, mut t: Value, optional_args: &[Value]) -> Value {\n        if (t == Value::Null) {\n            return Value::Bool(true);\n        }\n        return Value::Bool(false);\n\n    Value::Null\n}\n\n    pub fn mixed(&self) -> Value {\n        return Value::Int(1);\n    }\n\n    pub async fn is_uta(&mut self, optional_args: &[Value]) -> Value {\n        let mut uta: Value = Value::Bool(self.safe_bool_k(self.options.clone(), "uta", &[]).as_bool() == Some(true));\n        return uta;\n\n    Value::Null\n}\n\n    pub fn f(&mut self, mut o: Value) -> Value {\n        ${body}\n        return Value::Null; }\n}\n`
+    return `    pub fn is_linear(&self, mut t: Value, optional_args: &[Value]) -> Value {\n        if (t == Value::Null) {\n            return Value::Bool(true);\n        }\n        return Value::Bool(false);\n\n    Value::Null\n}\n\n    pub fn opt(&self) -> Option<Value> {
+        return Some(Value::Bool(true));
+    }
+
+    pub fn mixed(&self) -> Value {\n        return Value::Int(1);\n    }\n\n    pub async fn is_uta(&mut self, optional_args: &[Value]) -> Value {\n        let mut uta: Value = Value::Bool(self.safe_bool_k(self.options.clone(), "uta", &[]).as_bool() == Some(true));\n        return uta;\n\n    Value::Null\n}\n\n    pub fn f(&mut self, mut o: Value) -> Value {\n        ${body}\n        return Value::Null; }\n}\n`
 }
 
 export function r04CalleeSelfTest (): string[] {
