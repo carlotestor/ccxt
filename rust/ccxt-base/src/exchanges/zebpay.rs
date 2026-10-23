@@ -1642,8 +1642,8 @@ impl ZebpayCore {
         });
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            { let __destr_tmp = self.order_request(symbol.clone(), type_var.clone(), amount.clone(), request.clone(), &[price.clone(), query.clone()]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            let __ws_arg_11 = self.extend(request.clone(), &[query.clone()]);
+            let mut orderRequestResult: Value = self.order_request(symbol.clone(), type_var.clone(), amount.clone(), request.clone(), &[price.clone(), query.clone()]);
+            let __ws_arg_11 = self.extend(orderRequestResult.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[orderRequestResult.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)]);
             response = self.private_spot_post_v2_ex_orders(&[__ws_arg_11]).await;
         }  else {
             let mut marginAsset: Value = self.safe_string_k(query.clone(), "marginAsset", &[Value::Str("INR".into())]);

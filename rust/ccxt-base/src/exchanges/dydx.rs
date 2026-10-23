@@ -1856,7 +1856,7 @@ impl DydxCore {
         let mut encodedTx: Value = encodedTxsignDocVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut signDoc: Value = encodedTxsignDocVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut signature: Value = self.sign_hash(encodedTx, privateKey);
-        return self.encode_dydx_tx_raw(signDoc, Value::Str(format!("{}{}", signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null), signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null)).into())).as_str().map(str::to_owned);
+        return self.encode_dydx_tx_raw(signDoc, (match (&(signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null)), &(signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null))) { (Value::Null, Value::Null) => Value::Null, (__a, __b) => Value::Str(format!("{}{}", __a, __b).into()) })).as_str().map(str::to_owned);
 }
 
     pub fn retrieve_credentials(&self) -> Value {
@@ -2216,7 +2216,7 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), result);
         m.insert("id".to_string(), orderId);
-        m.insert("clientOrderId".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&crate::value::get_value_k(&crate::value::get_value_k(&orderRequest, "value"), "order"), "orderId"), "clientId"));
+        m.insert("clientOrderId".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&crate::value::get_value_k(&orderRequest.as_map().and_then(|__m| __m.get("value")).cloned().unwrap_or(Value::Null), "order"), "orderId"), "clientId"));
     m
 }), &[]);
 

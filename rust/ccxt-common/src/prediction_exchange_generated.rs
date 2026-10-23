@@ -1909,16 +1909,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         let mut orderType: Value = self.safe_string_k(outcomeOrder.clone(), "type", &[]);
         let mut timeInForce: Value = self.safe_string_k(outcomeOrder.clone(), "timeInForce", &[]);
-        let mut postOnly: Value = self.safe_bool_k(outcomeOrder.clone(), "postOnly", &[]);
+        // the venue flag and the derived one are each written once, so neither local widens
+        let mut postOnlyValue: Value = self.safe_bool_k(outcomeOrder.clone(), "postOnly", &[]);
+        let mut derivedPostOnly: Value = Value::Null;
         if (timeInForce == Value::Null) {
             if (orderType.as_str() == Some("market")) {
                 timeInForce = Value::Str("IOC".into());
             }
-            if (postOnly.as_bool() == Some(true)) {
+            if (postOnlyValue.as_bool() == Some(true)) {
                 timeInForce = Value::Str("PO".into());
             }
-        }  else if (postOnly == Value::Null) {
-            postOnly = (Value::Bool(timeInForce.as_str() == Some("PO")));
+        }  else if (postOnlyValue == Value::Null) {
+            derivedPostOnly = (Value::Bool(timeInForce.as_str() == Some("PO")));
         }
         let mut timestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "timestamp", &[]);
         let mut datetime: Value = self.safe_string_k(outcomeOrder.clone(), "datetime", &[]);
@@ -1945,7 +1947,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("cost".to_string(), self.parse_number(cost, &[]));
                 m.insert("fee".to_string(), fee);
                 m.insert("reduceOnly".to_string(), self.safe_bool_k(outcomeOrder.clone(), "reduceOnly", &[]));
-                m.insert("postOnly".to_string(), postOnly);
+                m.insert("postOnly".to_string(), (if (postOnlyValue != Value::Null) { postOnlyValue } else { derivedPostOnly }));
                 m.insert("trades".to_string(), trades);
                 m.insert("outcome".to_string(), self.safe_string_k(outcomeOrder.clone(), "outcome", &[]));
                 m.insert("outcomeId".to_string(), self.safe_string_k(outcomeOrder.clone(), "outcomeId", &[]));

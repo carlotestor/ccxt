@@ -434,7 +434,7 @@ impl DeepcoinCore {
     m
 }));
         let mut suffix = get_arg(optional_args, 1, Value::Str("".into()));
-        let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &crate::value::get_value_k(&market, "type"));
+        let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null));
         let mut requestId: Value = self.request_id();
         let mut request: Value = self.create_public_request(market, requestId.clone(), topicID, &[suffix]);
         let mut subscription: Value = Value::Map({
@@ -459,7 +459,7 @@ impl DeepcoinCore {
     m
 }));
         let mut suffix = get_arg(optional_args, 2, Value::Str("".into()));
-        let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &crate::value::get_value_k(&market, "type"));
+        let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null));
         let mut requestId: Value = self.request_id();
         let mut client: Value = self.client(&[url.clone()]);
         let mut existingSubscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
@@ -473,7 +473,7 @@ impl DeepcoinCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("subHash".to_string(), messageHash);
                 m.insert("unsubHash".to_string(), unsubHash.clone());
-                m.insert("symbols".to_string(), Value::from(vec![crate::value::get_value_k(&market, "symbol")]));
+                m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]));
                 m.insert("id".to_string(), requestId);
             m
         })]);

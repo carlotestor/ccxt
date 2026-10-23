@@ -2320,7 +2320,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut errorMessage: Value = self.safe_string2(message.clone(), Value::Str("errorMessage".into()), Value::Str("error".into()), &[]);
         if (errorMessage != Value::Null) {
             let mut requestId: Value = self.safe_string2(message, Value::Str("reqid".into()), Value::Str("req_id".into()), &[]);
-            let mut broad: Value = crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "broad");
+            let mut broad: Value = self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null);
             let mut broadKey: Value = self.find_broadly_matched_key(broad.clone(), errorMessage.clone());
             let mut exception: Value = Value::Null;
             if (broadKey == Value::Null) {

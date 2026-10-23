@@ -388,7 +388,7 @@ impl HitbtcCore {
  */
     pub async fn authenticate(&mut self) -> Value {
         self.check_required_credentials(&[]);
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
+        let mut url: Value = self.safe_string(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Str("private".into()), &[]);
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut client: Value = self.client(&[url.clone()]);
         let mut future: Value = client.reusable_future(messageHash.clone());
@@ -441,7 +441,7 @@ impl HitbtcCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut isBatch: bool = Value::Int(name.as_str().and_then(|__s| __s.find("batch")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut resolvedPerSymbol: bool = !isBatch || (messageHashPrefix.as_str() == Some("orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut url: Value = self.safe_string(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Str("public".into()), &[]);
         let mut messageHashes: Value = Value::from(vec![]);
         if (symbolsNormalized != Value::Null) && resolvedPerSymbol {
             {
@@ -490,7 +490,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         self.authenticate().await;
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
+        let mut url: Value = self.safe_string(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Str("private".into()), &[]);
         let mut splitName: Value = Value::Array(name.as_str().map(|__s| __s.split("_subscribe").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut messageHash: Value = self.safe_string(splitName, Value::Int(0), &[Value::Str("".into())]);
         if (symbol != Value::Null) {
@@ -529,7 +529,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         self.authenticate().await;
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
+        let mut url: Value = self.safe_string(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Str("private".into()), &[]);
         let mut messageHash: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

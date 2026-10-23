@@ -2205,18 +2205,26 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
+            let mut depositLimits: Value = self.safe_dict_k(currencyLimits.clone(), "deposit", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            let mut withdrawLimits: Value = self.safe_dict_k(currencyLimits, "withdraw", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut limits: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), crate::value::get_value_k(&currencyLimits.as_map().and_then(|__m| __m.get("deposit")).cloned().unwrap_or(Value::Null), "min"));
-        m.insert("max".to_string(), crate::value::get_value_k(&currencyLimits.as_map().and_then(|__m| __m.get("deposit")).cloned().unwrap_or(Value::Null), "max"));
+        m.insert("min".to_string(), depositLimits.as_map().and_then(|__m| __m.get("min")).cloned().unwrap_or(Value::Null));
+        m.insert("max".to_string(), depositLimits.as_map().and_then(|__m| __m.get("max")).cloned().unwrap_or(Value::Null));
     m
 }));
                     m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), crate::value::get_value_k(&currencyLimits.as_map().and_then(|__m| __m.get("withdraw")).cloned().unwrap_or(Value::Null), "min"));
-        m.insert("max".to_string(), crate::value::get_value_k(&currencyLimits.as_map().and_then(|__m| __m.get("withdraw")).cloned().unwrap_or(Value::Null), "max"));
+        m.insert("min".to_string(), withdrawLimits.as_map().and_then(|__m| __m.get("min")).cloned().unwrap_or(Value::Null));
+        m.insert("max".to_string(), withdrawLimits.as_map().and_then(|__m| __m.get("max")).cloned().unwrap_or(Value::Null));
     m
 }));
                 m

@@ -3007,10 +3007,14 @@ impl XtCore {
         //         }
         //     }
         //
-        let mut ticker: Value = self.safe_value_k(response, "result", &[]);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            return self.parse_ticker(get_value(&ticker, &Value::Int(0)), &[market.clone()]);
+            let mut tickers: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
+            return self.parse_ticker(tickers.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[market.clone()]);
         }
+        let mut ticker: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_ticker(ticker, &[market]);
 
     Value::Null

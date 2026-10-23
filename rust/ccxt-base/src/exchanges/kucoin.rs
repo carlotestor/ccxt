@@ -3472,7 +3472,10 @@ impl KucoinCore {
             promises.push(self.load_migration_status(&[]).await);
         }
         let mut responses: Value = promise_all(&Value::from(promises)).await;
-        let mut symbolsData: Value = (if fetchSpotMarkets.as_bool() == Some(true) { self.safe_list(responses.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::from(vec![])]) } else { Value::from(vec![]) });
+        let mut symbolsData: Value = Value::from(vec![]);
+        if fetchSpotMarkets.as_bool() == Some(true) {
+            symbolsData = self.safe_list(responses.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::from(vec![])]);
+        }
         let mut crossIndex: Value = Value::Int(0);
         let mut isolatedIndex: Value = Value::Int(0);
         let mut tickersIndex: Value = Value::Int(0);
@@ -6389,7 +6392,7 @@ impl KucoinCore {
         let mut market: Value = self.market(symbol.clone());
         let mut testOrder: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("test".into()), &[]);
-        let mut hasTpOrSlOrder: bool = (self.safe_value_k(paramsOmitted.clone(), "stopLoss", &[]) != Value::Null) || (self.safe_value_k(paramsOmitted.clone(), "takeProfit", &[]) != Value::Null);
+        let mut hasTpOrSlOrder: bool = (self.safe_dict_k(paramsOmitted.clone(), "stopLoss", &[]) != Value::Null) || (self.safe_dict_k(paramsOmitted.clone(), "takeProfit", &[]) != Value::Null);
         let mut orderRequest: Value = self.create_contract_order_request(symbol, type_var, side, amount, &[price, paramsOmitted]);
         let mut response: Value = Value::Null;
         if testOrder.as_bool() == Some(true) {

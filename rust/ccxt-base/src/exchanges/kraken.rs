@@ -2836,13 +2836,19 @@ impl KrakenCore {
                 price = self.safe_string(parts, Value::Int(5), &[]);
             }
         }
-        side = self.safe_string_k(description.clone(), "type", &[side.clone()]);
+        let mut descriptionSide: Value = self.safe_string_k(description.clone(), "type", &[]);
+        if (descriptionSide != Value::Null) {
+            side = descriptionSide;
+        }
         rawType = self.safe_string_k(description.clone(), "ordertype", &[rawType.clone()]); // orderType has dash, e.g. trailing-stop
         marketId = self.safe_string_k(description.clone(), "pair", &[marketId.clone()]);
         let mut marketResolved: Value = self.resolve_market_by_altname_or_id(marketId, &[market]);
         let mut symbol: Value = Value::Null;
         let mut timestamp: Value = self.safe_timestamp_k(orderOmitted.clone(), "opentm", &[]);
-        amount = self.safe_string_k(orderOmitted.clone(), "vol", &[amount.clone()]);
+        let mut orderAmount: Value = self.safe_string_k(orderOmitted.clone(), "vol", &[]);
+        if (orderAmount != Value::Null) {
+            amount = orderAmount;
+        }
         let mut filled: Value = self.safe_string_k(orderOmitted.clone(), "vol_exec", &[]);
         let mut fee: Value = Value::Null;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -4927,14 +4933,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (get_value(&body, &Value::Int(0)).as_str() == Some("{")) {
             if !matches!(&response, Value::Str(_)) {
                 let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-                if (in_op(&response, &Value::Str("error".into()))) {
-                    let mut numErrors: Value = get_array_length(&get_value(&response, &Value::Str("error".into())));
-                    if numErrors.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                let mut errors: Value = self.safe_list_k(response.clone(), "error", &[]);
+                if (errors != Value::Null) {
+                    let mut numErrors: f64 = ((errors.len() as i64) as f64);
+                    if numErrors > ((0i64) as f64) {
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_860: bool = true;
-                            while { if !__for_first_860 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_860 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&response, &Value::Str("error".into()))).as_f64().unwrap_or(f64::NAN) } {
-                            let mut error: Value = get_value(&crate::value::get_value_k(&response, "error"), &i);
+                            while { if !__for_first_860 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_860 = false; i.as_f64().unwrap_or(f64::NAN) < numErrors } {
+                            let mut error: Value = errors.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), message.clone());
                             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.clone(), message.clone());
                         }

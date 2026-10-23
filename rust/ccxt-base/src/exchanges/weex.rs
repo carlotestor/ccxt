@@ -5622,7 +5622,10 @@ impl WeexCore {
         if hasJsonBody {
             requestBody = json_stringify(&query);
         }
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if isPrivate {
             let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
             if sandboxMode.as_bool() == Some(true) && (Value::Int(path.as_str().and_then(|__s| __s.find("capi/v3/sim/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Some(0.0)) {

@@ -3008,10 +3008,10 @@ impl BitfinexCore {
             let mut __for_first_344: bool = true;
             while { if !__for_first_344 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_344 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut individualOrder: Value = get_value(&entry, &Value::Int(4));
+            let mut individualOrder: Value = entry.as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null);
             results.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("result".to_string(), get_value(&individualOrder, &Value::Int(0)));
+                    m.insert("result".to_string(), individualOrder.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 m
             }));
         }

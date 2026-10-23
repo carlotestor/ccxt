@@ -5839,15 +5839,16 @@ impl DigifinexCore {
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             if (code != Value::Null) && ((codesValue == Value::Null) || self.in_array(code.clone(), codesValue.clone()).as_bool() == Some(true)) {
-                let mut depositWithdrawFee: Value = self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]);
-                if (depositWithdrawFee == Value::Null) {
-                    if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}))); }
-                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into()), Value::from(vec![]));
+                if (self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]) == Value::Null) {
+                    let mut feeStructure: Value = self.deposit_withdraw_fee(Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                        m
+                    }));
+                    if let Value::Dict(__d) = &mut feeStructure { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(vec![])); }
+                    if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), feeStructure); }
                 }
-                let mut depositWithdrawInfo: Value = crate::value::get_value_k(&depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "info");
+                let mut depositWithdrawFee: Value = depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut depositWithdrawInfo: Value = crate::value::get_value_k(&depositWithdrawFee, "info");
                 append_to_array(&mut depositWithdrawInfo, entry.clone());
                 let mut networkId: Value = self.safe_string_k(entry.clone(), "chain", &[]);
                 let mut withdrawFee: Value = self.safe_value_k(entry, "min_withdraw_fee", &[]);
@@ -5866,7 +5867,7 @@ impl DigifinexCore {
                 if (networkId != Value::Null) {
                     let mut networkCode: Value = self.network_id_to_code(&[networkId, code.clone()]);
                     if (networkCode != Value::Null) {
-                        add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into())), &networkCode, Value::Map({
+                        add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), withdrawResult.clone());
         m.insert("deposit".to_string(), depositResult.clone());
@@ -5874,8 +5875,8 @@ impl DigifinexCore {
 }));
                     }
                 }  else {
-                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("withdraw".into()), withdrawResult);
-                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("deposit".into()), depositResult);
+                    add_element_to_object(&mut depositWithdrawFee, &Value::Str("withdraw".into()), withdrawResult);
+                    add_element_to_object(&mut depositWithdrawFee, &Value::Str("deposit".into()), depositResult);
                 }
             }
         }

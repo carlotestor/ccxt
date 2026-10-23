@@ -666,7 +666,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]);
             let mut previousNonce: Value = self.safe_integer_k(data, "pu", &[]);
-            let mut currentNonce: Value = get_value(&orderbook, &Value::Str("nonce".into()));
+            let mut currentNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
             if (currentNonce.as_f64() != previousNonce.as_f64()) {
                 let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
                 if (match &(checksum) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {

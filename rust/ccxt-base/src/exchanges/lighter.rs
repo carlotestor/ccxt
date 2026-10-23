@@ -1354,7 +1354,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */
         if (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".into()))));
@@ -1470,11 +1470,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("integrator_taker_fee".into(), self.options.as_map().and_then(|__m| __m.get("integratorTakerFee")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("integrator_maker_fee".into(), self.options.as_map().and_then(|__m| __m.get("integratorMakerFee")).cloned().unwrap_or(Value::Null)); }
         }
-        let mut orders: Value = Value::from(vec![]);
-        if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.extend(request, &[paramsRequest.clone()])); }
+        let mut orders: Vec<Value> = Vec::new();
+        let mut firstOrder: Value = self.extend(request, &[paramsRequest.clone()]);
+        orders.push(firstOrder.clone());
         if hasStopLoss || hasTakeProfit {
             // group order
-            add_element_to_object(get_value_mut(&mut orders, &Value::Int(0)), &Value::Str("client_order_index".into()), Value::Int(0)); // client order index should be 0
+            if let Value::Dict(__d) = &mut firstOrder { std::sync::Arc::make_mut(__d).insert("client_order_index".into(), Value::Int(0)); }; // client order index should be 0
             let mut triggerOrderSide: Value = Value::Str("".into());
             if (orderSide.as_str() == Some("BUY")) {
                 triggerOrderSide = Value::Str("sell".into());
@@ -1497,7 +1498,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
                 let mut orderObj: Value = self.create_order_request(symbol.clone(), stopLossOrderType, triggerOrderSide.clone(), Value::Int(0), &[stopLossOrderLimitPrice, __ws_arg_5]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut orderObj, &Value::Str("client_order_index".into()), Value::Int(0));
-                if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(orderObj.clone()); }
+                orders.push(orderObj.clone());
             }
             if (takeProfit != Value::Null) {
                 let __ws_arg_6 = self.extend(paramsRequest, &[Value::Map({
@@ -1508,10 +1509,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
                 let mut orderObj: Value = self.create_order_request(symbol, takeProfitOrderType, triggerOrderSide, Value::Int(0), &[takeProfitOrderLimitPrice, __ws_arg_6]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut orderObj, &Value::Str("client_order_index".into()), Value::Int(0));
-                if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(orderObj); }
+                orders.push(orderObj);
             }
         }
-        return orders;
+        return Value::from(orders);
 
     Value::Null
 }

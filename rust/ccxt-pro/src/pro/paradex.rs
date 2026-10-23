@@ -1454,12 +1454,12 @@ impl ParadexCore {
         if (templateId.as_f64() == Some(1.0)) {
             data = self.parse_sbe_trade(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
-                channel = Value::Str(format!("{}{}", Value::Str("trades.".into()), crate::value::get_value_k(&data, "market")).into());
+                channel = Value::Str(format!("{}{}", Value::Str("trades.".into()), data.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)).into());
             }
         }  else if (templateId.as_f64() == Some(3.0)) {
             data = self.parse_sbe_order_book(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
-                channel = self.get_order_book_channel(crate::value::get_value_k(&data, "market")).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+                channel = self.get_order_book_channel(data.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             }
         }  else if (templateId.as_f64() == Some(4.0)) {
             data = self.parse_sbe_market_summary(frameHex.clone(), blockLength.clone(), frameLength.clone());
@@ -1470,12 +1470,12 @@ impl ParadexCore {
         }  else if (templateId.as_f64() == Some(20.0)) {
             data = self.parse_sbe_order(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
-                channel = Value::Str(format!("{}{}", Value::Str("orders.".into()), crate::value::get_value_k(&data, "market")).into());
+                channel = Value::Str(format!("{}{}", Value::Str("orders.".into()), data.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)).into());
             }
         }  else if (templateId.as_f64() == Some(21.0)) {
             data = self.parse_sbe_fill(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
-                channel = Value::Str(format!("{}{}", Value::Str("fills.".into()), crate::value::get_value_k(&data, "market")).into());
+                channel = Value::Str(format!("{}{}", Value::Str("fills.".into()), data.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)).into());
             }
         }  else if (templateId.as_f64() == Some(22.0)) {
             data = self.parse_sbe_position(frameHex.clone(), blockLength.clone(), frameLength.clone());

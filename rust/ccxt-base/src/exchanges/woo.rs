@@ -4020,13 +4020,15 @@ impl WooCore {
 }
 
     pub fn get_dedicated_network_id(&self, mut currency: Value, mut params: Value) -> Value {
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut networkCodeRawparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
         let mut networkCodeRaw: Value = networkCodeRawparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeRawparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut networkCode: Value = self.network_id_to_code(&[networkCodeRaw, crate::value::get_value_k(&currency, "code")]);
-        let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(crate::value::get_value_k(&currency, "networks"), networkCode, &[]) });
+        let mut networkCode: Value = self.network_id_to_code(&[networkCodeRaw, currency.get("code").cloned().unwrap_or(Value::Null)]);
+        let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(currency.get("networks").cloned().unwrap_or(Value::Null), networkCode, &[]) });
         if (networkEntry == Value::Null) {
-            let mut supportedNetworks: Value = Value::Array((crate::value::get_value_k(&currency, "networks")).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut supportedNetworks: Value = Value::Array((currency.get("networks").cloned().unwrap_or(Value::Null)).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".into())).into()), json_stringify(&supportedNetworks))));
         }
         let mut currentyNetworkId: Value = self.safe_string_k(networkEntry, "currencyNetworkId", &[]);
