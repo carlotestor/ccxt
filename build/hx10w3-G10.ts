@@ -219,8 +219,9 @@ function g10JoinedType (name: string, body: string, maskedBody: string): string 
         }
     }
     if (shape === undefined) { return undefined; }
-    // all-pointer writes are the pointer itself; all-value writes are a nil-or-that-scalar box
-    return shape.startsWith ('ptr:') ? shape.substring (4) : ('box:' + shape.substring (4));
+    // only the value shape is usable: an `any` local keeps its static interface type, so a box that
+    // holds a pointer cannot be dereferenced and keeps the helper call
+    return shape.startsWith ('val:') ? ('box:' + shape.substring (4)) : undefined;
 }
 
 function g10JoinAny (scope: G10Scope, body: string, maskedBody: string) {
@@ -408,7 +409,7 @@ export function g10SelfCheck (): string[] {
     ok (run (negated).indexOf ('if !((a == nil && b == nil) || (a != nil && b != nil && *a == *b)) {') >= 0, 'negation keeps its operator: ' + run (negated));
     // a boxed `any` local whose only write is that pointer type joins to it
     const joined = f ('\tvar a any = nil\n\ta = this.SafeString(o, "a")\n\tif !IsEqual(a, b) {\n\t}', 'b *string');
-    ok (run (joined).indexOf ('((a == nil && b == nil) || (a != nil && b != nil && *a == *b))') >= 0, 'pointer join: ' + run (joined));
+    ok (run (joined) === joined, 'a box that holds a pointer keeps the helper (an any local cannot be dereferenced)');
     const mixed = f ('\tvar a any = nil\n\ta = this.SafeString(o, "b")\n\ta = this.SafeInteger(o, "n")\n\tif !IsEqual(a, b) {\n\t}', 'b *string');
     ok (run (mixed) === mixed, 'a second write type keeps the helper');
     // one pointer against a matching value
