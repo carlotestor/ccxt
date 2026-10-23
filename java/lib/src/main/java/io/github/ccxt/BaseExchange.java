@@ -3839,13 +3839,14 @@ public class BaseExchange {
         if (options instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> optionsMap = (Map<String, Object>) options;
-            // merge in place so `options` keeps the CHM identity its readers rely on
-            Map<String, Object> merged = this.extend(this.options, optionsMap);
-            for (Map.Entry<String, Object> e : merged.entrySet()) {
+            // a fresh CHM per merge: the test harness snapshots the previous map by reference
+            java.util.concurrent.ConcurrentHashMap<String, Object> merged = new java.util.concurrent.ConcurrentHashMap<>();
+            for (Map.Entry<String, Object> e : ((Map<String, Object>) this.extend(this.options, optionsMap)).entrySet()) {
                 if (e.getKey() != null && e.getValue() != null) {
-                    this.options.put(e.getKey(), e.getValue());
+                    merged.put(e.getKey(), e.getValue());
                 }
             }
+            this.options = merged;
         }
     }
 
