@@ -10,6 +10,7 @@ import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import { nativeGetValue } from './hx10w2-R01.js';
 import { r01TypedLocals } from "./hx10w3-R01.js";
+import { r07StringNatives } from './hx10w3-R07.js'; // hx10 W3 R07
 import { hx10w2R08 } from './hx10w2-R08.js';
 import { r05FieldChainInserts } from './hx10w3-R05.js'; // hx10 R05
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
@@ -9040,6 +9041,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = hx10w2R08(rustContent); // hx10 wave-2 R08
                 // hx10 W3 R01: typed locals run last, on the final text.
                 rustContent = r01TypedLocals(rustContent);
+                rustContent = r07StringNatives(rustContent); // hx10 W3 R07
                 rustContent = hx10w3R03(rustContent); // hx10 wave-3 R03
                 rustContent = r05FieldChainInserts(rustContent); // hx10 R05
             } catch (e: any) {
@@ -9783,6 +9785,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = hx10w2R03(finalFile); // hx10w2 R03
         finalFile = hx10w2R08(finalFile); // hx10 wave-2 R08
         finalFile = r01TypedLocals(finalFile); // hx10 W3 R01
+        finalFile = r07StringNatives(finalFile); // hx10 W3 R07
                 finalFile = hx10w3R03(finalFile); // hx10 wave-3 R03
         finalFile = r05FieldChainInserts(finalFile); // hx10 R05
 
