@@ -214,8 +214,64 @@ public class BaseExchange {
     public Object number = Float.class;                   // C# typeof(float) → Java Class<?> for Float
     public Map<String, Object> has = new HashMap<>();
     public Map<String, Object> features = new HashMap<>();
-    // ConcurrentHashMap: concurrent watchTrades / loadMarkets put/get/remove/iterate must not race
-    public Map<String, Object> options = new java.util.concurrent.ConcurrentHashMap<>();
+    // Single owner of `options`: one writer publishes an immutable snapshot, readers never lock,
+    // and a null value removes the key (the element-write contract every options site prints).
+    public Map<String, Object> options = new SynchronizedOptions ();
+
+    public static final class SynchronizedOptions extends java.util.AbstractMap<String, Object> {
+        private final Object writer = new Object ();
+        private volatile Map<String, Object> published = java.util.Collections.emptyMap ();
+
+        public static SynchronizedOptions of (Map<String, Object> source) {
+            SynchronizedOptions store = new SynchronizedOptions ();
+            if (source == null) return store;
+            for (Map.Entry<String, Object> entry : source.entrySet ()) {
+                if (entry.getKey () != null && entry.getValue () != null) store.put (entry.getKey (), entry.getValue ());
+            }
+            return store;
+        }
+
+        @Override public Object get (Object key) { return this.published.get (key); }
+        @Override public boolean containsKey (Object key) { return this.published.containsKey (key); }
+        @Override public int size () { return this.published.size (); }
+        @Override public boolean isEmpty () { return this.published.isEmpty (); }
+        @Override public java.util.Set<Map.Entry<String, Object>> entrySet () { return this.published.entrySet (); }
+
+        @Override public Object put (String key, Object value) {
+            if (key == null) return null;
+            synchronized (this.writer) {
+                Map<String, Object> next = new LinkedHashMap<String, Object> (this.published);
+                Object previous = (value == null) ? next.remove (key) : next.put (key, value);
+                this.published = java.util.Collections.unmodifiableMap (next);
+                return previous;
+            }
+        }
+
+        @Override public Object remove (Object key) {
+            synchronized (this.writer) {
+                Map<String, Object> next = new LinkedHashMap<String, Object> (this.published);
+                Object previous = next.remove (key);
+                this.published = java.util.Collections.unmodifiableMap (next);
+                return previous;
+            }
+        }
+
+        @Override public void putAll (Map<? extends String, ? extends Object> entries) {
+            synchronized (this.writer) {
+                Map<String, Object> next = new LinkedHashMap<String, Object> (this.published);
+                for (Map.Entry<? extends String, ? extends Object> entry : entries.entrySet ()) {
+                    if (entry.getKey () == null) continue;
+                    if (entry.getValue () == null) next.remove (entry.getKey ());
+                    else next.put (entry.getKey (), entry.getValue ());
+                }
+                this.published = java.util.Collections.unmodifiableMap (next);
+            }
+        }
+
+        @Override public void clear () {
+            synchronized (this.writer) { this.published = java.util.Collections.emptyMap (); }
+        }
+    }
     public boolean isSandboxModeEnabled = false;
 
     public volatile Map<String, Object> markets = null;
@@ -409,9 +465,8 @@ public class BaseExchange {
         this.limits    = (Map<String, Object>) this.safeValue(extendedProperties, "limits");
         this.streaming = (Map<String, Object>) this.safeValue(extendedProperties, "streaming");
 
-        // handle options — keep this.options as a ConcurrentHashMap so concurrent
-        // watchTrades / loadMarkets calls don't race (see Exchange.options field
-        // comment + SharedStateRaceTest).
+        // handle options — one owner store: writers publish snapshots, readers never lock
+        // (SharedStateRaceTest pins that contract).
         var extendedOptions = this.safeDict(extendedProperties, "options", null);
         Map<String, Object> initialOptions;
         if (extendedOptions != null) {
@@ -420,10 +475,9 @@ public class BaseExchange {
         } else {
             initialOptions = (Map<String, Object>) this.getDefaultOptions();
         }
-        java.util.concurrent.ConcurrentHashMap<String, Object> opts = new java.util.concurrent.ConcurrentHashMap<>();
+        SynchronizedOptions opts = new SynchronizedOptions();
         for (Map.Entry<String, Object> e : initialOptions.entrySet()) {
-            // CHM doesn't accept null values; skip entries that were explicitly
-            // initialized to null (semantically equivalent to "not set").
+            // a null value means "not set"; the store drops the key instead of holding the null
             if (e.getKey() != null && e.getValue() != null) {
                 opts.put(e.getKey(), e.getValue());
             }
@@ -1694,6 +1748,19 @@ public class BaseExchange {
         return Helpers.parseJson(input);
     }
 
+    // Single owner of the loadMarkets → fetchMarkets currency hand-off: only the in-flight load
+    // chain (single-flight under marketsLock) writes it, and it is cleared before the next load.
+    private volatile Map<String, Object> pendingCachedCurrencies = null;
+
+    public Map<String, Object> cachedCurrenciesForLoad() {
+        return this.pendingCachedCurrencies;
+    }
+
+    public Map<String, Object> cachedCurrenciesForLoadOrEmpty() {
+        Map<String, Object> currencies = this.pendingCachedCurrencies;
+        return (currencies == null) ? new java.util.HashMap<String, Object>() : currencies;
+    }
+
     public java.util.concurrent.CompletableFuture<Object> loadMarketsHelper(boolean reload) throws ExecutionException, InterruptedException {
 
         if (!reload && this.markets != null) {
@@ -1702,6 +1769,8 @@ public class BaseExchange {
             }
             return java.util.concurrent.CompletableFuture.completedFuture(this.markets);
         }
+
+        this.pendingCachedCurrencies = null;
 
         // Chain: fetchCurrencies (if supported) → fetchMarkets → setMarkets
         // No thread blocked at any point
@@ -1721,11 +1790,9 @@ public class BaseExchange {
         }
 
         return currenciesFuture.thenCompose(currencies -> {
-            if (currencies != null) {
-                this.options.put("cachedCurrencies", currencies);
-            }
+            this.pendingCachedCurrencies = (currencies == null) ? null : (Map<String, Object>) currencies;
             return this.fetchMarkets(new java.util.HashMap<String, Object>()).thenApply(markets -> {
-                this.options.remove("cachedCurrencies");
+                this.pendingCachedCurrencies = null;
                 // Pass currencies through so setMarkets() can merge fetched currencies
                 // (including ones not appearing as a base/quote/settle in any market —
                 // e.g. AGLD/WBTC for bigone/apex, USDC for aftermath). The previous
@@ -3839,14 +3906,8 @@ public class BaseExchange {
         if (options instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> optionsMap = (Map<String, Object>) options;
-            // a fresh CHM per merge: the test harness snapshots the previous map by reference
-            java.util.concurrent.ConcurrentHashMap<String, Object> merged = new java.util.concurrent.ConcurrentHashMap<>();
-            for (Map.Entry<String, Object> e : ((Map<String, Object>) this.extend(this.options, optionsMap)).entrySet()) {
-                if (e.getKey() != null && e.getValue() != null) {
-                    merged.put(e.getKey(), e.getValue());
-                }
-            }
-            this.options = merged;
+            // a fresh store per merge: the test harness snapshots the previous map by reference
+            this.options = SynchronizedOptions.of((Map<String, Object>) this.extend(this.options, optionsMap));
         }
     }
 
@@ -5066,7 +5127,7 @@ public Object describe()
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
+        this.options.put("enableDemoTrading", enable);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
@@ -5784,7 +5845,7 @@ public Object describe()
     {
         // networksById: inverse of options.networks, explicit options.networksById entries win
         Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}}));
-        Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
+        this.options.put("networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any
@@ -8781,7 +8842,7 @@ public Object describe()
         this.lockLastNonce();
         Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
         Object result = ((((currentNonce != null && (lastNonce == null || currentNonce > lastNonce))))) ? currentNonce : (lastNonce + 1L);
-        Helpers.addElementToObject(this.options, "lastNonce", result);
+        this.options.put("lastNonce", result);
         this.unlockLastNonce();
         return result;
     }

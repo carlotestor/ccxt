@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 const J04_ROOT = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
 const J04_HEADERS = [ 'BaseExchange.java', 'Exchange.java', 'PredictionExchange.java' ].map ((f) => path.join (J04_ROOT, f));
 const J04_DELIM = '// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT';
-const OPTIONS_FIELD = /^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+options\s*=\s*new\s+(?:java\.util\.concurrent\.)?ConcurrentHashMap/m;
+const OPTIONS_FIELD = /^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+options\s*=\s*new\s+(?:java\.util\.concurrent\.)?(?:ConcurrentHashMap|SynchronizedOptions)/m;
 const DECL_STOP = [ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'yield', 'assert' ];
 
 const norm = (t: string) => t.replace (/^java\.util\.concurrent\./, '').replace (/^java\.util\./, '').replace (/\s+/g, ' ').trim ();
