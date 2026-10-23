@@ -10974,7 +10974,7 @@ impl BinanceCore {
         let mut isLinear: bool = market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
         let mut isInverse: bool = market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
         let mut isPortfolioMarginInverse: bool = is_true(&isPortfolioMargin) && isInverse;
-        let mut isAlgoOrder: Value = Value::Bool(isSwapOrFuture && is_true(&isConditional) && (!isPortfolioMarginInverse));
+        let mut isAlgoOrder: Value = Value::Bool(isSwapOrFuture && isConditional.as_bool() == Some(true) && (!isPortfolioMarginInverse));
         let mut sor: Value = self.safe_bool2(params.clone(), Value::Str("sor".into()), Value::Str("SOR".into()), &[Value::Bool(false)]);
         let mut test: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         let mut stock: Value = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]);

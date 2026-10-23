@@ -1054,7 +1054,7 @@ pub trait ExchangeBase:
                 let mut entryKeyValue: Value = self.safe_integer(entry.clone(), key.clone(), &[]);
                 let mut entryKeyGESince: Value = Value::Bool((entryKeyValue != Value::Null) && (entryKeyValue.as_f64() != Some(0.0)) && (since != Value::Null) && (entryKeyValue.as_f64().unwrap_or(f64::NAN) >= since.as_f64().unwrap_or(f64::NAN)));
                 let mut secondCondition: Value = (if sinceIsDefined.as_bool() == Some(true) { entryKeyGESince } else { Value::Bool(true) });
-                if is_true(&firstCondition) && is_true(&secondCondition) {
+                if firstCondition.as_bool() == Some(true) && secondCondition.as_bool() == Some(true) {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(entry); }
                 }
             }

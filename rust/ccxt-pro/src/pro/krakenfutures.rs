@@ -2289,7 +2289,7 @@ impl KrakenfuturesCore {
             let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash.clone()); }
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            if !is_true(&self.subscription_exists_for_hash(url.clone(), messageHash)) {
+            if self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(false) {
                 rawSubs.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
