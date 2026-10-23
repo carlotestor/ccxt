@@ -30,7 +30,7 @@ import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./
 import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest, hx4G35InlineMulSub, hx4G35Check, hx4G36Inline, hx4G36Check, hx4G36AddImport, hx4G37InlineComparisons, hx4G37Check, hx4G40InlineIsEqual, hx4G40Check, hx4G42InlineTypeChecks, hx4G42Check, hx5X26CaseAffix, hx5X26Check, hx4G45InlineStr, hx4G45Check, hx5X29ParseNative, hx5X29Check } from './go-native-arith.js';
 import { hx10w2G04, g04Check } from './hx10w2-G04.js';
 import { hx10w2G05, hx10w2G05Check } from './hx10w2-G05.js';  // hx10w2 G05
-import { G05_PROVEN_LIST_METHODS, g05Check } from './hx10w3-G05.js';  // hx10w3 G05: generated base return types
+import { G05_PROVEN_LIST_METHODS, g05Check, g05Locals } from './hx10w3-G05.js';  // hx10w3 G05: generated base return types
 import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
 import { g02pass, g02check } from './hx10w2-G02.js';  // hx10 G02
 import { emitHx10w2G07Native, hx10w2G07SelfCheck } from './hx10w2-G07.js';
@@ -2697,6 +2697,7 @@ function formatGoSource (filePath: string, content: string): string {
     }
     // first, so goChanCarrierPass and the local classifiers see the typed parser signatures
     content = retypeGoProvenParseMethods (content);
+    content = g05Locals (content);  // hx10w3 G05: typed locals from generated return types
     content = g02pass (content);  // hx10 G02
     content = guardMultiSendCores (content);
     content = h2kG11NativeBoxAbsentSends (content);
