@@ -14,6 +14,7 @@ import { hx10w2R08 } from './hx10w2-R08.js';
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import { r02NativeInserts } from './hx10w2-R02.js';
 import { hx10w2R03 } from './hx10w2-R03.js';
+import { hx10w3R03 } from './hx10w3-R03.js'; // hx10 wave-3 R03
 import { r04Scalars } from './hx10w2-R04.js'; // hx10 R04
 import { r06Push } from './hx10w2-r06.js';
 
@@ -9033,6 +9034,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = hx10w2R08(rustContent); // hx10 wave-2 R08
                 // hx10 W3 R01: typed locals run last, on the final text.
                 rustContent = r01TypedLocals(rustContent);
+                rustContent = hx10w3R03(rustContent); // hx10 wave-3 R03
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9772,6 +9774,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = hx10w2R03(finalFile); // hx10w2 R03
         finalFile = hx10w2R08(finalFile); // hx10 wave-2 R08
         finalFile = r01TypedLocals(finalFile); // hx10 W3 R01
+                finalFile = hx10w3R03(finalFile); // hx10 wave-3 R03
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -11065,6 +11068,7 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.dropRedundantIsTrue(content);
         content = this.rewriteNativeErrorClassChecks(content);
         content = hx10w2R08(content); // hx10 wave-2 R08
+                content = hx10w3R03(content); // hx10 wave-3 R03
         return content;
     }
 
