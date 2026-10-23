@@ -748,7 +748,7 @@ impl LunoCore {
             add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
             let mut market: Value = self.market(symbol);
             let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash);
             }
             client.reset(error);

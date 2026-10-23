@@ -2249,7 +2249,7 @@ impl WhitebitCore {
     m
 })); }
                     }
-                    add_element_to_object(get_value_mut(&mut limits, &Value::Str("deposit".into())), &Value::Str("fee".into()), depositFeeData);
+                    if let Value::Dict(__rda) = &mut limits { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("deposit".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("fee".to_string(), depositFeeData); } }
                 }
                 if (withdrawFee != Value::Null) && (withdrawFee != Value::Null) {
                     let mut withdrawFeeData: Value = Value::Map({
@@ -2267,7 +2267,7 @@ impl WhitebitCore {
     m
 })); }
                     }
-                    add_element_to_object(get_value_mut(&mut limits, &Value::Str("withdraw".into())), &Value::Str("fee".into()), withdrawFeeData);
+                    if let Value::Dict(__rda) = &mut limits { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("fee".to_string(), withdrawFeeData); } }
                 }
             }
             // Add network-specific limits if available

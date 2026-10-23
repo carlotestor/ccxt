@@ -3102,7 +3102,7 @@ impl PolymarketCore {
         let __ws_arg_12 = self.safe_dict_k(built.clone(), "request", &[]);
         let mut enriched: Value = self.extend(__ws_arg_12, &[response.clone()]);
         let mut order: Value = self.parse_prediction_order(enriched, &[self.safe_dict_k(built, "outcome", &[])]);
-        add_element_to_object(&mut order, &Value::Str("info".into()), response); // keep info the raw exchange response, not the request echo
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("info".to_string(), response); } // keep info the raw exchange response, not the request echo
         return order;
 
     Value::Null
@@ -3186,7 +3186,7 @@ impl PolymarketCore {
                 let mut rawItem: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut enriched: Value = self.extend(requests.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), &[rawItem.clone()]);
                 let mut parsedItem: Value = self.parse_prediction_order(enriched, &[outcomes.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null)]);
-                add_element_to_object(&mut parsedItem, &Value::Str("info".into()), rawItem); // keep info the raw exchange response
+                if let Value::Dict(__rda) = &mut parsedItem { std::sync::Arc::make_mut(__rda).insert("info".to_string(), rawItem); } // keep info the raw exchange response
                 if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(parsedItem); }
             }
             }

@@ -1550,8 +1550,8 @@ impl BittradeCore {
 })]);
         let mut ticker: Value = self.parse_ticker(tick, &[market]);
         let mut timestamp: Value = self.safe_integer_k(response, "ts", &[]);
-        add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         return ticker;
 
     Value::Null
@@ -1590,8 +1590,8 @@ impl BittradeCore {
             let mut market: Value = self.safe_market(&[marketId]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(tickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market]);
-            add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+            if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp.clone())); }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
         }
         }

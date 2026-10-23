@@ -1651,7 +1651,7 @@ impl KrakenCore {
             // through client.resolve () / client.reject () so every write to
             // that map stays behind the client's own lock
             let mut messageHash: Value = Value::Str("authenticateFlight".into());
-            if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the subscriptions bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -1828,7 +1828,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut name: Value = Value::Str("myTrades".into());
             client.resolve(&[self.myTrades.clone(), name.clone()]);
-            let mut keys: Value = object_keys(&symbols);
+            let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_433: bool = true;
@@ -2021,7 +2021,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut name: Value = Value::Str("orders".into());
             client.resolve(&[self.orders.clone(), name.clone()]);
-            let mut keys: Value = object_keys(&symbols);
+            let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_435: bool = true;

@@ -560,7 +560,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let mut message: Value = self.extend(request, &[params]);
         let mut client: Value = self.client(&[url.clone()]);
-        if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash)) {
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &requestId, subscriptionHash.clone());
         }
         return self.watch(url, messageHash, &[message, subscriptionHash, subscription]).await;
@@ -598,7 +598,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut message: Value = self.extend(request, &[params]);
         let mut url: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), urlType, &[]);
         let mut client: Value = self.client(&[url.clone()]);
-        if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &requestId, messageHash.clone());
         }
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
@@ -634,7 +634,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut message: Value = self.extend(request, &[params]);
         let mut url: Value = self.get_uta_url().await;
         let mut client: Value = self.client(&[url.clone()]);
-        if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &requestId, subscribeHash.clone());
         }
         return self.watch_multiple(url, messageHashes, &[message, Value::from(vec![subscribeHash]), subscription]).await;
@@ -664,7 +664,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
         let mut client: Value = self.client(&[url]);
         if (utaToken.is_none()) || expired {
-            if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // wait the existing future if it's already being fetched by another call
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
             }  else {
@@ -729,7 +729,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_455: bool = true;
             while { if !__for_first_455 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_455 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
             let mut subscriptionHash: Value = subscriptionHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &requestId, subscriptionHash.clone());
             }
         }
@@ -764,7 +764,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_456: bool = true;
             while { if !__for_first_456 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_456 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
             let mut subscriptionHash: Value = subscriptionHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &requestId, subscriptionHash.clone());
             }
         }
@@ -997,7 +997,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), urlType, &[]);
         let mut client: Value = self.client(&[url.clone()]);
         let mut messageHashWithSymbols: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), join(&symbols, &Value::Str(",".into()))).into());
-        if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHashWithSymbols)) {
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHashWithSymbols), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &requestId, messageHashWithSymbols.clone());
         }
         return self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone(), subscription]).await;
@@ -1842,14 +1842,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_461: bool = true;
             while { if !__for_first_461 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_461 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:trades:".into()), symbol).into()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trades:".into()), symbol).into())); };
             subscriptionHashes.push(Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into()));
         }
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        append_to_array(&mut messageHashes, topic.clone());
+        if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(topic.clone()); };
         subscriptionHashes.push(topic.clone());
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2323,14 +2323,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_463: bool = true;
             while { if !__for_first_463 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_463 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol).into()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol).into())); };
             subscriptionHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()));
         }
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        append_to_array(&mut messageHashes, topic.clone());
+        if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(topic.clone()); };
         subscriptionHashes.push(topic.clone());
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2620,7 +2620,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }), limit.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }  else {
-                let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+                let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
                 crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
             }
@@ -2647,7 +2647,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut subscriptionHash: Value = self.safe_string(get_value(&client, &Value::Str("subscriptions".into())), id.clone(), &[]);
@@ -3086,7 +3086,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut order: Value = self.safe_dict(orders, orderId, &[]);
         if (order != Value::Null) {
             if (self.safe_string_k(order.clone(), "status", &[]).as_str() == Some("closed")) {
-                add_element_to_object(&mut parsed, &Value::Str("status".into()), Value::Str("closed".into()));
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("closed".into())); }
             }
             // carry the accumulated fill state forward, the raw feed only
             // carries the match prices on the match messages, and safeOrder
@@ -3094,11 +3094,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
             if (order.as_map().and_then(|__m| __m.get("average")).cloned().unwrap_or(Value::Null) != Value::Null) {
-                add_element_to_object(&mut parsed, &Value::Str("average".into()), order.as_map().and_then(|__m| __m.get("average")).cloned().unwrap_or(Value::Null));
-                add_element_to_object(&mut parsed, &Value::Str("cost".into()), order.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null));
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("average".to_string(), order.as_map().and_then(|__m| __m.get("average")).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("cost".to_string(), order.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)); }
             }
             if (parsed.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null) == Value::Null) {
-                add_element_to_object(&mut parsed, &Value::Str("filled".into()), order.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null));
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("filled".to_string(), order.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null)); }
             }
         }
         // accumulate the average fill price and cost from the match messages,
@@ -3111,10 +3111,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut matchCost: Value = crate::precise::Precise::stringMul(&matchPrice, &matchSize);
             let mut previousCost: Value = (if (order == Value::Null) { Value::Str("0".into()) } else { self.number_to_string(self.safe_number_k(order, "cost", &[Value::Int(0)])) });
             let mut costString: Value = crate::precise::Precise::stringAdd(&previousCost, &matchCost);
-            add_element_to_object(&mut parsed, &Value::Str("cost".into()), self.parse_number(costString.clone(), &[]));
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("cost".to_string(), self.parse_number(costString.clone(), &[])); }
             let mut filledString: Value = self.number_to_string(parsed.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null));
             if (filledString != Value::Null) && crate::precise::Precise::stringGt(&filledString, &Value::Str("0".into())).as_bool() == Some(true) {
-                add_element_to_object(&mut parsed, &Value::Str("average".into()), self.parse_number(crate::precise::Precise::stringDiv(&costString, &filledString), &[]));
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("average".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&costString, &filledString), &[])); }
             }
         }
         cachedOrders.append(parsed);
@@ -3548,7 +3548,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut message: Value = self.extend(request, &[paramsOmitted]);
-            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &requestId, subscriptionHash.clone());
             }
             return self.watch(url, messageHash, &[message, uniformType]).await;
@@ -3558,14 +3558,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value) {
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &type_var)) && (matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -3592,7 +3592,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         { let __be_tmp = self.extend(response, &[__ws_arg_5]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
@@ -3711,7 +3711,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (uniformType != Value::Null) && (code != Value::Null) {
             add_element_to_object(get_value_mut(&mut self.balance, &uniformType), &code, account);
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &uniformType)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&uniformType), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| uniformType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&uniformType), __be_tmp); } }
         let mut messageHash: Value = Value::Str(format!("{}{}", uniformType, Value::Str(":balance".into())).into());
         client.resolve(&[self.balance.as_map().and_then(|__m| uniformType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
@@ -3758,7 +3758,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (code != Value::Null) {
             add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into());
         client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
@@ -3888,7 +3888,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut values: Value = object_values(&symbolCache);
+        let mut values: Value = Value::Array(symbolCache.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
         return self.safe_dict(values, Value::Int(0), &[]);
 
     Value::Null
@@ -3901,7 +3901,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (fetchPositionsSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone(), uta]);
             }
@@ -3930,7 +3930,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("positions".into())]);
@@ -3943,7 +3943,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fetchPositionSnapshot: Value = self.handle_option(Value::Str("watchPosition".into()), Value::Str("fetchPositionSnapshot".into()), &[Value::Bool(false)]);
         if (fetchPositionSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("fetchPositionSnapshot:".into()), symbol).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_position_snapshot".into()).clone(), client.clone(), messageHash.clone(), symbol]);
             }
@@ -3956,7 +3956,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cache: Value = self.positions.clone();
         cache.append(position.clone());
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache]);
             client.resolve(&[position, Value::Str(format!("{}{}", Value::Str("position:".into()), symbol).into())]);

@@ -882,7 +882,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_203: bool = true;
             while { if !__for_first_203 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_203 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketKeys.len() as i64) as f64) } {
-            self.index_market_outcomes(get_value(&self.markets, &marketKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
+            self.index_market_outcomes(self.markets.as_map().and_then(|__m| marketKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
         }
         }
 }

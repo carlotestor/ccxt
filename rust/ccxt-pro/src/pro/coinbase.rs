@@ -532,7 +532,7 @@ impl CoinbaseCore {
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             productIds.push(marketId);
             watchMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into()));
-            append_to_array(&mut unWatchMessageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol).into()));
+            if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol).into())); };
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -822,8 +822,8 @@ impl CoinbaseCore {
                     continue;
                 }
                 let mut result: Value = self.parse_ws_ticker(ticker, &[]);
-                add_element_to_object(&mut result, &Value::Str("timestamp".into()), timestamp.clone());
-                add_element_to_object(&mut result, &Value::Str("datetime".into()), datetime.clone());
+                if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+                if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), datetime.clone()); }
                 let mut symbol: Value = result.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 if (symbol != Value::Null) {
                     if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }

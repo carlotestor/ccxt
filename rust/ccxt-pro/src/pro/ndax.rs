@@ -453,7 +453,7 @@ impl NdaxCore {
             }
         }
         }
-        let mut symbols: Value = object_keys(&updates);
+        let mut symbols: Value = Value::Array(updates.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_526: bool = true;
@@ -589,7 +589,7 @@ impl NdaxCore {
                 let mut candleTimestamp: Value = self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 let mut parsed: Value = Value::from(vec![candleTimestamp.clone(), self.safe_float(ohlcv.clone(), Value::Int(3), &[]), self.safe_float(ohlcv.clone(), Value::Int(1), &[]), self.safe_float(ohlcv.clone(), Value::Int(2), &[]), self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.safe_float(ohlcv.clone(), Value::Int(5), &[])]);
                 let mut stored: Value = self.safe_value(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe.clone(), &[Value::from(vec![])]);
-                let mut length: Value = get_array_length(&stored);
+                let mut length: Value = Value::Int(stored.len() as i64);
                 if (length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (candleTimestamp.as_f64() == self.safe_integer(get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Int(0), &[]).as_f64()) {
                     let mut previous: Value = get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
                     let mut parsedHigh: Value = self.safe_float(ohlcv.clone(), Value::Int(1), &[]);

@@ -1236,7 +1236,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".into())), &Value::Str("price".into()), self.safe_number_k(filter.clone(), "tickSize", &[]));
+                if let Value::Dict(__rda) = &mut entry { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("precision".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("price".to_string(), self.safe_number_k(filter.clone(), "tickSize", &[])); } }
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -1247,14 +1247,14 @@ impl TokocryptoCore {
         m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxPrice", &[]));
     m
 }));
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".into())), &Value::Str("price".into()), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null));
+                if let Value::Dict(__rda) = &mut entry { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("precision".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("price".to_string(), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null)); } }
             }
             if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("LOT_SIZE"))) {
                 let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".into())), &Value::Str("amount".into()), self.safe_number_k(filter.clone(), "stepSize", &[]));
+                if let Value::Dict(__rda) = &mut entry { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("precision".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("amount".to_string(), self.safe_number_k(filter.clone(), "stepSize", &[])); } }
                 add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".into())), &Value::Str("amount".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));

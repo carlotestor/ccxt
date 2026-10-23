@@ -1229,7 +1229,7 @@ impl MudrexCore {
             m
         })]);
         let mut order: Value = self.parse_order(merged, &[market]);
-        add_element_to_object(&mut order, &Value::Str("info".into()), data);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("info".to_string(), data); }
         return order;
 
     Value::Null

@@ -2138,10 +2138,10 @@ impl BitgetCore {
             });
         }
         let mut action: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        if !(in_op(&self.positions, &instType)) || (action.as_deref() == Some("snapshot")) {
-            add_element_to_object(&mut self.positions, &instType, ArrayCacheBySymbolBySide::new(Value::Null));
+        if !(self.positions.as_map().is_some_and(|__m| instType.as_str().is_some_and(|__k| __m.contains_key(__k)))) || (action.as_deref() == Some("snapshot")) {
+            if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&instType), ArrayCacheBySymbolBySide::new(Value::Null)); }
         }
-        let mut cache: Value = get_value(&self.positions, &instType);
+        let mut cache: Value = self.positions.as_map().and_then(|__m| instType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut rawPositions: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut newPositions: Value = Value::from(vec![]);
         {
@@ -2571,7 +2571,7 @@ impl BitgetCore {
             }
         }
         }
-        let mut keys: Value = object_keys(&marketSymbols);
+        let mut keys: Value = Value::Array(marketSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_123: bool = true;
@@ -3579,7 +3579,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                 let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[e.clone(), messageHash.clone()]);
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
@@ -3783,14 +3783,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".into())).into()), symbol)));
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             client.reject(&[Value::from(error), subMessageHash.clone()]);
         }
         client.resolve(&[Value::Bool(true), messageHash]);
@@ -3819,14 +3819,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".into())).into()), symbol)));
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             client.reject(&[Value::from(error), subMessageHash.clone()]);
         }
         client.resolve(&[Value::Bool(true), messageHash]);
@@ -3855,14 +3855,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ticker ".into())).into()), symbol)));
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             client.reject(&[Value::from(error), subMessageHash.clone()]);
         }
         client.resolve(&[Value::Bool(true), messageHash]);
@@ -3911,7 +3911,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             subMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
         }
         if (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if (timeframe != Value::Null) && (in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+            if (timeframe != Value::Null) && (self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }

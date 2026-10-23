@@ -3065,7 +3065,7 @@ impl BitstampCore {
     m
 })); }
             if (networkCode != Value::Null) {
-                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3080,7 +3080,7 @@ impl BitstampCore {
     m
 }));
     m
-}));
+})); } }
             }
         }
         }
@@ -3161,7 +3161,7 @@ impl BitstampCore {
     m
 }) } else { response });
         let mut order: Value = self.parse_order(orderResponse, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
         return order;
 
     Value::Null
@@ -3211,7 +3211,7 @@ impl BitstampCore {
         let __ws_arg_11 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_replace_order(&[__ws_arg_11]).await;
         let mut order: Value = self.parse_order(response, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
         return order;
 
     Value::Null
@@ -3929,13 +3929,13 @@ impl BitstampCore {
         if (type_var.as_str() == Some("trade")) {
             let mut parsedTrade: Value = self.parse_trade(item.clone(), &[]);
             let mut market: Value = Value::Null;
-            let mut keys: Value = Value::Array(item.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut keys: Vec<Value> = item.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_431: bool = true;
                 while { if !__for_first_431 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_431 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-                if Value::Int(get_value(&keys, &i).as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                    let mut marketId: Value = (get_value(&keys, &i)).as_str().map(|__s| Value::Str(__s.replace("_", "").into())).unwrap_or_else(|| (get_value(&keys, &i)).clone());
+                if Value::Int(keys.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null).as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                    let mut marketId: Value = (keys.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.replace("_", "").into())).unwrap_or_else(|| (keys.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null)).clone());
                     market = self.safe_market(&[marketId, market.clone()]);
                 }
             }

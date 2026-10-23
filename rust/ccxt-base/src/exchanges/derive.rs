@@ -1643,10 +1643,10 @@ impl DeriveCore {
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut type_var: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut marketType: Value = Value::Null;
-        let mut spot: Value = Value::Bool(false);
+        let mut spot: bool = false;
         let mut margin: Value = Value::Bool(true);
-        let mut swap: Value = Value::Bool(false);
-        let mut option: Value = Value::Bool(false);
+        let mut swap: bool = false;
+        let mut option: bool = false;
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
         let mut baseId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
@@ -1665,14 +1665,14 @@ impl DeriveCore {
         let mut optionType: Value = Value::Null;
         let mut optionLetter: Value = Value::Null;
         if (type_var.as_deref() == Some("erc20")) {
-            spot = Value::Bool(true);
+            spot = true;
             marketType = Value::Str("spot".into());
         }  else if (type_var.as_deref() == Some("perp")) {
             margin = Value::Bool(false);
             settleId = Value::Str("USDC".into());
             settle = self.safe_currency_code(settleId.clone(), &[]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
-            swap = Value::Bool(true);
+            swap = true;
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
             marketType = Value::Str("swap".into());
@@ -1680,7 +1680,7 @@ impl DeriveCore {
             settleId = Value::Str("USDC".into());
             settle = self.safe_currency_code(settleId.clone(), &[]);
             margin = Value::Bool(false);
-            option = Value::Bool(true);
+            option = true;
             marketType = Value::Str("option".into());
             let mut optionDetails: Value = self.safe_dict_k(market.clone(), "option_details", &[]);
             expiry = self.safe_timestamp_k(optionDetails.clone(), "expiry", &[]);
@@ -1695,8 +1695,8 @@ impl DeriveCore {
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
         }
-        let mut contractSize: Value = (if spot.as_bool() == Some(true) { Value::Null } else { Value::Int(1) });
-        let mut isContract: Value = Value::Bool(swap.as_bool() == Some(true) || option.as_bool() == Some(true));
+        let mut contractSize: Value = (if spot { Value::Null } else { Value::Int(1) });
+        let mut isContract: Value = Value::Bool(swap || option);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId);
@@ -1708,11 +1708,11 @@ impl DeriveCore {
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), marketType);
-        m.insert("spot".to_string(), spot);
+        m.insert("spot".to_string(), Value::Bool(spot));
         m.insert("margin".to_string(), margin);
-        m.insert("swap".to_string(), swap);
+        m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
-        m.insert("option".to_string(), option);
+        m.insert("option".to_string(), Value::Bool(option));
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "is_active", &[]));
         m.insert("contract".to_string(), isContract);
         m.insert("linear".to_string(), linear);
@@ -3169,7 +3169,7 @@ impl DeriveCore {
 })]);
         }
         let mut order: Value = self.parse_order(rawOrder, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
         return order;
 
     Value::Null

@@ -191,7 +191,6 @@ impl crate::exchange_generated::ExchangeBase for HtxCore {
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "request_id" => self.request_id(),
                 "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -249,7 +248,6 @@ impl HtxCore {
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
-            "request_id" => self.request_id(),
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
             "subscribe_public" => { crate::exchange_stubs::enqueue_spawn("subscribe_public", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -462,14 +460,12 @@ impl HtxCore {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> Option<String> {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
-        return to_string_val(&requestId);
-
-    Value::Null
+        return Value::Str(format!("{}", requestId).into()).as_str().map(str::to_owned);
 }
 
 /*
@@ -597,8 +593,8 @@ impl HtxCore {
         let mut market: Value = self.safe_market(&[marketId]);
         let mut ticker: Value = self.parse_ticker(tick, &[market]);
         let mut timestamp: Value = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (symbol != Value::Null) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
@@ -1017,7 +1013,7 @@ impl HtxCore {
                 // retry to synchronize if we have not reached maxAttempts yet
                 if numAttempts.as_f64().unwrap_or(f64::NAN) < maxAttempts.as_f64().unwrap_or(f64::NAN) {
                     // safety guard
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         let mut nextAttempts: Value = self.sum(&[numAttempts, Value::Int(1)]);
                         let mut delayTime: Value = Value::Int(1000);
                         if (lastTimestamp != Value::Null) && (snapshotTimestamp != Value::Null) {
@@ -1068,7 +1064,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut attempts: Value = self.safe_integer_k(subscription, "numAttempts", &[Value::Int(0)]);
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = self.get_url_by_market_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), Value::Bool(false), Value::Bool(true)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("req".to_string(), messageHash.clone());
@@ -2327,10 +2323,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut clientPositions: Value = self.safe_dict(self.positions.clone(), url.clone(), &[]);
         if (clientPositions == Value::Null) {
-            add_element_to_object(&mut self.positions, &url, Value::Map({
+            if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&url), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut rawPositions: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         if self.is_empty(rawPositions.clone()).as_bool() == Some(true) {
@@ -2363,13 +2359,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
             let mut rawPosition: Value = rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[]);
-            add_element_to_object(&mut position, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+            if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp.clone())); }
             let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "marginMode", &[defaultMarginMode.clone()]);
             if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
                 marginMode = defaultMarginMode.clone();
             }
-            let mut cache: Value = self.safe_value(get_value(&self.positions, &url), marginMode.clone(), &[]);
+            let mut cache: Value = self.safe_value(self.positions.as_map().and_then(|__m| url.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), marginMode.clone(), &[]);
             if (cache == Value::Null) {
                 cache = ArrayCacheBySymbolBySide::new(Value::Null);
                 add_element_to_object(get_value_mut(&mut self.positions, &url), &marginMode, cache.clone());
@@ -2824,7 +2820,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone()]);
             }
             // clean up
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if (id != Value::Null) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
                 }
@@ -3124,7 +3120,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = self.safe_string_k(subscription, "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash.clone()]);
                     client.reject(&[e.clone(), id.clone()]);
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if (id != Value::Null) {
                             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
                         }
@@ -3133,7 +3129,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // without removing it a repeated watch call attaches to a future
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
-                    if (messageHash != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                    if (messageHash != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                     }
                 }
@@ -3151,7 +3147,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                     client.reject(&[e.clone(), Value::Str("auth".into())]);
                     let mut method: Value = Value::Str("auth".into());
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &method)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &method);
                     }
                     return Value::Bool(false);
@@ -3565,7 +3561,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestId: Value = self.request_id();
+        let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub".to_string(), messageHash.clone());
@@ -3594,7 +3590,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestId: Value = self.request_id();
+        let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsub".to_string(), subMessageHash.clone());
@@ -3637,7 +3633,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestId: Value = self.request_id();
+        let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
@@ -3756,7 +3752,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 });
             }
-            let mut requestId: Value = self.request_id();
+            let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut subscription: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId);

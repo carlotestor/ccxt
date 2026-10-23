@@ -3202,7 +3202,7 @@ impl WoofiproCore {
 })]);
         add_element_to_object(&mut data, &Value::Str("timestamp".into()), self.safe_integer_k(response, "timestamp", &[]));
         let mut order: Value = self.parse_order(data, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
         return order;
 
     Value::Null

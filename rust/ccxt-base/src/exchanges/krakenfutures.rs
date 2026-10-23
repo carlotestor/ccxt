@@ -1052,7 +1052,7 @@ impl KrakenfuturesCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_863: bool = true;
-            while { if !__for_first_863 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_863 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&settlementCurrencies).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_863 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_863 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(settlementCurrencies.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut code: Value = get_value(&settlementCurrencies, &i);
             let mut code: Value = get_value(&settlementCurrencies, &i);
             if let Value::Arr(__a) = &mut currencies { std::sync::Arc::make_mut(__a).push(Value::Map({
@@ -2191,7 +2191,7 @@ impl KrakenfuturesCore {
         let mut status: Value = self.safe_string_k(editStatus.clone(), "status", &[]);
         self.verify_order_action_success(status, Value::Str("editOrder".into()), &[Value::from(vec![Value::Str("filled".into())])]);
         let mut order: Value = self.parse_order(editStatus, &[]);
-        add_element_to_object(&mut order, &Value::Str("info".into()), response);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("info".to_string(), response); }
         return order;
 
     Value::Null
@@ -3836,9 +3836,9 @@ impl KrakenfuturesCore {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance has no account for ".into())).into()), type_var)));
         }
         let mut balance: Value = self.parse_balance(account);
-        add_element_to_object(&mut balance, &Value::Str("info".into()), response);
-        add_element_to_object(&mut balance, &Value::Str("timestamp".into()), self.parse8601(datetime.clone()));
-        add_element_to_object(&mut balance, &Value::Str("datetime".into()), datetime);
+        if let Value::Dict(__rda) = &mut balance { std::sync::Arc::make_mut(__rda).insert("info".to_string(), response); }
+        if let Value::Dict(__rda) = &mut balance { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), self.parse8601(datetime.clone())); }
+        if let Value::Dict(__rda) = &mut balance { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), datetime); }
         return balance;
 
     Value::Null

@@ -1074,11 +1074,11 @@ impl BitrueCore {
     m
 })); }
         }
-        if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+        if !(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit));
         }
-        let mut stored: Value = get_value(&self.ohlcvs, &symbol).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut stored: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         stored.append(parsed);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe).into());
         client.resolve(&[stored, messageHash]);
@@ -1317,7 +1317,7 @@ impl BitrueCore {
             // lock rather than through an unsynchronized map write
             let mut messageHash: Value = Value::Str("authenticateFlight".into());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-            if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;

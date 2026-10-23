@@ -1985,7 +1985,7 @@ impl PolymarketCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: Vec<Value> = vec![];
         let mut entries: Vec<Value> = Vec::new();
         let mut ordersMarkets: Vec<Value> = Vec::new();
         let mut ordersEntries: Vec<Value> = Vec::new();
@@ -2005,13 +2005,13 @@ impl PolymarketCore {
     m
 })]);
             let mut request: Value = self.create_order_request(market.clone(), type_var, side, amount, &[price, orderParams]);
-            if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(request.as_map().and_then(|__m| __m.get("signable")).cloned().unwrap_or(Value::Null)); }
+            rows.push(request.as_map().and_then(|__m| __m.get("signable")).cloned().unwrap_or(Value::Null));
             entries.push(request.as_map().and_then(|__m| __m.get("entry")).cloned().unwrap_or(Value::Null));
             ordersMarkets.push(market);
             ordersEntries.push(request.as_map().and_then(|__m| __m.get("entry")).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut signable: Value = Value::from(vec![Value::Str("createOrders".into()), rows]);
+        let mut signable: Value = Value::from(vec![Value::Str("createOrders".into()), Value::Array(rows)]);
         let mut bodyOp: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("createOrders".into()));
@@ -2048,7 +2048,7 @@ impl PolymarketCore {
                 add_element_to_object(&mut merged, &Value::Str("status".into()), Value::Null);
             }
             let mut parsed: Value = self.parse_order(merged, &[marketInner]);
-            add_element_to_object(&mut parsed, &Value::Str("info".into()), ack);
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), ack); }
             results.push(parsed);
         }
         }
@@ -2126,7 +2126,7 @@ impl PolymarketCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1095: bool = true;
                 while { if !__for_first_1095 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1095 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-                append_to_array(&mut numericIds, self.parse_to_int(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
+                if let Value::Arr(__a) = &mut numericIds { std::sync::Arc::make_mut(__a).push(self.parse_to_int(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))); };
             }
             }
             signable = Value::from(vec![Value::Str("cancelOrders".into()), numericIds.clone()]);
@@ -2161,7 +2161,7 @@ impl PolymarketCore {
                 m
             });
             let mut parsed: Value = self.parse_order(merged, &[]);
-            add_element_to_object(&mut parsed, &Value::Str("info".into()), ack);
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), ack); }
             results.push(parsed);
         }
         }
@@ -2318,7 +2318,7 @@ impl PolymarketCore {
                 m
             });
             let mut rejected: Value = self.parse_order(merged, &[market.clone()]);
-            add_element_to_object(&mut rejected, &Value::Str("info".into()), first.clone());
+            if let Value::Dict(__rda) = &mut rejected { std::sync::Arc::make_mut(__rda).insert("info".to_string(), first.clone()); }
             return rejected;
         }
         let mut order: Value = self.safe_dict_k(first, "order", &[Value::Map({

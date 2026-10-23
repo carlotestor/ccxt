@@ -2749,8 +2749,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn filter_transfers_by_type(&self, mut transfers: Value, mut transferType: Value, optional_args: &[Value]) -> Value {
         let mut onlyMainAccount = get_arg(optional_args, 0, Value::Bool(true));
-        let mut matchedResults: Value = Value::from(vec![]);
-        let mut nonMatchedResults: Value = Value::from(vec![]);
+        let mut matchedResults: Vec<Value> = vec![];
+        let mut nonMatchedResults: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_720: bool = true;
@@ -2761,14 +2761,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut parsedMetadata: Value = self.parse_json_value(metadata);
                 let mut direction: Value = self.safe_string_k(parsedMetadata, "direction", &[]);
                 if (direction.as_str() == transferType.as_str()) {
-                    if let Value::Arr(__a) = &mut matchedResults { std::sync::Arc::make_mut(__a).push(transfer.clone()); }
+                    matchedResults.push(transfer.clone());
                 }  else {
-                    if let Value::Arr(__a) = &mut nonMatchedResults { std::sync::Arc::make_mut(__a).push(transfer); }
+                    nonMatchedResults.push(transfer);
                 }
             }
         }
         }
-        return Value::from(vec![matchedResults, nonMatchedResults]);
+        return Value::from(vec![Value::Array(matchedResults), Value::Array(nonMatchedResults)]);
 
     Value::Null
 }
@@ -3165,7 +3165,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
             // trigger by
             let mut triggerPriceType: Value = self.safe_string_upper_k(paramsTriggerPrices.clone(), "triggerPriceType", &[Value::Str("LAST".into())]);
-            add_element_to_object(get_value_mut(&mut orderRequest, &Value::Str("metadata".into())), &Value::Str("trigger".into()), Value::Map({
+            if let Value::Dict(__rda) = &mut orderRequest { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("metadata".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("trigger".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("trigger_type".to_string(), selectedType);
         m.insert("tpsl".to_string(), Value::Map({
@@ -3176,7 +3176,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
     m
-}));
+})); } }
         }
         let mut paramsTrigger: Value = paramsTriggerPrices.clone();
         if isTriggerOrder {
@@ -4644,7 +4644,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
             });
-            if (ends_with(&requestPath, &Value::Str("auth/api_key/login".into()))) || (ends_with(&requestPath, &Value::Str("auth/wallet/login".into()))) {
+            if (Value::Bool(requestPath.as_str().is_some_and(|__s| __s.ends_with("auth/api_key/login"))).as_bool() == Some(true)) || (Value::Bool(requestPath.as_str().is_some_and(|__s| __s.ends_with("auth/wallet/login"))).as_bool() == Some(true)) {
                 if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Cookie".into(), Value::Str("rm=true;".into())); }
             }  else {
                 let mut accountId: Value = self.safe_string_k(self.options.clone(), "AuthAccountId", &[]);

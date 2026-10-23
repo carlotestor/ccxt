@@ -840,8 +840,8 @@ impl ApexCore {
             parsed = self.parse_ticker(merged, &[]);
         }
         let mut timestamp: Value = self.safe_integer_product_k(message, "ts", Value::Float(0.001), &[]);
-        add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[self.tickers.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
@@ -971,7 +971,7 @@ impl ApexCore {
     m
 })); }
         }
-        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+        if !(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit));
         }
@@ -1168,7 +1168,7 @@ impl ApexCore {
             trades.append(parsed);
         }
         }
-        let mut keys: Value = object_keys(&symbols);
+        let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_11: bool = true;
@@ -1231,7 +1231,7 @@ impl ApexCore {
             orders.append(parsed);
         }
         }
-        let mut symbolsArray: Value = object_keys(&symbols);
+        let mut symbolsArray: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_13: bool = true;
@@ -1250,7 +1250,7 @@ impl ApexCore {
             return;
         }
         let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-        if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             client.future(&[messageHash.clone()]);
             self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
         }
@@ -1278,7 +1278,7 @@ impl ApexCore {
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("positions".into())]);
@@ -1328,11 +1328,11 @@ impl ApexCore {
             if (side.is_none()) || (side.as_deref() == Some("")) {
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
-                add_element_to_object(&mut position, &Value::Str("side".into()), Value::Str("long".into()));
+                if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
                 cache.append(position.clone());
-                add_element_to_object(&mut position, &Value::Str("side".into()), Value::Str("short".into()));
+                if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("short".into())); }
                 cache.append(position.clone());
-                add_element_to_object(&mut position, &Value::Str("side".into()), Value::Null);
+                if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Null); }
             }  else {
                 // regular update
                 cache.append(position);
@@ -1482,7 +1482,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&error, &Value::Str("AuthenticationError".into())) {
                 let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
@@ -1645,7 +1645,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error), messageHash.clone()]);
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             }
         }

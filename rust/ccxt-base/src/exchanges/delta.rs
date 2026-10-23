@@ -3773,7 +3773,7 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut amountString: Value = to_string_val(&amount);
+        let mut amountString: Value = Value::Str(format!("{}", amount).into());
         let mut deltaMargin: Value = (if (type_var.as_str() == Some("reduce")) { crate::precise::Precise::stringMul(&amountString, &Value::Str("-1".into())) } else { amountString.clone() });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -4525,7 +4525,7 @@ impl OkxCore {
             }
             let mut idParts: Value = Value::Array(networkId.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut parts: Value = self.array_slice(idParts, Value::Int(1), &[]);
-            let mut chainPart: Value = join(&parts, &Value::Str("-".into()));
+            let mut chainPart: Value = Value::Str(parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default().into());
             let mut networkCode: Value = self.network_id_to_code(&[chainPart, code.clone()]);
             if (networkCode != Value::Null) {
                 if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -6115,8 +6115,8 @@ impl OkxCore {
     m
 })]);
         let mut order: Value = self.parse_order(first, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
-        add_element_to_object(&mut order, &Value::Str("side".into()), side);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("side".to_string(), side); }
         return order;
 
     Value::Null
@@ -6377,8 +6377,8 @@ impl OkxCore {
     m
 })]);
         let mut order: Value = self.parse_order(first, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
-        add_element_to_object(&mut order, &Value::Str("side".into()), side);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("side".to_string(), side); }
         return order;
 
     Value::Null
@@ -6577,7 +6577,7 @@ impl OkxCore {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_1007: bool = true;
-                    while { if !__for_first_1007 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1007 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&algoIds).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1007 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1007 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), get_value(&algoIds, &i));
@@ -6590,7 +6590,7 @@ impl OkxCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1008: bool = true;
-                while { if !__for_first_1008 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1008 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orderIds).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1008 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1008 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing.as_bool() == Some(true) || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -6612,7 +6612,7 @@ impl OkxCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1009: bool = true;
-                while { if !__for_first_1009 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1009 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&clientOrderIds).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1009 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1009 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing.as_bool() == Some(true) || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -8484,9 +8484,9 @@ impl OkxCore {
             network = self.safe_string(networks, networkKey, &[network.clone()]); // resolve aliases to the unified key
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-".into())).into()), network).into())); }
         }
-        let mut omitKeys: Value = Value::from(vec![Value::Str("fee".into())]);
+        let mut omitKeys: Vec<Value> = vec![Value::Str("fee".into())];
         if (network != Value::Null) {
-            if let Value::Arr(__a) = &mut omitKeys { std::sync::Arc::make_mut(__a).push(Value::Str("network".into())); }
+            omitKeys.push(Value::Str("network".into()));
         }
         let mut fee: Value = self.safe_string_k(paramsWithdrawTag.clone(), "fee", &[]);
         if (fee == Value::Null) {
@@ -8507,7 +8507,7 @@ impl OkxCore {
         if (fee != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fee".into(), self.number_to_string(fee)); }
         }
-        let mut query: Value = self.omit(paramsWithdrawTag, omitKeys, &[]);
+        let mut query: Value = self.omit(paramsWithdrawTag, Value::Array(omitKeys), &[]);
         let __ws_arg_53 = self.extend(request, &[query]);
         let mut response: Value = self.private_post_asset_withdrawal(&[__ws_arg_53]).await;
         //
@@ -8932,7 +8932,7 @@ impl OkxCore {
         if (chain != Value::Null) {
             let mut chainParts: Value = Value::Array(chain.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut networkParts: Value = self.array_slice(chainParts, Value::Int(1), &[]);
-            let mut networkId: Value = join(&networkParts, &Value::Str("-".into()));
+            let mut networkId: Value = Value::Str(networkParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default().into());
             network = self.network_id_to_code(&[networkId, code.clone()]);
         }
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amt", &[]);
@@ -9183,19 +9183,19 @@ impl OkxCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut marketIds: Value = Value::from(vec![]);
+            let mut marketIds: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1013: bool = true;
                 while { if !__for_first_1013 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1013 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut entry: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(entry);
-                if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
             }
             let mut marketIdsLength: f64 = ((marketIds.len() as i64) as f64);
             if marketIdsLength > ((0i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instId".into(), join(&marketIds, &Value::Str(",".into()))); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instId".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into())); }
             }
         }
         let mut fetchPositionsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchPositions", &[Value::Map({
@@ -11617,7 +11617,7 @@ impl OkxCore {
         self.super_set_sandbox_mode(enable.clone());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable.clone()); }
         if is_true(&enable) {
-            add_element_to_object(&mut self.headers, &Value::Str("x-simulated-trading".into()), Value::Str("1".into()));
+            if let Value::Dict(__rda) = &mut self.headers { std::sync::Arc::make_mut(__rda).insert("x-simulated-trading".to_string(), Value::Str("1".into())); }
         }  else if (matches!(&self.headers, Value::Dict(__d) if __d.contains_key("x-simulated-trading"))) {
             { let __t = self.omit(self.headers.clone(), Value::Str("x-simulated-trading".into()), &[]); self.headers = __t; }
         }

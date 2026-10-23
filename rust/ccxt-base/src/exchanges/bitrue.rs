@@ -3522,7 +3522,7 @@ impl BitrueCore {
                 let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                 let mut networkCode: Value = self.network_id_to_code(&[networkId, currencyCode]);
                 if (networkCode != Value::Null) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3537,11 +3537,11 @@ impl BitrueCore {
     m
 }));
     m
-}));
+})); } }
                 }
                 if (chainDetailLength == 1.0) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("fee".into()), self.safe_number_k(chainDetail, "withdrawFee", &[]));
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("percentage".into()), Value::Bool(false));
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("fee".to_string(), self.safe_number_k(chainDetail, "withdrawFee", &[])); } }
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("percentage".to_string(), Value::Bool(false)); } }
                 }
             }
             }

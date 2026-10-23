@@ -699,17 +699,17 @@ impl PoloniexCore {
         //
         let mut messageHash: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_611: bool = true;
             while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut order: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsedOrder: Value = self.parse_ws_order(order, &[]);
-            if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(parsedOrder); }
+            orders.push(parsedOrder);
         }
         }
-        client.resolve(&[orders, messageHash]);
+        client.resolve(&[Value::Array(orders), messageHash]);
 }
 
 /*
@@ -1024,14 +1024,14 @@ impl PoloniexCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value) {
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &type_var)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var]);
             }
@@ -1066,7 +1066,7 @@ impl PoloniexCore {
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.clone(), type_var]);
@@ -1529,7 +1529,7 @@ impl PoloniexCore {
         if !(crate::precise::Precise::stringEq(&filledAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
             trades = Value::from(vec![]);
             let mut trade: Value = self.parse_ws_order_trade(order.clone(), &[]);
-            append_to_array(&mut trades, trade);
+            if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(trade); };
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1951,7 +1951,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                     let mut messageHash: Value = Value::Str("authenticated".into());
                     client.reject(&[e.clone(), messageHash.clone()]);
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                     }
                 }  else {
@@ -1984,7 +1984,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             }
         }

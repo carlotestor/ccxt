@@ -1371,7 +1371,7 @@ impl BitfinexCore {
             if let Value::Dict(__d) = &mut updatedTypes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&balanceType), Value::Bool(true)); }
         }
         }
-        let mut updatesKeys: Value = object_keys(&updatedTypes);
+        let mut updatesKeys: Value = Value::Array(updatedTypes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_108: bool = true;
@@ -1543,7 +1543,7 @@ impl BitfinexCore {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             }
         }
@@ -1661,7 +1661,7 @@ impl BitfinexCore {
         }
         let mut name: Value = Value::Str("orders".into());
         client.resolve(&[self.orders.clone(), name.clone()]);
-        let mut keys: Value = object_keys(&symbolIds);
+        let mut keys: Value = Value::Array(symbolIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_111: bool = true;

@@ -4502,7 +4502,7 @@ impl KucoinCore {
                 let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
                 let mut networkCodeNew: Value = self.network_id_to_code(&[chainId, self.safe_string_k(currency.clone(), "code", &[])]);
                 if (networkCodeNew != Value::Null) {
-                    add_element_to_object(get_value_mut(&mut resultNew, &Value::Str("networks".into())), &networkCodeNew, Value::Map({
+                    if let Value::Dict(__rda) = &mut resultNew { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCodeNew), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4517,7 +4517,7 @@ impl KucoinCore {
     m
 }));
     m
-}));
+})); } }
                 }
             }
             }
@@ -4550,7 +4550,7 @@ impl KucoinCore {
         let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
         let mut networkCode: Value = self.network_id_to_code(&[networkId, self.safe_string_k(currencyResolved, "code", &[])]);
         if (networkCode != Value::Null) {
-            add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+            if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4565,7 +4565,7 @@ impl KucoinCore {
     m
 }));
     m
-}));
+})); } }
         }
         return result;
 

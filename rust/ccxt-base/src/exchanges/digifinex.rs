@@ -2604,11 +2604,11 @@ impl DigifinexCore {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" createOrder() returned empty response".into()))));
         }
         let mut order: Value = self.parse_order(response, &[market.clone()]);
-        add_element_to_object(&mut order, &Value::Str("symbol".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
-        add_element_to_object(&mut order, &Value::Str("side".into()), side);
-        add_element_to_object(&mut order, &Value::Str("amount".into()), amount);
-        add_element_to_object(&mut order, &Value::Str("price".into()), price);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("side".to_string(), side); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("amount".to_string(), amount); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("price".to_string(), price); }
         return order;
 
     Value::Null
@@ -5296,8 +5296,8 @@ impl DigifinexCore {
         if (marketType.as_str() == Some("swap")) {
             return position;
         }  else {
-            add_element_to_object(&mut position, &Value::Str("collateral".into()), self.safe_number_k(response.clone(), "margin", &[]));
-            add_element_to_object(&mut position, &Value::Str("marginRatio".into()), self.safe_number_k(response, "margin_rate", &[]));
+            if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("collateral".to_string(), self.safe_number_k(response.clone(), "margin", &[])); }
+            if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("marginRatio".to_string(), self.safe_number_k(response, "margin_rate", &[])); }
             return position;
         }
 

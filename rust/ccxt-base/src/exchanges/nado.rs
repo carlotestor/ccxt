@@ -3071,10 +3071,10 @@ impl NadoCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(get_value_mut(&mut request, &Value::Str("candlesticks".into())), &Value::Str("limit".into()), crate::runtime::Math::min(&limit, &Value::Int(500)));
+            if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("candlesticks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); } }
         }
         if (until != Value::Null) {
-            add_element_to_object(get_value_mut(&mut request, &Value::Str("candlesticks".into())), &Value::Str("max_time".into()), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("candlesticks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("max_time".to_string(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); } }
         }
         let mut response: Value = self.archive_post(&[self.deep_extend(request, &[paramsOmitted])]).await;
         //

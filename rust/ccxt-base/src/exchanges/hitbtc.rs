@@ -4819,7 +4819,7 @@ impl HitbtcCore {
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("withdraw".into(), withdrawResult.clone()); }
             }
             if (networkCode != Value::Null) {
-                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), withdrawResult);
         m.insert("deposit".to_string(), Value::Map({
@@ -4829,7 +4829,7 @@ impl HitbtcCore {
     m
 }));
     m
-}));
+})); } }
             }
         }
         }

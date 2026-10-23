@@ -492,8 +492,8 @@ impl MexcCore {
         let mut ticker: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             ticker = self.parse_ws_ticker(rawTicker.clone(), &[market.clone()]);
-            add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+            if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         }  else if (rawTicker != Value::Null) {
             ticker = self.parse_ticker(rawTicker, &[market]);
         }  else {
@@ -642,7 +642,7 @@ impl MexcCore {
             messageHashPrefix = spotPrefix;
         }
         let mut topic: Value = Value::Str(format!("{}{}", messageHashPrefix, Value::Str("ticker".into())).into());
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_492: bool = true;
@@ -658,12 +658,12 @@ impl MexcCore {
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             }
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(ticker.clone()); }
+            result.push(ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
             client.resolve(&[ticker, messageHash]);
         }
         }
-        client.resolve(&[result, topic]);
+        client.resolve(&[Value::Array(result), topic]);
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1884,7 +1884,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             parsed = self.parse_ws_order(data.clone(), &[market.clone()]);
             let mut sendTime: Value = (match __pro_message.get("sendTime").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
             if (sendTime != Value::Null) {
-                add_element_to_object(&mut parsed, &Value::Str("lastTradeTimestamp".into()), sendTime);
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("lastTradeTimestamp".to_string(), sendTime); }
             }
         }  else if (data != Value::Null) {
             parsed = self.parse_order(data.clone(), &[market]);
@@ -2160,7 +2160,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (code != Value::Null) {
             add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
 

@@ -2943,7 +2943,7 @@ impl ModetradeCore {
 })]);
         add_element_to_object(&mut data, &Value::Str("timestamp".into()), self.safe_integer_k(response, "timestamp", &[]));
         let mut order: Value = self.parse_order(data, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
         return order;
 
     Value::Null
@@ -3268,7 +3268,7 @@ impl ModetradeCore {
         });
         let mut response: Value = Value::Null;
         if (clientOrderIds != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_ids".into(), join(&clientOrderIds, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_ids".into(), Value::Str(clientOrderIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
             let __ws_arg_16 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.v1_private_delete_client_batch_order(&[__ws_arg_16]).await;
         }  else {

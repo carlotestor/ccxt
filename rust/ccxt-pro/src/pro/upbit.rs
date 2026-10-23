@@ -302,7 +302,7 @@ impl UpbitCore {
         }));
         let mut client: Value = self.client(&[url.clone()]);
         let mut subscriptionsKey: Value = Value::Str("upbitPublicSubscriptions".into());
-        if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey)) {
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
         }
         let mut subscriptions: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey);
@@ -325,21 +325,21 @@ impl UpbitCore {
             }
         }
         }
-        let mut finalMessage: Value = Value::from(vec![Value::Map({
+        let mut finalMessage: Vec<Value> = vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
     m
-})]);
+})];
         let mut channelKeys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_654: bool = true;
             while { if !__for_first_654 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_654 = false; i.as_f64().unwrap_or(f64::NAN) < ((channelKeys.len() as i64) as f64) } {
             let mut key: Value = channelKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut finalMessage { std::sync::Arc::make_mut(__a).push(get_value(&subscriptions, &key)); }
+            finalMessage.push(get_value(&subscriptions, &key));
         }
         }
-        return self.watch_multiple(url, messageHashes.clone(), &[finalMessage, messageHashes.clone()]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[Value::Array(finalMessage), messageHashes]).await;
 
     Value::Null
 }
@@ -740,7 +740,7 @@ impl UpbitCore {
         let mut client: Value = self.client(&[url.clone()]);
         // Track private channel subscriptions to support multiple concurrent watches
         let mut subscriptionsKey: Value = Value::Str("upbitPrivateSubscriptions".into());
-        if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey)) {
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
         }
         let mut channelKey: Value = channel.clone();
@@ -763,19 +763,19 @@ impl UpbitCore {
             requests.push(get_value(&subscriptions, &channelKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
         }
-        let mut message: Value = Value::from(vec![Value::Map({
+        let mut message: Vec<Value> = vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
     m
-})]);
+})];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_657 = false; i.as_f64().unwrap_or(f64::NAN) < ((requests.len() as i64) as f64) } {
-            if let Value::Arr(__a) = &mut message { std::sync::Arc::make_mut(__a).push(requests.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null)); }
+            message.push(requests.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
         }
         }
-        return self.watch(url, messageHashResolved.clone(), &[message, messageHashResolved.clone()]).await;
+        return self.watch(url, messageHashResolved.clone(), &[Value::Array(message), messageHashResolved]).await;
 
     Value::Null
 }
@@ -1063,33 +1063,33 @@ impl UpbitCore {
             if (parsedFee == Value::Null) {
                 let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                 if (fee != Value::Null) {
-                    add_element_to_object(&mut parsed, &Value::Str("fee".into()), fee);
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), fee); }
                 }
                 let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
                 if (fees != Value::Null) {
-                    add_element_to_object(&mut parsed, &Value::Str("fees".into()), fees);
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fees".to_string(), fees); }
                 }
             }
-            add_element_to_object(&mut parsed, &Value::Str("trades".into()), self.safe_value_k(order.clone(), "trades", &[]));
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("trades".to_string(), self.safe_value_k(order.clone(), "trades", &[])); }
             let mut lastTradeTimestamp: Option<i64> = self.safe_integer_k(parsed.clone(), "lastTradeTimestamp", &[]).as_i64();
             if (lastTradeTimestamp.is_none()) {
-                add_element_to_object(&mut parsed, &Value::Str("lastTradeTimestamp".into()), self.safe_integer_k(order.clone(), "lastTradeTimestamp", &[]));
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "lastTradeTimestamp", &[])); }
             }
             let mut timestamp: Option<i64> = self.safe_integer_k(parsed.clone(), "timestamp", &[]).as_i64();
             if (timestamp.is_none()) {
-                add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), self.safe_integer_k(order.clone(), "timestamp", &[]));
-                add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.safe_string_k(order.clone(), "datetime", &[]));
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), self.safe_integer_k(order.clone(), "timestamp", &[])); }
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.safe_string_k(order.clone(), "datetime", &[])); }
             }
             // fill updates carry the fill price and volume instead of the order's
             let mut rawStatus: Option<String> = (match __pro_message.get("state").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (rawStatus.as_deref() == Some("trade")) {
                 let mut cachedPrice: Value = self.safe_number_k(order.clone(), "price", &[]);
                 if (cachedPrice != Value::Null) {
-                    add_element_to_object(&mut parsed, &Value::Str("price".into()), cachedPrice);
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("price".to_string(), cachedPrice); }
                 }
                 let mut cachedAmount: Value = self.safe_number_k(order, "amount", &[]);
                 if (cachedAmount != Value::Null) {
-                    add_element_to_object(&mut parsed, &Value::Str("amount".into()), cachedAmount);
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("amount".to_string(), cachedAmount); }
                 }
             }
         }

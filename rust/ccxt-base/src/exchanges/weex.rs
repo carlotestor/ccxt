@@ -1657,12 +1657,12 @@ impl WeexCore {
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut active: Value = Value::Bool(true);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        let mut isSpot: Value = Value::Bool(true);
+        let mut isSpot: bool = true;
         let mut isLinear: Value = Value::Null;
         let mut isInverse: Value = Value::Null;
         if (settle != Value::Null) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), settle).into())).into());
-            isSpot = Value::Bool(false);
+            isSpot = false;
             if (settle.as_str() == quote.as_str()) {
                 isLinear = Value::Bool(true);
                 isInverse = Value::Bool(false);
@@ -1681,7 +1681,7 @@ impl WeexCore {
             amountPrecision = self.parse_number(amountPrecisionString, &[]);
             pricePrecision = self.parse_number(pricePrecisionString, &[]);
         }
-        let mut fees: Value = self.safe_dict(self.fees.clone(), (if isSpot.as_bool() == Some(true) { Value::Str("spot".into()) } else { Value::Str("contract".into()) }), &[Value::Map({
+        let mut fees: Value = self.safe_dict(self.fees.clone(), (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) }), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1700,14 +1700,14 @@ impl WeexCore {
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
-        m.insert("type".to_string(), (if isSpot.as_bool() == Some(true) { Value::Str("spot".into()) } else { Value::Str("swap".into()) }));
-        m.insert("spot".to_string(), isSpot.clone());
+        m.insert("type".to_string(), (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) }));
+        m.insert("spot".to_string(), Value::Bool(isSpot.clone()));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(!(isSpot.as_bool() == Some(true))));
+        m.insert("swap".to_string(), Value::Bool(!(isSpot)));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), Value::Bool(!(isSpot.as_bool() == Some(true))));
+        m.insert("contract".to_string(), Value::Bool(!(isSpot)));
         m.insert("linear".to_string(), isLinear);
         m.insert("inverse".to_string(), isInverse);
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
@@ -3425,7 +3425,7 @@ impl WeexCore {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned empty response".into()))));
         }
         let mut order: Value = self.parse_order(response, &[market]);
-        add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("canceled".into())); }
         return order;
 
     Value::Null

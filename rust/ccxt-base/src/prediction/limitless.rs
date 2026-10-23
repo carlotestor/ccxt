@@ -909,7 +909,7 @@ impl LimitlessCore {
             m
         });
         let mut outcomes: Vec<Value> = Vec::new();
-        let mut tokenEntries: Value = object_keys(&tokens);
+        let mut tokenEntries: Value = Value::Array(tokens.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1294: bool = true;
@@ -2981,7 +2981,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the create-order response omits a status field; a freshly accepted order is open
         let mut parsedStatus: Option<String> = self.safe_string_k(parsedOrder.clone(), "status", &[]).as_str().map(str::to_owned);
         if (parsedStatus.is_none()) {
-            add_element_to_object(&mut parsedOrder, &Value::Str("status".into()), Value::Str("open".into()));
+            if let Value::Dict(__rda) = &mut parsedOrder { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("open".into())); }
         }
         return parsedOrder;
 
@@ -3203,11 +3203,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut order: Value = self.parse_prediction_order(response, &[]);
         let mut orderId: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
         if (orderId.is_none()) {
-            add_element_to_object(&mut order, &Value::Str("id".into()), id);
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("id".to_string(), id); }
         }
         let mut orderStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         if (orderStatus.is_none()) {
-            add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("canceled".into())); }
         }
         return order;
 
@@ -3794,14 +3794,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut slug: Value = self.safe_string_k(rawMarket, "slug", &[]);
         let mut outcomeObj: Value = self.get_outcome_by_slug_and_label(slug, label.clone(), &[]);
         let mut parsed: Value = self.parse_prediction_position(position, &[outcomeObj]);
-        add_element_to_object(&mut parsed, &Value::Str("contracts".into()), self.parse_number(self.apply_scale(contracts, &[]), &[]));
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("contracts".to_string(), self.parse_number(self.apply_scale(contracts, &[]), &[])); }
         let mut latestTrade: Value = self.safe_dict_k(entry.clone(), "latestTrade", &[]);
         let mut key: Value = Value::Str("latestYesPrice".into());
         if (label.as_str() == Some("no")) {
             key = Value::Str("latestNoPrice".into());
         }
-        add_element_to_object(&mut parsed, &Value::Str("markPrice".into()), self.safe_number(latestTrade, key, &[]));
-        add_element_to_object(&mut parsed, &Value::Str("info".into()), entry);
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("markPrice".to_string(), self.safe_number(latestTrade, key, &[])); }
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), entry); }
         return self.safe_prediction_position(parsed);
 
     Value::Null

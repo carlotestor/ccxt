@@ -7671,7 +7671,7 @@ impl BingxCore {
                 while { if !__for_first_317 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_317 = false; i.as_f64().unwrap_or(f64::NAN) < networksLength } {
                 let mut networkCode: Value = networkCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut network: Value = self.safe_dict(networks.clone(), networkCode.clone(), &[]);
-                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7686,10 +7686,10 @@ impl BingxCore {
     m
 }));
     m
-}));
+})); } }
                 if (networksLength == 1.0) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("fee".into()), self.safe_number_k(network, "withdrawFee", &[]));
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("percentage".into()), Value::Bool(false));
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("fee".to_string(), self.safe_number_k(network, "withdrawFee", &[])); } }
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("percentage".to_string(), Value::Bool(false)); } }
                 }
             }
             }

@@ -2260,7 +2260,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut subscribedChannel: Option<String> = self.safe_string_k(subscriptionParams, "channel", &[]).as_str().map(str::to_owned);
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash);
-                        if (in_op(&get_value(&client, &Value::Str("futures".into())), &subscriptionHash)) {
+                        if (matches!((&get_value(&client, &Value::Str("futures".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                             let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), subscriptionHash)));
                             client.reject(&[Value::from(error.clone()), subscriptionHash.clone()]);
                         }
@@ -2269,7 +2269,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
             let mut allMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ticker".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into());
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &allMessageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &allMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &allMessageHash);
             }
             client.resolve(&[Value::Bool(true), allMessageHash]);

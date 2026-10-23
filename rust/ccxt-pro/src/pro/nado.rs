@@ -565,7 +565,7 @@ impl NadoCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
-        if !(in_op(&self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))) {
+        if !(self.orderbooks.as_map().is_some_and(|__m| market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null).as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut snapshot: Value = self.fetch_order_book(symbol, &[limit.clone()]).await;
             { let __be_tmp = self.order_book(&[snapshot, limit.clone()]); add_element_to_object(&mut self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), __be_tmp); };
         }
@@ -628,7 +628,7 @@ impl NadoCore {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
             markets.push(market.clone());
             messageHashes.push(messageHash);
-            if !(in_op(&self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))) {
+            if !(self.orderbooks.as_map().is_some_and(|__m| market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null).as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                 let mut snapshot: Value = self.fetch_order_book(symbol, &[limit.clone()]).await;
                 { let __be_tmp = self.order_book(&[snapshot, limit.clone()]); add_element_to_object(&mut self.orderbooks, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), __be_tmp); };
             }
@@ -2691,7 +2691,7 @@ impl NadoCore {
             let mut parts: Value = Value::Array(messageHash.as_str().map(|__s| __s.split(":").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut timeframe: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
             let mut symbol: Value = self.safe_string(parts, Value::Int(2), &[]);
-            if (symbol != Value::Null) && (timeframe != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+            if (symbol != Value::Null) && (timeframe != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("ticker:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {

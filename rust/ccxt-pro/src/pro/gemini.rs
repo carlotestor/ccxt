@@ -536,8 +536,8 @@ impl GeminiCore {
                 let mut market: Value = self.safe_market(&[marketId]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut trade: Value = self.parse_ws_trade(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market]);
-                add_element_to_object(&mut trade, &Value::Str("timestamp".into()), timestamp.clone());
-                add_element_to_object(&mut trade, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+                if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+                if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp.clone())); }
                 let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
                 if (stored == Value::Null) {
                     stored = ArrayCache::new(tradesLimit.clone());
@@ -547,7 +547,7 @@ impl GeminiCore {
                 if let Value::Dict(__d) = &mut storesForSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
             }
-            let mut symbols: Value = object_keys(&storesForSymbols);
+            let mut symbols: Value = Value::Array(storesForSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_355: bool = true;

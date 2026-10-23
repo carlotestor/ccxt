@@ -2855,12 +2855,12 @@ impl ParadexCore {
         });
         if is_true(&modify) {
             if let Value::Dict(__d) = &mut orderReq { std::sync::Arc::make_mut(__d).insert("id".into(), request.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            append_to_array(&mut orderFields, Value::Map({
+            if let Value::Arr(__a) = &mut orderFields { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::Str("id".into()));
                     m.insert("type".to_string(), Value::Str("felt".into()));
                 m
-            }));
+            })); };
             messageTypes = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ModifyOrder".to_string(), orderFields.clone());

@@ -1389,22 +1389,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sideStr: Value = (if (side == Value::Null) { Value::Null } else { side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) });
         let mut typeStr: Value = (if (type_var == Value::Null) { Value::Str("limit".into()) } else { type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) });
         if (self.safe_string_k(parsed.clone(), "side", &[]) == Value::Null) {
-            add_element_to_object(&mut parsed, &Value::Str("side".into()), sideStr);
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("side".to_string(), sideStr); }
         }
         if (self.safe_string_k(parsed.clone(), "type", &[]) == Value::Null) {
-            add_element_to_object(&mut parsed, &Value::Str("type".into()), typeStr);
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("type".to_string(), typeStr); }
         }
         if (self.safe_string_k(parsed.clone(), "timeInForce", &[]) == Value::Null) {
-            add_element_to_object(&mut parsed, &Value::Str("timeInForce".into()), timeInForce);
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timeInForce".to_string(), timeInForce); }
         }
         if (self.safe_number_k(parsed.clone(), "price", &[]) == Value::Null) && (price != Value::Null) {
-            add_element_to_object(&mut parsed, &Value::Str("price".into()), price);
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("price".to_string(), price); }
         }
         if (self.safe_number_k(parsed.clone(), "amount", &[]) == Value::Null) && (amount != Value::Null) {
-            add_element_to_object(&mut parsed, &Value::Str("amount".into()), amount);
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("amount".to_string(), amount); }
         }
         if (self.safe_string_k(parsed.clone(), "status", &[]) == Value::Null) {
-            add_element_to_object(&mut parsed, &Value::Str("status".into()), Value::Str("open".into()));
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("open".into())); }
         }
         return parsed;
 
@@ -1648,7 +1648,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut txHashParam: Value = self.safe_string2(params.clone(), Value::Str("transactionHash".into()), Value::Str("txHash".into()), &[]);
         let mut hasPreBroadcastTxHash: Value = (Value::Bool(txHashParam != Value::Null));
         let mut skipAllowance: Value = self.safe_bool_k(params.clone(), "skipAllowance", &[hasPreBroadcastTxHash.clone()]);
-        if (sideStr.as_str() == Some("buy")) && (tokenAddress != Value::Null) && (!is_true(&skipAllowance)) {
+        if (sideStr.as_str() == Some("buy")) && (tokenAddress != Value::Null) && (skipAllowance.as_bool() != Some(true)) {
             self.ensure_erc20_allowance(rpcUrl.clone(), networkId.clone(), tokenAddress, fromAddress.clone(), predictionMarket.clone()).await;
         }
         let mut skipWaitForReceipt: Value = self.safe_bool_k(params, "skipWaitForReceipt", &[hasPreBroadcastTxHash]);
@@ -1657,7 +1657,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_12 = self.parse_to_int(networkId);
             txHash = self.send_evm_transaction(rpcUrl.clone(), __ws_arg_12, fromAddress, predictionMarket, Value::Str("0x0".into()), calldata, gasLimit).await;
         }
-        if !is_true(&skipWaitForReceipt) {
+        if skipWaitForReceipt.as_bool() != Some(true) {
             self.wait_for_transaction_receipt(rpcUrl, txHash.clone(), &[]).await;
         }
         return self.parse_trade_tx(txHash, quote, outcomeObj, sideStr);
@@ -2253,7 +2253,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rawOrderKeys: Value = object_keys(&rawOrder);
+        let mut rawOrderKeys: Value = Value::Array(rawOrder.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut rawOrderKeysLength: f64 = ((rawOrderKeys.len() as i64) as f64);
         if (rawOrderKeysLength == 0.0) {
             rawOrder = self.safe_dict_k(fetchedInfo.clone(), "order", &[Value::Map({
@@ -2414,7 +2414,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rawOrderKeys: Value = object_keys(&rawOrder);
+            let mut rawOrderKeys: Value = Value::Array(rawOrder.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             let mut rawOrderKeysLength: f64 = ((rawOrderKeys.len() as i64) as f64);
             if (rawOrderKeysLength == 0.0) {
                 rawOrder = self.safe_dict_k(fetchedInfo.clone(), "order", &[Value::Map({

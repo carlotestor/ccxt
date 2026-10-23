@@ -977,7 +977,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_284: bool = true;
             while { if !__for_first_284 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_284 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("ticker.".into()), marketId).into()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker.".into()), marketId).into())); };
         }
         }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
@@ -1528,7 +1528,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1553,7 +1553,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("positions".into())]);
@@ -1886,7 +1886,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("instrument_name".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("params".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); } }
         }
         let mut messageHash: Value = self.incrementing_nonce();
         return self.watch_private_request(messageHash, &[request]).await;
@@ -2068,7 +2068,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                 let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[e.clone(), messageHash.clone()]);
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
@@ -2225,7 +2225,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_295: bool = true;
             while { if !__for_first_295 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_295 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut messageHash: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             if (messageHash.as_str().is_some_and(|__s| __s.starts_with("unsubscribe"))) {

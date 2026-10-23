@@ -1249,7 +1249,7 @@ impl IndodaxCore {
     m
 }), &[orders.as_map().and_then(|__m| __m.get("order")).cloned().unwrap_or(Value::Null)]);
         let mut order: Value = self.parse_order(__ws_arg_5, &[market]);
-        add_element_to_object(&mut order, &Value::Str("info".into()), response);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("info".to_string(), response); }
         return order;
 
     Value::Null
@@ -1604,10 +1604,10 @@ impl IndodaxCore {
     m
 })]);
         let mut result: Value = self.deposit_withdraw_fee(response);
-        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("fee".into()), self.safe_number_k(data, "withdraw_fee", &[]));
-        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("percentage".into()), Value::Bool(false));
-        add_element_to_object(get_value_mut(&mut result, &Value::Str("deposit".into())), &Value::Str("fee".into()), Value::Int(0));
-        add_element_to_object(get_value_mut(&mut result, &Value::Str("deposit".into())), &Value::Str("percentage".into()), Value::Bool(false));
+        if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("fee".to_string(), self.safe_number_k(data, "withdraw_fee", &[])); } }
+        if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("percentage".to_string(), Value::Bool(false)); } }
+        if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("deposit".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("fee".to_string(), Value::Int(0)); } }
+        if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("deposit".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("percentage".to_string(), Value::Bool(false)); } }
         return self.assign_default_deposit_withdraw_fees(result, &[currency]);
 
     Value::Null

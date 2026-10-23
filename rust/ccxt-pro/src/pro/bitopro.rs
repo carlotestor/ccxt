@@ -697,10 +697,10 @@ impl BitoproCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut event: Value = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut result: Value = self.parse_ticker(message.clone(), &[market.clone()]);
-        add_element_to_object(&mut result, &Value::Str("symbol".into()), self.safe_string_k(market, "symbol", &[])); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
+        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[])); } // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
-        add_element_to_object(&mut result, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut result, &Value::Str("datetime".into()), self.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
+        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); } // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
         if (event != Value::Null) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str(":".into())).into()), symbol).into());

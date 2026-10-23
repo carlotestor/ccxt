@@ -2780,7 +2780,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut accounts: Value = exchange.safe_list(exchangeData.clone(), Value::Str("accounts".into()), &[]);
         if (accounts != Value::Null) && (accounts != Value::Null) {
-            ccxt::set_value(&mut exchange, &Value::Str("accounts".into()), accounts.clone());
+            // the field is a List<object>: assign the call, not the untyped local
+            { let __sv_tmp = exchange.safe_list(exchangeData.clone(), Value::Str("accounts".into()), &[]); ccxt::set_value(&mut exchange, &Value::Str("accounts".into()), __sv_tmp); }
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extend_exchange_options(globalOptions.clone());

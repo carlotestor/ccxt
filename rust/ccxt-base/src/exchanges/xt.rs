@@ -2545,7 +2545,7 @@ impl XtCore {
         let mut expiry: Value = Value::Null;
         let mut future: Value = Value::Bool(false);
         let mut swap: Value = Value::Bool(false);
-        let mut contract: Value = Value::Bool(false);
+        let mut contract: bool = false;
         let mut spot: Value = Value::Bool(true);
         let mut type_var: Value = Value::Str("spot".into());
         if (underlyingType.as_deref() == Some("U_BASED")) {
@@ -2577,11 +2577,11 @@ impl XtCore {
             maxCost = self.safe_number_k(market.clone(), "maxNotional", &[]);
             minPrice = self.safe_number_k(market.clone(), "minPrice", &[]);
             maxPrice = self.safe_number_k(market.clone(), "maxPrice", &[]);
-            contract = Value::Bool(true);
+            contract = true;
             spot = Value::Bool(false);
         }
         let mut isActive: Value = Value::Bool(false);
-        if contract.as_bool() == Some(true) {
+        if contract {
             isActive = self.safe_bool_k(market.clone(), "isOpenApi", &[Value::Bool(false)]);
         }  else {
             if (state.as_deref() == Some("ONLINE")) && matches!((self.safe_bool_k(market.clone(), "tradingEnabled", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(market.clone(), "openapiEnabled", &[Value::Bool(false)])), Value::Bool(true)) {
@@ -2605,7 +2605,7 @@ impl XtCore {
         m.insert("future".to_string(), future);
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), isActive);
-        m.insert("contract".to_string(), contract);
+        m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
         m.insert("taker".to_string(), self.safe_number2(market.clone(), Value::Str("takerFee".into()), Value::Str("takerFeeRate".into()), &[]));

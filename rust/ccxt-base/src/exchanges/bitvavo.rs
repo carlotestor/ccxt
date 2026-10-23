@@ -3130,7 +3130,7 @@ impl BitvavoCore {
         m.insert("deposit".to_string(), crate::value::get_value_k(&result, "deposit"));
         m.insert("withdraw".to_string(), crate::value::get_value_k(&result, "withdraw"));
     m
-}); add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, __be_tmp); };
+}); if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), __be_tmp); } } };
         }
         return result;
 

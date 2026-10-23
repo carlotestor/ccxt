@@ -653,7 +653,7 @@ impl ToobitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut marketIds: Value = Value::from(vec![]);
+        let mut marketIds: Vec<Value> = Vec::new();
         let mut selectedTimeframe: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
@@ -670,13 +670,13 @@ impl ToobitCore {
             }  else {
                 selectedTimeframe = rawTimeframe;
             }
-            if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(marketId); }
+            marketIds.push(marketId);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbolStr).into()), Value::Str("::".into())).into()), unfiedTimeframe).into())); }
         }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), join(&marketIds, &Value::Str(",".into())));
+                m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));
                 m.insert("topic".to_string(), Value::Str(format!("{}{}", Value::Str("kline_".into()), selectedTimeframe).into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -1194,7 +1194,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (subscriptionHash == Value::Null) || (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash)) {
+        if (subscriptionHash == Value::Null) || (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut type_var: Value = Value::Str("contract".into());
@@ -1202,7 +1202,7 @@ impl ToobitCore {
             type_var = Value::Str("spot".into());
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
-        if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             client.future(&[messageHash.clone()]);
             self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), marketType]);
         }
@@ -1276,7 +1276,7 @@ impl ToobitCore {
             }
         }
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
 }
 
@@ -1296,7 +1296,7 @@ impl ToobitCore {
 })]);
         { let __be_tmp = self.extend(response, &[__ws_arg_4]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())]);
@@ -1607,18 +1607,18 @@ impl ToobitCore {
                 m
             });
         }
-        if (in_op(&self.positions, &type_var)) {
+        if (self.positions.as_map().is_some_and(|__m| type_var.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             return;
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
         }  else {
-            add_element_to_object(&mut self.positions, &type_var, ArrayCacheBySymbolBySide::new(Value::Null));
+            if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&type_var), ArrayCacheBySymbolBySide::new(Value::Null)); }
         }
 }
 
@@ -1629,8 +1629,8 @@ impl ToobitCore {
             m
         });
         let mut positions: Value = self.fetch_positions(&[Value::Null, params]).await;
-        add_element_to_object(&mut self.positions, &type_var, ArrayCacheBySymbolBySide::new(Value::Null));
-        let mut cache: Value = get_value(&self.positions, &type_var);
+        if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&type_var), ArrayCacheBySymbolBySide::new(Value::Null)); }
+        let mut cache: Value = self.positions.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_649: bool = true;
@@ -1640,7 +1640,7 @@ impl ToobitCore {
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into())]);
@@ -1681,10 +1681,10 @@ impl ToobitCore {
                 m
             });
         }
-        if !(in_op(&self.positions, &accountType)) {
-            add_element_to_object(&mut self.positions, &accountType, ArrayCacheBySymbolBySide::new(Value::Null));
+        if !(self.positions.as_map().is_some_and(|__m| accountType.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+            if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&accountType), ArrayCacheBySymbolBySide::new(Value::Null)); }
         }
-        let mut cache: Value = get_value(&self.positions, &accountType);
+        let mut cache: Value = self.positions.as_map().and_then(|__m| accountType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         // handleMessage's fallback dispatches one item at a time
         let mut rawPositions: Value = message.clone();
         if !(matches!(&message, Value::Arr(_))) {
@@ -1699,8 +1699,8 @@ impl ToobitCore {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
             let mut timestamp: Value = self.safe_integer_k(rawPosition, "E", &[]);
-            add_element_to_object(&mut position, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+            if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
             cache.append(position);
         }
@@ -1780,7 +1780,7 @@ impl ToobitCore {
             // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             let mut messageHash: Value = Value::Str("authenticate".into());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-            if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -1796,8 +1796,8 @@ impl ToobitCore {
                 if (listenKey == Value::Null) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
                 }
-                add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("listenKey".into()), listenKey.clone());
-                add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("lastAuthenticatedTime".into()), time);
+                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("listenKey".to_string(), listenKey.clone()); } }
+                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("lastAuthenticatedTime".to_string(), time); } }
                 self.delay(listenKeyRefreshRate, &[Value::Str("keep_alive_listen_key".into()).clone(), params]).await;
                 // settle the flight: client.resolve () removes the future from
                 // client.futures and wakes every waiter
@@ -1831,13 +1831,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut response: Value = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await;
-            { let __be_tmp = self.safe_string_k(response, "listenKey", &[]); add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("listenKey".into()), __be_tmp); };
-            { let __be_tmp = self.milliseconds(); add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("lastAuthenticatedTime".into()), __be_tmp); };
+            { let __be_tmp = self.safe_string_k(response, "listenKey", &[]); if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("listenKey".to_string(), __be_tmp); } } };
+            { let __be_tmp = self.milliseconds(); if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("lastAuthenticatedTime".to_string(), __be_tmp); } } };
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut client: Value = self.client(&[url]);
-            let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
+            let mut messageHashes: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_652: bool = true;
@@ -1846,8 +1846,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 client.reject(&[Value::from(error.clone()), messageHash]);
             }
             }
-            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("listenKey".into()), Value::Null);
-            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("lastAuthenticatedTime".into()), Value::Int(0));
+            if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("listenKey".to_string(), Value::Null); } }
+            if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("lastAuthenticatedTime".to_string(), Value::Int(0)); } }
             return Value::Null;
         }
         // whether or not to schedule another listenKey keepAlive request

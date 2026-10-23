@@ -2534,8 +2534,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data, Value::Int(0), &[]);
         let mut order: Value = self.parse_order(first, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
-        add_element_to_object(&mut order, &Value::Str("side".into()), side);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("side".to_string(), side); }
         return order;
 
     Value::Null
@@ -2598,14 +2598,14 @@ impl BlofinCore {
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), marginMode); }
         // the limit prices are consumed only when the order type is not market
-        let mut consumedKeys: Value = Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("reduceOnly".into()), Value::Str("hedged".into())]);
+        let mut consumedKeys: Vec<Value> = vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("reduceOnly".into()), Value::Str("hedged".into())];
         if (stopLossPrice != Value::Null) && (type_var.as_str() != Some("market")) {
-            if let Value::Arr(__a) = &mut consumedKeys { std::sync::Arc::make_mut(__a).push(Value::Str("stopLossLimitPrice".into())); }
+            consumedKeys.push(Value::Str("stopLossLimitPrice".into()));
         }
         if (takeProfitPrice != Value::Null) && (type_var.as_str() != Some("market")) {
-            if let Value::Arr(__a) = &mut consumedKeys { std::sync::Arc::make_mut(__a).push(Value::Str("takeProfitLimitPrice".into())); }
+            consumedKeys.push(Value::Str("takeProfitLimitPrice".into()));
         }
-        let __ws_arg_9 = self.omit(params, consumedKeys, &[]);
+        let __ws_arg_9 = self.omit(params, Value::Array(consumedKeys), &[]);
         return self.extend(request, &[__ws_arg_9]);
 
     Value::Null
@@ -3355,7 +3355,7 @@ impl BlofinCore {
             if (networkCode == Value::Null) {
                 continue;
             }
-            add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+            if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3370,7 +3370,7 @@ impl BlofinCore {
     m
 }));
     m
-}));
+})); } }
         }
         }
         if (chainsLength == 1.0) {
@@ -3878,7 +3878,7 @@ impl BlofinCore {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_462: bool = true;
-                    while { if !__for_first_462 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_462 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&tpslIds).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_462 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_462 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tpslIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tpslId".to_string(), get_value(&tpslIds, &i));
@@ -3891,7 +3891,7 @@ impl BlofinCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_463: bool = true;
-                while { if !__for_first_463 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_463 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orderIds).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_463 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_463 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if (trigger.as_bool() == Some(true)) {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -3913,7 +3913,7 @@ impl BlofinCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_464: bool = true;
-                while { if !__for_first_464 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_464 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&clientOrderIds).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_464 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_464 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 request.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));

@@ -2256,8 +2256,8 @@ impl LunoCore {
         //     }
         //
         let mut result: Value = self.deposit_withdraw_fee(response.clone());
-        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("fee".into()), self.safe_number_k(response, "fee", &[]));
-        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("percentage".into()), Value::Bool(false));
+        if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("fee".to_string(), self.safe_number_k(response, "fee", &[])); } }
+        if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("percentage".to_string(), Value::Bool(false)); } }
         return self.assign_default_deposit_withdraw_fees(result, &[currency]);
 
     Value::Null

@@ -807,7 +807,7 @@ impl DeriveCore {
         }
         // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
         let mut bidAskHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into());
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &bidAskHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &bidAskHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), bidAskHash)));
             client.reject(&[Value::from(error), bidAskHash.clone()]);
         }
@@ -839,7 +839,7 @@ impl DeriveCore {
         let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut status: Value = self.safe_dict_k(result, "status", &[]);
         if (status != Value::Null) {
-            let mut topics: Value = object_keys(&status);
+            let mut topics: Value = Value::Array(status.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_310: bool = true;
@@ -1140,15 +1140,15 @@ impl DeriveCore {
                 if (order != Value::Null) {
                     let mut fee: Value = self.safe_dict_k(order.clone(), "fee", &[]);
                     if (fee != Value::Null) {
-                        add_element_to_object(&mut parsed, &Value::Str("fee".into()), fee);
+                        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), fee); }
                     }
                     let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
                     if (fees != Value::Null) {
-                        add_element_to_object(&mut parsed, &Value::Str("fees".into()), fees);
+                        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fees".to_string(), fees); }
                     }
-                    add_element_to_object(&mut parsed, &Value::Str("trades".into()), self.safe_list_k(order.clone(), "trades", &[]));
-                    add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), self.safe_integer_k(order.clone(), "timestamp", &[]));
-                    add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.safe_string_k(order, "datetime", &[]));
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("trades".to_string(), self.safe_list_k(order.clone(), "trades", &[])); }
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), self.safe_integer_k(order.clone(), "timestamp", &[])); }
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.safe_string_k(order, "datetime", &[])); }
                 }
                 cachedOrders.append(parsed);
                 if (topic != Value::Null) {
@@ -1455,8 +1455,8 @@ impl DeriveCore {
         }
         // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         let mut subaccountIdKey: Value = self.number_to_string(subaccountId.clone());
-        if !(in_op(&self.positions, &subaccountIdKey)) {
-            add_element_to_object(&mut self.positions, &subaccountIdKey, ArrayCacheBySymbolBySide::new(Value::Null));
+        if !(self.positions.as_map().is_some_and(|__m| subaccountIdKey.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+            if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&subaccountIdKey), ArrayCacheBySymbolBySide::new(Value::Null)); }
         }
         let mut loadedSnapshots: Value = self.safe_dict_k(self.options.clone(), "loadedPositionsSnapshots", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1470,7 +1470,7 @@ impl DeriveCore {
             });
             let mut snapshotParams: Value = self.extend(snapshotRequest, &[paramsDeriveSubaccountId.clone()]);
             let mut positionsSnapshot: Value = self.fetch_positions(&[Value::Null, snapshotParams]).await;
-            let mut cache: Value = get_value(&self.positions, &subaccountIdKey);
+            let mut cache: Value = self.positions.as_map().and_then(|__m| subaccountIdKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_314: bool = true;
@@ -1504,7 +1504,7 @@ impl DeriveCore {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(get_value(&self.positions, &subaccountIdKey), &[symbolsResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.as_map().and_then(|__m| subaccountIdKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[symbolsResolved, since, limit, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1517,7 +1517,7 @@ impl DeriveCore {
         let mut isShort: Value = crate::precise::Precise::stringLt(&newSize, &Value::Str("0".into()));
         let mut side: Value = (if isShort.as_bool() == Some(true) { Value::Str("short".into()) } else { Value::Str("long".into()) });
         let mut contracts: Value = crate::precise::Precise::stringAbs(&newSize);
-        let mut cache: Value = get_value(&self.positions, &subaccountIdKey);
+        let mut cache: Value = self.positions.as_map().and_then(|__m| subaccountIdKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut symbolPositions: Value = self.safe_dict(cache.hashmap(), symbol.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1592,7 +1592,7 @@ impl DeriveCore {
             m
         })]);
         let mut updated: bool = false;
-        let mut positionUpdates: Value = Value::from(vec![]);
+        let mut positionUpdates: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_315: bool = true;
@@ -1604,9 +1604,9 @@ impl DeriveCore {
             let mut name: Value = self.safe_string_k(entry.clone(), "name", &[Value::Str("".into())]);
             if Value::Int(name.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if (self.positions.clone() != Value::Null) && (in_op(&self.positions, &subaccountIdKey)) {
+                if (self.positions.clone() != Value::Null) && (self.positions.as_map().is_some_and(|__m| subaccountIdKey.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                     let mut position: Value = self.handle_position_delta(subaccountIdKey.clone(), entry.clone());
-                    if let Value::Arr(__a) = &mut positionUpdates { std::sync::Arc::make_mut(__a).push(position); }
+                    positionUpdates.push(position);
                 }
                 continue;
             }
@@ -1633,7 +1633,7 @@ impl DeriveCore {
         }
         let mut positionUpdatesLength: f64 = ((positionUpdates.len() as i64) as f64);
         if positionUpdatesLength > ((0i64) as f64) {
-            client.resolve(&[positionUpdates, Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into())]);
+            client.resolve(&[Value::Array(positionUpdates), Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into())]);
         }
 }
 
@@ -1663,7 +1663,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&error, &Value::Str("AuthenticationError".into())) {
                 let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
@@ -1771,7 +1771,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str("authenticated".into()));
             }
         }

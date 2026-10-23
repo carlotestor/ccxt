@@ -1165,7 +1165,7 @@ impl CoinsphCore {
             return config.get("noSymbolAndNoSymbols").cloned().unwrap_or(Value::Null);
         }  else if (config.contains_key("byNumberOfSymbols")) && (in_op(&params, &Value::Str("symbols".into()))) {
             let mut symbols: Value = crate::value::get_value_k(&params, "symbols");
-            let mut symbolsAmount: Value = get_array_length(&symbols);
+            let mut symbolsAmount: Value = Value::Int(symbols.len() as i64);
             let mut byNumberOfSymbols: Value = (match config.get("byNumberOfSymbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
             {
                                 let mut i: Value = Value::Int(0);

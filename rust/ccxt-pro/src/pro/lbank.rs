@@ -841,7 +841,7 @@ impl LbankCore {
             let mut __for_first_474: bool = true;
             while { if !__for_first_474 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_474 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut trade: Value = self.parse_ws_trade(rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
-            add_element_to_object(&mut trade, &Value::Str("symbol".into()), symbol.clone());
+            if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), symbol.clone()); }
             stored.append(trade);
         }
         }
@@ -1415,7 +1415,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut client: Value = self.client(&[url]);
         let mut now: Value = self.milliseconds();
         let mut messageHash: Value = Value::Str("authenticateFlight".into());
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;

@@ -1476,10 +1476,10 @@ impl BitfinexCore {
             let mut pairObj: Value = self.safe_list(markets.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_upper(pairObj.clone(), Value::Int(0), &[]);
             let mut market: Value = self.safe_list(pairObj, Value::Int(1), &[Value::from(vec![])]);
-            let mut spot: Value = Value::Bool(true);
+            let mut spot: bool = true;
             let mut type_var: Value = Value::Null;
             if Value::Int(id.as_str().and_then(|__s| __s.find("F0")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                spot = Value::Bool(false);
+                spot = false;
                 type_var = Value::Str("swap".into());
             }  else {
                 type_var = Value::Str("spot".into());
@@ -1527,13 +1527,13 @@ impl BitfinexCore {
                     m.insert("quoteId".to_string(), quoteId);
                     m.insert("settleId".to_string(), settleId);
                     m.insert("type".to_string(), type_var);
-                    m.insert("spot".to_string(), spot.clone());
-                    m.insert("margin".to_string(), Value::Bool((spot.as_bool() == Some(true) && self.in_array(id, marginIds.clone()).as_bool() == Some(true))));
+                    m.insert("spot".to_string(), Value::Bool(spot.clone()));
+                    m.insert("margin".to_string(), Value::Bool((spot && self.in_array(id, marginIds.clone()).as_bool() == Some(true))));
                     m.insert("swap".to_string(), swap.clone());
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), Value::Bool(true));
-                    m.insert("contract".to_string(), Value::Bool(!(spot.as_bool() == Some(true))));
+                    m.insert("contract".to_string(), Value::Bool(!(spot)));
                     m.insert("linear".to_string(), (if matches!(&swap, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
                     m.insert("inverse".to_string(), (if matches!(&swap, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
                     m.insert("contractSize".to_string(), (if matches!(&swap, Value::Bool(true)) { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));

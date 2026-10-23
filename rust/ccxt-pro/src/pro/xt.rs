@@ -385,7 +385,7 @@ impl XtCore {
             // concurrent callers each minted their own token, last write won, and the losers
             // carried an orphaned token into name + '@' + listenKey so their streams went dead
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("authenticate:".into()), tradeType).into());
-            if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -1207,8 +1207,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut fundingRate: Value = self.parse_funding_rate(raw, &[]);
             let mut timestamp: Value = self.safe_integer_k(data, "t", &[]);
-            add_element_to_object(&mut fundingRate, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut fundingRate, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            if let Value::Dict(__rda) = &mut fundingRate { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+            if let Value::Dict(__rda) = &mut fundingRate { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
             let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
             let mut event: Value = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
@@ -1229,7 +1229,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1252,7 +1252,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("position::contract".into())]);

@@ -3702,7 +3702,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_811: bool = true;
-                while { if !__for_first_811 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_811 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&clientOrderId).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_811 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_811 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if let Value::Arr(__a) = &mut cancelReq { std::sync::Arc::make_mut(__a).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), baseId.clone());
@@ -5710,11 +5710,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return self.parse_transfer(transferResponse, &[currency.clone()]);
         }
         // transfer between main account and subaccount
-        let mut isDeposit: Value = Value::Bool(false);
+        let mut isDeposit: bool = false;
         let mut subAccountAddress: Value = Value::Null;
         if (fromAccount.as_str() == Some("main")) {
             subAccountAddress = toAccount.clone();
-            isDeposit = Value::Bool(true);
+            isDeposit = true;
         }  else if (toAccount.as_str() == Some("main")) {
             subAccountAddress = fromAccount;
         }  else {
@@ -5751,12 +5751,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut sendAssetPayload: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if (isSandboxMode.as_bool() == Some(true)) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
-                    m.insert("destination".to_string(), (if isDeposit.as_bool() == Some(true) { subAccountAddress.clone() } else { masterAddress }));
+                    m.insert("destination".to_string(), (if isDeposit { subAccountAddress.clone() } else { masterAddress }));
                     m.insert("sourceDex".to_string(), sourceDex.clone());
                     m.insert("destinationDex".to_string(), destinationDex.clone());
                     m.insert("token".to_string(), sendAssetToken.clone());
                     m.insert("amount".to_string(), self.number_to_string(amount.clone()));
-                    m.insert("fromSubAccount".to_string(), (if isDeposit.as_bool() == Some(true) { Value::Str("".into()) } else { subAccountAddress.clone() }));
+                    m.insert("fromSubAccount".to_string(), (if isDeposit { Value::Str("".into()) } else { subAccountAddress.clone() }));
                     m.insert("nonce".to_string(), nonce.clone());
                 m
             });
@@ -5795,7 +5795,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountTransfer".into()));
                     m.insert("subAccountUser".to_string(), subAccountAddress.clone());
-                    m.insert("isDeposit".to_string(), isDeposit.clone());
+                    m.insert("isDeposit".to_string(), Value::Bool(isDeposit.clone()));
                     m.insert("usd".to_string(), usd);
                 m
             });
@@ -5827,7 +5827,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountSpotTransfer".into()));
                     m.insert("subAccountUser".to_string(), subAccountAddress);
-                    m.insert("isDeposit".to_string(), isDeposit);
+                    m.insert("isDeposit".to_string(), Value::Bool(isDeposit));
                     m.insert("token".to_string(), token);
                     m.insert("amount".to_string(), self.number_to_string(amount));
                 m

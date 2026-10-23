@@ -531,8 +531,8 @@ impl OnetradingCore {
             let mut parsedTicker: Value = self.parse_ws_ticker(ticker, &[]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
             let mut timestamp: Value = self.parse8601(datetime.clone());
-            add_element_to_object(&mut parsedTicker, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut parsedTicker, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            if let Value::Dict(__rda) = &mut parsedTicker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+            if let Value::Dict(__rda) = &mut parsedTicker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
             client.resolve(&[parsedTicker, Value::Str(format!("{}{}", Value::Str("ticker.".into()), symbol).into())]);
         }
         }

@@ -1255,7 +1255,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("ticket".to_string(), Value::Str("ccxt".into()));
     m
 })]);
-        let mut keys: Value = object_keys(&subscriptions);
+        let mut keys: Value = Value::Array(subscriptions.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_133: bool = true;

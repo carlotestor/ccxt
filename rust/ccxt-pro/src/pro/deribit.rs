@@ -540,7 +540,7 @@ impl DeribitCore {
             let mut __for_first_300: bool = true;
             while { if !__for_first_300 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_300 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), interval).into()));
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), interval).into())); };
         }
         }
         let mut message: Value = Value::Map({
@@ -647,7 +647,7 @@ impl DeribitCore {
             let mut __for_first_301: bool = true;
             while { if !__for_first_301 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_301 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str("quote.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())); };
         }
         }
         let mut message: Value = Value::Map({
@@ -1447,7 +1447,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_308: bool = true;
-            while { if !__for_first_308 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_308 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbolsArray).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_308 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_308 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbolsArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if (symbolsArray == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".into()))));
             }

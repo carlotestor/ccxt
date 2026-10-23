@@ -6009,9 +6009,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
             let mut type_var: Value = Value::Null;
             let mut swap: Value = Value::Bool(false);
-            let mut spot: Value = Value::Bool(false);
+            let mut spot: bool = false;
             let mut future: Value = Value::Bool(false);
-            let mut contract: Value = Value::Bool(false);
+            let mut contract: bool = false;
             let mut pricePrecision: Value = Value::Null;
             let mut amountPrecision: Value = Value::Null;
             let mut linear: Value = Value::Null;
@@ -6023,7 +6023,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isMarginTradingAllowed: bool = false;
             if (symbolType.is_none()) {
                 type_var = Value::Str("spot".into());
-                spot = Value::Bool(true);
+                spot = true;
                 pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]);
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
                 let mut hasCrossMargin: Value = self.in_array(marketId.clone(), self.options.as_map().and_then(|__m| __m.get("crossMarginPairsData")).cloned().unwrap_or(Value::Null));
@@ -6055,7 +6055,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     future = Value::Bool(true);
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), expiryString).into());
                 }
-                contract = Value::Bool(true);
+                contract = true;
                 inverse = (Value::Bool(base.as_str() == settle.as_str()));
                 linear = Value::Bool(!(inverse.as_bool() == Some(true)));
                 let mut priceDecimals: Value = self.safe_integer_k(market.clone(), "pricePlace", &[]);
@@ -6088,7 +6088,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (quote.as_str() == Some("USDT")) {
                 minCost = self.safe_number_k(market.clone(), "minTradeUSDT", &[]);
             }
-            let mut contractSize: Value = (if contract.as_bool() == Some(true) { Value::Int(1) } else { Value::Null });
+            let mut contractSize: Value = (if contract { Value::Int(1) } else { Value::Null });
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId);
@@ -6100,14 +6100,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), type_var);
-        m.insert("spot".to_string(), spot.clone());
-        m.insert("margin".to_string(), Value::Bool(spot.as_bool() == Some(true) && isMarginTradingAllowed));
+        m.insert("spot".to_string(), Value::Bool(spot.clone()));
+        m.insert("margin".to_string(), Value::Bool(spot && isMarginTradingAllowed));
         m.insert("marginModes".to_string(), marginModes);
         m.insert("swap".to_string(), swap);
         m.insert("future".to_string(), future);
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), contract);
+        m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
@@ -6310,10 +6310,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
             let mut type_var: Value = Value::Null;
             let mut swap: Value = Value::Bool(false);
-            let mut spot: Value = Value::Bool(false);
+            let mut spot: bool = false;
             let mut stock: Value = Value::Bool(false);
             let mut future: Value = Value::Bool(false);
-            let mut contract: Value = Value::Bool(false);
+            let mut contract: bool = false;
             let mut pricePrecision: Value = Value::Null;
             let mut amountPrecision: Value = Value::Null;
             let mut linear: Value = Value::Null;
@@ -6326,7 +6326,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isUtaMargin: bool = category.as_deref() == Some("MARGIN");
             if matches!(&isReality, Value::Bool(true)) || isUtaMargin || (category.as_deref() == Some("SPOT")) {
                 type_var = Value::Str("spot".into());
-                spot = Value::Bool(true);
+                spot = true;
                 stock = isReality.clone();
                 if isUtaMargin {
                     let mut isolatedBase: Option<String> = self.safe_string_k(market.clone(), "isIsolatedBaseBorrowable", &[]).as_str().map(str::to_owned);
@@ -6362,7 +6362,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     future = Value::Bool(true);
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), expiryString).into());
                 }
-                contract = Value::Bool(true);
+                contract = true;
                 inverse = (Value::Bool(base.as_str() == settle.as_str()));
                 linear = Value::Bool(!(inverse.as_bool() == Some(true)));
                 marginModes = Value::Map({
@@ -6379,7 +6379,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (status.is_some()) {
                 active = (Value::Bool((status.as_deref() == Some("online")) || (status.as_deref() == Some("normal"))));
             }
-            let mut contractSize: Value = (if contract.as_bool() == Some(true) { Value::Int(1) } else { Value::Null });
+            let mut contractSize: Value = (if contract { Value::Int(1) } else { Value::Null });
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId);
@@ -6391,15 +6391,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), type_var);
-        m.insert("spot".to_string(), spot.clone());
-        m.insert("margin".to_string(), Value::Bool(spot.as_bool() == Some(true) && isMarginTradingAllowed));
+        m.insert("spot".to_string(), Value::Bool(spot.clone()));
+        m.insert("margin".to_string(), Value::Bool(spot && isMarginTradingAllowed));
         m.insert("marginModes".to_string(), marginModes);
         m.insert("swap".to_string(), swap);
         m.insert("future".to_string(), future);
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("stock".to_string(), stock);
         m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), contract);
+        m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
@@ -9069,7 +9069,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut extended: Value = self.extend(request, &[paramsProductType]);
             if !historicalEndpointNeeded && ((priceType.as_str() == Some("mark")) || (priceType.as_str() == Some("index"))) {
                 if !limitDefined {
-                    add_element_to_object(&mut extended, &Value::Str("limit".into()), Value::Int(1000));
+                    if let Value::Dict(__rda) = &mut extended { std::sync::Arc::make_mut(__rda).insert("limit".to_string(), Value::Int(1000)); }
                     limitResolved = Value::Int(1000);
                 }
                 // Recent endpoint for mark/index prices
@@ -9089,7 +9089,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     response = self.public_mix_get_v2_mix_market_history_candles(&[extended.clone()]).await;
                 }  else {
                     if !limitDefined {
-                        add_element_to_object(&mut extended, &Value::Str("limit".into()), Value::Int(1000));
+                        if let Value::Dict(__rda) = &mut extended { std::sync::Arc::make_mut(__rda).insert("limit".to_string(), Value::Int(1000)); }
                         limitResolved = Value::Int(1000);
                     }
                     response = self.public_mix_get_v2_mix_market_candles(&[extended]).await;
@@ -10843,7 +10843,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() does not support trigger or trailing orders for tokenized stock markets".into()))));
         }
         if isContractTriggerEndpoint {
-            let mut orderIdList: Value = Value::from(vec![]);
+            let mut orderIdList: Vec<Value> = vec![];
             let mut orderId: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -10854,8 +10854,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 if let Value::Dict(__d) = &mut orderId { std::sync::Arc::make_mut(__d).insert("orderId".into(), id.clone()); }
             }
-            if let Value::Arr(__a) = &mut orderIdList { std::sync::Arc::make_mut(__a).push(orderId); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderIdList".into(), orderIdList); }
+            orderIdList.push(orderId);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderIdList".into(), Value::Array(orderIdList)); }
         }  else {
             if (clientOrderId != Value::Null) {
                 paramsMarginMode = self.omit(paramsMarginMode.clone(), Value::Str("clientOrderId".into()), &[]);

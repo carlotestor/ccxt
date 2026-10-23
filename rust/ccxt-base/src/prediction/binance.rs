@@ -645,7 +645,7 @@ impl BinanceCore {
         let mut allQueriesLength: f64 = ((allQueries.len() as i64) as f64);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
         // keys dropped before the client-side pass; a server-side sort also drops its own keys
-        let mut postOmitKeys: Value = Value::from(vec![Value::Str("tags".into()), Value::Str("l1Category".into()), Value::Str("l2Category".into())]);
+        let mut postOmitKeys: Vec<Value> = vec![Value::Str("tags".into()), Value::Str("l1Category".into()), Value::Str("l2Category".into())];
         let mut userLimit: Value = self.safe_integer_k(paramsOmitted.clone(), "limit", &[]);
         let mut fetchCap: Value = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]);
         if (userLimit != Value::Null) {
@@ -688,8 +688,8 @@ impl BinanceCore {
                 }
                 if (sortBy != Value::Null) {
                     if let Value::Dict(__d) = &mut listingRequest { std::sync::Arc::make_mut(__d).insert("sortBy".into(), sortBy); }
-                    if let Value::Arr(__a) = &mut postOmitKeys { std::sync::Arc::make_mut(__a).push(Value::Str("sort".into())); }
-                    if let Value::Arr(__a) = &mut postOmitKeys { std::sync::Arc::make_mut(__a).push(Value::Str("sortBy".into())); }
+                    postOmitKeys.push(Value::Str("sort".into()));
+                    postOmitKeys.push(Value::Str("sortBy".into()));
                 }
             }
             let __ws_arg_2 = self.extend(listingRequest, &[rest]);
@@ -724,7 +724,7 @@ impl BinanceCore {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let mut postParams: Value = self.omit(paramsOmitted, postOmitKeys, &[]);
+        let mut postParams: Value = self.omit(paramsOmitted, Value::Array(postOmitKeys), &[]);
         return self.apply_event_fetch_params(Value::from(result), &[postParams, Value::from(vec![])]);
 
     Value::Null

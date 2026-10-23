@@ -894,17 +894,17 @@ impl RevolutxCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut marketIds: Value = Value::from(vec![]);
+            let mut marketIds: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1104: bool = true;
                 while { if !__for_first_1104 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1104 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
-                if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), join(&marketIds, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into())); }
         }
         let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
         if (region != Value::Null) {
@@ -1704,11 +1704,11 @@ impl RevolutxCore {
         }
         let mut orderStates: Value = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[]);
         if (orderStates != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_states".into(), join(&orderStates, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_states".into(), Value::Str(orderStates.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
         }
         let mut orderTypes: Value = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]);
         if (orderTypes != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_types".into(), join(&orderTypes, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_types".into(), Value::Str(orderTypes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
         }
         let mut side: Value = self.safe_string_k(params.clone(), "side", &[]);
         if (side != Value::Null) {
@@ -1797,11 +1797,11 @@ impl RevolutxCore {
         }
         let mut orderStates: Value = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[]);
         if (orderStates != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_states".into(), join(&orderStates, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_states".into(), Value::Str(orderStates.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
         }
         let mut orderTypes: Value = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]);
         if (orderTypes != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_types".into(), join(&orderTypes, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_types".into(), Value::Str(orderTypes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
         }
         let __ws_arg_11 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into())]), &[])]);
         let mut response: Value = self.private_get10_orders_historical(&[__ws_arg_11]).await;

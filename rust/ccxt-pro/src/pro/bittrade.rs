@@ -186,7 +186,6 @@ impl crate::exchange_generated::ExchangeBase for BittradeCore {
                 "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trades" => self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "request_id" => self.request_id(),
                 "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_order_book_snapshot" => self.watch_order_book_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
@@ -221,7 +220,6 @@ impl BittradeCore {
             "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_trades" => self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
-            "request_id" => self.request_id(),
             "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
             "watch_order_book_snapshot" => { crate::exchange_stubs::enqueue_spawn("watch_order_book_snapshot", args.to_vec()); crate::Value::Null },
@@ -293,14 +291,12 @@ impl BittradeCore {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> Option<String> {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
-        return to_string_val(&requestId);
-
-    Value::Null
+        return Value::Str(format!("{}", requestId).into()).as_str().map(str::to_owned);
 }
 
 /*
@@ -330,7 +326,7 @@ impl BittradeCore {
             m
         });
         let mut url: Value = self.implode_params(crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "public"), hostname);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub".to_string(), messageHash.clone());
@@ -384,8 +380,8 @@ impl BittradeCore {
         let mut market: Value = self.safe_market(&[marketId]);
         let mut ticker: Value = self.parse_ticker(tick, &[market]);
         let mut timestamp: Value = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         client.resolve(&[ticker, ch]);
@@ -425,7 +421,7 @@ impl BittradeCore {
             m
         });
         let mut url: Value = self.implode_params(crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "public"), hostname);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub".to_string(), messageHash.clone());
@@ -540,7 +536,7 @@ impl BittradeCore {
             m
         });
         let mut url: Value = self.implode_params(crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "public"), hostname);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub".to_string(), messageHash.clone());
@@ -645,7 +641,7 @@ impl BittradeCore {
             m
         });
         let mut url: Value = self.implode_params(crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "public"), hostname);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub".to_string(), messageHash.clone());
@@ -732,7 +728,7 @@ impl BittradeCore {
                 m
             });
             let mut url: Value = self.implode_params(crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "public"), hostname);
-            let mut requestId: Value = self.request_id();
+            let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("req".to_string(), messageHash.clone());
@@ -914,7 +910,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
             }
             // clean up
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
             }
         }
@@ -1027,7 +1023,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = self.safe_string_k(subscription, "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash]);
                     client.reject(&[e, id.clone()]);
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
                     }
                 }

@@ -865,7 +865,7 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+        if !(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.handle_option(Value::Str("watchOHLCV".into()), Value::Str("limit".into()), &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit));
         }

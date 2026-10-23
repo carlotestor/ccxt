@@ -1647,7 +1647,7 @@ impl BithumbCore {
                             let mut ticker: Value = self.safe_dict(response.clone(), id.clone(), &[]);
                             if (ticker != Value::Null) {
                                 { let __be_tmp = self.safe_string_k(ticker.clone(), "market", &[id]); add_element_to_object(&mut ticker, &Value::Str("market".into()), __be_tmp); };
-                                append_to_array(&mut tickers, ticker.clone());
+                                if let Value::Arr(__a) = &mut tickers { std::sync::Arc::make_mut(__a).push(ticker.clone()); };
                             }
                         }
                         }

@@ -1587,15 +1587,15 @@ impl HashkeyCore {
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
         let mut marketType: Value = Value::Str("spot".into());
-        let mut isSpot: Value = Value::Bool(true);
-        let mut isSwap: Value = Value::Bool(false);
+        let mut isSpot: bool = true;
+        let mut isSwap: bool = false;
         let mut suffix: Value = Value::Str("".into());
         let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         if (secondPart.as_deref() == Some("PERPETUAL")) {
             marketType = Value::Str("swap".into());
-            isSpot = Value::Bool(false);
-            isSwap = Value::Bool(true);
+            isSpot = false;
+            isSwap = true;
             baseId = self.safe_string_k(market.clone(), "underlying", &[]);
             suffix = Value::Str(format!("{}{}", suffix, Value::Str(format!("{}{}", Value::Str(":".into()), settleId).into())).into());
         }
@@ -1639,7 +1639,7 @@ impl HashkeyCore {
         let mut amountMaxLimitString: Value = self.safe_string_k(amountFilter, "maxQty", &[]);
         let mut minLeverage: Value = Value::Null;
         let mut maxLeverage: Value = Value::Null;
-        if isSwap.as_bool() == Some(true) {
+        if isSwap {
             amountPrecisionString = crate::precise::Precise::stringDiv(&amountPrecisionString, &contractSizeString);
             amountMinLimitString = crate::precise::Precise::stringDiv(&amountMinLimitString, &contractSizeString);
             amountMaxLimitString = crate::precise::Precise::stringDiv(&amountMaxLimitString, &contractSizeString);
@@ -1659,7 +1659,7 @@ impl HashkeyCore {
         }
         let mut tradingFees: Value = self.safe_dict_k(self.fees.clone(), "trading", &[]);
         let mut fees: Value = Value::Null;
-        if isSpot.as_bool() == Some(true) {
+        if isSpot {
             fees = self.safe_dict_k(tradingFees.clone(), "spot", &[]);
         }  else {
             fees = self.safe_dict_k(tradingFees, "swap", &[]);
@@ -1675,12 +1675,12 @@ impl HashkeyCore {
         m.insert("active".to_string(), active);
         m.insert("type".to_string(), marketType);
         m.insert("subType".to_string(), subType);
-        m.insert("spot".to_string(), isSpot);
+        m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), self.safe_bool_k(market.clone(), "allowMargin", &[]));
-        m.insert("swap".to_string(), isSwap.clone());
+        m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("contract".to_string(), isSwap);
+        m.insert("contract".to_string(), Value::Bool(isSwap));
         m.insert("settle".to_string(), settle);
         m.insert("settleId".to_string(), settleId);
         m.insert("contractSize".to_string(), self.parse_number(contractSizeString, &[]));

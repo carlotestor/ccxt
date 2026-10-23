@@ -668,7 +668,7 @@ impl WhitebitCore {
         // watchTicker
         client.resolve(&[ticker.clone(), messageHash]);
         // watchTickers
-        let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
+        let mut messageHashes: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_684: bool = true;
@@ -1194,13 +1194,13 @@ impl WhitebitCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subscriptionHash: Value) {
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
         if (match &(fetchBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var, subscriptionHash]);
             }
@@ -1215,7 +1215,7 @@ impl WhitebitCore {
         })]).await;
         { let __t = self.extend(response, &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.clone(), subscriptionHash]);
@@ -1289,7 +1289,7 @@ impl WhitebitCore {
                     if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
                 }
             }  else {
-                let mut keys: Value = object_keys(&balanceDict);
+                let mut keys: Value = Value::Array(balanceDict.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_686: bool = true;
@@ -1418,7 +1418,7 @@ impl WhitebitCore {
                         m.insert("params".to_string(), marketIdsNew);
                     m
                 });
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &method)) {
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &method);
                 }
                 return self.watch(url, messageHash, &[resubRequest, method, subscription]).await;
@@ -1478,7 +1478,7 @@ impl WhitebitCore {
         // their own authorize frame. the flight lives in client.futures of the handshake client
         // under a non-messageHash key and settles only via client.resolve () / client.reject ()
         let mut messageHash: Value = Value::Str("authenticateFlight".into());
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             // a flight is already in progress - wake when the leader settles
             // it, the socket is authorized by then. the flight gate is
             // checked before the subscriptions one because watch () registers
@@ -1534,10 +1534,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // replay that failure. the stale future is settled through
             // client.reject () - guarded, so it always has a waiter and the
             // error is never parked in client.rejections
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash);
             }
-            if (in_op(&get_value(&client, &Value::Str("futures".into())), &subscribeHash)) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.reject(&[e.clone(), subscribeHash.clone()]);
             }
             // reject the flight - the leader and every waiter throw and the

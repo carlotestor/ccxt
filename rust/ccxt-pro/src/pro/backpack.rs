@@ -531,7 +531,7 @@ impl BackpackCore {
             let mut subscriptionsLength: f64 = ((subscriptionHashes.len() as i64) as f64);
             if !(unwatch.as_bool() == Some(true)) || (subscriptionsLength == 0.0) {
                 if !(self.in_array(topic.clone(), topics.clone()).as_bool() == Some(true)) {
-                    append_to_array(&mut topics, topic);
+                    if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(topic); };
                 }
             }
             symbolsResolved.push(symbol);
@@ -655,7 +655,7 @@ impl BackpackCore {
                 let mut symbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[]);
                 let mut timeframe: Value = self.safe_string(splitHashes, Value::Int(3), &[]);
                 if (symbol != Value::Null) && (timeframe != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if (in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+                    if (self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
                     }
                 }
@@ -704,7 +704,7 @@ impl BackpackCore {
                     }
                 }  else {
                     let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:positions:", "").into())).unwrap_or_else(|| messageHash.clone());
-                    if (in_op(&self.positions, &symbol)) {
+                    if (self.positions.as_map().is_some_and(|__m| symbol.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                         remove(&mut self.positions, &symbol);
                     }
                 }
@@ -861,7 +861,7 @@ impl BackpackCore {
                 m
             })]);
             let mut parsedTicker: Value = self.parse_ws_ticker(mappedTicker, &[market]);
-            add_element_to_object(&mut parsedTicker, &Value::Str("info".into()), ticker.clone());
+            if let Value::Dict(__rda) = &mut parsedTicker { std::sync::Arc::make_mut(__rda).insert("info".to_string(), ticker.clone()); }
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
             client.resolve(&[parsedTicker, messageHash]);
         }
@@ -1330,7 +1330,7 @@ impl BackpackCore {
     m
 })); }
         }
-        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+        if !(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored);
@@ -1889,11 +1889,11 @@ impl BackpackCore {
             }
             messageHash = Value::Str(format!("{}{}", Value::Str("orders:".into()), symbolResolved).into());
         }
-        let mut topics: Value = Value::from(vec![topic]);
+        let mut topics: Vec<Value> = vec![topic];
         if (market == Value::Null) {
-            if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(Value::Str("account.rfqUpdate".into())); }
+            topics.push(Value::Str("account.rfqUpdate".into()));
         }
-        let mut orders: Value = self.watch_private(topics, Value::from(vec![messageHash]), &[self.omit(query.clone(), Value::Str("stock".into()), &[])]).await;
+        let mut orders: Value = self.watch_private(Value::Array(topics), Value::from(vec![messageHash]), &[self.omit(query.clone(), Value::Str("stock".into()), &[])]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1942,11 +1942,11 @@ impl BackpackCore {
             }
             messageHash = Value::Str(format!("{}{}", Value::Str("unsubscribe:orders:".into()), symbolResolved).into());
         }
-        let mut topics: Value = Value::from(vec![topic]);
+        let mut topics: Vec<Value> = vec![topic];
         if (market == Value::Null) {
-            if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(Value::Str("account.rfqUpdate".into())); }
+            topics.push(Value::Str("account.rfqUpdate".into()));
         }
-        return self.watch_private(topics, Value::from(vec![messageHash]), &[self.omit(query, Value::Str("stock".into()), &[]), Value::Bool(true)]).await;
+        return self.watch_private(Value::Array(topics), Value::from(vec![messageHash]), &[self.omit(query, Value::Str("stock".into()), &[]), Value::Bool(true)]).await;
 
     Value::Null
 }
@@ -2041,10 +2041,10 @@ impl BackpackCore {
         }
         let mut marketResolved: Value = self.safe_market(&[self.safe_string_k(data.clone(), "s", &[]), market]);
         let mut parsed: Value = self.parse_order(request, &[marketResolved]);
-        add_element_to_object(&mut parsed, &Value::Str("info".into()), data.clone());
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), data.clone()); }
         if (event.as_str() == Some("rfqFilled")) {
             let mut tradeMicroseconds: Value = self.safe_integer_k(data, "T", &[Value::Int(0)]);
-            add_element_to_object(&mut parsed, &Value::Str("lastTradeTimestamp".into()), self.parse_to_int((match ((tradeMicroseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("lastTradeTimestamp".to_string(), self.parse_to_int((match ((tradeMicroseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
         return parsed;
 
@@ -2421,8 +2421,8 @@ impl BackpackCore {
         let mut parsedPosition: Value = self.parse_ws_position(data.clone(), &[]);
         let mut microseconds: Value = self.safe_integer_k(data, "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int((match ((microseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        add_element_to_object(&mut parsedPosition, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut parsedPosition, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         cache.append(parsedPosition.clone());
         let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), parsedPosition.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         client.resolve(&[Value::from(vec![parsedPosition.clone()]), messageHash]);

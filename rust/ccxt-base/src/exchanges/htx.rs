@@ -4488,8 +4488,8 @@ impl HtxCore {
 })]);
         let mut ticker: Value = self.parse_ticker(tick, &[market]);
         let mut timestamp: Value = self.safe_integer_k(response, "ts", &[]);
-        add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         return ticker;
 
     Value::Null
@@ -6140,7 +6140,7 @@ impl HtxCore {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_775: bool = true;
-                    while { if !__for_first_775 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_775 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&data).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_775 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_775 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                     let mut balances: Value = self.safe_list_k(entry, "list", &[Value::from(vec![])]);
                     let mut subResult: Value = Value::Map({
@@ -6191,7 +6191,7 @@ impl HtxCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_777: bool = true;
-                while { if !__for_first_777 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_777 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&data).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_777 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_777 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -10081,7 +10081,7 @@ impl HtxCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_784: bool = true;
-                while { if !__for_first_784 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_784 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&data).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_784 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_784 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = get_value(&data, &i);
                 let mut entry: Value = get_value(&data, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "contract_code", &[]);
@@ -11252,8 +11252,8 @@ impl HtxCore {
         let mut timestamp: Value = self.safe_integer_k(response, "ts", &[]);
         let __ws_arg_140 = self.extend(position, &[omitted]);
         let mut parsed: Value = self.parse_position(__ws_arg_140, &[market]);
-        add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         return parsed;
 
     Value::Null
@@ -11818,8 +11818,8 @@ impl HtxCore {
         }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut openInterest: Value = self.parse_open_interest(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[market]);
-        add_element_to_object(&mut openInterest, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut openInterest, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         return openInterest;
 
     Value::Null
@@ -12404,7 +12404,7 @@ impl HtxCore {
                 });
             }
             if (networkCode != Value::Null) {
-                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), withdrawResult);
         m.insert("deposit".to_string(), Value::Map({
@@ -12414,7 +12414,7 @@ impl HtxCore {
     m
 }));
     m
-}));
+})); } }
             }
             self.assign_default_deposit_withdraw_fees(result.clone(), &[currency.clone()]);
         }

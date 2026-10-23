@@ -1489,9 +1489,9 @@ impl PhemexCore {
         }
         base = base.as_str().map(|__s| Value::Str(__s.replace(" ", "").into())).unwrap_or_else(|| base.clone()); // replace space for junction codes, eg. `1000 SHIB`
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut inverse: Value = Value::Bool(false);
+        let mut inverse: bool = false;
         if (settleId != quoteId) {
-            inverse = Value::Bool(true);
+            inverse = true;
             // some unhandled cases
             if !(matches!(&market, Value::Dict(__d) if __d.contains_key("baseCurrency"))) && (base.as_str() == quote.as_str()) {
                 base = settle.clone();
@@ -1518,7 +1518,7 @@ impl PhemexCore {
             // "1.0"
             contractSize = self.parse_number(contractSizeString, &[]);
         }
-        let mut isLinear: Value = Value::Bool(!(inverse.as_bool() == Some(true)));
+        let mut isLinear: Value = Value::Bool(!(inverse));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -1538,7 +1538,7 @@ impl PhemexCore {
         m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("Listed")));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), isLinear);
-        m.insert("inverse".to_string(), inverse);
+        m.insert("inverse".to_string(), Value::Bool(inverse));
         m.insert("taker".to_string(), self.parse_number(self.from_en(takerFeeRateEr, ratioScale.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), &[]));
         m.insert("maker".to_string(), self.parse_number(self.from_en(makerFeeRateEr, ratioScale.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), contractSize);
@@ -6062,7 +6062,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1068: bool = true;
-            while { if !__for_first_1068 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1068 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&riskLimits).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1068 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1068 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(riskLimits.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Value = self.safe_dict(riskLimits.clone(), i.clone(), &[]);
             let mut maxNotional: Value = self.safe_integer_k(tier.clone(), "limit", &[]);
             let mut minNotionalResponse: Value = minNotional.clone(); // java req

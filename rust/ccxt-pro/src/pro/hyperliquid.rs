@@ -1160,7 +1160,7 @@ impl HyperliquidCore {
             m
         })]);
         if (mids != Value::Null) {
-            let mut keys: Value = object_keys(&mids);
+            let mut keys: Value = Value::Array(mids.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_408: bool = true;
@@ -1304,7 +1304,7 @@ impl HyperliquidCore {
             trades.append(parsed);
         }
         }
-        let mut keys: Value = object_keys(&symbols);
+        let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_410: bool = true;
@@ -1376,7 +1376,7 @@ impl HyperliquidCore {
             add_element_to_object(&mut symbols, &liquidation.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), Value::Bool(true));
         }
         }
-        let mut keys: Value = object_keys(&symbols);
+        let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_413: bool = true;
@@ -1731,7 +1731,7 @@ impl HyperliquidCore {
     m
 })); }
         }
-        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+        if !(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored);
@@ -1977,7 +1977,7 @@ impl HyperliquidCore {
         add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("info".into()), info);
         add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("timestamp".into()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp); add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("datetime".into()), __be_tmp); };
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &account)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| account.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
         if (topic != Value::Null) {
             let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::balance".into())).into());
             client.resolve(&[self.balance.as_map().and_then(|__m| account.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
@@ -2380,7 +2380,7 @@ impl HyperliquidCore {
             if let Value::Dict(__d) = &mut marketSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
         }
         }
-        let mut keys: Value = object_keys(&marketSymbols);
+        let mut keys: Value = Value::Array(marketSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_419: bool = true;
@@ -2497,7 +2497,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut client: Value = self.client(&[url.clone()]);
             let mut unsubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into());
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &unsubHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &unsubHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
                 let mut timeout: Value = self.safe_integer_k(self.options.clone(), "unsubscribeTimeout", &[Value::Int(10000)]);
                 self.delay(timeout, &[Value::Str("expire_pending_unsubscribe".into()).clone(), client.clone(), subHash, unsubHash.clone()]).await;
@@ -2517,7 +2517,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn expire_pending_unsubscribe(&mut self, mut client: Value, mut subHash: Value, mut unsubHash: Value) -> Value {
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &unsubHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &unsubHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut error = Value::from(crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unsubscribe ".into())).into()), subHash).into()), Value::Str(" was not acknowledged".into()))));
             client.reject(&[Value::from(error), unsubHash.clone()]);
             self.clean_unsubscription(client.clone(), subHash, unsubHash.clone(), &[]);
@@ -2605,7 +2605,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
         if (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if (in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+            if (self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }
@@ -2620,7 +2620,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut user: Value = self.safe_string_lower_k(subscription, "user", &[]);
         if (user != Value::Null) {
             let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:orderUpdates::".into()), user).into());
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash);
             }
         }
@@ -2644,7 +2644,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut user: Value = self.safe_string_lower_k(subscription, "user", &[]);
         if (user != Value::Null) {
             let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:userFills::".into()), user).into());
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash);
             }
         }

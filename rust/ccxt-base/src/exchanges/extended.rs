@@ -1103,7 +1103,7 @@ impl ExtendedCore {
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        let mut isSpot: Value = Value::Bool(false);
+        let mut isSpot: bool = false;
         let mut type_var: Value = self.safe_string_lower_k(market.clone(), "type", &[]);
         let mut contractSize: Value = Value::Null;
         let mut linear: Value = Value::Null;
@@ -1112,7 +1112,7 @@ impl ExtendedCore {
         // only advertises the capability and gates the unified spot tests, it does not filter
         // markets, so accounts still holding spot balances keep resolving their symbols
         if (type_var.as_str() == Some("spot")) {
-            isSpot = Value::Bool(true);
+            isSpot = true;
         }  else {
             type_var = Value::Str("swap".into());
             settleId = quoteId.clone();
@@ -1133,13 +1133,13 @@ impl ExtendedCore {
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), type_var);
-        m.insert("spot".to_string(), isSpot.clone());
+        m.insert("spot".to_string(), Value::Bool(isSpot.clone()));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(!(isSpot.as_bool() == Some(true))));
+        m.insert("swap".to_string(), Value::Bool(!(isSpot)));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), Value::Bool(!(isSpot.as_bool() == Some(true))));
+        m.insert("contract".to_string(), Value::Bool(!(isSpot)));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
         m.insert("taker".to_string(), self.safe_number_k(self.fees.clone(), "taker", &[]));
@@ -1682,7 +1682,7 @@ impl ExtendedCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().unwrap().clone();
         let mut pagination: Value = self.safe_dict_k(response, "pagination", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1694,8 +1694,8 @@ impl ExtendedCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_661: bool = true;
             while { if !__for_first_661 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_661 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (cursor != Value::Null) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                 entry = self.extend(entry.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1779,7 +1779,7 @@ impl ExtendedCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().unwrap().clone();
         let mut pagination: Value = self.safe_dict_k(response, "pagination", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1791,8 +1791,8 @@ impl ExtendedCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_662: bool = true;
             while { if !__for_first_662 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_662 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (cursor != Value::Null) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                 entry = self.extend(entry.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2083,7 +2083,7 @@ impl ExtendedCore {
         //       }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().unwrap().clone();
         let mut pagination: Value = self.safe_dict_k(response, "pagination", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2095,8 +2095,8 @@ impl ExtendedCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_664: bool = true;
             while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (cursor != Value::Null) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                 entry = self.extend(entry.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2450,7 +2450,7 @@ impl ExtendedCore {
         }
         let __ws_arg_9 = self.extend(request, &[paramsPaginate]);
         let mut response: Value = self.v1_private_get_user_asset_operations(&[__ws_arg_9]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().unwrap().clone();
         let mut pagination: Value = self.safe_dict_k(response, "pagination", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2462,8 +2462,8 @@ impl ExtendedCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_666: bool = true;
             while { if !__for_first_666 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_666 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (cursor != Value::Null) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                 entry = self.extend(entry.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2598,7 +2598,7 @@ impl ExtendedCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().unwrap().clone();
         let mut pagination: Value = self.safe_dict_k(response, "pagination", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2610,8 +2610,8 @@ impl ExtendedCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_667: bool = true;
             while { if !__for_first_667 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_667 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (cursor != Value::Null) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                 entry = self.extend(entry.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2811,7 +2811,7 @@ impl ExtendedCore {
         }
         let __ws_arg_14 = self.extend(request, &[paramsPaginate]);
         let mut response: Value = self.v1_private_get_user_asset_operations(&[__ws_arg_14]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().unwrap().clone();
         let mut pagination: Value = self.safe_dict_k(response, "pagination", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2823,8 +2823,8 @@ impl ExtendedCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_668: bool = true;
             while { if !__for_first_668 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_668 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (cursor != Value::Null) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                 entry = self.extend(entry.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3458,7 +3458,7 @@ impl ExtendedCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().unwrap().clone();
         let mut pagination: Value = self.safe_dict_k(response, "pagination", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3470,8 +3470,8 @@ impl ExtendedCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_670: bool = true;
             while { if !__for_first_670 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_670 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (cursor != Value::Null) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                 entry = self.extend(entry.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -4554,7 +4554,7 @@ impl ExtendedCore {
         //       }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().unwrap().clone();
         let mut pagination: Value = self.safe_dict_k(response, "pagination", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4566,8 +4566,8 @@ impl ExtendedCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_671: bool = true;
             while { if !__for_first_671 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_671 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (cursor != Value::Null) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                 entry = self.extend(entry.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();

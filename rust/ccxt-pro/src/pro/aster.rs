@@ -518,7 +518,7 @@ impl AsterCore {
             while { if !__for_first_19 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_19 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsList.len() as i64) as f64) } {
             let mut symbol: Value = symbolsList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@ticker".into())).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@ticker".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -591,7 +591,7 @@ impl AsterCore {
             while { if !__for_first_20 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_20 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsList.len() as i64) as f64) } {
             let mut symbol: Value = symbolsList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@ticker".into())).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@ticker".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -705,7 +705,7 @@ impl AsterCore {
             if use1sFreq.as_bool() == Some(true) {
                 suffix = Value::Str("@1s".into());
             }
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@markPrice".into())).into()), suffix).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@markPrice".into())).into()), suffix).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -782,7 +782,7 @@ impl AsterCore {
             if use1sFreq.as_bool() == Some(true) {
                 suffix = Value::Str("@1s".into());
             }
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@markPrice".into())).into()), suffix).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@markPrice".into())).into()), suffix).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -929,7 +929,7 @@ impl AsterCore {
             while { if !__for_first_23 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_23 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsList.len() as i64) as f64) } {
             let mut symbol: Value = symbolsList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@bookTicker".into())).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@bookTicker".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -998,7 +998,7 @@ impl AsterCore {
             while { if !__for_first_24 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_24 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsList.len() as i64) as f64) } {
             let mut symbol: Value = symbolsList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@bookTicker".into())).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@bookTicker".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -1164,7 +1164,7 @@ impl AsterCore {
             if (marketId == Value::Null) {
                 continue;
             }
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", marketId, Value::Str("@aggTrade".into())).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", marketId, Value::Str("@aggTrade".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trade::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -1229,7 +1229,7 @@ impl AsterCore {
             while { if !__for_first_26 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_26 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@aggTrade".into())).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@aggTrade".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -1538,7 +1538,7 @@ impl AsterCore {
             while { if !__for_first_27 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_27 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@depth".into())).into()), Value::Str(format!("{}", limitResolved).into())).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@depth".into())).into()), Value::Str(format!("{}", limitResolved).into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -1605,7 +1605,7 @@ impl AsterCore {
             while { if !__for_first_28 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_28 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@depth".into())).into()), limit).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@depth".into())).into()), limit).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -1776,7 +1776,7 @@ impl AsterCore {
             }  else {
                 timeframeId = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
             }
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@kline_".into())).into()), timeframeId).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
         }
         }
@@ -1856,7 +1856,7 @@ impl AsterCore {
             }  else {
                 timeframeId = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
             }
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@kline_".into())).into()), timeframeId).into()));
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
         }
         }
@@ -1960,7 +1960,7 @@ impl AsterCore {
             // under the same lock in every port
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("authenticate:".into()), type_var).into());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-            if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -1984,8 +1984,8 @@ impl AsterCore {
                 if (listenKey == Value::Null) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
                 }
-                add_element_to_object(get_value_mut(&mut self.options, &Value::Str("listenKey".into())), &type_var, listenKey.clone());
-                add_element_to_object(get_value_mut(&mut self.options, &Value::Str("lastAuthenticatedTime".into())), &type_var, time);
+                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("listenKey".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), listenKey.clone()); } }
+                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("lastAuthenticatedTime".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), time); } }
                 let mut keepAliveParams: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("type".to_string(), type_var);
@@ -2032,7 +2032,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), type_var.clone(), &[]), Value::Str("/".into())).into()), listenKey).into());
             let mut client: Value = self.client(&[url]);
-            let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
+            let mut messageHashes: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_31: bool = true;
@@ -2041,8 +2041,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 client.reject(&[Value::from(error.clone()), messageHash]);
             }
             }
-            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("listenKey".into())), &type_var, Value::Null);
-            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("lastAuthenticatedTime".into())), &type_var, Value::Int(0));
+            if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("listenKey".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), Value::Null); } }
+            if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("lastAuthenticatedTime".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), Value::Int(0)); } }
             return Value::Null;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -2110,14 +2110,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value) {
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &type_var)) && (matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -2142,7 +2142,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 })]);
         { let __be_tmp = self.extend(response, &[__ws_arg_12]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
@@ -2236,7 +2236,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut timestamp: Value = self.safe_integer_k(messageValue, "E", &[]);
         add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("timestamp".into()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp); add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("datetime".into()), __be_tmp); };
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &accountType)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| accountType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), __be_tmp); } }
         client.resolve(&[self.balance.as_map().and_then(|__m| accountType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
 
@@ -2305,7 +2305,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -2330,7 +2330,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("positions".into())]);

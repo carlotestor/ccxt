@@ -1602,7 +1602,7 @@ impl GeminiCore {
         let mut amountPrecision: Value = Value::Null;
         let mut minSize: Value = Value::Null;
         let mut status: Value = Value::Null;
-        let mut swap: Value = Value::Bool(false);
+        let mut swap: bool = false;
         let mut contractSize: Value = Value::Null;
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
@@ -1671,16 +1671,16 @@ impl GeminiCore {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         if (settleId != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
-            swap = Value::Bool(true);
+            swap = true;
             contractSize = tickSize.clone(); // always same
             linear = Value::Bool(true); // always linear
             inverse = Value::Bool(false);
         }
         let mut type_var: Value = Value::Str("spot".into());
-        if swap.as_bool() == Some(true) {
+        if swap {
             type_var = Value::Str("swap".into());
         }
-        let mut isSpot: Value = Value::Bool(!(swap.as_bool() == Some(true)));
+        let mut isSpot: Value = Value::Bool(!(swap));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId);
@@ -1694,11 +1694,11 @@ impl GeminiCore {
         m.insert("type".to_string(), type_var);
         m.insert("spot".to_string(), isSpot);
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), swap.clone());
+        m.insert("swap".to_string(), Value::Bool(swap.clone()));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), status);
-        m.insert("contract".to_string(), swap);
+        m.insert("contract".to_string(), Value::Bool(swap));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
         m.insert("contractSize".to_string(), contractSize);

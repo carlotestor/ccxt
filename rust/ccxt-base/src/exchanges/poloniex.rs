@@ -3460,7 +3460,7 @@ impl PoloniexCore {
         //     }
         //
         let mut order: Value = self.parse_order(response, &[]);
-        add_element_to_object(&mut order, &Value::Str("id".into()), idValue);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("id".to_string(), idValue); }
         return order;
 
     Value::Null
@@ -4427,7 +4427,7 @@ impl PoloniexCore {
             m
         }));
         let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("info".into())), &currencyCode, fee.clone());
+        if let Value::Dict(__rda) = &mut depositWithdrawFee { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("info".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&currencyCode), fee.clone()); } }
         let mut networkId: Value = self.safe_string_k(fee.clone(), "blockchain", &[]);
         let mut withdrawFee: Value = self.safe_number_k(fee, "withdrawalFee", &[]);
         let mut withdrawResult: Value = Value::Map({

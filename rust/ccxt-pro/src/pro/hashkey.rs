@@ -430,7 +430,7 @@ impl HashkeyCore {
         let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut klineType: Value = self.safe_string_k(params, "klineType", &[]);
         let mut timeframe: Value = self.find_timeframe(klineType, &[]);
-        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+        if !(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit));
         }
@@ -1134,14 +1134,14 @@ impl HashkeyCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subscribeHash: Value) {
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut snapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(true)]);
         if snapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), Value::Str("fetchBalanceSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -1164,7 +1164,7 @@ impl HashkeyCore {
 })]);
         { let __be_tmp = self.extend(response, &[__ws_arg_1]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into())]);
@@ -1217,7 +1217,7 @@ impl HashkeyCore {
         if (code != Value::Null) {
             add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into());
         client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
@@ -1242,7 +1242,7 @@ impl HashkeyCore {
         // the client's own accessors
         let mut messageHash: Value = Value::Str("authenticateFlight".into());
         let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;

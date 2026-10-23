@@ -4988,7 +4988,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut code: Value = self.safe_currency_code(currencyId, &[currency.clone()]);
                 let mut networkCode: Value = self.network_id_to_code(&[chainKey.clone(), code]);
                 if (networkCode != Value::Null) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5003,7 +5003,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
     m
-}));
+})); } }
                 }
             }
             }
@@ -7185,14 +7185,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 });
                 if useGateFuturesDecimalSize.as_bool() == Some(true) {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("amount".into()), signedAmount); // FuturesInitialOrder.amount takes precedence over size
+                    if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("initial".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("amount".to_string(), signedAmount); } } // FuturesInitialOrder.amount takes precedence over size
                 }  else {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("size".into()), amountResolved.clone());
+                    if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("initial".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("size".to_string(), amountResolved.clone()); } }
                 }
                 if (type_var.as_str() == Some("market")) {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("price".into()), Value::Str("0".into()));
+                    if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("initial".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("price".to_string(), Value::Str("0".into())); } }
                 }  else {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("price".into()), (if (priceResolved.as_f64() == Some(0.0)) { Value::Str("0".into()) } else { self.price_to_precision(symbol.clone(), priceResolved.clone()) }));
+                    if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("initial".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("price".to_string(), (if (priceResolved.as_f64() == Some(0.0)) { Value::Str("0".into()) } else { self.price_to_precision(symbol.clone(), priceResolved.clone()) })); } }
                 }
                 if (trigger == Value::Null) {
                     let mut rule: Value = Value::Null;
@@ -7220,13 +7220,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })); }
                 }
                 if (reduceOnly != Value::Null) {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("reduce_only".into()), reduceOnly);
+                    if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("initial".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("reduce_only".to_string(), reduceOnly); } }
                 }
                 if (timeInForce != Value::Null) {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("tif".into()), timeInForce.clone());
+                    if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("initial".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("tif".to_string(), timeInForce.clone()); } }
                 }
                 if (clientOrderId != Value::Null) {
-                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("text".into()), clientOrderId.clone());
+                    if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("initial".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("text".to_string(), clientOrderId.clone()); } }
                 }
             }  else {
                 // spot conditional order
@@ -7276,7 +7276,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })); }
                     if (clientOrderId != Value::Null) {
-                        add_element_to_object(get_value_mut(&mut request, &Value::Str("trigger".into())), &Value::Str("text".into()), clientOrderId);
+                        if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("trigger".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("text".to_string(), clientOrderId); } }
                     }
                 }
             }

@@ -4049,7 +4049,7 @@ impl LbankCore {
 })); }
                 }
                 if (networkCode != Value::Null) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4064,7 +4064,7 @@ impl LbankCore {
     m
 }));
     m
-}));
+})); } }
                 }
             }
         }

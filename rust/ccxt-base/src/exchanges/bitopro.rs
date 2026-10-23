@@ -1602,7 +1602,7 @@ impl BitoproCore {
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_405: bool = true;
-                while { if !__for_first_405 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_405 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&orderIds).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_405 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_405 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 orders.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), get_value(&orderIds, &j));

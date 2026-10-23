@@ -2971,28 +2971,28 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
         let mut order: Value = self.parse_prediction_order(response.clone(), &[outcomeObj]);
-        add_element_to_object(&mut order, &Value::Str("side".into()), side);
-        add_element_to_object(&mut order, &Value::Str("amount".into()), amount.clone());
-        add_element_to_object(&mut order, &Value::Str("price".into()), price);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("side".to_string(), side); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("amount".to_string(), amount.clone()); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("price".to_string(), price); }
         // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
         // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
         // otherwise a fully-filled order would return status 'closed' with filled 0
         let mut remainingCount: Value = self.safe_number_k(response.clone(), "remaining_count", &[]);
         let mut filledCount: Value = self.safe_number_k(response, "fill_count", &[]);
         if (filledCount != Value::Null) {
-            add_element_to_object(&mut order, &Value::Str("filled".into()), filledCount);
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("filled".to_string(), filledCount); }
         }  else if (remainingCount != Value::Null) && (amount != Value::Null) {
             add_element_to_object(&mut order, &Value::Str("filled".into()), (match (&(amount), &(remainingCount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         if (remainingCount != Value::Null) {
-            add_element_to_object(&mut order, &Value::Str("remaining".into()), remainingCount.clone());
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("remaining".to_string(), remainingCount.clone()); }
         }
         if (self.safe_string_k(order.clone(), "status", &[]) == Value::Null) {
             let mut resolvedStatus: Value = Value::Str("open".into());
             if (remainingCount != Value::Null) && (remainingCount.as_f64() == Some(0.0)) {
                 resolvedStatus = Value::Str("closed".into());
             }
-            add_element_to_object(&mut order, &Value::Str("status".into()), resolvedStatus);
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("status".to_string(), resolvedStatus); }
         }
         return order;
 
@@ -3069,10 +3069,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
         let mut order: Value = self.parse_prediction_order(self.safe_dict_k(response.clone(), "order", &[response.clone()]), &[outcomeObj]);
         if (self.safe_string_k(order.clone(), "id", &[]) == Value::Null) {
-            add_element_to_object(&mut order, &Value::Str("id".into()), id);
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("id".to_string(), id); }
         }
         if (self.safe_string_k(order.clone(), "status", &[]) == Value::Null) {
-            add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("canceled".into())); }
         }
         return order;
 
@@ -3129,7 +3129,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
                 let mut parsed: Value = self.parse_prediction_order(restingOrder, &[]);
-                add_element_to_object(&mut parsed, &Value::Str("status".into()), Value::Str("canceled".into()));
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("canceled".into())); }
                 canceledOrders.push(parsed);
             }
         }

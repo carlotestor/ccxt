@@ -3551,10 +3551,10 @@ impl BybitCore {
         }
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
         if is_true(&enable) {
-            { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); add_element_to_object(&mut self.urls, &Value::Str("apiBackupDemoTrading".into()), __be_tmp); };
-            { let __be_tmp = crate::value::get_value_k(&self.urls, "demotrading"); add_element_to_object(&mut self.urls, &Value::Str("api".into()), __be_tmp); };
+            { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("apiBackupDemoTrading".to_string(), __be_tmp); } };
+            { let __be_tmp = crate::value::get_value_k(&self.urls, "demotrading"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
         }  else if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("apiBackupDemoTrading"))) {
-            { let __be_tmp = crate::value::get_value_k(&self.urls, "apiBackupDemoTrading"); add_element_to_object(&mut self.urls, &Value::Str("api".into()), __be_tmp); };
+            { let __be_tmp = crate::value::get_value_k(&self.urls, "apiBackupDemoTrading"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
             let mut newUrls: Value = self.omit(self.urls.clone(), Value::Str("apiBackupDemoTrading".into()), &[]);
             self.urls = newUrls;
         }
@@ -5081,7 +5081,7 @@ impl BybitCore {
                     }
                     hasOptionSymbol = true;
                 }
-                append_to_array(&mut parsedSymbols, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+                if let Value::Arr(__a) = &mut parsedSymbols { std::sync::Arc::make_mut(__a).push(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)); };
             }
             }
         }
@@ -9566,8 +9566,8 @@ impl BybitCore {
     m
 })]);
         let mut position: Value = self.parse_position(first, &[market]);
-        add_element_to_object(&mut position, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         return position;
 
     Value::Null
@@ -11395,7 +11395,7 @@ impl BybitCore {
                 let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                 let mut networkCode: Value = self.network_id_to_code(&[networkId, currencyCode]);
                 if (networkCode != Value::Null) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11410,11 +11410,11 @@ impl BybitCore {
     m
 }));
     m
-}));
+})); } }
                 }
                 if (chainsLength == 1.0) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("fee".into()), self.safe_number_k(chain, "withdrawFee", &[]));
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("percentage".into()), Value::Bool(false));
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("fee".to_string(), self.safe_number_k(chain, "withdrawFee", &[])); } }
+                    if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("withdraw".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("percentage".to_string(), Value::Bool(false)); } }
                 }
             }
             }
@@ -13671,7 +13671,7 @@ impl BybitCore {
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m.insert("X-BAPI-API-KEY".to_string(), self.apiKey.clone());
                         m.insert("X-BAPI-TIMESTAMP".to_string(), timestamp.clone());
-                        m.insert("X-BAPI-RECV-WINDOW".to_string(), to_string_val(&get_value(&self.options, &Value::Str("recvWindow".into()))));
+                        m.insert("X-BAPI-RECV-WINDOW".to_string(), to_string_val(&self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null)));
                     m
                 });
                 if isV3UnifiedMargin || isV3Contract {
@@ -13682,7 +13682,7 @@ impl BybitCore {
                     m
                 }), &[params.clone()]);
                 let mut queryEncoded: Value = self.rawencode(query.clone(), &[]);
-                let mut auth_base: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", timestamp).into()), self.apiKey.clone()).into()), to_string_val(&get_value(&self.options, &Value::Str("recvWindow".into())))).into());
+                let mut auth_base: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", timestamp).into()), self.apiKey.clone()).into()), to_string_val(&self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null))).into());
                 let mut authFull: Value = Value::Null;
                 if (method.as_str() == Some("POST")) {
                     requestBody = json_stringify(&query);

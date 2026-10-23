@@ -3757,7 +3757,7 @@ impl BackpackCore {
         let __ws_arg_19 = self.extend(query, &[request]);
         let mut response: Value = self.private_post_api_v1_rfq(&[__ws_arg_19]).await;
         let mut order: Value = self.parse_order(response, &[market]);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
         return order;
 
     Value::Null
@@ -4367,7 +4367,7 @@ impl BackpackCore {
         let mut rfq: Value = self.safe_dict_k(order.clone(), "rfq", &[]);
         if (rfq != Value::Null) {
             let mut parsed: Value = self.parse_order(rfq, &[market.clone()]);
-            add_element_to_object(&mut parsed, &Value::Str("info".into()), order.clone());
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), order.clone()); }
             return parsed;
         }
         //

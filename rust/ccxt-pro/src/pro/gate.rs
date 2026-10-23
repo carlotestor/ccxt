@@ -1787,7 +1787,7 @@ impl GateCore {
             if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), timeframe.clone()); }
         }
         }
-        let mut keys: Value = object_keys(&marketIds);
+        let mut keys: Value = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_339: bool = true;
@@ -1919,7 +1919,7 @@ impl GateCore {
             }
         }
         }
-        let mut keys: Value = object_keys(&marketIds);
+        let mut keys: Value = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_341: bool = true;
@@ -2160,18 +2160,18 @@ impl GateCore {
                 m
             });
         }
-        if (in_op(&self.positions, &type_var)) {
+        if (self.positions.as_map().is_some_and(|__m| type_var.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             return;
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (fetchPositionsSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
         }  else {
-            add_element_to_object(&mut self.positions, &type_var, ArrayCacheBySymbolBySide::new(Value::Null));
+            if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&type_var), ArrayCacheBySymbolBySide::new(Value::Null)); }
         }
 }
 
@@ -2181,8 +2181,8 @@ impl GateCore {
                 m.insert("type".to_string(), type_var.clone());
             m
         })]).await;
-        add_element_to_object(&mut self.positions, &type_var, ArrayCacheBySymbolBySide::new(Value::Null));
-        let mut cache: Value = get_value(&self.positions, &type_var);
+        if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&type_var), ArrayCacheBySymbolBySide::new(Value::Null)); }
+        let mut cache: Value = self.positions.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_343: bool = true;
@@ -2195,7 +2195,7 @@ impl GateCore {
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str(format!("{}{}", type_var, Value::Str(":position".into())).into())]);
@@ -2239,7 +2239,7 @@ impl GateCore {
         //
         let mut type_var: Value = self.get_market_type_by_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null));
         let mut data: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut cache: Value = get_value(&self.positions, &type_var);
+        let mut cache: Value = self.positions.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2256,19 +2256,19 @@ impl GateCore {
                 }
                 let mut prevLongPosition: Value = self.safe_dict(cache.clone(), Value::Str(format!("{}{}", symbol, Value::Str("long".into())).into()), &[]);
                 if (prevLongPosition != Value::Null) {
-                    add_element_to_object(&mut position, &Value::Str("side".into()), prevLongPosition.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null));
+                    if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), prevLongPosition.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null)); }
                     if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
                     cache.append(position.clone());
                 }
                 let mut prevShortPosition: Value = self.safe_dict(cache.clone(), Value::Str(format!("{}{}", symbol, Value::Str("short".into())).into()), &[]);
                 if (prevShortPosition != Value::Null) {
-                    add_element_to_object(&mut position, &Value::Str("side".into()), prevShortPosition.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null));
+                    if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), prevShortPosition.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null)); }
                     if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
                     cache.append(position.clone());
                 }
                 // if no prev position is found, default to long
                 if (prevLongPosition == Value::Null) && (prevShortPosition == Value::Null) {
-                    add_element_to_object(&mut position, &Value::Str("side".into()), Value::Str("long".into()));
+                    if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
                     if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
                     cache.append(position.clone());
                 }
@@ -2472,7 +2472,7 @@ impl GateCore {
             }
         }
         }
-        let mut keys: Value = object_keys(&marketIds);
+        let mut keys: Value = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_347: bool = true;
@@ -2765,7 +2765,7 @@ impl GateCore {
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 client.reject(&[e, messageHash.clone()]);
-                if (messageHash != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                if (messageHash != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
                 // remove subscriptions for watchSymbols
@@ -2785,14 +2785,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         }
                         let mut symbol: Value = self.safe_symbol(payload.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), marketType]);
                         let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into());
-                        if (messageHashSymbol != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol)) {
+                        if (messageHashSymbol != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol);
                         }
                     }
                     }
                 }
             }
-            if (id != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+            if (id != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
             }
             return Value::Bool(true);
@@ -2832,7 +2832,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut method: Value = methods.as_map().and_then(|__m| channel.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if (id != Value::Null) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
             }
@@ -2867,7 +2867,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_351: bool = true;
             while { if !__for_first_351 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_351 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut messageHash: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             if (messageHash.as_str().is_some_and(|__s| __s.starts_with("unsubscribe"))) {
@@ -3137,7 +3137,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (subscription != Value::Null) {
             let mut client: Value = self.client(&[url.clone()]);
-            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut tempSubscriptionHash: Value = Value::Str(format!("{}", requestId).into());
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &tempSubscriptionHash, messageHash.clone());
             }
@@ -3306,7 +3306,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payload".into(), payloadValue); }
         }
         let mut client: Value = self.client(&[url.clone()]);
-        if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut tempSubscriptionHash: Value = Value::Str(format!("{}", requestId).into());
             // in case of authenticationError we will throw
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &tempSubscriptionHash, messageHash.clone());

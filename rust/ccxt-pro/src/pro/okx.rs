@@ -2338,7 +2338,7 @@ impl OkxCore {
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
                 add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
                 self.handle_order_book_message(client.clone(), update.clone(), orderbook.clone(), messageHash.clone(), &[market.clone()]);
-                if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     break;
                 }
                 client.resolve(&[orderbook.clone(), messageHash.clone()]);
@@ -2353,7 +2353,7 @@ impl OkxCore {
                     while { if !__for_first_553 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_553 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
                     let mut update: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     self.handle_order_book_message(client.clone(), update.clone(), orderbook.clone(), messageHash.clone(), &[market.clone()]);
-                    if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                    if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash, Value::Str("resync".into()));
                         break;
@@ -2366,7 +2366,7 @@ impl OkxCore {
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
             // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2829,7 +2829,7 @@ impl OkxCore {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_555: bool = true;
@@ -2837,13 +2837,13 @@ impl OkxCore {
             let mut rawPosition: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
             if (position.as_map().and_then(|__m| __m.get("contracts")).cloned().unwrap_or(Value::Null).as_f64() == Some(0.0)) && (self.safe_string_k(rawPosition, "posSide", &[]).as_str() == Some("net")) {
-                add_element_to_object(&mut position, &Value::Str("side".into()), Value::Str("long".into()));
+                if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
                 let mut shortPosition: Value = self.clone_value(position.clone());
                 add_element_to_object(&mut shortPosition, &Value::Str("side".into()), Value::Str("short".into()));
                 cache.append(shortPosition.clone());
-                if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(shortPosition); }
+                newPositions.push(shortPosition);
             }
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
+            newPositions.push(position.clone());
             cache.append(position);
         }
         }
@@ -2851,7 +2851,7 @@ impl OkxCore {
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
         }
-        client.resolve(&[newPositions, messageHash]);
+        client.resolve(&[Value::Array(newPositions), messageHash]);
 }
 
 /*
@@ -3141,7 +3141,7 @@ impl OkxCore {
         if (channel != Value::Null) {
             let mut messageHash: Value = Value::Str(format!("{}{}", channel, Value::Str("::myTrades".into())).into());
             client.resolve(&[self.myTrades.clone(), messageHash.clone()]);
-            let mut tradeSymbols: Value = object_keys(&symbols);
+            let mut tradeSymbols: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_560: bool = true;
@@ -3772,7 +3772,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_6 = self.market_id(symbol.clone());
             self.clean_unsubscription(client, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), __ws_arg_6).into()), Value::Null, &[]);
         }
-        if (symbol != Value::Null) && (timeframe != Value::Null) && (in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+        if (symbol != Value::Null) && (timeframe != Value::Null) && (self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
         }
 }

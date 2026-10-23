@@ -843,7 +843,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut timestamp: Value = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         add_element_to_object(&mut data, &Value::Str("date".into()), timestamp.clone());
         let mut ticker: Value = self.parse_ws_ticker(data, &[market.clone()]);
-        add_element_to_object(&mut ticker, &Value::Str("symbol".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)); }
         add_element_to_object(&mut self.tickers, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker.clone());
         client.resolve(&[ticker, topic.clone()]);
         return message;
@@ -948,7 +948,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_691: bool = true;
@@ -962,10 +962,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 })]);
             let mut ticker: Value = self.parse_ws_ticker(__ws_arg_2, &[market.clone()]);
             add_element_to_object(&mut self.tickers, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker.clone());
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(ticker); }
+            result.push(ticker);
         }
         }
-        client.resolve(&[result, topic.clone()]);
+        client.resolve(&[Value::Array(result), topic.clone()]);
 }
 
 /*
@@ -1808,15 +1808,15 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if (order != Value::Null) {
                 let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                 if (fee != Value::Null) {
-                    add_element_to_object(&mut parsed, &Value::Str("fee".into()), fee);
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), fee); }
                 }
                 let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
                 if (fees != Value::Null) {
-                    add_element_to_object(&mut parsed, &Value::Str("fees".into()), fees);
+                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fees".to_string(), fees); }
                 }
-                add_element_to_object(&mut parsed, &Value::Str("trades".into()), self.safe_value_k(order.clone(), "trades", &[]));
-                add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), self.safe_integer_k(order.clone(), "timestamp", &[]));
-                add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.safe_string_k(order, "datetime", &[]));
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("trades".to_string(), self.safe_value_k(order.clone(), "trades", &[])); }
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), self.safe_integer_k(order.clone(), "timestamp", &[])); }
+                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.safe_string_k(order, "datetime", &[])); }
             }
             cachedOrders.append(parsed);
             client.resolve(&[self.orders.clone(), topic.clone()]);
@@ -1940,7 +1940,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1965,7 +1965,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("positions".into())]);
@@ -2010,12 +2010,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut postitionsIds: Value = object_keys(&rawPositions);
+        let mut postitionsIds: Value = Value::Array(rawPositions.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_696: bool = true;
@@ -2024,13 +2024,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut rawPosition: Value = rawPositions.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[market.clone()]);
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
+            newPositions.push(position.clone());
             cache.append(position.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("positions::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
             client.resolve(&[position, messageHash]);
         }
         }
-        client.resolve(&[newPositions, Value::Str("positions".into())]);
+        client.resolve(&[Value::Array(newPositions), Value::Str("positions".into())]);
 }
 
 /*
@@ -2099,7 +2099,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut keys: Value = object_keys(&balances);
+        let mut keys: Value = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut ts: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), ts.clone()); }
@@ -2212,7 +2212,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&error, &Value::Str("AuthenticationError".into())) {
                 let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
@@ -2400,7 +2400,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str("authenticated".into()));
             }
         }

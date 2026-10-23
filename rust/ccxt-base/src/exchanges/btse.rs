@@ -3774,7 +3774,7 @@ impl BtseCore {
             add_element_to_object(&mut allowed, &self.capitalize((match &(historyType) { Value::Str(__s) => Value::Str(__s.to_lowercase().into()), _ => Value::Null })), Value::Bool(true));
         }
         }
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_485: bool = true;
@@ -3782,11 +3782,11 @@ impl BtseCore {
             let mut entry: Value = rawRows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut type_var: Value = self.safe_string_k(entry.clone(), "type", &[Value::Str("".into())]);
             if (matches!((&allowed, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(entry); }
+                rows.push(entry);
             }
         }
         }
-        return Value::from(vec![rows, currency]);
+        return Value::from(vec![Value::Array(rows), currency]);
 
     Value::Null
 }

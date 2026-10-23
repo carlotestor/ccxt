@@ -1390,7 +1390,7 @@ impl PhemexCore {
             }
         }
         }
-        let mut keys: Value = object_keys(&marketIds);
+        let mut keys: Value = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_606: bool = true;
@@ -1689,7 +1689,7 @@ impl PhemexCore {
             if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
         }
         }
-        let mut keys: Value = object_keys(&marketIds);
+        let mut keys: Value = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_610: bool = true;
@@ -1981,7 +1981,7 @@ impl PhemexCore {
         //     ]
         // }
         let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut method: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), id.clone(), &[]);
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
             if !(match &(method) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
@@ -2043,7 +2043,7 @@ impl PhemexCore {
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error), messageHash.clone()]);
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             }
         }
@@ -2108,7 +2108,7 @@ impl PhemexCore {
             });
             let mut subscriptionHash: Value = Value::Str(format!("{}", requestId).into());
             let mut message: Value = self.extend(request, &[params]);
-            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash, Value::Str("handle_authenticate".into()).clone());
             }
             future = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;

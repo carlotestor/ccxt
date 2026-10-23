@@ -2660,7 +2660,7 @@ impl HollaexCore {
             let mut timeoutMs: Value = self.parse_to_int(self.timeout.clone());
             let mut defaultExpires: Value = self.safe_integer2(self.options.clone(), Value::Str("api-expires".into()), Value::Str("expires".into()), &[self.parse_to_int((match ((timeoutMs).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))]);
             let mut expires: Value = self.sum(&[self.seconds(), defaultExpires]);
-            let mut expiresString: Value = to_string_val(&expires);
+            let mut expiresString: Value = Value::Str(format!("{}", expires).into());
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, requestPath).into()), expiresString).into());
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();

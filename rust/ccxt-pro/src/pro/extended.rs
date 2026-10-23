@@ -465,9 +465,9 @@ impl ExtendedCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("headers".to_string(), __ws_arg_1);
     m
-})]); add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into()), __be_tmp); };
+})]); if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), __be_tmp); } } };
             self.client(&[url.clone()]);
-            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into()), originalOptions);
+            if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), originalOptions); } }
         }
         return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), subscription]).await;
 
@@ -721,7 +721,7 @@ impl ExtendedCore {
             stored.append(trade);
         }
         }
-        let mut keys: Value = object_keys(&symbols);
+        let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_321: bool = true;
@@ -918,7 +918,7 @@ impl ExtendedCore {
             orders.append(order);
         }
         }
-        let mut keys: Value = object_keys(&symbols);
+        let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_326: bool = true;

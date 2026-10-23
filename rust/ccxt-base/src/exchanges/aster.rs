@@ -5173,7 +5173,7 @@ impl AsterCore {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::from(vec![floorValue, maintenanceMarginPercentage])); }
                 }
                 }
-                add_element_to_object(get_value_mut(&mut self.options, &Value::Str("leverageBrackets".into())), &symbol, result);
+                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("leverageBrackets".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&symbol), result); } }
             }
             }
         }

@@ -3475,6 +3475,6 @@ impl DydxCore {
         // rewrite testnet parameters
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainName".into(), Value::Str("dydx-testnet-4".into())); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".into(), Value::Int(11155111)); }
-        add_element_to_object(get_value_mut(&mut self.options, &Value::Str("feeDenom".into())), &Value::Str("CHAINTOKEN_DENOM".into()), Value::Str("adv4tnt".into()));
+        if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("feeDenom".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("CHAINTOKEN_DENOM".to_string(), Value::Str("adv4tnt".into())); } }
 }
 }

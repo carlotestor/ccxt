@@ -534,7 +534,7 @@ impl BitvavoCore {
         self.handle_bid_ask(client.clone(), message);
         let mut event: Value = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut tickers: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_148: bool = true;
@@ -545,14 +545,14 @@ impl BitvavoCore {
             let mut ticker: Value = self.parse_ticker(data, &[market]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(ticker.clone()); }
+            result.push(ticker.clone());
             if (event != Value::Null) {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("@".into())).into()), marketId).into());
                 client.resolve(&[ticker, messageHash]);
             }
         }
         }
-        client.resolve(&[result, event]);
+        client.resolve(&[Value::Array(result), event]);
 }
 
 /*
@@ -586,7 +586,7 @@ impl BitvavoCore {
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut event: Value = Value::Str("bidask".into());
         let mut tickers: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_149: bool = true;
@@ -595,12 +595,12 @@ impl BitvavoCore {
             let mut ticker: Value = self.parse_ws_bid_ask(data, &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(ticker.clone()); }
+            result.push(ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str(":".into())).into()), symbol).into());
             client.resolve(&[ticker, messageHash]);
         }
         }
-        client.resolve(&[result, event]);
+        client.resolve(&[Value::Array(result), event]);
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1459,7 +1459,7 @@ impl BitvavoCore {
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
         let mut snapshotHash: Value = Value::Str(format!("{}{}", Value::Str("getBook@".into()), marketId).into());
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &snapshotHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &snapshotHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &snapshotHash);
         }
 }
@@ -1530,7 +1530,7 @@ impl BitvavoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_162: bool = true;
             while { if !__for_first_162 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_162 = false; i.as_f64().unwrap_or(f64::NAN) < ((subMessageHashes.len() as i64) as f64) } {
-            append_to_array(&mut unsubHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
+            if let Value::Arr(__a) = &mut unsubHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into())); };
         }
         }
         let mut subscription: Value = self.extend(Value::Map({
@@ -1561,7 +1561,7 @@ impl BitvavoCore {
             let mut __for_first_163: bool = true;
             while { if !__for_first_163 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_163 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &key)) {
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             if !(key.as_str().is_some_and(|__s| __s.starts_with("unsubscribe:"))) {
@@ -2672,7 +2672,7 @@ impl BitvavoCore {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             }
         }

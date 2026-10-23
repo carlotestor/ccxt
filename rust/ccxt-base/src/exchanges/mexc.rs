@@ -3790,13 +3790,13 @@ impl MexcCore {
         //     }
         //
         let mut order: Value = self.parse_order(response, &[market]);
-        add_element_to_object(&mut order, &Value::Str("side".into()), side);
-        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("side".to_string(), side); }
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), type_var); }
         if (self.safe_string_k(order.clone(), "price", &[]) == Value::Null) {
-            add_element_to_object(&mut order, &Value::Str("price".into()), price);
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("price".to_string(), price); }
         }
         if (self.safe_string_k(order.clone(), "amount", &[]) == Value::Null) {
-            add_element_to_object(&mut order, &Value::Str("amount".into()), amount);
+            if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("amount".to_string(), amount); }
         }
         return order;
 
@@ -7511,7 +7511,7 @@ impl MexcCore {
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId, (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
             if (networkCode != Value::Null) {
-                add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
+                if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7526,7 +7526,7 @@ impl MexcCore {
     m
 }));
     m
-}));
+})); } }
             }
         }
         }

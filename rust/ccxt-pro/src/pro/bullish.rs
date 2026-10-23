@@ -399,7 +399,7 @@ impl BullishCore {
                 m.insert("JWT_COOKIE".to_string(), token);
             m
         });
-        add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("cookies".into()), cookies);
+        if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("cookies".to_string(), cookies); } }
         let mut id: Value = Value::Str(format!("{}", self.request_id()).into());
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -857,7 +857,7 @@ impl BullishCore {
             }
             let mut messageHash: Value = Value::Str("orders".into());
             client.resolve(&[orders.clone(), messageHash.clone()]);
-            let mut keys: Value = object_keys(&symbols);
+            let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_179: bool = true;
@@ -997,7 +997,7 @@ impl BullishCore {
             }
             let mut messageHash: Value = Value::Str("myTrades".into());
             client.resolve(&[trades, messageHash.clone()]);
-            let mut keys: Value = object_keys(&symbols);
+            let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_181: bool = true;
@@ -1111,7 +1111,7 @@ impl BullishCore {
                 add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &parsedKey, parsed.as_map().and_then(|__m| parsedKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             }
             }
-            { let __be_tmp = self.safe_balance(get_value(&self.balance, &tradingAccountId)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
+            { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| tradingAccountId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
         }  else {
             let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1126,7 +1126,7 @@ impl BullishCore {
                 add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &code, account);
             }
             add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &Value::Str("info".into()), message);
-            { let __be_tmp = self.safe_balance(get_value(&self.balance, &tradingAccountId)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
+            { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| tradingAccountId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
         }
         let mut messageHash: Value = Value::Str("balance".into());
         let mut tradingAccountIdHash: Value = Value::Str(format!("{}{}", Value::Str("::".into()), tradingAccountId).into());

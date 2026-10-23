@@ -2131,7 +2131,7 @@ impl CoinbaseinternationalCore {
             if (type_var.as_deref() != Some("snapshot")) && (get_value(&orderbook, &Value::Str("nonce".into())) != Value::Null) && (previousChangeId.as_f64() != get_value(&orderbook, &Value::Str("nonce".into())).as_f64()) {
                 // drop the stale book and reject only this channels future
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &channel)) {
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &channel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &channel);
                 }
                 client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" order book update has a nonce mismatch".into())))), channel.clone()]);
@@ -2173,7 +2173,7 @@ impl CoinbaseinternationalCore {
         });
         let mut client: Value = self.client(&[url]);
         client.send(&[request]);
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &channel)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &channel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &channel);
         }
         self.subscribe(Value::from(vec![channel.clone()]), Value::from(vec![channel]), &[isPrivate, Value::Map({
@@ -2223,7 +2223,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut requestId: Value = self.safe_string_k(message, "id", &[]);
             let mut authRequestId: Value = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]);
             let mut messageHash: Value = (if (requestId == authRequestId) { Value::Str("authenticated".into()) } else { requestId });
-            if (messageHash.as_str() == Some("authenticated")) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (messageHash.as_str() == Some("authenticated")) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // allow the next authenticate () call to retry
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             }
@@ -2366,7 +2366,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut future: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (future != Value::Null) {
             let mut refreshAt: Value = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]);
-            if (refreshAt != Value::Null) && (self.milliseconds().as_f64().unwrap_or(f64::NAN) >= refreshAt.as_f64().unwrap_or(f64::NAN)) && !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if (refreshAt != Value::Null) && (self.milliseconds().as_f64().unwrap_or(f64::NAN) >= refreshAt.as_f64().unwrap_or(f64::NAN)) && !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 future = Value::Null;
             }
@@ -2431,7 +2431,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.authenticate(&[]).await;
         }
         let mut requestId: Value = self.request_id();
-        let mut messageHash: Value = to_string_val(&requestId);
+        let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));

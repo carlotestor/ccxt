@@ -3234,7 +3234,7 @@ impl SxbetCore {
                 if (subscription.as_str() == Some("connect")) {
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
                 }
-                if (subscription != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscription)) {
+                if (subscription != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscription), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscription);
                 }
                 { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone(), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
@@ -3329,7 +3329,7 @@ impl SxbetCore {
             if (watchedBooks == Value::Null) {
                 { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsWatchedBooks".into(), __be_tmp); } }
             }
-            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("wsWatchedBooks".into())), &sym, marketHash.clone());
+            if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("wsWatchedBooks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&sym), marketHash.clone()); } }
             let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash).await;
             self.apply_sxbet_ws_snapshot(snapshot);
             if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
@@ -3392,7 +3392,7 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut watchedSyms: Value = object_keys(&watchedBooks);
+        let mut watchedSyms: Value = Value::Array(watchedBooks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut timestamp: Value = self.milliseconds();
         let mut watchedSymsLength: f64 = ((watchedSyms.len() as i64) as f64);
         {
@@ -3484,7 +3484,7 @@ impl SxbetCore {
         if (watchedTickers == Value::Null) {
             { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsWatchedTickers".into(), __be_tmp); } }
         }
-        add_element_to_object(get_value_mut(&mut self.options, &Value::Str("wsWatchedTickers".into())), &sym, marketHash.clone());
+        if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("wsWatchedTickers".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&sym), marketHash.clone()); } }
         let mut url: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         self.connect_sxbet_centrifugo(url.clone()).await;
         let mut client: Value = self.client(&[url.clone()]);
@@ -3534,7 +3534,7 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut watchedSyms: Value = object_keys(&watchedTickers);
+        let mut watchedSyms: Value = Value::Array(watchedTickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);

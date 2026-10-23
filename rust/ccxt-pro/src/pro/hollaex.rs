@@ -560,7 +560,7 @@ impl HollaexCore {
         }
         // non-symbol specific
         client.resolve(&[self.myTrades.clone(), channel.clone()]);
-        let mut keys: Value = object_keys(&marketIds);
+        let mut keys: Value = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_388: bool = true;
@@ -717,7 +717,7 @@ impl HollaexCore {
         }
         // non-symbol specific
         client.resolve(&[self.orders.clone(), channel.clone()]);
-        let mut keys: Value = object_keys(&marketIds);
+        let mut keys: Value = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_390: bool = true;

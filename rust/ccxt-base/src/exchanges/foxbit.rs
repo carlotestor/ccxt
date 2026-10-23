@@ -2134,17 +2134,17 @@ impl FoxbitCore {
             m
         });
         if (typeValue.as_str() == Some("LIMIT")) || (typeValue.as_str() == Some("MARKET")) {
-            add_element_to_object(get_value_mut(&mut request, &Value::Str("create".into())), &Value::Str("quantity".into()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("create".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); } }
             if (typeValue.as_str() == Some("LIMIT")) {
-                add_element_to_object(get_value_mut(&mut request, &Value::Str("create".into())), &Value::Str("price".into()), self.price_to_precision(symbol.clone(), price.clone()));
+                if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("create".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); } }
             }
         }
         if (typeValue.as_str() == Some("STOP_MARKET")) {
-            add_element_to_object(get_value_mut(&mut request, &Value::Str("create".into())), &Value::Str("stop_price".into()), self.price_to_precision(symbol.clone(), price));
-            add_element_to_object(get_value_mut(&mut request, &Value::Str("create".into())), &Value::Str("quantity".into()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("create".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), price)); } }
+            if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("create".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); } }
         }
         if (typeValue.as_str() == Some("INSTANT")) {
-            add_element_to_object(get_value_mut(&mut request, &Value::Str("create".into())), &Value::Str("amount".into()), self.price_to_precision(symbol, amount));
+            if let Value::Dict(__rda) = &mut request { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("create".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("amount".to_string(), self.price_to_precision(symbol, amount)); } }
         }
         let __ws_arg_15 = self.extend(request, &[params]);
         let mut response: Value = self.v3_private_post_orders_cancel_replace(&[__ws_arg_15]).await;

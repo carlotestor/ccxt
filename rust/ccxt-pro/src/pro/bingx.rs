@@ -1720,13 +1720,13 @@ impl BingxCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subType: Value, mut subscriptionHash: Value, mut params: Value) {
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut fetchBalanceSnapshot: Value = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone(), subType]);
             }
@@ -1751,7 +1751,7 @@ impl BingxCore {
 })]);
         { let __be_tmp = self.extend(response, &[__ws_arg_5]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
@@ -1844,7 +1844,7 @@ impl BingxCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var]);
             }
@@ -1874,7 +1874,7 @@ impl BingxCore {
         }
         }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("swap:positions".into())]);
@@ -1992,8 +1992,8 @@ impl BingxCore {
                 continue;
             }
             let mut timestamp: Value = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-            add_element_to_object(&mut position, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+            if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
             cache.append(position);
         }
@@ -2072,7 +2072,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 }
                 let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), listenKey).into());
                 let mut client: Value = self.client(&[url]);
-                let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
+                let mut messageHashes: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_97: bool = true;
@@ -2112,7 +2112,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             // entry under the same lock in every port
             let mut messageHash: Value = Value::Str("authenticate".into());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-            if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -2289,7 +2289,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                     }
                 }
-                add_element_to_object(&mut parsedOrder, &Value::Str("lastUpdateTimestamp".into()), updateTimestamp);
+                if let Value::Dict(__rda) = &mut parsedOrder { std::sync::Arc::make_mut(__rda).insert("lastUpdateTimestamp".to_string(), updateTimestamp); }
             }
         }
         stored.append(parsedOrder.clone());
@@ -2467,7 +2467,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
 }
 

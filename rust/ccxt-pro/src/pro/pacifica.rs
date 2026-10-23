@@ -1313,7 +1313,7 @@ impl PacificaCore {
             trades.append(parsed);
         }
         }
-        let mut keys: Value = object_keys(&symbols);
+        let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_581: bool = true;
@@ -1906,7 +1906,7 @@ impl PacificaCore {
             }
         }
         }
-        let mut keys: Value = object_keys(&marketSymbols);
+        let mut keys: Value = Value::Array(marketSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_584: bool = true;
@@ -2007,7 +2007,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
         if (symbol != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if (timeframe != Value::Null) && (in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+            if (timeframe != Value::Null) && (self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }
@@ -2183,7 +2183,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
             m
         });
-        add_element_to_object(get_value_mut(&mut payload, &Value::Str("params".into())), &operationType, request);
+        if let Value::Dict(__rda) = &mut payload { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("params".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&operationType), request); } }
         return payload;
 
     Value::Null

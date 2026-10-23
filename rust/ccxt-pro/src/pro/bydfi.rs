@@ -848,7 +848,7 @@ impl BydfiCore {
     m
 })); }
         }
-        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+        if !(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored);
@@ -1157,7 +1157,7 @@ impl BydfiCore {
         let mut orders: Value = self.orders.clone();
         let mut order: Value = self.parse_ws_order(rawOrder, &[market]);
         let mut lastUpdateTimestamp: Value = (match message.get("T") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        add_element_to_object(&mut order, &Value::Str("lastUpdateTimestamp".into()), lastUpdateTimestamp);
+        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp); }
         orders.append(order);
         client.resolve(&[orders.clone(), messageHash]);
         client.resolve(&[orders, symbolMessageHash]);
@@ -1344,8 +1344,8 @@ impl BydfiCore {
         let mut cache: Value = self.positions.clone();
         let mut parsedPosition: Value = self.parse_ws_position(rawPosition, &[market]);
         let mut timestamp: Value = (match message.get("T") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        add_element_to_object(&mut parsedPosition, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut parsedPosition, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         cache.append(parsedPosition.clone());
         client.resolve(&[Value::from(vec![parsedPosition.clone()]), messageHash]);
         client.resolve(&[Value::from(vec![parsedPosition]), symbolMessageHash]);
@@ -1457,7 +1457,7 @@ impl BydfiCore {
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1524,7 +1524,7 @@ impl BydfiCore {
         //     }
         //
         let mut messageHash: Value = Value::Str("balance".into());
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut data: Value = (match __pro_message.get("a").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

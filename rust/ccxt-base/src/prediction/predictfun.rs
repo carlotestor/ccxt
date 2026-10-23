@@ -637,7 +637,7 @@ impl PredictfunCore {
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         let mut paramsValue: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
         // keys dropped before the client-side pass; the categories listing also drops its limit
-        let mut postOmitKeys: Value = Value::from(vec![Value::Str("tags".into())]);
+        let mut postOmitKeys: Vec<Value> = vec![Value::Str("tags".into())];
         let mut userLimit: Value = self.safe_integer_k(paramsValue.clone(), "limit", &[]);
         let mut fetchCap: Value = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]);
         if (userLimit != Value::Null) {
@@ -674,7 +674,7 @@ impl PredictfunCore {
                 let mut tagsString: Value = join(&tags, &Value::Str(",".into()));
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tagIds".into(), tagsString); }
             }
-            if let Value::Arr(__a) = &mut postOmitKeys { std::sync::Arc::make_mut(__a).push(Value::Str("limit".into())); }
+            postOmitKeys.push(Value::Str("limit".into()));
             let mut paramsCategories: Value = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("tags".into())]), &[]);
             let mut extendedRequest: Value = self.extend(request, &[paramsCategories]);
             let mut rawTopicsResponse: Value = self.predictfun_get_v1_categories(&[extendedRequest.clone()]).await;
@@ -851,7 +851,7 @@ impl PredictfunCore {
                 if (nextPageToken == Value::Null) {
                     break;
                 }
-                add_element_to_object(&mut extendedRequest, &Value::Str("after".into()), nextPageToken);
+                if let Value::Dict(__rda) = &mut extendedRequest { std::sync::Arc::make_mut(__rda).insert("after".to_string(), nextPageToken); }
                 rawTopicsResponse = self.predictfun_get_v1_categories(&[extendedRequest.clone()]).await;
                 data = self.safe_list_k(rawTopicsResponse.clone(), "data", &[Value::from(vec![])]);
                 rawTopics = self.array_concat(rawTopics.clone(), data.clone());
@@ -889,7 +889,7 @@ impl PredictfunCore {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let mut postParams: Value = self.omit(paramsValue.clone(), postOmitKeys, &[]);
+        let mut postParams: Value = self.omit(paramsValue.clone(), Value::Array(postOmitKeys), &[]);
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
         let mut rawStatus: Option<String> = self.safe_string_k(paramsValue, "status", &[]).as_str().map(str::to_owned);
@@ -3927,7 +3927,7 @@ impl PredictfunCore {
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
         let mut subscribeHash: Value = (match subscription.get("subscribeHash") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (subscribeHash != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+        if (subscribeHash != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash);
         }
         let mut messageHashes: Value = (match subscription.get("messageHashes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -3981,7 +3981,7 @@ impl PredictfunCore {
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         // leaving it behind would make a later watch believe it is still subscribed
         let mut subscribeHash: Value = (match __pro_message.get("subscribeHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (subscribeHash != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+        if (subscribeHash != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash);
         }
         // cleanCache drops a cache only when the subscription names that one topic, and the wallet
@@ -4208,7 +4208,7 @@ impl PredictfunCore {
         // topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
         // whatever is already live on this connection plus the hash watch () is about to register
         let mut hashes: Value = Value::from(vec![Value::Str("orders".into()), Value::Str("myTrades".into())]);
-        let mut futures: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
+        let mut futures: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut futuresLength: f64 = ((futures.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);

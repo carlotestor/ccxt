@@ -1726,7 +1726,7 @@ impl KrakenCore {
         });
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         if (symbolsNormalized != Value::Null) {
-            let mut marketIds: Value = Value::from(vec![]);
+            let mut marketIds: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_843: bool = true;
@@ -1734,11 +1734,11 @@ impl KrakenCore {
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 if (market.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                    if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                    marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 }
             }
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), join(&marketIds, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into())); }
         }
         let __ws_arg_2 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_2]).await;
@@ -4850,7 +4850,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.check_required_credentials(&[]);
             // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
             let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-            let mut isJsonBody: bool = isCancelOrderBatch || is_true(&isTriggerPercent) || isBatchOrder;
+            let mut isJsonBody: bool = isCancelOrderBatch || isTriggerPercent.as_bool() == Some(true) || isBatchOrder;
             // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
             let mut bodySigned: Value = Value::Null;
             if isJsonBody {
