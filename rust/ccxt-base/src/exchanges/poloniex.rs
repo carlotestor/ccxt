@@ -1699,21 +1699,21 @@ impl PoloniexCore {
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool(status.as_deref() == Some("OPEN"));
-        let mut linear: Value = Value::Bool(self.safe_string_k(market.clone(), "ctType", &[]).as_str() == Some("LINEAR"));
+        let mut linear: bool = self.safe_string_k(market.clone(), "ctType", &[]).as_str() == Some("LINEAR");
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        if matches!(&linear, Value::Bool(true)) {
+        if linear {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), settle).into())).into());
         }  else {
             // actually, exchange does not have any inverse future now
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), base).into())).into());
         }
         let mut alias: Option<String> = self.safe_string_k(market.clone(), "alias", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Str("swap".into());
+        let mut type_var: String = "swap".to_string();
         if (alias.is_some()) {
-            type_var = Value::Str("future".into());
+            type_var = "future".to_string();
         }
         let mut marketType: Value = Value::Str("swap".into());
-        if (type_var.as_str() == Some("future")) {
+        if ((type_var == "future")) {
             marketType = Value::Str("future".into());
         }
         return self.safe_market_structure(&[Value::Map({
@@ -1729,13 +1729,13 @@ impl PoloniexCore {
         m.insert("type".to_string(), marketType);
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(type_var.as_str() == Some("swap")));
-        m.insert("future".to_string(), Value::Bool(type_var.as_str() == Some("future")));
+        m.insert("swap".to_string(), Value::Bool((type_var == "swap")));
+        m.insert("future".to_string(), Value::Bool((type_var == "future")));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), linear.clone());
-        m.insert("inverse".to_string(), Value::Bool(!(matches!(&linear, Value::Bool(true)))));
+        m.insert("linear".to_string(), Value::Bool(linear.clone()));
+        m.insert("inverse".to_string(), Value::Bool(!(linear)));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "ctVal", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -2966,11 +2966,11 @@ impl PoloniexCore {
             let mut merged: Value = self.extend(request, &[extendedParams]);
             if isContract {
                 // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
-                if !(in_op(&merged, &Value::Str("mgnMode".into()))) {
-                    add_element_to_object(&mut merged, &Value::Str("mgnMode".into()), Value::Str("CROSS".into()));
+                if !(merged.as_map().is_some_and(|__m| __m.contains_key("mgnMode"))) {
+                    if let Value::Dict(__r03d) = &mut merged { std::sync::Arc::make_mut(__r03d).insert("mgnMode".into(), Value::Str("CROSS".into())); }
                 }
-                if !(in_op(&merged, &Value::Str("posSide".into()))) {
-                    add_element_to_object(&mut merged, &Value::Str("posSide".into()), Value::Str("BOTH".into()));
+                if !(merged.as_map().is_some_and(|__m| __m.contains_key("posSide"))) {
+                    if let Value::Dict(__r03d) = &mut merged { std::sync::Arc::make_mut(__r03d).insert("posSide".into(), Value::Str("BOTH".into())); }
                 }
             }
             ordersRequests.push(merged);
@@ -3052,8 +3052,8 @@ impl PoloniexCore {
             }
         }
         let mut upperCaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        let mut isMarket: Value = Value::Bool(upperCaseType.as_str() == Some("MARKET"));
-        let mut isPostOnly: Value = self.is_post_only(isMarket.clone(), Value::Bool(upperCaseType.as_str() == Some("LIMIT_MAKER")), &[query.clone()]);
+        let mut isMarket: bool = upperCaseType.as_str() == Some("MARKET");
+        let mut isPostOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Bool(upperCaseType.as_str() == Some("LIMIT_MAKER")), &[query.clone()]);
         let mut queryOmitted: Value = self.omit(query, Value::from(vec![Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
         if (triggerPrice != Value::Null) {
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
@@ -3065,7 +3065,7 @@ impl PoloniexCore {
             upperCaseType = Value::Str("LIMIT_MAKER".into());
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), upperCaseType); }
-        if matches!(&isMarket, Value::Bool(true)) {
+        if isMarket {
             if (side.as_str() == Some("buy")) {
                 let mut quoteAmount: Value = Value::Null;
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
@@ -4406,7 +4406,7 @@ impl PoloniexCore {
     m
 })); }
                         }
-                        { let __be_tmp = self.extend(crate::value::get_value_k(&get_value(&depositWithdrawFees, &code), "networks"), &[networkObject]); add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into()), __be_tmp); };
+                        { let __be_tmp = self.extend(crate::value::get_value_k(&depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "networks"), &[networkObject]); add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into()), __be_tmp); };
                     }
                     }
                 }
@@ -4553,16 +4553,16 @@ impl PoloniexCore {
         let mut status: Value = self.safe_string_k(transactionValue.clone(), "status", &[Value::Str("pending".into())]);
         status = self.parse_transaction_status(status.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut txid: Value = self.safe_string_k(transactionValue.clone(), "txid", &[]);
-        let mut type_var: Value = Value::Str("deposit".into());
+        let mut type_var: String = "deposit".to_string();
         if (matches!(&transactionValue, Value::Dict(__d) if __d.contains_key("withdrawalRequestsId"))) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = "withdrawal".to_string();
         }
         let mut id: Value = self.safe_string2(transactionValue.clone(), Value::Str("withdrawalRequestsId".into()), Value::Str("depositNumber".into()), &[]);
         let mut address: Value = self.safe_string_k(transactionValue.clone(), "address", &[]);
         let mut tag: Value = self.safe_string_k(transactionValue.clone(), "paymentID", &[]);
         let mut amountString: Value = self.safe_string_k(transactionValue.clone(), "amount", &[]);
         let mut feeCostString: Value = self.safe_string_k(transactionValue.clone(), "fee", &[]);
-        if (type_var.as_str() == Some("withdrawal")) {
+        if ((type_var == "withdrawal")) {
             amountString = crate::precise::Precise::stringSub(&amountString, &feeCostString);
         }
         return Value::Map({
@@ -4579,7 +4579,7 @@ impl PoloniexCore {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("status".to_string(), status);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::str(type_var));
         m.insert("updated".to_string(), Value::Null);
         m.insert("txid".to_string(), txid);
         m.insert("timestamp".to_string(), timestamp.clone());

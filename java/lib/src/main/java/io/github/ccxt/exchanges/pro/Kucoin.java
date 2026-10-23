@@ -203,7 +203,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Long requestId;
         synchronized (this) {
         requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        this.options.put("requestId", requestId);
         }
         return requestId;
     }
@@ -221,9 +221,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             request.put("response", true);
             Map<String, Object> message = this.extend(request, parameters);
             Client client = this.client(url);
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
+            if (!(client.subscriptions.containsKey(subscriptionHash)))
             {
-                ((Map)client.subscriptions).put(requestId, subscriptionHash);
+                client.subscriptions.put(requestId, subscriptionHash);
             }
             return (this.watch(url, messageHash, message, subscriptionHash, subscription)).join();
         });
@@ -258,9 +258,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> message = this.extend(request, parameters);
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), urlType);
             Client client = this.client(url);
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+            if (!(client.subscriptions.containsKey(messageHash)))
             {
-                ((Map)client.subscriptions).put(requestId, messageHash);
+                client.subscriptions.put(requestId, messageHash);
             }
             return (this.watch(((String)url), messageHash, message, messageHash, subscription)).join();
         });
@@ -292,9 +292,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> message = this.extend(request, parameters);
             String url = (this.getUtaUrl()).join();
             Client client = this.client(url);
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
+            if (!(client.subscriptions.containsKey(subscribeHash)))
             {
-                ((Map)client.subscriptions).put(requestId, subscribeHash);
+                client.subscriptions.put(requestId, subscribeHash);
             }
             return (this.watchMultiple(url, messageHashes, message, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription)).join();
         });
@@ -329,11 +329,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Long now = this.milliseconds();
             Boolean expired = (refreshInterval == null || ((now - lastUpdate)) >= refreshInterval);
             String messageHash = "utaToken";
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             Client client = this.client(url);
             if ((java.util.Objects.equals(utaToken, null)) || Boolean.TRUE.equals(expired))
             {
-                if (((Map<?, ?>)client.futures).containsKey(messageHash))
+                if (client.futures.containsKey(messageHash))
                 {
                     // wait the existing future if it's already being fetched by another call
                     client.future(messageHash).getFuture().join();
@@ -348,12 +348,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                         }})).join();
                         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                         String utaTokenString = this.safeString(data, "token");
-                        Helpers.addElementToObject(this.options, "utaTokenLastUpdate", now);
+                        this.options.put("utaTokenLastUpdate", now);
                         Helpers.addElementToObject(this.options, "utaToken", utaTokenString);
                         client.resolve(utaTokenString, messageHash);
                     } catch(Exception e)
                     {
-                        Helpers.addElementToObject(this.options, "utaToken", null);
+                        this.options.remove("utaToken");
                         client.reject(e, messageHash);
                     }
                 }
@@ -390,9 +390,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= ((List<?>)subscriptionHashes).size() ? null : ((List<?>)subscriptionHashes).get(i));
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
+                if (!(client.subscriptions.containsKey(subscriptionHash)))
                 {
-                    ((Map)client.subscriptions).put(requestId, subscriptionHash);
+                    client.subscriptions.put(requestId, subscriptionHash);
                 }
             }
             return (this.watchMultiple((String) (url), messageHashes, message, subscriptionHashes, subscription)).join();
@@ -421,9 +421,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= ((List<?>)subscriptionHashes).size() ? null : ((List<?>)subscriptionHashes).get(i));
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
+                if (!(client.subscriptions.containsKey(subscriptionHash)))
                 {
-                    ((Map)client.subscriptions).put(requestId, subscriptionHash);
+                    client.subscriptions.put(requestId, subscriptionHash);
                 }
             }
             return (this.watchMultiple((String) (url), messageHashes, message, subscriptionHashes, subscription)).join();
@@ -658,9 +658,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), urlType);
             Client client = this.client(url);
             String messageHashWithSymbols = ((channel + ":") + String.join(",", (List<String>)symbols));
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHashWithSymbols)))
+            if (!(client.subscriptions.containsKey(messageHashWithSymbols)))
             {
-                ((Map)client.subscriptions).put(requestId, messageHashWithSymbols);
+                client.subscriptions.put(requestId, messageHashWithSymbols);
             }
             return (this.watchMultiple((String) (((String)url)), messageHashes, message, messageHashes, subscription)).join();
         });
@@ -2020,7 +2020,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (java.util.Objects.equals(nonce, null))
             {
                 Object cacheLength = ((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size();
-                List<Object> subscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
                 Object subscription = null;
                 for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
                 {
@@ -2246,13 +2246,13 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //     }
         //
         String id = this.safeString(message, "id");
-        if (!(((Map<?, ?>)client.subscriptions).containsKey(id)))
+        if (!(client.subscriptions.containsKey(id)))
         {
             return;
         }
         String subscriptionHash = this.safeString(client.subscriptions, id);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, subscriptionHash, (Object) null);
-        ((Map<String,Object>)client.subscriptions).remove((String)((String)id));
+        client.subscriptions.remove((String)((String)id));
         Object method = this.safeValue(subscription, "method");
         if (!java.util.Objects.equals(method, null))
         {
@@ -3140,9 +3140,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 request.put("response", true);
                 request.put("privateChannel", true);
                 Map<String, Object> message = this.extend(request, paramsOmitted);
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
+                if (!(client.subscriptions.containsKey(subscriptionHash)))
                 {
-                    ((Map)client.subscriptions).put(requestId, subscriptionHash);
+                    client.subscriptions.put(requestId, subscriptionHash);
                 }
                 return (this.watch(((String)url), messageHash, message, uniformType, null)).join();
             }
@@ -3152,7 +3152,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     public void setBalanceCache(Client client, Object type)
     {
-        if ((((Map<?, ?>)client.subscriptions).containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
+        if ((client.subscriptions.containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
         {
             return;
         }
@@ -3161,7 +3161,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -3185,9 +3185,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Balances response = (this.fetchBalance(parameters)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
             }
@@ -3283,7 +3283,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String uniformType = this.safeString(accountsByType, requestAccountType, "trade");
         if (!(((Map<?, ?>)this.balance).containsKey(uniformType)))
         {
-            Helpers.addElementToObject(this.balance, uniformType, new HashMap<String, Object>() {{}});
+            this.balance.put(uniformType, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "info", data);
         Long timestamp = (Long) this.safeInteger2(data, "time", "timestamp");
@@ -3304,7 +3304,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), code, account);
         }
-        Helpers.addElementToObject(this.balance, uniformType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType))));
+        this.balance.put(uniformType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType))));
         String messageHash = (uniformType + ":balance");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), messageHash);
     }
@@ -3332,7 +3332,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
         if (!(((Map<?, ?>)this.balance).containsKey(type)))
         {
-            Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
+            this.balance.put(type, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
         Long timestamp = this.safeIntegerProduct(data, "U", 0.000001);
@@ -3346,7 +3346,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
         }
-        Helpers.addElementToObject(this.balance, type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
+        this.balance.put(type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
         String messageHash = (type + ":balance");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
     }
@@ -3486,7 +3486,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = "fetchPositionsSnapshot";
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, uta); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -3517,10 +3517,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                ((io.github.ccxt.ws.Future)future).resolve(cache);
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                future.resolve(cache);
                 client.resolve(cache, "positions");
             }
             return null;
@@ -3534,7 +3534,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if (java.util.Objects.equals(fetchPositionSnapshot, true))
         {
             String messageHash = ("fetchPositionSnapshot:" + symbol);
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionSnapshot(client, messageHash, symbol); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -3552,10 +3552,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             cache.append(position);
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                ((io.github.ccxt.ws.Future)future).resolve(cache);
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                future.resolve(cache);
                 client.resolve(position, ("position:" + symbol));
             }
             return null;

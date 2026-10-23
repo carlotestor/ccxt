@@ -290,9 +290,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            return (type == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(type));
         }
-        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+        Object baseUrl = (type == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(type));
         if (java.util.Objects.equals(type, "linear"))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -347,7 +347,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Object getStockWsUrl(String streamType)
     {
-        String baseUrl = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "stock");
+        String baseUrl = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("stock");
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(streamType, "market"), "combined"))
         {
             return Helpers.replace(baseUrl, (String)"/ws", (String)"/stream");
@@ -1096,7 +1096,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOrderBookWs only supports swap markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), marketType);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), marketType);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -1237,7 +1237,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 client.resolve(orderbook, messageHash);
             } catch(Exception e)
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
                 client.reject(e, messageHash);
             }
             return null;
@@ -1406,9 +1406,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     ((Map<String,Object>)this.orderbooks).remove(symbol);
                 }
-                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                if (client.subscriptions.containsKey(messageHash))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                    client.subscriptions.remove(messageHash);
                 }
                 client.reject(e, messageHash);
             }
@@ -2000,8 +2000,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((Map<String, Object>)paramsStock).put("stock", true);
             }
             ((Map<String, Object>)paramsStock).put("callerMethodName", "watchOHLCV");
-            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, paramsStock)).join();
-            return Helpers.GetValue(Helpers.GetValue(result, symbolValue), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, paramsStock)).join();
+            return Helpers.GetValue((result == null || symbolValue == null ? null : result.get(symbolValue)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -2376,7 +2376,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchTickerWs only supports swap markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -2436,7 +2436,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), marketType);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), marketType);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -3467,14 +3467,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), java.util.Objects.requireNonNullElse(marketType, "spot"));
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), java.util.Objects.requireNonNullElse(marketType, "spot"));
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
             Client client = this.client(url);
-            Object subscriptions = client.subscriptions;
-            List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
+            Map<String, Object> subscriptions = client.subscriptions;
+            List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
             Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
             if (java.util.Objects.equals(accountType, java.util.Objects.requireNonNullElse(marketType, "spot")))
             {
@@ -3483,7 +3483,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // the subscriptions flag is raised before the subscribe request is confirmed,
             // so a concurrent caller would otherwise return onto an unauthenticated stream
             String messageHash = ("authenticate:signature:" + java.util.Objects.requireNonNullElse(marketType, "spot"));
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
                 // another caller is already subscribing, wait for it instead of subscribing again
                 client.future(messageHash).getFuture().join();
@@ -3504,14 +3504,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // created right before the request, after the signing above: concurrent callers find it, and in
             // the threaded ports the ack can not arrive between this future and the request one watch () adds
             client.future(messageHash);
-            ((Map)client.subscriptions).put((String)java.util.Objects.requireNonNullElse(marketType, "spot"), true);
+            client.subscriptions.put((String)java.util.Objects.requireNonNullElse(marketType, "spot"), true);
             try
             {
                 (this.watch(url, requestHash, message, requestHash, subscription)).join();
                 client.resolve(java.util.Objects.requireNonNullElse(marketType, "spot"), messageHash);
             } catch(Exception e)
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)java.util.Objects.requireNonNullElse(marketType, "spot"));
+                client.subscriptions.remove((String)java.util.Objects.requireNonNullElse(marketType, "spot"));
                 client.reject(e, messageHash);
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
@@ -3532,14 +3532,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //   }
         //
         String messageHash = this.safeString(message, "id");
-        Object subscriptions = client.subscriptions;
-        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
+        Map<String, Object> subscriptions = client.subscriptions;
+        List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Long subscriptionId = this.safeInteger(result, "subscriptionId");
         if (java.util.Objects.equals(subscriptionId, null))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)accountType);
+            client.subscriptions.remove((String)accountType);
             var error = new ExchangeError(((this.id + " user data stream subscribe failed ") + this.json(message)));
             client.reject(error, accountType);
             client.reject(error, messageHash);
@@ -3565,7 +3565,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), "spot");
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), "spot");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -3582,7 +3582,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // waits for the leader rather than minting a second listenToken
                 Client client = this.client(url);
                 String messageHash = (("authenticate:" + java.util.Objects.requireNonNullElse(marketType, "margin")) + ":listenToken");
-                if (((Map<?, ?>)client.futures).containsKey(messageHash))
+                if (client.futures.containsKey(messageHash))
                 {
                     // another caller is already fetching, wait for it instead of fetching again
                     client.future(messageHash).getFuture().join();
@@ -3756,7 +3756,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // and remove the entry under the same lock in every port
                 String messageHash = ("authenticate:" + type);
                 Client client = this.client("authenticationFlights");
-                if (((Map<?, ?>)client.futures).containsKey(messageHash))
+                if (client.futures.containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey is then in the bucket
@@ -3825,7 +3825,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     // caller AND attaches the handler an alone leader needs
                     client.reject(e, messageHash);
                 }
-                ((io.github.ccxt.ws.Future)future).getFuture().join();
+                future.getFuture().join();
             }
             return null;
         });
@@ -3928,7 +3928,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     url = this.getPrivateWsUrl(urlType, (String) (cachedListenKey));
                 }
                 Client client = this.client(url);
-                List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
                     Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -3987,7 +3987,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public void setBalanceCache(Client client, Object type, Object isPortfolioMargin)
     {
-        if ((((Map<?, ?>)client.subscriptions).containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
+        if ((client.subscriptions.containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
         {
             return;
         }
@@ -3996,7 +3996,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -4020,9 +4020,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Balances response = (this.fetchBalance(parameters)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
             }
@@ -4059,7 +4059,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -4223,7 +4223,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchPositionsWs only supports swap markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -4333,7 +4333,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
                 // route to WebSocket API connection where the user data stream is subscribed
-                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), "spot");
+                url = ((Map<String, Object>)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api")).get("spot");
             } else
             {
                 if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -4436,8 +4436,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String wallet = this.safeString(this.options, "wallet", "wb"); // cw for cross wallet
         // each account is connected to a different endpoint
-        Object subscriptions = client.subscriptions;
-        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
+        Map<String, Object> subscriptions = client.subscriptions;
+        List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         String messageHash = (accountType + ":balance");
         if (java.util.Objects.equals((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), null))
@@ -4596,7 +4596,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " createOrderWs only supports spot or swap markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), marketType);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), marketType);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -4782,7 +4782,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " editOrderWs only supports spot or swap markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), marketType);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), marketType);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -4958,7 +4958,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             String type = this.getMarketType("cancelOrderWs", (Map<String, Object>) (market), parameters);
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -5039,7 +5039,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " cancelAllOrdersWs only supports spot markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -5096,7 +5096,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOrderWs only supports spot or swap markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -5164,7 +5164,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOrdersWs only supports spot markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -5248,7 +5248,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOpenOrdersWs only supports spot markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -5380,7 +5380,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
                 // route orders to ws-api user data stream
-                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), "spot");
+                url = ((Map<String, Object>)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api")).get("spot");
             } else
             {
                 if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -6118,7 +6118,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = (type + ":fetchPositionsSnapshot");
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type, java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -6152,10 +6152,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             }
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                ((io.github.ccxt.ws.Future)future).resolve(cache);
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                future.resolve(cache);
                 client.resolve(cache, (type + ":position"));
             }
             return null;
@@ -6194,8 +6194,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        Object subscriptions = client.subscriptions;
-        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
+        Map<String, Object> subscriptions = client.subscriptions;
+        List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -6379,7 +6379,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -6448,7 +6448,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
             }
-            String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api"), type);
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -6590,7 +6590,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = "";
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
-                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), "spot");
+                url = ((Map<String, Object>)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("ws-api")).get("spot");
             } else
             {
                 if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -6793,7 +6793,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String accountType = "option";
         if (java.util.Objects.equals((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), null))
         {
-            Helpers.addElementToObject(this.balance, accountType, new HashMap<String, Object>() {{}});
+            this.balance.put(accountType, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
         List<Object> B = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
@@ -6812,7 +6812,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Long timestamp = this.safeInteger(message, "E");
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "timestamp", timestamp);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.balance, accountType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType))));
+        this.balance.put(accountType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType))));
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), (accountType + ":balance"));
         // --- positions ---
         if (java.util.Objects.equals(this.positions, null))
@@ -6877,7 +6877,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // private endpoint uses id as messageHash
             client.reject(e, id);
             // public endpoint stores messageHash in subscriptions
-            List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
             for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
             {
                 Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
@@ -6888,7 +6888,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     client.reject(e, subscriptionHash);
                     if (!java.util.Objects.equals(subscription, null))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove((String)subscription);
+                        client.subscriptions.remove((String)subscription);
                     }
                 }
             }
@@ -6916,12 +6916,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String eventVar = this.safeString(message, "e");
-        Object subscriptions = client.subscriptions;
-        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
+        Map<String, Object> subscriptions = client.subscriptions;
+        List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (java.util.Objects.equals(eventVar, "eventStreamTerminated"))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)accountType);
+            client.subscriptions.remove((String)accountType);
             var error = new ExchangeError(((this.id + " user data event stream terminated ") + this.json(message)));
             client.reject(error, accountType);
         }

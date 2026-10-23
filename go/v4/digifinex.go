@@ -2344,7 +2344,7 @@ func (this *Digifinex) createOrdersBody(ch chan AsyncResult[[]Order], orders any
 			if marginMode == nil {
 				marginMode = DerefScalar(currentMarginMode)
 			} else {
-				if !IsEqual(marginMode, currentMarginMode) {
+				if !((marginMode == nil && currentMarginMode == nil) || (currentMarginMode != nil && marginMode == *currentMarginMode)) {
 					panic(BadRequest(this.Id + " createOrders() requires all orders to have the same margin mode (isolated or cross)"))
 				}
 			}
@@ -2919,7 +2919,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		var orderMarketType *string = SafeStringPtr(market["type"])
 		if marketType == nil {
 			marketType = DerefScalar(orderMarketType)
-		} else if !IsEqual(marketType, orderMarketType) {
+		} else if !((marketType == nil && orderMarketType == nil) || (orderMarketType != nil && marketType == *orderMarketType)) {
 			panic(BadRequest(this.Id + " cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)"))
 		}
 		ids = append(ids, id)
@@ -4458,12 +4458,8 @@ func (this *Digifinex) withdrawBody(ch chan AsyncResult[Transaction], code strin
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
@@ -4480,7 +4476,7 @@ func (this *Digifinex) withdrawBody(ch chan AsyncResult[Transaction], code strin
 		"currency": currency["id"],
 	}
 	if tagWithdrawTag != nil {
-		request["memo"] = tagWithdrawTag
+		request["memo"] = *tagWithdrawTag
 	}
 
 	r1 := <-this.PrivateSpotPostWithdrawNew(this.Extend(request, paramsWithdrawTag))

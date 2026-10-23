@@ -890,7 +890,7 @@ public partial class btcbox : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -900,11 +900,11 @@ public partial class btcbox : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = ((object)(url + (string)(object)(("?" + this.urlencode(parameters)))));
             }
         } else if ((apiName is "webApi"))
         {
-            url = add(add((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("www") ? ((IDictionary<string, object>)this.urls)["www"] : null), "/"), path);
+            url = add(add((this.urls != null && this.urls.ContainsKey("www") ? this.urls["www"] : null), "/"), path);
         } else
         {
             this.checkRequiredCredentials();
@@ -935,14 +935,14 @@ public partial class btcbox : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ((Convert.ToInt64(httpCode) >= 400))
+        if ((httpCode >= 400))
         {
             return null;  // resort to defaultErrorHandler
         }

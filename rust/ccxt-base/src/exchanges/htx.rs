@@ -4011,7 +4011,7 @@ impl HtxCore {
             let mut id: Value = Value::Null;
             let mut lowercaseId: Value = Value::Null;
             let mut contract: Value = (Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("contract_code"))));
-            let mut spot: Value = Value::Bool(!(matches!(&contract, Value::Bool(true))));
+            let mut spot: bool = !(matches!(&contract, Value::Bool(true)));
             let mut swap: Value = Value::Bool(false);
             let mut future: Value = Value::Bool(false);
             let mut linear: Value = Value::Null;
@@ -4104,7 +4104,7 @@ impl HtxCore {
             let mut maker: Value = Value::Null;
             let mut taker: Value = Value::Null;
             let mut active: Value = Value::Null;
-            if matches!(&spot, Value::Bool(true)) {
+            if spot {
                 pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "price-precision", &[])]), &[]);
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "amount-precision", &[])]), &[]);
                 costPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "value-precision", &[])]), &[]);
@@ -4152,8 +4152,8 @@ impl HtxCore {
                     m.insert("quoteId".to_string(), quoteId);
                     m.insert("settleId".to_string(), settleId);
                     m.insert("type".to_string(), marketType);
-                    m.insert("spot".to_string(), spot.clone());
-                    m.insert("margin".to_string(), Value::Bool((matches!(&spot, Value::Bool(true)) && hasLeverage)));
+                    m.insert("spot".to_string(), Value::Bool(spot.clone()));
+                    m.insert("margin".to_string(), Value::Bool((spot && hasLeverage)));
                     m.insert("swap".to_string(), swap);
                     m.insert("future".to_string(), future);
                     m.insert("option".to_string(), Value::Bool(false));
@@ -4268,13 +4268,13 @@ impl HtxCore {
             }
             if (constructedId.as_str() == symbolOrMarketId.as_str()) {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("futureMarketIdsForSymbols".into())), &symbolOrMarketId, symbol.clone());
+                if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("futureMarketIdsForSymbols".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbolOrMarketId), symbol.clone()); }
                 return symbol;
             }
         }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("futureMarketIdsForSymbols".into())), &symbolOrMarketId, symbolOrMarketId.clone());
+        if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("futureMarketIdsForSymbols".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbolOrMarketId), symbolOrMarketId.clone()); }
         return symbolOrMarketId;
 
     Value::Null
@@ -4790,7 +4790,7 @@ impl HtxCore {
             let mut tick: Value = self.safe_dict_k(response.clone(), "tick", &[]);
             let mut timestamp: Value = self.safe_integer_k(tick.clone(), "ts", &[self.safe_integer(response.clone(), Value::Str("ts".into()), &[])]);
             let mut result: Value = self.parse_order_book(tick.clone(), symbol, &[timestamp]);
-            add_element_to_object(&mut result, &Value::Str("nonce".into()), self.safe_integer_k(tick, "version", &[]));
+            if let Value::Dict(__r03d) = &mut result { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(tick, "version", &[])); }
             return result;
         }
         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned unrecognized response: ".into())).into()), json_stringify(&response))));
@@ -5744,10 +5744,10 @@ impl HtxCore {
             type_var = Value::Str("crypto".into());
         }
         if (code != Value::Null) {
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkChainIdsByNames".into())), &code, Value::Map({
+            if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkChainIdsByNames".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::from(vec![])]);
         let mut networks: Value = Value::Map({
@@ -5762,10 +5762,10 @@ impl HtxCore {
             let mut uniqueChainId: Value = self.safe_string_k(chainEntry.clone(), "chain", &[]); // i.e. usdterc20, trc20usdt ...
             let mut title: Value = self.safe_string2(chainEntry.clone(), Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code != Value::Null) && (title != Value::Null) {
-                add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkChainIdsByNames".into())), &code), &title, uniqueChainId.clone());
+                if let Value::Dict(__r05d) = get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkChainIdsByNames".into())), &code) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&title), uniqueChainId.clone()); }
             }
             if (uniqueChainId != Value::Null) {
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkNamesByChainIds".into())), &uniqueChainId, title);
+                if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkNamesByChainIds".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&uniqueChainId), title); }
             }
             let mut networkCode: Value = self.network_id_to_code(&[uniqueChainId.clone(), code.clone()]);
             if (networkCode != Value::Null) {

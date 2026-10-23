@@ -89,7 +89,7 @@ public partial class hitbtc : ccxt.hitbtc
     public async virtual Task<object> authenticate()
     {
         this.checkRequiredCredentials();
-        string? url = this.safeString(this.safeDict((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        string? url = this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private");
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
@@ -136,7 +136,7 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         bool isBatch = ((string)name).IndexOf("batch", StringComparison.Ordinal) >= 0;
         bool resolvedPerSymbol = !isBatch || ((messageHashPrefix is "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        string? url = this.safeString(this.safeDict((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        string? url = this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public");
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null) && resolvedPerSymbol)
         {
@@ -176,7 +176,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         await this.authenticate();
-        string? url = this.safeString(this.safeDict((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        string? url = this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private");
         List<object> splitName = name.Split(new [] {"_subscribe"}, StringSplitOptions.None).ToList<object>();
         object messageHash = this.safeString(splitName, 0, "");
         if ((symbol != null))
@@ -209,7 +209,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         await this.authenticate();
-        string? url = this.safeString(this.safeDict((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        string? url = this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private");
         string messageHash = ((object)this.incrementingNonce()).ToString();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", name },

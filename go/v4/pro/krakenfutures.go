@@ -97,7 +97,7 @@ func (this *Krakenfutures) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	var messageHash string = "challenge"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var request map[string]any = map[string]any{
 			"event":   "challenge",
@@ -1683,7 +1683,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
-	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -2194,7 +2194,7 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], u
 }
 func (this *Krakenfutures) SubscriptionExistsForHash(url *string, hash string) bool {
 	var client ccxt.ClientInterface = this.Client(url)
-	return (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), hash))
+	return (client.(ccxt.ClientInterface).SubscriptionHas(hash))
 }
 func (this *Krakenfutures) GetMessageHash(unifiedElementName string, optionalArgs ...any) string {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...
@@ -2320,8 +2320,8 @@ func (this *Krakenfutures) HandleAuthenticate(client any, message any) any {
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 	}
 	return message

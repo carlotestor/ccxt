@@ -262,7 +262,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	var symbol string = *base + "/" + *quote
 	var orderBook map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
 	var messageHash any = ccxt.Add("orderbook:"+symbol+":", depth)
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
 	var timestamp *int64 = this.SafeInteger(message, "Time")
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
@@ -275,7 +275,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		// write through the parent index: php copies arrays by value, so
 		// mutating the local bind would not persist the flag
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, this.Extend(subscription, map[string]any{
+		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, this.Extend(subscription, map[string]any{
 			"receivedSnapshot": true,
 		}))
 	} else {
@@ -307,7 +307,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		var responseChecksum *int64 = this.SafeInteger(orderBook, "Crc32")
 		if responseChecksum == nil || *responseChecksum != calculatedChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			delete(this.Orderbooks, symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			return
@@ -329,7 +329,7 @@ func (this *Independentreserve) ValueToChecksum(value any) any {
 	return result
 }
 func (this *Independentreserve) HandleDelta(bookside any, delta any) {
-	var bidAsk any = this.ParseOrderBookBidAsk(delta, "Price", "Volume")
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "Price", "Volume")
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func (this *Independentreserve) HandleDeltas(bookside any, deltas any) {

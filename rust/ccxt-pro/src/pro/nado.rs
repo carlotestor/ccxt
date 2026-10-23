@@ -901,19 +901,19 @@ impl NadoCore {
         self.load_markets(&[]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = Value::Null;
-        let mut messageHash: Value = Value::Str("ticker".into());
+        let mut messageHash: String = "ticker".to_string();
         let mut streamType: Value = Value::Str("all_bbo".into());
         if (symbolsNormalized != Value::Null) {
             let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (symbolsLength == 1.0) {
                 market = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-                messageHash = Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
+                messageHash = format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into();
                 streamType = Value::Str("best_bid_offer".into());
             }
         }
-        let mut ticker: Value = self.watch_public(streamType, market, messageHash.clone(), &[params]).await;
+        let mut ticker: Value = self.watch_public(streamType, market, Value::str(messageHash.clone()), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            if (messageHash.as_str() == Some("ticker")) {
+            if ((messageHash == "ticker")) {
                 return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &[symbolsNormalized.clone()]);
             }
             let mut tickers: Value = Value::Map({
@@ -982,19 +982,19 @@ impl NadoCore {
         self.load_markets(&[]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = Value::Null;
-        let mut messageHash: Value = Value::Str("bidask".into());
+        let mut messageHash: String = "bidask".to_string();
         let mut streamType: Value = Value::Str("all_bbo".into());
         if (symbolsNormalized != Value::Null) {
             let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (symbolsLength == 1.0) {
                 market = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-                messageHash = Value::Str(format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
+                messageHash = format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into();
                 streamType = Value::Str("best_bid_offer".into());
             }
         }
-        let mut ticker: Value = self.watch_public(streamType, market, messageHash.clone(), &[params]).await;
+        let mut ticker: Value = self.watch_public(streamType, market, Value::str(messageHash.clone()), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            if (messageHash.as_str() == Some("bidask")) {
+            if ((messageHash == "bidask")) {
                 return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &[symbolsNormalized.clone()]);
             }
             let mut tickers: Value = Value::Map({
@@ -2203,7 +2203,7 @@ impl NadoCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
-            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
+            if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
         }
         let mut parsed: Value = self.parse_ohlcv(message, &[market]);
         stored.append(parsed);

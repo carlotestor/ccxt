@@ -56,7 +56,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchTrades() has no websocket url")) ;
@@ -157,7 +157,7 @@ public partial class independentreserve : ccxt.independentreserve
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? limitResolved = ((limit == null)) ? 100 : limit;
         string? limitString = this.numberToString(limitResolved);
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchOrderBook() has no websocket url")) ;
@@ -253,7 +253,7 @@ public partial class independentreserve : ccxt.independentreserve
             {
                 if (i < bidsLength)
                 {
-                    payload = add(add(payload, this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 0))), this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 1)));
+                    payload = add(((object)(payload + (string)(object)(this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 0))))), this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 1)));
                 }
             }
             for (int i = 0; i < 10; i++)

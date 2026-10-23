@@ -1286,7 +1286,7 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 					}
 					ret_ = func(this *Binance) any {
 						// catch block:
-						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+						client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						return nil
 					}(this)
@@ -1309,11 +1309,11 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 			if !ccxt.StructAbsent(r.Value) {
 				snapshot = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 			}
-			if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
+			if ccxt.IsEqual(this.WsCacheGet("Orderbooks", symbol), nil) {
 
 				return nil
 			}
-			var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+			var orderbook any = this.WsCacheGet("Orderbooks", symbol)
 			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 			// unroll the accumulated deltas
 			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
@@ -1355,7 +1355,7 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 				}
 			}
 			if symbol != nil {
-				ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+				this.WsCacheSet("Orderbooks", symbol, orderbook)
 			}
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 			return nil
@@ -1452,8 +1452,8 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 									delete(this.Orderbooks, *symbol)
 								}
 							}
-							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 							}
 							client.(ccxt.ClientInterface).Reject(e, messageHash)
 							return nil
@@ -1557,7 +1557,7 @@ func (this *Binance) HandleSubscriptionStatus(client any, message any) any {
 	//     }
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var method any = this.SafeValue(subscription, "method")
 	if method != nil {
@@ -4069,7 +4069,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
+	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
 	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if accountType == marketType {
@@ -4104,7 +4104,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 	// created right before the request, after the signing above: concurrent callers find it, and in
 	// the threaded ports the ack can not arrive between this future and the request one watch () adds
 	client.(ccxt.ClientInterface).Future(messageHash)
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), marketType, true)
+	client.(ccxt.ClientInterface).SubscriptionSet(marketType, true)
 
 	{
 		func(this *Binance) (ret_ any) {
@@ -4115,7 +4115,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 					}
 					ret_ = func(this *Binance) any {
 						// catch block:
-						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), marketType)
+						client.(ccxt.ClientInterface).SubscriptionDel(marketType)
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						panic(e)
 
@@ -4146,13 +4146,13 @@ func (this *Binance) HandleUserDataStreamSubscribe(client any, message map[strin
 	//   }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
+	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
 	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var subscriptionId *int64 = this.SafeInteger(result, "subscriptionId")
 	if subscriptionId == nil {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), accountType)
+		client.(ccxt.ClientInterface).SubscriptionDel(accountType)
 		error := ccxt.ExchangeError(this.Id + " user data stream subscribe failed " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, accountType)
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -4695,7 +4695,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 func (this *Binance) SetBalanceCache(client any, typeVar any, optionalArgs ...any) {
 	var isPortfolioMargin bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = isPortfolioMargin
-	if (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
+	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
@@ -5213,7 +5213,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	//
 	var wallet *string = this.SafeString(this.Options, "wallet", "wb") // cw for cross wallet
 	// each account is connected to a different endpoint
-	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
+	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
 	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	var messageHash any = ccxt.Add(accountType, ":balance")
@@ -7122,7 +7122,7 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 	//
 	// each account is connected to a different endpoint
 	// and has exactly one subscriptionhash which is the account type
-	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
+	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
 	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if this.Positions == nil {
@@ -7823,15 +7823,15 @@ func (this *Binance) HandleWsError(client any, message any) {
 						// private endpoint uses id as messageHash
 						client.(ccxt.ClientInterface).Reject(e, id)
 						// public endpoint stores messageHash in subscriptions
-						var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+						var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 						for i := 0; i < len(subscriptionKeys); i++ {
 							var subscriptionHash string = subscriptionKeys[i]
-							var subscriptionId *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "id")
-							var subscription *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "subscription")
+							var subscriptionId *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "id")
+							var subscription *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "subscription")
 							if id == subscriptionId || (id != nil && subscriptionId != nil && *id == *subscriptionId) {
 								client.(ccxt.ClientInterface).Reject(e, subscriptionHash)
 								if subscription != nil {
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscription)
+									client.(ccxt.ClientInterface).SubscriptionDel(subscription)
 								}
 							}
 						}
@@ -7864,11 +7864,11 @@ func (this *Binance) HandleEventStreamTerminated(client any, message map[string]
 	//    }
 	//
 	var event *string = this.SafeString(message, "e")
-	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
+	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
 	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if event != nil && *event == "eventStreamTerminated" {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), accountType)
+		client.(ccxt.ClientInterface).SubscriptionDel(accountType)
 		error := ccxt.ExchangeError(this.Id + " user data event stream terminated " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, accountType)
 	}
@@ -7907,7 +7907,7 @@ func (this *Binance) HandleMessage(client any, message any) {
 	}
 	// user subscription wraps message in subscriptionId and event
 	var id *string = this.SafeString(messageValue, "id")
-	var subscriptions map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), id)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(id)
 	var method any = this.SafeValue(subscriptions, "method")
 	if method != nil {
 		ccxt.CallDynamically(method, client, messageValue)

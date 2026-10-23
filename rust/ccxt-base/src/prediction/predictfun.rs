@@ -845,8 +845,8 @@ impl PredictfunCore {
             //
             let mut data: Value = self.safe_list_k(rawTopicsResponse.clone(), "data", &[Value::from(vec![])]);
             rawTopics = self.array_concat(rawTopics.clone(), data.clone());
-            let mut topicsLength: Value = Value::Int(rawTopics.len() as i64);
-            while topicsLength.as_f64().unwrap_or(f64::NAN) < fetchCap.as_f64().unwrap_or(f64::NAN) {
+            let mut topicsLength: i64 = rawTopics.len() as i64;
+            while (topicsLength as f64) < fetchCap.as_f64().unwrap_or(f64::NAN) {
                 let mut nextPageToken: Value = self.safe_string_k(rawTopicsResponse.clone(), "cursor", &[]);
                 if (nextPageToken == Value::Null) {
                     break;
@@ -855,9 +855,9 @@ impl PredictfunCore {
                 rawTopicsResponse = self.predictfun_get_v1_categories(&[extendedRequest.clone()]).await;
                 data = self.safe_list_k(rawTopicsResponse.clone(), "data", &[Value::from(vec![])]);
                 rawTopics = self.array_concat(rawTopics.clone(), data.clone());
-                topicsLength = Value::Int(rawTopics.len() as i64);
+                topicsLength = rawTopics.len() as i64;
             }
-            if topicsLength.as_f64().unwrap_or(f64::NAN) > fetchCap.as_f64().unwrap_or(f64::NAN) {
+            if (topicsLength as f64) > fetchCap.as_f64().unwrap_or(f64::NAN) {
                 rawTopics = self.array_slice(rawTopics.clone(), Value::Int(0), &[fetchCap]);
             }
         }
@@ -1051,8 +1051,8 @@ impl PredictfunCore {
                     if (matches!((&orphanMarkets, &marketSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
-                        let mut bucket: Value = get_value(&orphanMarkets, &marketSlug);
-                        append_to_array(&mut bucket, rawMarket.clone());
+                        let mut bucket: Value = orphanMarkets.as_map().and_then(|__m| marketSlug.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                        if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(rawMarket.clone()); };
                         crate::set_value(&mut orphanMarkets, &marketSlug, bucket.clone());
                         if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketSlug), bucket); }
                     }  else {
@@ -2554,11 +2554,11 @@ impl PredictfunCore {
         if (tokenId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() could not resolve the on chain token id of ".into())).into()), outcome)));
         }
-        let mut strategy: Value = Value::Str("LIMIT".into());
+        let mut strategy: String = "LIMIT".to_string();
         if (type_var.as_str() == Some("market")) {
-            strategy = Value::Str("MARKET".into());
+            strategy = "MARKET".to_string();
         }
-        let mut isMarket: Value = (Value::Bool(strategy.as_str() == Some("MARKET")));
+        let mut isMarket: Value = (Value::Bool((strategy == "MARKET")));
         if (!(matches!(&isMarket, Value::Bool(true)))) && (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a \"price\" argument for a limit order".into()))));
         }
@@ -2673,7 +2673,7 @@ impl PredictfunCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("order".to_string(), orderPayload);
                 m.insert("pricePerShare".to_string(), self.decimal_to_precision(priceWei, Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]));
-                m.insert("strategy".to_string(), strategy);
+                m.insert("strategy".to_string(), Value::str(strategy));
             m
         });
         let mut postOnly: Value = self.safe_bool_k(paramsTaker.clone(), "isPostOnly", &[Value::Bool(false)]);
@@ -2768,9 +2768,9 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomesLength: Value = Value::Int(0);
+        let mut outcomesLength: i64 = 0;
         if (outcomes != Value::Null) {
-            outcomesLength = Value::Int(outcomes.len() as i64);
+            outcomesLength = outcomes.len() as i64;
             self.load_outcomes(&[outcomes.clone()]).await;
         }
         let mut address: Value = self.safe_string_k(params.clone(), "address", &[]);
@@ -2815,7 +2815,7 @@ impl PredictfunCore {
         //     }
         //
         let mut rows: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        if (outcomesLength.as_f64() == Some(0.0)) {
+        if (((outcomesLength as f64) == 0.0)) {
             return self.parse_prediction_positions(rows.clone(), &[]);
         }
         let mut parsed: Value = self.parse_prediction_positions(rows, &[]);
@@ -2828,7 +2828,7 @@ impl PredictfunCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1462: bool = true;
-            while { if !__for_first_1462 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1462 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1462 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1462 = false; i.as_f64().unwrap_or(f64::NAN) < (outcomesLength as f64) } {
             let mut outcomeObj: Value = self.outcome(wantedOutcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut wantedId: Value = self.safe_string_k(outcomeObj, "outcomeId", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut wanted { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&wantedId), Value::Bool(true)); }
@@ -2928,7 +2928,7 @@ impl PredictfunCore {
         let mut outcomeStatus: Option<String> = self.safe_string_k(rawOutcome.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut marketStatus: Option<String> = self.safe_string_k(rawMarket, "status", &[]).as_str().map(str::to_owned);
         let mut settled: bool = (outcomeStatus.as_deref() == Some("WON")) || (outcomeStatus.as_deref() == Some("LOST"));
-        let mut resolved: Value = Value::Bool(settled || (marketStatus.as_deref() == Some("RESOLVED")) || (marketStatus.as_deref() == Some("SETTLED")));
+        let mut resolved: bool = settled || (marketStatus.as_deref() == Some("RESOLVED")) || (marketStatus.as_deref() == Some("SETTLED"));
         let mut won: Value = Value::Null;
         let mut settleFraction: Value = Value::Null;
         let mut payout: Value = Value::Null;
@@ -2941,7 +2941,7 @@ impl PredictfunCore {
         // pnl is realized once the market has resolved, unrealized while it is still trading
         let mut realizedPnl: Value = Value::Null;
         let mut unrealizedPnl: Value = pnl.clone();
-        if matches!(&resolved, Value::Bool(true)) {
+        if resolved {
             realizedPnl = pnl;
             unrealizedPnl = Value::Null;
         }
@@ -2961,7 +2961,7 @@ impl PredictfunCore {
         m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
-        m.insert("resolved".to_string(), resolved);
+        m.insert("resolved".to_string(), Value::Bool(resolved));
         m.insert("won".to_string(), won);
         m.insert("settleFraction".to_string(), self.parse_number(settleFraction, &[]));
         m.insert("payout".to_string(), self.parse_number(payout, &[]));

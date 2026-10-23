@@ -894,7 +894,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
         if (!java.util.Objects.equals(future, null))
         {
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         }
     }
 
@@ -918,7 +918,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 }};
                 return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }

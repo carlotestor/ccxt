@@ -377,7 +377,7 @@ impl PacificaCore {
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PF-API-KEY".into(), self.options.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("ws".into())), &Value::Str("options".into())), &Value::Str("headers".into()), headers);
+        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("ws".into())), &Value::Str("options".into())) { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), headers); }
 }
 
 /*
@@ -964,7 +964,7 @@ impl PacificaCore {
         let mut snapshot: Value = self.parse_order_book(result, symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
         let mut nonce: Value = self.safe_integer_k(entry, "li", &[]);
         if (nonce != Value::Null) && (nonce.as_f64() != Some(0.0)) {
-            add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), nonce);
+            if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce); }
         }
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut ob: Value = self.order_book(&[snapshot.clone()]);

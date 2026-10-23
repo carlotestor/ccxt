@@ -81,7 +81,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             Map<String, Object> market = this.market(symbol);
             String marketId = (String) market.get("id");
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Client client = this.client(url);
             String messageHash = ((channel + ":") + marketId);
             Map<String, Object> request = new HashMap<String, Object>();
@@ -121,7 +121,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             Map<String, Object> market = this.market(symbol);
             String marketId = (String) market.get("id");
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Client client = this.client(url);
             String subMessageHash = ((channel + ":") + marketId);
             String messageHash = ((("unsubscribe:" + channel) + ":") + marketId);
@@ -132,7 +132,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "chanId", channelId );
             }};
             String unSubChanMsg = ("unsubscribe:" + channelId);
-            ((Map)client.subscriptions).put(unSubChanMsg, subMessageHash);
+            client.subscriptions.put(unSubChanMsg, subMessageHash);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)) );
@@ -155,7 +155,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             return (this.watch(url, messageHash, null, 1, null)).join();
         });
 
@@ -191,7 +191,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             request.put("event", "subscribe");
             request.put("channel", channel);
             request.put("key", key);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             // not using subscribe here because this message has a different format
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
             Long limitResolved = limit;
@@ -228,7 +228,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String channel = "candles";
             String subMessageHash = ((((channel + ":") + interval) + ":") + market.get("id"));
             String messageHash = ("unsubscribe:" + subMessageHash);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Client client = this.client(url);
             String subId = ((("unsubscribe:trade:" + interval) + ":") + market.get("id")); // trade here because we use the key
             String channelId = this.safeString(client.subscriptions, subId);
@@ -237,7 +237,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "chanId", channelId );
             }};
             String unSubChanMsg = ("unsubscribe:" + channelId);
-            ((Map)client.subscriptions).put(unSubChanMsg, subMessageHash);
+            client.subscriptions.put(unSubChanMsg, subMessageHash);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)) );
@@ -979,7 +979,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Long responseChecksum = this.safeInteger(message, 2);
         if (!Helpers.isEqual(responseChecksum, localChecksum))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            client.subscriptions.remove((String)messageHash);
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (java.util.Objects.equals(checksum, true))
@@ -1101,7 +1101,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 oldBalance.put(code, balance);
             }
             oldBalance.put("info", message);
-            Helpers.addElementToObject(this.balance, balanceType, this.safeBalance(oldBalance));
+            this.balance.put(balanceType, this.safeBalance(oldBalance));
             updatedTypes.put((String)balanceType, true);
         }
         List<String> updatesKeys = new ArrayList<String>(updatedTypes.keySet());
@@ -1163,7 +1163,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String unSubChannel = ("unsubscribe:" + channelId);
         String subMessageHash = this.safeString(client.subscriptions, unSubChannel);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, ("unsubscribe:" + subMessageHash), (Object) null);
-        ((Map<String,Object>)client.subscriptions).remove((String)unSubChannel);
+        client.subscriptions.remove((String)unSubChannel);
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1198,7 +1198,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //  }
         //
         String channelId = this.safeString(message, "chanId");
-        ((Map)client.subscriptions).put((String)channelId, message);
+        client.subscriptions.put((String)channelId, message);
         // store the opposite direction too for unWatch
         Map<String, Object> mappings = new HashMap<String, Object>() {{
             put( "book", "orderbook" );
@@ -1231,7 +1231,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
@@ -1253,7 +1253,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -1266,15 +1266,15 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             // we resolve the future here permanently so authentication only happens once
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
         }
     }

@@ -1066,7 +1066,7 @@ public partial class htx : ccxt.htx
             object marginPrefix = prefix;
             if (marginMode == "cross")
             {
-                marginPrefix = add(prefix, "_cross");
+                marginPrefix = ((object)(prefix == null ? null : prefix + "_cross"));
             }
             messageHash = marginPrefix;
             if ((marketCode != null))
@@ -1082,22 +1082,22 @@ public partial class htx : ccxt.htx
             // inverse futures Example: BCH/USD:BCH-220408
             if ((baseId != null))
             {
-                channel = add(add(prefix, "."), ((string)baseId).ToLower());
+                channel = add(((object)(prefix == null ? null : prefix + ".")), ((string)baseId).ToLower());
                 messageHash = channel;
             } else
             {
-                channel = add(add(prefix, "."), "*");
+                channel = add(((object)(prefix == null ? null : prefix + ".")), "*");
             }
         } else
         {
             // inverse swaps: Example: BTC/USD:BTC
             if ((marketCode != null))
             {
-                channel = add(add(prefix, "."), marketCode);
+                channel = add(((object)(prefix == null ? null : prefix + ".")), marketCode);
                 messageHash = channel;
             } else
             {
-                channel = add(add(prefix, "."), "*");
+                channel = add(((object)(prefix == null ? null : prefix + ".")), "*");
             }
         }
         return new List<object>() {channel, messageHash};
@@ -1968,11 +1968,11 @@ public partial class htx : ccxt.htx
             {
                 marginMode = defaultMarginMode;
             }
-            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(getValue(this.positions, url), marginMode));
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue((((IDictionary<string,object>)this.positions) != null && url != null && ((IDictionary<string,object>)this.positions).ContainsKey(url) ? ((IDictionary<string,object>)this.positions)[url] : null), marginMode));
             if ((cache == null))
             {
                 cache = new ArrayCacheBySymbolBySide();
-                ((IDictionary<string,object>)getValue(this.positions, url))[(string)marginMode] = cache;
+                ((IDictionary<string,object>)(((IDictionary<string,object>)this.positions) != null && url != null && ((IDictionary<string,object>)this.positions).ContainsKey(url) ? ((IDictionary<string,object>)this.positions)[url] : null))[(string)marginMode] = cache;
             }
             newPositions.Add(position);
             positionsByMarginMode[(string)marginMode] = this.safeList(positionsByMarginMode, marginMode, new List<object>() {});
@@ -2307,7 +2307,7 @@ public partial class htx : ccxt.htx
             IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
             List<object> splitTopic = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
             object messageHash = this.safeString(splitTopic, 0);
-            IDictionary<string, object> subscription = this.safeDict2(client.subscriptions, messageHash, add(messageHash, ".*"));
+            IDictionary<string, object> subscription = this.safeDict2(client.subscriptions, messageHash, ((object)(messageHash == null ? null : messageHash + ".*")));
             if ((subscription == null))
             {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -2320,7 +2320,7 @@ public partial class htx : ccxt.htx
                 {
                     return;
                 }
-                messageHash = add(messageHash, ("." + currencyId.ToLower()));
+                messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("." + currencyId.ToLower()))));
                 subscription = this.safeDict(client.subscriptions, messageHash);
             }
             string? subType = this.safeString(subscription, "subType");
@@ -2695,7 +2695,7 @@ public partial class htx : ccxt.htx
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        Future promise = ((Future)getValue(client.futures, "auth"));
+        Future promise = (client.futures != null && client.futures.ContainsKey("auth") ? client.futures["auth"] : null);
         promise.resolve(message);
     }
 
@@ -3165,7 +3165,7 @@ public partial class htx : ccxt.htx
         }, marketResolved);
     }
 
-    public virtual object getUrlByMarketType(object type, object isLinear = null, object isPrivate = null, object isFeed = null, object isV5 = null)
+    public virtual object getUrlByMarketType(object type, object isLinear = null, bool? isPrivate = null, bool? isFeed = null, bool? isV5 = null)
     {
         isLinear ??= true;
         isPrivate ??= false;
@@ -3179,27 +3179,27 @@ public partial class htx : ccxt.htx
         object url = null;
         if ((type is "spot"))
         {
-            if (isTrue(isPrivate))
+            if (isPrivate == true)
             {
-                hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "spot"), "private");
+                hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "spot"), "private");
             } else
             {
-                if (isTrue(isFeed))
+                if (isFeed == true)
                 {
-                    hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "spot"), "feed");
+                    hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "spot"), "feed");
                 } else
                 {
-                    hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "spot"), "public");
+                    hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "spot"), "public");
                 }
             }
             url = this.implodeParams(hostnameURL, hostname);
         } else
         {
-            object baseUrl = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), type);
+            object baseUrl = getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), type);
             object subTypeUrl = isTrue(isLinear) ? getValue(baseUrl, "linear") : getValue(baseUrl, "inverse");
-            if (isTrue(isPrivate))
+            if (isPrivate == true)
             {
-                if (isTrue(isV5) && isTrue(isLinear))
+                if (isV5 == true && isTrue(isLinear))
                 {
                     url = this.safeString(subTypeUrl, "privateV5", getValue(subTypeUrl, "private"));
                 } else
@@ -3296,7 +3296,7 @@ public partial class htx : ccxt.htx
         bool isLinear = (subtype is "linear");
         bool? isV5 = this.safeBool(subscriptionParams, "isV5", false);
         object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
-        object hostname = ((type is "spot")) ? getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("hostnames") ? ((IDictionary<string, object>)this.urls)["hostnames"] : null), "spot") : getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("hostnames") ? ((IDictionary<string, object>)this.urls)["hostnames"] : null), "contract");
+        object hostname = ((type is "spot")) ? getValue((this.urls != null && this.urls.ContainsKey("hostnames") ? this.urls["hostnames"] : null), "spot") : getValue((this.urls != null && this.urls.ContainsKey("hostnames") ? this.urls["hostnames"] : null), "contract");
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "type", type },
             { "url", url },

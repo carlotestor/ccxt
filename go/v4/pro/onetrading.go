@@ -576,7 +576,7 @@ func (this *Onetrading) HandleBookDelta(orderbook any, delta any) {
 	//
 	//   [ 'BUY', "0.053595", "0" ]
 	//
-	var bidAsk any = this.ParseOrderBookBidAsk(delta, 1, 2)
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 1, 2)
 	var typeVar *string = this.SafeString(delta, 0)
 	if typeVar != nil && *typeVar == "BUY" {
 		var bids any = ccxt.GetValue(orderbook, "bids")
@@ -1341,13 +1341,13 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	var typeVar string = "SUBSCRIBE"
 	var subscription any = map[string]any{}
 	if client != nil {
-		subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
 		if subscription != nil {
 			var ohlcvMarket map[string]any = ccxt.SafeMapTyped(subscription, marketId)
 			var marketSubscribed *bool = this.SafeBool(ohlcvMarket, timeframe, false)
 			if !(marketSubscribed != nil && *marketSubscribed) {
 				typeVar = "UPDATE_SUBSCRIPTION"
-				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, nil)
+				client.(ccxt.ClientInterface).SubscriptionSet(subscriptionHash, nil)
 			}
 		} else {
 			subscription = map[string]any{}
@@ -1604,14 +1604,14 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 	var typeVar string = "SUBSCRIBE"
 	var subscription any = map[string]any{}
 	if client != nil {
-		subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
 		if subscription != nil {
 			for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 				var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 				var marketSubscribed *bool = this.SafeBool(subscription, marketId, false)
 				if !(marketSubscribed != nil && *marketSubscribed) {
 					typeVar = "UPDATE_SUBSCRIPTION"
-					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, nil)
+					client.(ccxt.ClientInterface).SubscriptionSet(subscriptionHash, nil)
 				}
 			}
 		} else {
@@ -1646,7 +1646,7 @@ func (this *Onetrading) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		this.CheckRequiredCredentials()
 		var request map[string]any = map[string]any{

@@ -1567,7 +1567,7 @@ public class Kalshi extends KalshiApi
             }
             // kalshi candles carry only the period-END timestamp; thread the candle duration through so
             // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
-            Helpers.addElementToObject(this.options, "ohlcvCandleDurationSeconds", tf);
+            this.options.put("ohlcvCandleDurationSeconds", tf);
             return this.parseOHLCVs(usableCandles, ((Object)outcomeObj), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 

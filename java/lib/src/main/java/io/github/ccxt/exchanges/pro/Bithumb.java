@@ -120,7 +120,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("publicGen2") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("ticker:" + market.get("symbol"));
             String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
@@ -179,7 +179,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }
             List<String> symbolsResolved = (((java.util.Objects.equals(symbolsNormalized, null)))) ? this.symbols : symbolsNormalized;
             Integer symbolsLengthDefined = ((List<?>)symbolsResolved).size();
-            Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("publicGen2") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             List<Object> streamMarketIds = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; (symbolsLengthDefined != null && i < symbolsLengthDefined); i++)
@@ -456,7 +456,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("publicGen2") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = (("orderbook" + ":") + symbolValue);
@@ -668,7 +668,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("publicGen2") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("trade:" + symbolValue);
@@ -923,7 +923,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateGen2");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateGen2");
             String messageHash = "myAsset";
             List<Object> request = (List<Object>) this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
                 put( "type", messageHash );
@@ -967,7 +967,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             account.put("used", this.safeString(asset, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
         }
         Helpers.addElementToObject(this.balance, "info", message);
@@ -1032,7 +1032,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     }});
                 Helpers.addElementToObject(this.options, "ws", wsOptions);
             }
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateGen2");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateGen2");
             Client client = this.client(url);
             return client;
         });
@@ -1067,7 +1067,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateGen2");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateGen2");
             String messageHash = "myOrder";
             List<Object> codes = (List<Object>) this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();

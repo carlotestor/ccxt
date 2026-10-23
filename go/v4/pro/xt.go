@@ -106,7 +106,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 		url = ccxt.Add(url, "/private")
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var token *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), "token")
+	var token *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "token")
 	if token == nil {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
 		// concurrent callers each minted their own token, last write won, and the losers
@@ -122,7 +122,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 			}
 
 			var resolved *string
-			switch resolvedBox := ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "token").(type) {
+			switch resolvedBox := client.(ccxt.ClientInterface).SubscriptionGet("token").(type) {
 			case *string:
 				resolved = resolvedBox
 			case string:
@@ -204,7 +204,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " getListenKey() received an empty listen key"))
 				}
-				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "token", listenKey)
+				client.(ccxt.ClientInterface).SubscriptionSet("token", listenKey)
 				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
 				return nil
 			}(this)
@@ -218,7 +218,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 	}
 
 	var resolved1 *string
-	switch resolved1Box := ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "token").(type) {
+	switch resolved1Box := client.(ccxt.ClientInterface).SubscriptionGet("token").(type) {
 	case *string:
 		resolved1 = resolved1Box
 	case string:
@@ -1854,7 +1854,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		var obBids []any = ccxt.SafeListTyped(data, "b")
 		var messageHash string = *event + "::" + tradeType
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			if symbol != nil {
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
@@ -2274,7 +2274,7 @@ func (this *Xt) HandleSubscriptionStatus(client any, message any) any {
 	//     }
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	if id != nil {
 		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
@@ -2314,8 +2314,8 @@ func (this *Xt) HandleErrorMessage(client any, message map[string]any) {
 	//
 	var msg *string = this.SafeString(message, "msg")
 	if (msg != nil && *msg == "invalid_listen_key") || (msg != nil && *msg == "token expire") {
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), "token") {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "token")
+		if client.(ccxt.ClientInterface).SubscriptionHas("token") {
+			client.(ccxt.ClientInterface).SubscriptionDel("token")
 		}
 		this.GetListenKeyAsync(true)
 		return

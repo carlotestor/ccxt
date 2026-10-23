@@ -850,7 +850,7 @@ impl HyperliquidCore {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "index", &[]);
         let mut name: Value = self.safe_string_k(rawCurrency.clone(), "name", &[]);
         let mut code: Value = self.safe_currency_code(name.clone(), &[]);
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("cachedCurrenciesById".into())), &id, name.clone());
+        if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("cachedCurrenciesById".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&id), name.clone()); }
         let mut result: Value = self.safe_currency_structure(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -898,7 +898,7 @@ impl HyperliquidCore {
                 }
                 let mut baseCode: Value = self.safe_currency_code(nameWithoutU, &[]);
                 if (code != Value::Null) {
-                    add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("spotCurrencyMapping".into())), &code, baseCode);
+                    if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("spotCurrencyMapping".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), baseCode); }
                 }
             }
         }
@@ -1119,12 +1119,12 @@ impl HyperliquidCore {
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     let mut safeCode: Value = self.safe_currency_code(name.clone(), &[]);
                     let mut hip3Code: Value = (if (safeCode == Value::Null) { name.clone() } else { safeCode.as_str().map(|__s| Value::Str(__s.replace(":", "-").into())).unwrap_or_else(|| safeCode.clone()) });
-                    add_element_to_object(get_value_mut(&mut self.options, &Value::Str("hip3TokensByName".into())), &name, Value::Map({
+                    if let Value::Dict(__r05d) = get_value_mut(&mut self.options, &Value::Str("hip3TokensByName".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&name), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("quote".to_string(), collateralTokenCode);
         m.insert("code".to_string(), hip3Code);
     m
-}));
+})); }
                 }
                 result.push(data);
             }
@@ -1526,10 +1526,10 @@ impl HyperliquidCore {
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseId", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        let mut contract: Value = Value::Bool(true);
-        let mut swap: Value = Value::Bool(true);
-        if matches!(&contract, Value::Bool(true)) {
-            if matches!(&swap, Value::Bool(true)) {
+        let mut contract: bool = true;
+        let mut swap: bool = true;
+        if contract {
+            if swap {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
             }
         }
@@ -1566,11 +1566,11 @@ impl HyperliquidCore {
         m.insert("type".to_string(), Value::Str("swap".into()));
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Null);
-        m.insert("swap".to_string(), swap);
+        m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), contract);
+        m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), Value::Bool(true));
         m.insert("inverse".to_string(), Value::Bool(false));
         m.insert("taker".to_string(), taker);

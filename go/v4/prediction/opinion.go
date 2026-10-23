@@ -2684,7 +2684,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var url any = this.OpinionWsUrl()
 	var client any = this.Client(url)
 	var subscriptionKey *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", this.NumberToString(marketId)))
-	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionKey), nil)
+	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionKey), nil)
 	if isNewSubscription {
 
 		r2 := <-this.SeedOrderBookAsync(outcome, sym, limit)
@@ -2700,7 +2700,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var future any = this.Watch(url, messageHash, subscribeMsg, subscriptionKey)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next delta
-		client.(ccxt.ClientInterface).Resolve(this.SafeValue(this.Orderbooks, sym), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.WsCacheGet("Orderbooks", sym), messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])
@@ -2734,7 +2734,7 @@ func (this *Opinion) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome s
 	}
 	var orderbook any = this.OrderBook(map[string]any{})
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	ccxt.AddElementToObject(this.Orderbooks, sym, orderbook)
+	this.WsCacheSet("Orderbooks", sym, orderbook)
 	return nil
 }
 func (this *Opinion) HandleOrderBook(client any, message any) {

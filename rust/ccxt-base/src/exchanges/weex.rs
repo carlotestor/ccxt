@@ -1788,15 +1788,15 @@ impl WeexCore {
         let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market.clone(), params]);
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut symbolsLength: Value = Value::Int(0);
+        let mut symbolsLength: i64 = 0;
         if (symbolsNormalized != Value::Null) {
-            symbolsLength = Value::Int(symbolsNormalized.len() as i64);
+            symbolsLength = symbolsNormalized.len() as i64;
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsLength.as_f64() == Some(1.0)) {
+        if (((symbolsLength as f64) == 1.0)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market, "id", &[])); }
         }
         let mut response: Value = Value::Null;
@@ -2199,7 +2199,7 @@ impl WeexCore {
         //     }
         //
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol, &[]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(response, "lastUpdateId", &[]));
+        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(response, "lastUpdateId", &[])); }
         return orderbook;
 
     Value::Null
@@ -2524,14 +2524,14 @@ impl WeexCore {
         }
         let mut tradeMarketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut realizedPnl: Option<String> = self.safe_string_k(trade.clone(), "realizedPnl", &[]).as_str().map(str::to_owned);
-        let mut tradeMarketType: Value = Value::Str("spot".into());
+        let mut tradeMarketType: String = "spot".to_string();
         if (realizedPnl.is_some()) {
-            tradeMarketType = Value::Str("swap".into());
+            tradeMarketType = "swap".to_string();
         }
-        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { tradeMarketId } else { Value::Null }), market.clone(), Value::Null, tradeMarketType.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { tradeMarketId } else { Value::Null }), market.clone(), Value::Null, Value::str(tradeMarketType.clone())]);
         let mut isSpot: Value = Value::Null;
         if (market == Value::Null) {
-            isSpot = Value::Bool(tradeMarketType.as_str() == Some("spot"));
+            isSpot = Value::Bool((tradeMarketType == "spot"));
         }  else {
             isSpot = market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null);
         }
@@ -2658,15 +2658,15 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut symbolsLength: Value = Value::Int(0);
+        let mut symbolsLength: i64 = 0;
         if (symbolsNormalized != Value::Null) {
-            symbolsLength = Value::Int(symbolsNormalized.len() as i64);
+            symbolsLength = symbolsNormalized.len() as i64;
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsLength.as_f64() == Some(1.0)) {
+        if (((symbolsLength as f64) == 1.0)) {
             let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market, "id", &[])); }
         }
@@ -4882,9 +4882,9 @@ impl WeexCore {
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, Value::Str("contract".into())]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "createdTime", &[]);
         let mut marginType: Option<String> = self.safe_string2(position.clone(), Value::Str("marginType".into()), Value::Str("marginMode".into()), &[]).as_str().map(str::to_owned);
-        let mut marginMode: Value = Value::Str("cross".into());
+        let mut marginMode: String = "cross".to_string();
         if (marginType.as_deref() == Some("ISOLATED")) {
-            marginMode = Value::Str("isolated".into());
+            marginMode = "isolated".to_string();
         }
         let mut separatedMode: Option<String> = self.safe_string_k(position.clone(), "separatedMode", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Null;
@@ -4899,12 +4899,12 @@ impl WeexCore {
         let mut unrealizePnl: Value = self.safe_string_k(position.clone(), "unrealizePnl", &[]);
         let mut isolatedMargin: Value = self.omit_zero(self.safe_string2(position.clone(), Value::Str("isolatedMargin".into()), Value::Str("marginSize".into()), &[]));
         let mut collateralString: Value = Value::Null;
-        if (marginMode.as_str() == Some("isolated")) && (isolatedMargin != Value::Null) {
+        if ((marginMode == "isolated")) && (isolatedMargin != Value::Null) {
             collateralString = (if (unrealizePnl != Value::Null) { crate::precise::Precise::stringAdd(&isolatedMargin, &unrealizePnl) } else { isolatedMargin.clone() });
         }
         let mut initialMarginString: Value = self.omit_zero(self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("isolatedMargin".into()), &[]));
         let mut marginString: Value = Value::Null;
-        if (marginMode.as_str() == Some("isolated")) {
+        if ((marginMode == "isolated")) {
             marginString = isolatedMargin;
         }
         return self.safe_position(Value::Map({
@@ -4925,7 +4925,7 @@ impl WeexCore {
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice, &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[])), &[]));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), Value::str(marginMode));
         m.insert("hedged".to_string(), hedged);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);

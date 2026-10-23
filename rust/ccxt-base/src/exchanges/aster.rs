@@ -2036,8 +2036,8 @@ impl AsterCore {
         let mut inverse: Value = Value::Null;
         let mut contractSize: Value = Value::Null;
         let mut contractType: Option<String> = self.safe_string_k(market.clone(), "contractType", &[]).as_str().map(str::to_owned);
-        let mut isContract: Value = Value::Bool(contractType.is_some());
-        if matches!(&isContract, Value::Bool(true)) {
+        let mut isContract: bool = contractType.is_some();
+        if isContract {
             // currently, there is only perpetuals, not futures
             spot = Value::Bool(false);
             swap = Value::Bool(true);
@@ -2078,14 +2078,14 @@ impl AsterCore {
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
-        m.insert("type".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Str("swap".into()) } else { Value::Str("spot".into()) }));
+        m.insert("type".to_string(), (if isContract { Value::Str("swap".into()) } else { Value::Str("spot".into()) }));
         m.insert("spot".to_string(), spot);
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), swap);
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), isContract);
+        m.insert("contract".to_string(), Value::Bool(isContract));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
         m.insert("taker".to_string(), self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
@@ -3721,7 +3721,7 @@ impl AsterCore {
          */
         let mut market: Value = self.market(symbol.clone());
         let mut initialUppercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        let mut isMarketOrder: Value = Value::Bool(initialUppercaseType.as_str() == Some("MARKET"));
+        let mut isMarketOrder: bool = initialUppercaseType.as_str() == Some("MARKET");
         let mut isLimitOrder: bool = initialUppercaseType.as_str() == Some("LIMIT");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3754,20 +3754,20 @@ impl AsterCore {
             }
         }  else if isStopLoss {
             stopPrice = stopLossPrice;
-            if matches!(&isMarketOrder, Value::Bool(true)) {
+            if isMarketOrder {
                 uppercaseType = Value::Str("STOP_MARKET".into());
             }  else if isLimitOrder {
                 uppercaseType = Value::Str("STOP".into());
             }
         }  else if isTakeProfit {
             stopPrice = takeProfitPrice;
-            if matches!(&isMarketOrder, Value::Bool(true)) {
+            if isMarketOrder {
                 uppercaseType = Value::Str("TAKE_PROFIT_MARKET".into());
             }  else if isLimitOrder {
                 uppercaseType = Value::Str("TAKE_PROFIT".into());
             }
         }
-        let mut postOnly: Value = self.is_post_only(isMarketOrder, Value::Null, &[params.clone()]);
+        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[params.clone()]);
         if postOnly.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("GTX".into())); }
         }

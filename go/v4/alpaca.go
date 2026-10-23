@@ -2450,12 +2450,8 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
@@ -2467,7 +2463,7 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var currency map[string]any = this.Currency(code)
 	var addressValue any = address
-	if (tagWithdrawTag != nil) && (tagWithdrawTag != "") {
+	if (tagWithdrawTag != nil) && (*tagWithdrawTag != "") {
 		addressValue = Add(Add(address, ":"), tagWithdrawTag)
 	}
 	var request map[string]any = map[string]any{

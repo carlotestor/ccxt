@@ -8228,7 +8228,7 @@ public partial class okx : Exchange
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         string request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -9920,8 +9920,8 @@ public partial class okx : Exchange
         this.options["sandboxMode"] = enable;
         if (enable == true)
         {
-            ((IDictionary<string,object>)this.headers)["x-simulated-trading"] = "1";
-        } else if (inOp(this.headers, "x-simulated-trading"))
+            this.headers["x-simulated-trading"] = "1";
+        } else if ((this.headers != null && this.headers.ContainsKey("x-simulated-trading")))
         {
             this.headers = this.omit(this.headers, "x-simulated-trading");
         }
@@ -11135,7 +11135,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToCurrencies(result);
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

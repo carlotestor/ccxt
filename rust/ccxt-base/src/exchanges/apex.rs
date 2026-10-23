@@ -1352,7 +1352,7 @@ impl ApexCore {
 })]);
         let mut timestamp: Value = self.milliseconds();
         let mut orderbook: Value = self.parse_order_book(data.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("b".into()), Value::Str("a".into())]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(data, "u", &[]));
+        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data, "u", &[])); }
         return orderbook;
 
     Value::Null
@@ -1903,16 +1903,16 @@ impl ApexCore {
             orderType = (if (orderType.as_str() == Some("MARKET")) { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) });
             triggerPrice = takeProfitPrice;
         }
-        let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        if matches!(&isMarket, Value::Bool(true)) && (price == Value::Null) {
+        let mut isMarket: bool = orderType.as_str() == Some("MARKET");
+        if isMarket && (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".into()))));
         }
         let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
-        let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
+        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]);
         if (timeInForce == Value::Null) {
             timeInForce = Value::Str("GOOD_TIL_CANCEL".into());
         }
-        if !(matches!(&isMarket, Value::Bool(true))) {
+        if !(isMarket) {
             if postOnly.as_bool() == Some(true) {
                 timeInForce = Value::Str("POST_ONLY".into());
             }  else if (timeInForce.as_str() == Some("ioc")) {

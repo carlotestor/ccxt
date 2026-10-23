@@ -1285,7 +1285,7 @@ impl PolymarketCore {
         //
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
         let mut orderbook: Value = self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(response, "sequence", &[]));
+        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(response, "sequence", &[])); }
         return orderbook;
 
     Value::Null

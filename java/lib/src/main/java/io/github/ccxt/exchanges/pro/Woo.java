@@ -317,7 +317,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     ((Map<String,Object>)this.orderbooks).remove(symbol);
                     if (!java.util.Objects.equals(topic, null))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove((String)topic);
+                        client.subscriptions.remove((String)topic);
                     }
                     client.reject(e, topic);
                 }
@@ -407,7 +407,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 if (!java.util.Objects.equals(messageHash, null))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    client.subscriptions.remove((String)messageHash);
                 }
                 client.reject(e, messageHash);
             }
@@ -1150,7 +1150,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, message);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -1623,7 +1623,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = "fetchPositionsSnapshot";
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1652,10 +1652,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 }
             }
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                ((io.github.ccxt.ws.Future)future).resolve(cache);
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                future.resolve(cache);
                 client.resolve(cache, "positions");
             }
             return null;
@@ -1886,9 +1886,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                if (client.subscriptions.containsKey(messageHash))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                    client.subscriptions.remove(messageHash);
                 }
             } else
             {
@@ -2063,15 +2063,15 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             // client.resolve (message, messageHash);
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove("authenticated");
+                client.subscriptions.remove("authenticated");
             }
         }
     }

@@ -2624,7 +2624,7 @@ func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[
 	if ccxt.InOp(this.Clients, url) {
 		var client ccxt.ClientInterface = this.Client(url)
 		var unsubHash string = "unsubscribe:" + subHash
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash) {
+		if client.(ccxt.ClientInterface).SubscriptionHas(unsubHash) {
 			// share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
 			var timeout *int64 = this.SafeInteger(this.Options, "unsubscribeTimeout", 10000)
 			this.Delay(timeout, this.ExpirePendingUnsubscribeAsync, client, subHash, unsubHash)
@@ -2668,7 +2668,7 @@ func (this *Hyperliquid) ExpirePendingUnsubscribeAsync(client any, subHash any, 
 func (this *Hyperliquid) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client any, subHash any, unsubHash any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash) {
+	if client.(ccxt.ClientInterface).SubscriptionHas(unsubHash) {
 		error := ccxt.RequestTimeout(ccxt.Add(ccxt.Add(this.Id+" unsubscribe ", subHash), " was not acknowledged"))
 		client.(ccxt.ClientInterface).Reject(error, unsubHash)
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
@@ -2752,8 +2752,8 @@ func (this *Hyperliquid) HandleOrderUnsubscription(client any, subscription map[
 	var user *string = this.SafeStringLower(subscription, "user")
 	if user != nil {
 		var subscribeHash string = "subscribe:orderUpdates::" + *user
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 		}
 	}
 	var topicStructure map[string]any = map[string]any{
@@ -2773,8 +2773,8 @@ func (this *Hyperliquid) HandleMyTradesUnsubscription(client any, subscription m
 	var user *string = this.SafeStringLower(subscription, "user")
 	if user != nil {
 		var subscribeHash string = "subscribe:userFills::" + *user
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 		}
 	}
 	var topicStructure map[string]any = map[string]any{

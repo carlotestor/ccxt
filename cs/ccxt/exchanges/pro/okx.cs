@@ -109,7 +109,7 @@ public partial class okx : ccxt.okx
         }
         bool isBusiness = ((access is "business"));
         bool isPublic = ((access is "public"));
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if (isBusiness || (((string)channel).IndexOf("candle", StringComparison.Ordinal) > -1) || ((channel is "orders-algo")))
         {
             return ((string?)((object)(add(add(url, "/business"), sandboxSuffix))));
@@ -1765,7 +1765,7 @@ public partial class okx : ccxt.okx
             { "books50-l2-tbt", 50 },
         };
         Int64? limit = this.safeInteger(depths, channel);
-        string? messageHash = ((string)add(add(channel, ":"), symbol));
+        string? messageHash = ((string)add(((object)(channel == null ? null : channel + ":")), symbol));
         if (action == "snapshot")
         {
             for (int i = 0; i < (data?.Count ?? 0); i++)
@@ -2617,7 +2617,7 @@ public partial class okx : ccxt.okx
         {
             string? method = this.safeString(message, "op");
             string stringMsg = this.json(message);
-            this.handleErrors(1, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(ccxt.BaseExchange.ToInt64Arg(1), "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         }
         IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(args, null, null, null));
         IDictionary<string, object> first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
@@ -2829,7 +2829,7 @@ public partial class okx : ccxt.okx
         {
             string? method = this.safeString(message, "op");
             string stringMsg = this.json(message);
-            this.handleErrors(1, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(ccxt.BaseExchange.ToInt64Arg(1), "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         }
         IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(args, null, null, null));
         client.resolve(orders, messageHash);

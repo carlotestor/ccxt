@@ -2639,7 +2639,7 @@ impl MexcCore {
             }
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
-            let mut isLinear: Value = Value::Bool(quote.as_str() == settle.as_str());
+            let mut isLinear: bool = quote.as_str() == settle.as_str();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
@@ -2658,8 +2658,8 @@ impl MexcCore {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("0"))));
                     m.insert("contract".to_string(), Value::Bool(true));
-                    m.insert("linear".to_string(), isLinear.clone());
-                    m.insert("inverse".to_string(), Value::Bool(!(matches!(&isLinear, Value::Bool(true)))));
+                    m.insert("linear".to_string(), Value::Bool(isLinear.clone()));
+                    m.insert("inverse".to_string(), Value::Bool(!(isLinear)));
                     m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
                     m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
                     m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
@@ -2759,7 +2759,7 @@ impl MexcCore {
             //
             let mut spotTimestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
             let mut spotOrderbook: Value = self.parse_order_book(response.clone(), symbol.clone(), &[spotTimestamp]);
-            add_element_to_object(&mut spotOrderbook, &Value::Str("nonce".into()), self.safe_integer_k(response.clone(), "lastUpdateId", &[]));
+            if let Value::Dict(__r03d) = &mut spotOrderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(response.clone(), "lastUpdateId", &[])); }
             return spotOrderbook;
         }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let __ws_arg_1 = self.extend(request, &[params]);
@@ -2785,7 +2785,7 @@ impl MexcCore {
             let mut data: Value = self.safe_dict_k(response, "data", &[]);
             let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
             let mut swapOrderbook: Value = self.parse_order_book(data.clone(), symbol, &[timestamp]);
-            add_element_to_object(&mut swapOrderbook, &Value::Str("nonce".into()), self.safe_integer_k(data, "version", &[]));
+            if let Value::Dict(__r03d) = &mut swapOrderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data, "version", &[])); }
             return swapOrderbook;
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() does not support ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));

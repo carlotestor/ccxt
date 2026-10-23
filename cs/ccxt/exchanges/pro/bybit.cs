@@ -191,7 +191,7 @@ public partial class bybit : ccxt.bybit
         bool? isSpot = null;
         string? type = null;
         IDictionary<string, object> market = null;
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -284,7 +284,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
-        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade"));
+        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"), "trade"));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -332,7 +332,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
-        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade"));
+        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"), "trade"));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -372,7 +372,7 @@ public partial class bybit : ccxt.bybit
             throw new ArgumentsRequired ((this.id + " cancelOrderWs() requires a symbol argument")) ;
         }
         Dictionary<string, object> orderRequest = this.cancelOrderRequest(id, symbol, parameters);
-        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "trade"));
+        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"), "trade"));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         if (orderRequest.ContainsKey("orderFilter"))
@@ -1796,7 +1796,7 @@ public partial class bybit : ccxt.bybit
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "position");
         }

@@ -201,7 +201,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             this.options.put("unSubscription", subscription);
             Object res = (this.watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription)).join();
             this.options.put("unSubscriptionPending", false);
-            Helpers.addElementToObject(this.options, "unSubscription", null);
+            this.options.remove("unSubscription");
             return res;
         });
 
@@ -310,7 +310,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(this.options, "unSubscription", subscription);
             Object res = (this.watchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription)).join();
             this.options.put("unSubscriptionPending", false);
-            Helpers.addElementToObject(this.options, "unSubscription", null);
+            this.options.remove("unSubscription");
             return res;
         });
 
@@ -343,7 +343,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 // we should generate new token
                 String token = this.createAuthToken(seconds, (String) null, (String) null, false);
                 Helpers.addElementToObject(this.options, "wsToken", token);
-                Helpers.addElementToObject(this.options, "wsTokenTimestamp", seconds);
+                this.options.put("wsTokenTimestamp", seconds);
             }
             subscribe.put("jwt", this.safeString(this.options, "wsToken"));
         }

@@ -827,12 +827,12 @@ impl MudrexCore {
 }));
         let mut aggregated: Vec<Value> = Vec::new();
         let mut offset: Value = Value::Int(0);
-        let mut pageLimit: Value = Value::Int(100);
+        let mut pageLimit: i64 = 100;
         let mut paging: bool = true;
         while paging {
             let mut q: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("limit".to_string(), pageLimit.clone());
+                    m.insert("limit".to_string(), Value::Int(pageLimit.clone()));
                     m.insert("offset".to_string(), offset.clone());
                 m
             }), &[params.clone()]);
@@ -842,12 +842,12 @@ impl MudrexCore {
             if matches!(&data, Value::Dict(_)) && !(matches!(&data, Value::Arr(_))) {
                 items = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-                let mut itemsLength: Value = Value::Int(items.len() as i64);
-                if (itemsLength.as_f64() == Some(0.0)) {
+                let mut itemsLength: i64 = items.len() as i64;
+                if (((itemsLength as f64) == 0.0)) {
                     items = self.safe_list_k(data.clone(), "results", &[Value::from(vec![])]);
-                    itemsLength = Value::Int(items.len() as i64);
+                    itemsLength = items.len() as i64;
                 }
-                if (itemsLength.as_f64() == Some(0.0)) && (in_op(&data, &Value::Str("symbol".into()))) {
+                if (((itemsLength as f64) == 0.0)) && (in_op(&data, &Value::Str("symbol".into()))) {
                     items = Value::from(vec![data.clone()]);
                 }
             }  else {
@@ -865,11 +865,11 @@ impl MudrexCore {
                 aggregated.push(items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
-            if numItems < pageLimit.as_f64().unwrap_or(f64::NAN) {
+            if numItems < (pageLimit as f64) {
                 paging = false;
             }  else {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = self.sum(&[offset.clone(), pageLimit.clone()]);
+                offset = self.sum(&[offset.clone(), Value::Int(pageLimit.clone())]);
             }
         }
         let mut result: Vec<Value> = Vec::new();

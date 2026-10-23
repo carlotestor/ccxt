@@ -130,7 +130,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         synchronized (this) {
         Long previousValue = this.safeInteger(this.options, "lastRequestId", 0);
         newValue = (Long) this.sum(previousValue, 1);
-        Helpers.addElementToObject(this.options, "lastRequestId", newValue);
+        this.options.put("lastRequestId", newValue);
         }
         return newValue;
     }
@@ -163,7 +163,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), market.get("type"));
+            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public"), market.get("type"));
             Long requestId = this.requestId();
             Map<String, Object> request = (Map<String, Object>) this.createPublicRequest((Map<String, Object>) (market), requestId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), false);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -180,7 +180,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), market.get("type"));
+            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public"), market.get("type"));
             Long requestId = this.requestId();
             Client client = this.client(url);
             Map<String, Object> existingSubscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, (Object) null);
@@ -228,7 +228,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
             String messageHash = "authenticate";
             Client client = this.client("authenticationFlights");
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
@@ -284,7 +284,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             // rethrows the failure to the leader and attaches the handler that
             // keeps an alone-leader rejection from killing the process
-            ((io.github.ccxt.ws.Future)future).getFuture().join();
+            future.getFuture().join();
             return listenKey;
         });
 
@@ -1092,7 +1092,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String messageHash = "myTrades";
         String symbolMessageHash = ((messageHash + "::") + symbol);
-        if ((((Map<?, ?>)client.futures).containsKey(messageHash)) || (((Map<?, ?>)client.futures).containsKey(symbolMessageHash)))
+        if ((client.futures.containsKey(messageHash)) || (client.futures.containsKey(symbolMessageHash)))
         {
             if (java.util.Objects.equals(this.myTrades, null))
             {
@@ -1184,7 +1184,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String messageHash = "orders";
         String symbolMessageHash = ((messageHash + "::") + symbol);
-        if ((((Map<?, ?>)client.futures).containsKey(messageHash)) || (((Map<?, ?>)client.futures).containsKey(symbolMessageHash)))
+        if ((client.futures.containsKey(messageHash)) || (client.futures.containsKey(symbolMessageHash)))
         {
             if (java.util.Objects.equals(this.orders, null))
             {
@@ -1344,7 +1344,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String messageHash = "positions";
         String symbolMessageHash = ((messageHash + "::") + symbol);
-        if ((((Map<?, ?>)client.futures).containsKey(messageHash)) || (((Map<?, ?>)client.futures).containsKey(symbolMessageHash)))
+        if ((client.futures.containsKey(messageHash)) || (client.futures.containsKey(symbolMessageHash)))
         {
             if (java.util.Objects.equals(this.positions, null))
             {

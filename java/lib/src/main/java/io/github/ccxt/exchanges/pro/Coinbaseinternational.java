@@ -129,7 +129,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     public Object requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        this.options.put("requestId", requestId);
         return requestId;
     }
 
@@ -154,7 +154,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             // re-authenticate in-band before the session expires, also while no watch call is pending
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
-            Helpers.addElementToObject(this.options, "wsAuthRefreshAt", this.sum(this.milliseconds(), 60000));
+            this.options.put("wsAuthRefreshAt", this.sum(this.milliseconds(), 60000));
             Object requestId = this.requestId();
             Helpers.addElementToObject(this.options, "wsAuthRequestId", requestId);
             Map<String, Object> parameters = new HashMap<String, Object>() {{
@@ -1223,8 +1223,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolResolved = this.symbol(symbol);
-            Object ohlcvs = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolResolved, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, paramsResolved)).join();
-            return Helpers.GetValue(Helpers.GetValue(ohlcvs, symbolResolved), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> ohlcvs = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolResolved, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, paramsResolved)).join();
+            return Helpers.GetValue((ohlcvs == null || symbolResolved == null ? null : ohlcvs.get(symbolResolved)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1746,9 +1746,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 // drop the stale book and reject only this channels future
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
-                if (((Map<?, ?>)client.subscriptions).containsKey(channel))
+                if (client.subscriptions.containsKey(channel))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)((String)channel));
+                    client.subscriptions.remove((String)((String)channel));
                 }
                 client.reject(new ExchangeError((this.id + " order book update has a nonce mismatch")), channel);
                 this.spawn(() -> { try { this.resubscribeOrderBook(channel); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1790,9 +1790,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             request.put("id", this.requestId());
             Client client = this.client(url);
             (client.send(request)).join();
-            if (((Map<?, ?>)client.subscriptions).containsKey(channel))
+            if (client.subscriptions.containsKey(channel))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)channel);
+                client.subscriptions.remove((String)channel);
             }
             (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), isPrivate, new HashMap<String, Object>() {{}})).join();
             return null;
@@ -1843,10 +1843,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String requestId = this.safeString(message, "id");
             String authRequestId = this.safeString(this.options, "wsAuthRequestId");
             String messageHash = (((java.util.Objects.equals(requestId, authRequestId)))) ? "authenticated" : requestId;
-            if ((java.util.Objects.equals(messageHash, "authenticated")) && (((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+            if ((java.util.Objects.equals(messageHash, "authenticated")) && (client.subscriptions.containsKey(messageHash)))
             {
                 // allow the next authenticate () call to retry
-                ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                client.subscriptions.remove((String)messageHash);
             }
             client.reject(e, messageHash);
         }
@@ -1953,7 +1953,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Double ratio = this.safeNumber(this.options, "wsAuthRefreshRatio", (Object) null);
         Object refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
         Long now = this.milliseconds();
-        Helpers.addElementToObject(this.options, "wsAuthRefreshAt", this.sum(now, this.parseToInt(Helpers.multiply((expiresIn * 1000L), refreshRatio))));
+        this.options.put("wsAuthRefreshAt", this.sum(now, this.parseToInt(Helpers.multiply((expiresIn * 1000L), refreshRatio))));
         client.lastPong = ((Number)now).longValue();
         client.resolve(result, "authenticated");
     }
@@ -1982,9 +1982,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (!java.util.Objects.equals(future, null))
             {
                 Long refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
-                if ((!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)) && !(((Map<?, ?>)client.futures).containsKey(messageHash)))
+                if ((!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)) && !(client.futures.containsKey(messageHash)))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                    client.subscriptions.remove(messageHash);
                     future = null;
                 }
             }

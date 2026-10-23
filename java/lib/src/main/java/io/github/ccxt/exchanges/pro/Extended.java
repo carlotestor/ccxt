@@ -153,7 +153,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Long previousNonce = this.safeInteger(orderbook, "nonce");
         if ((!java.util.Objects.equals(previousNonce, null)) && (!java.util.Objects.equals(nonce, (previousNonce + 1L))))
         {
-            ((Map<String,Object>)client.subscriptions).remove(messageHash);
+            client.subscriptions.remove(messageHash);
             ((Map<String,Object>)this.orderbooks).remove(symbol);
             var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);
@@ -328,7 +328,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 Map<String, Object> account = this.account();
                 account.put("free", this.safeString(balance, "availableForWithdrawal"));
                 account.put("total", this.safeString(balance, "balance"));
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
         }
         List<Object> spotBalances = (List<Object>) this.safeList(data, "spotBalances", new ArrayList<Object>(Arrays.asList()));
@@ -342,7 +342,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 Map<String, Object> account = this.account();
                 account.put("free", this.safeString(spotBalance, "availableToWithdraw"));
                 account.put("total", this.safeString(spotBalance, "balance"));
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
         }
         Long timestamp = this.safeInteger(message, "ts");
@@ -450,7 +450,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, "myTrades");
-        List<Object> subscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
@@ -626,7 +626,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, "orders");
-        List<Object> subscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
@@ -1015,7 +1015,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     public Object findSubscription(Client client, String name)
     {
-        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

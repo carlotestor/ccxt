@@ -4534,7 +4534,7 @@ public partial class gate : Exchange
             bool isIndex = ((price is "index"));
             if (isMark || isIndex)
             {
-                request["contract"] = add(add(price, "_"), (market.ContainsKey("id") ? market["id"] : null));
+                request["contract"] = add(((object)(price == null ? null : price + "_")), (market.ContainsKey("id") ? market["id"] : null));
             }
             object paramsContract = paramsOmitted;
             if (isMark || isIndex)
@@ -8639,7 +8639,7 @@ public partial class gate : Exchange
         {
             entirePath = endPart;
         }
-        object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), authentication), type);
+        object url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), authentication), type);
         if ((url == null))
         {
             throw new NotSupported ((((this.id + " does not have a testnet for the ") + (type)) + " market type.")) ;
@@ -10301,7 +10301,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbols, paramsValue));
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

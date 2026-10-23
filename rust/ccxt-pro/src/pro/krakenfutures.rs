@@ -2021,7 +2021,7 @@ impl KrakenfuturesCore {
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), key.clone(), &[])); }
                 if (code != Value::Null) {
                     if let Value::Dict(__d) = &mut holdingCodes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Bool(true)); }
-                    add_element_to_object(get_value_mut(&mut self.balance, &Value::Str("cash".into())), &code, newAccount.clone());
+                    if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &Value::Str("cash".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount.clone()); }
                 }
             }
             }
@@ -2055,13 +2055,13 @@ impl KrakenfuturesCore {
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(future.clone(), "available", &[])); }
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(future.clone(), "initial_margin", &[])); }
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(future, "balance", &[])); }
-                add_element_to_object(get_value_mut(&mut self.balance, &Value::Str("margin".into())), &symbol, Value::Map({
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &Value::Str("margin".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
                 if (symbol != Value::Null) && (code != Value::Null) {
                     if let Value::Dict(__d) = &mut futuresSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
-                    add_element_to_object(get_value_mut(get_value_mut(&mut self.balance, &Value::Str("margin".into())), &symbol), &code, newAccount.clone());
+                    if let Value::Dict(__r05d) = get_value_mut(get_value_mut(&mut self.balance, &Value::Str("margin".into())), &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount.clone()); }
                 }
             }
             }
@@ -2102,7 +2102,7 @@ impl KrakenfuturesCore {
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(flexFuture, "quantity", &[])); }
                 if (code != Value::Null) {
                     if let Value::Dict(__d) = &mut flexCodes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Bool(true)); }
-                    add_element_to_object(get_value_mut(&mut self.balance, &Value::Str("flex".into())), &code, newAccount);
+                    if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &Value::Str("flex".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount); }
                 }
             }
             }
@@ -2289,7 +2289,7 @@ impl KrakenfuturesCore {
             let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash.clone()); }
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            if !is_true(&self.subscription_exists_for_hash(url.clone(), messageHash)) {
+            if self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(false) {
                 rawSubs.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }

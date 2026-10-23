@@ -1500,7 +1500,7 @@ impl CexCore {
             m
         })]);
         let mut snapshot: Value = self.parse_order_book(data, symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
-        add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), incrementalId.clone());
+        if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), incrementalId.clone()); }
         orderbook.reset(snapshot);
         if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("orderbook".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1683,7 +1683,7 @@ impl CexCore {
     m
 })); }
         }
-        add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &Value::Str("unknown".into()), stored.clone());
+        if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert("unknown".to_string(), stored.clone()); }
         client.resolve(&[stored, messageHash]);
 }
 

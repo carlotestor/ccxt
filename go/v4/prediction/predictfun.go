@@ -3830,8 +3830,8 @@ func (this *Predictfun) HandleSubscriptionError(client any, message any, subscri
 	// unregistered, so a rejected request has to take its own entry down - otherwise a retry
 	// would skip the send and wait forever on a topic the venue never accepted
 	var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
-	if (subscribeHash != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+	if (subscribeHash != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+		client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 	}
 	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
 	if this.SafeString(subscription, "topic") != nil && *this.SafeString(subscription, "topic") == "walletEvents" {
@@ -3884,8 +3884,8 @@ func (this *Predictfun) HandleUnSubscription(client any, subscription any) {
 	// the subscription itself is keyed by the topic, which is what watchOrderBook registered -
 	// leaving it behind would make a later watch believe it is still subscribed
 	var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
-	if (subscribeHash != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+	if (subscribeHash != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+		client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 	}
 	// cleanCache drops a cache only when the subscription names that one topic, and the wallet
 	// topic backs two of them - so the caches it cannot reach are dropped here by the hashes
@@ -4876,7 +4876,7 @@ func (this *Predictfun) HandleMessage(client any, message any) {
 		// it carries only the request id, so the subscription that request registered is found
 		// by it - see handleSubscriptionStatus in pro/binance.ts
 		var id *string = this.SafeString(message, "requestId")
-		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 		var success *bool = this.SafeBool(message, "success", false)
 		if !(success != nil && *success) {

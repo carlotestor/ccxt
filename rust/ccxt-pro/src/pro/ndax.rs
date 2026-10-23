@@ -621,7 +621,7 @@ impl NdaxCore {
                             continue;
                         }
                     }
-                    append_to_array(&mut stored, parsed);
+                    if let Value::Arr(__a) = &mut stored { std::sync::Arc::make_mut(__a).push(parsed); };
                     let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                     if length.as_f64().unwrap_or(f64::NAN) >= limit.as_f64().unwrap_or(f64::NAN) {
                         shift(stored.clone());
@@ -630,7 +630,7 @@ impl NdaxCore {
                         add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
                     }
                 }
-                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
             }
             }
         }

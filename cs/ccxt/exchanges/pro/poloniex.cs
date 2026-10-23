@@ -90,7 +90,7 @@ public partial class poloniex : ccxt.poloniex
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? timestamp = this.numberToString(this.milliseconds());
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"));
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = this.safeValue(client.subscriptions, messageHash);
@@ -156,7 +156,7 @@ public partial class poloniex : ccxt.poloniex
         {
             publicOrPrivate = "private";
         }
-        string? url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), publicOrPrivate);
+        string? url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), publicOrPrivate);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -205,7 +205,7 @@ public partial class poloniex : ccxt.poloniex
     public async virtual Task<object> tradeRequest(string name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"));
         string messageHash = this.nonce().ToString();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", messageHash },
@@ -520,7 +520,7 @@ public partial class poloniex : ccxt.poloniex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         string name = "trades";
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public"));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -657,7 +657,7 @@ public partial class poloniex : ccxt.poloniex
         // balance from a rest snapshot once per subscription - otherwise the
         // first resolves would only list the currencies that changed since
         // subscribing
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"));
         var client = this.client(url);
         this.setBalanceCache(client, name);
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
@@ -720,7 +720,7 @@ public partial class poloniex : ccxt.poloniex
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve();
             client.resolve(this.balance, type);
         }

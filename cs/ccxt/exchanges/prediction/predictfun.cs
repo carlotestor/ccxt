@@ -2860,7 +2860,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    public override object handleErrors(object statusCode, string statusText, string url, string method, object responseHeaders, object responseBody, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? statusCode, string statusText, string url, string method, object responseHeaders, object responseBody, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -2881,7 +2881,7 @@ public partial class predictfun : PredictionExchange
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (isEqual(statusCode, 401))
+        if ((statusCode == 401))
         {
             this.options["jwtToken"] = null;
             this.options["jwtTokenExpiresAt"] = 0;
@@ -2890,7 +2890,7 @@ public partial class predictfun : PredictionExchange
         this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (isEqual(statusCode, 400))
+        if ((statusCode == 400))
         {
             throw new BadRequest (feedback) ;
         }
@@ -3588,7 +3588,7 @@ public partial class predictfun : PredictionExchange
      */
     public virtual object socketUrl()
     {
-        object urls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object urls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         string? bs = this.safeString(urls, "ws");
         if ((bs == null))
         {
@@ -4245,7 +4245,7 @@ public partial class predictfun : PredictionExchange
             throw new AuthenticationError ((this.id + " sign() requires the \"apiKey\" credential for all endpoints")) ;
         }
         object apiGroup = getValue(api, 0);
-        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "predictfun")));
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

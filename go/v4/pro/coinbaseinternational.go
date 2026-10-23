@@ -2167,8 +2167,8 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			if symbol != nil {
 				delete(this.Orderbooks, *symbol)
 			}
-			if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), channel) {
-				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), channel)
+			if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
+				client.(ccxt.ClientInterface).SubscriptionDel(channel)
 			}
 			client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id+" order book update has a nonce mismatch"), channel)
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
@@ -2224,8 +2224,8 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), channel) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), channel)
+	if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
+		client.(ccxt.ClientInterface).SubscriptionDel(channel)
 	}
 
 	r2 := <-this.SubscribeAsync([]any{channel}, []any{channel}, isPrivate, map[string]any{})
@@ -2276,9 +2276,9 @@ func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) b
 							}
 							return requestId
 						}()
-						if (ccxt.IsEqual(messageHash, "authenticated")) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+						if (ccxt.IsEqual(messageHash, "authenticated")) && (client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 							// allow the next authenticate () call to retry
-							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+							client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 						}
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						return nil
@@ -2423,11 +2423,11 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 	var url any = this.GetWsUrl(true)
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if !ccxt.IsEqual(future, nil) {
 		var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) && !ok {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			future = nil
 		}
 	}
@@ -2454,7 +2454,7 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 		}
 		future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 		this.Watch(url, messageHash, this.Extend(request, paramsResolved), messageHash)
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, future)
+		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
 	}
 
 	r := <-future.(*ccxt.Future).Await()

@@ -222,7 +222,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(this.balance, code, account);
+                    this.balance.put(code, account);
                 }
             }
         }
@@ -399,13 +399,13 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 String wsId = (("e_" + baseIdLower) + quoteIdLower);
                 channel = (("market_" + wsId) + "_depth_step0");
                 cbId = wsId;
-                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
+                url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("futurePublic");
             } else
             {
                 String marketIdLowercase = this.safeStringLower(market, "id");
                 channel = (("market_" + marketIdLowercase) + "_simple_depth_step0");
                 cbId = marketIdLowercase;
-                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+                url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             }
             Map<String, Object> message = new HashMap<String, Object>();
             message.put("event", "sub");
@@ -586,7 +586,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = (("market_" + wsId) + "_trade_ticker");
             String messageHash = ("trades:" + symbolValue);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -723,7 +723,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = ((("market_" + wsId) + "_kline_") + interval);
             String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -839,7 +839,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = (("market_" + wsId) + "_ticker");
             String messageHash = ("ticker:" + symbolValue);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1028,7 +1028,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 // lock rather than through an unsynchronized map write
                 String messageHash = "authenticateFlight";
                 Client client = this.client("authenticationFlights");
-                if (((Map<?, ?>)client.futures).containsKey(messageHash))
+                if (client.futures.containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey url is then in the options
@@ -1072,7 +1072,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }
                 // rethrows to the leader on failure and attaches the handler that
                 // keeps an alone leader's rejection from crashing the process
-                ((io.github.ccxt.ws.Future)future).getFuture().join();
+                future.getFuture().join();
                 // only the leader schedules the keepalive, so a burst of watchers
                 // no longer stacks one refresh timer per racing caller. waiters
                 // early-return above, so this runs once per successful flight.
@@ -1103,8 +1103,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 (this.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.extend(request, parameters))).join();
             } catch(Exception error)
             {
-                Helpers.addElementToObject(this.options, "listenKey", null);
-                Helpers.addElementToObject(this.options, "listenKeyUrl", null);
+                this.options.remove("listenKey");
+                this.options.remove("listenKeyUrl");
                 return null;
             }
             Long refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);

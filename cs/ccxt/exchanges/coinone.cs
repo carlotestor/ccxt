@@ -1502,7 +1502,7 @@ public partial class coinone : Exchange
         object apiName = getValue(api, 0);
         string? request = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1511,7 +1511,7 @@ public partial class coinone : Exchange
         bool isPublic = ((apiName is "public")) || ((apiName is "v2Public"));
         if ((apiName is "v2Public"))
         {
-            string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Public");
+            string? apiUrl2 = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "v2Public");
             if ((apiUrl2 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1519,7 +1519,7 @@ public partial class coinone : Exchange
             url = (apiUrl2 + "/");
         } else if ((apiName is "v2Private"))
         {
-            string? apiUrl3 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Private");
+            string? apiUrl3 = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "v2Private");
             if ((apiUrl3 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1527,7 +1527,7 @@ public partial class coinone : Exchange
             url = (apiUrl3 + "/");
         } else if ((apiName is "v2_1Private"))
         {
-            string? apiUrl4 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2_1Private");
+            string? apiUrl4 = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "v2_1Private");
             if ((apiUrl4 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1580,7 +1580,7 @@ public partial class coinone : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

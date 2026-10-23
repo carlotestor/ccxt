@@ -1740,7 +1740,7 @@ impl NadoCore {
             let mut __for_first_976: bool = true;
             while { if !__for_first_976 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_976 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut order: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if is_true(&self.is_archive_order_closed(order.clone())) {
+            if self.is_archive_order_closed(order.clone()).as_bool() == Some(true) {
                 closedOrders.push(self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("status".to_string(), Value::Str("closed".into()));
@@ -3782,7 +3782,7 @@ impl NadoCore {
             price = self.parse_x18(self.safe_string_k(order.clone(), "price_x18", &[]));
             status = self.safe_string_k(order.clone(), "status", &[]);
             if (status == Value::Null) {
-                if is_true(&self.is_archive_order_closed(order.clone())) {
+                if self.is_archive_order_closed(order.clone()).as_bool() == Some(true) {
                     status = Value::Str("closed".into());
                 }
             }
@@ -3939,19 +3939,19 @@ impl NadoCore {
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut postOnly: Value = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params, "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut orderType: Value = Value::Int(0);
+        let mut orderType: i64 = 0;
         if (timeInForce.as_deref() == Some("IOC")) {
-            orderType = Value::Int(1);
+            orderType = 1;
         }  else if (timeInForce.as_deref() == Some("FOK")) {
-            orderType = Value::Int(2);
+            orderType = 2;
         }  else if postOnly.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO")) {
-            orderType = Value::Int(3);
+            orderType = 3;
         }  else if (timeInForce.is_some()) && (timeInForce.as_deref() != Some("GTC")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only supports timeInForce values GTC, IOC, FOK, or PO".into()))));
         }
         let mut appendix: Value = Value::Str("1".into()); // version
-        if (orderType.as_f64() != Some(0.0)) {
-            appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&self.number_to_string(orderType), &Value::Str("512".into())));
+        if (((orderType as f64) != 0.0)) {
+            appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&self.number_to_string(Value::Int(orderType)), &Value::Str("512".into())));
         }
         if reduceOnly.as_bool() == Some(true) {
             appendix = crate::precise::Precise::stringAdd(&appendix, &Value::Str("2048".into()));

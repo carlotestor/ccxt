@@ -2850,7 +2850,7 @@ public partial class extended : Exchange
             { "salt", nonce },
         };
         string? msgHash = this.getExtendedOrderMsgHash(settlement);
-        object sig = parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
+        object sig = JsonHelper.Deserialize((string)this.extendedStarknetSign(msgHash, this.privateKey));
         string? r = this.getExtendedSignatureHex(getValue(sig, 0));
         string? s = this.getExtendedSignatureHex(getValue(sig, 1));
         settlement["r"] = r;
@@ -2886,7 +2886,7 @@ public partial class extended : Exchange
             { "salt", nonce },
         };
         string? msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
-        object sig = parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
+        object sig = JsonHelper.Deserialize((string)this.extendedStarknetSign(msgHash, this.privateKey));
         settlement["signature"] = new Dictionary<string, object>() {
             { "r", this.getExtendedSignatureHex(getValue(sig, 0)) },
             { "s", this.getExtendedSignatureHex(getValue(sig, 1)) },
@@ -2921,7 +2921,7 @@ public partial class extended : Exchange
             { "senderPublicKey", fromL2Key },
         };
         string? msgHash = this.getExtendedTransferMsgHash(settlement);
-        object sig = parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
+        object sig = JsonHelper.Deserialize((string)this.extendedStarknetSign(msgHash, this.privateKey));
         settlement["signature"] = new Dictionary<string, object>() {
             { "r", this.getExtendedSignatureHex(getValue(sig, 0)) },
             { "s", this.getExtendedSignatureHex(getValue(sig, 1)) },
@@ -3880,7 +3880,7 @@ public partial class extended : Exchange
     public virtual object getExtendedDomainHash()
     {
         object domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"));
-        string? restUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest", "");
+        string? restUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest", "");
         bool isTestnet = (restUrl?.IndexOf("sepolia", StringComparison.Ordinal) ?? -1) >= 0;
         string defaultChainId = "SN_MAIN";
         if (isTestnet)
@@ -3930,7 +3930,7 @@ public partial class extended : Exchange
         return ((string?)((object)(this.extendedStarknetComputePoseidonHashOnElements(new List<object> {this.getExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash}))));
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -3964,7 +3964,7 @@ public partial class extended : Exchange
         string endpoint = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         bool queryPost = ((path == "user/deadmanswitch"));
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

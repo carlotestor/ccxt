@@ -1674,7 +1674,7 @@ impl WooCore {
         let mut inverse: Value = Value::Null;
         let mut margin: Value = Value::Bool(true);
         let mut contract: Value = swap.clone();
-        if is_true(&contract) {
+        if contract.as_bool() == Some(true) {
             margin = Value::Bool(false);
             settleId = self.safe_string(parts, Value::Int(2), &[]);
             settle = self.safe_currency_code(settleId.clone(), &[]);
@@ -2472,9 +2472,9 @@ impl WooCore {
         let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
         let mut isConditional: bool = isTrailing || (triggerPrice != Value::Null) || hasStopLoss || hasTakeProfit || (self.safe_value_k(paramsMarginMode.clone(), "childOrders", &[]) != Value::Null);
-        let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
+        let mut isMarket: bool = orderType.as_str() == Some("MARKET");
         let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsMarginMode.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[paramsMarginMode.clone()]);
+        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[paramsMarginMode.clone()]);
         let mut clientOrderIdKey: Value = Value::Str("clientOrderId".into());
         if isConditional {
             clientOrderIdKey = Value::Str("clientAlgoOrderId".into());
@@ -2492,10 +2492,10 @@ impl WooCore {
         if (reduceOnly.as_bool() == Some(true)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), reduceOnly); }
         }
-        if !(matches!(&isMarket, Value::Bool(true))) && (price != Value::Null) {
+        if !(isMarket) && (price != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
-        let mut isMarketNotConditional: bool = matches!(&isMarket, Value::Bool(true)) && !isConditional;
+        let mut isMarketNotConditional: bool = isMarket && !isConditional;
         let mut paramsCost: Value = paramsMarginMode.clone();
         if isMarketNotConditional {
             paramsCost = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]);
@@ -2568,7 +2568,7 @@ impl WooCore {
                         m.insert("reduceOnly".to_string(), Value::Bool(true));
                     m
                 });
-                append_to_array(&mut childOrders, stopLossOrder);
+                if let Value::Arr(__a) = &mut childOrders { std::sync::Arc::make_mut(__a).push(stopLossOrder); };
             }
             if hasTakeProfit {
                 let mut takeProfitPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[takeProfit.clone()]);
@@ -2581,7 +2581,7 @@ impl WooCore {
                         m.insert("reduceOnly".to_string(), Value::Bool(true));
                     m
                 });
-                append_to_array(&mut childOrders, takeProfitOrder);
+                if let Value::Arr(__a) = &mut childOrders { std::sync::Arc::make_mut(__a).push(takeProfitOrder); };
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("childOrders".into(), Value::from(vec![outterOrder])); }
         }

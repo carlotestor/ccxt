@@ -1021,9 +1021,9 @@ public partial class polymarket : PredictionExchange
             IList<object> outcomeLabels = new List<object>() {};
             IList<object> clobTokenIds = new List<object>() {};
             object outcomePrices = new List<object>() {};
-            object parsedOutcomes = this.parseJson(this.safeString(market, "outcomes", "[]"));
-            object parsedTokenIds = this.parseJson(this.safeString(market, "clobTokenIds", "[]"));
-            object parsedPrices = this.parseJson(this.safeString(market, "outcomePrices", "[]"));
+            object parsedOutcomes = JsonHelper.Deserialize(this.safeString(market, "outcomes", "[]"));
+            object parsedTokenIds = JsonHelper.Deserialize(this.safeString(market, "clobTokenIds", "[]"));
+            object parsedPrices = JsonHelper.Deserialize(this.safeString(market, "outcomePrices", "[]"));
             int? parsedOutcomesLength = null;
             if ((parsedOutcomes != null))
             {
@@ -1244,12 +1244,12 @@ public partial class polymarket : PredictionExchange
      * @param {string[]} outcomeSymbols outcome token ids or handles
      * @returns {object} the outcome cache
      */
-    public async override Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
+    public async override Task<Dictionary<string, object>> FetchOutcomes(IList<object> outcomeSymbols)
     {
         List<object> tokenIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
+        for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            object outcomeSymbol = getValue(outcomeSymbols, i);
+            object outcomeSymbol = (outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null);
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -1304,11 +1304,11 @@ public partial class polymarket : PredictionExchange
             }
             this.populateOutcomes();
         }
-        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
+        for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            if (!this.hasOutcome(getValue(outcomeSymbols, i)))
+            if (!this.hasOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null)))
             {
-                ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
+                ccxt.BaseExchange.FromDict(await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null)));
             }
         }
         return ccxt.BaseExchange.ToDict(this.outcomes);
@@ -3265,18 +3265,18 @@ public partial class polymarket : PredictionExchange
      * @param {object[]} rawEvents the raw gamma event objects
      * @returns {object[]} a list of event structures
      */
-    public virtual List<object> parseEvents(object rawEvents)
+    public virtual List<object> parseEvents(IList<object> rawEvents)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawEvents); i++)
+        for (int i = 0; i < (rawEvents?.Count ?? 0); i++)
         {
-            object rawEvent = getValue(rawEvents, i);
+            object rawEvent = (rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null);
             result.Add(this.parseEvent(rawEvent));
         }
         return result;
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
@@ -3320,7 +3320,7 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         object apiGroup = getValue(api, 0);
         string? access = this.safeString(api, 1, "public");
-        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "gamma"));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         // an empty params container must not become a body: in PHP an empty array is
@@ -3848,7 +3848,7 @@ public partial class polymarket : PredictionExchange
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
         };
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, subscribeMsg, subscribeHash));
         return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -3875,7 +3875,7 @@ public partial class polymarket : PredictionExchange
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
         };
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         object trades = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
@@ -3912,7 +3912,7 @@ public partial class polymarket : PredictionExchange
                 ((IDictionary<string,object>)this.orderbooks)[(string)outcomeValue] = seededBook;
             }
         }
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         object orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
@@ -4045,7 +4045,7 @@ public partial class polymarket : PredictionExchange
             { "markets", new List<object>() {} },
             { "type", "user" },
         };
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "wsUser");
+        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "wsUser");
         string subscribeHash = "user";
         return await this.watch(url, messageHash, this.extend(subscribeMsg, parameters), subscribeHash);
     }

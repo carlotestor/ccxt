@@ -733,12 +733,12 @@ public partial class limitless : PredictionExchange
      * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
      * @returns {object[]} raw single-market rows only
      */
-    public virtual List<object> expandGroupRows(object rawRows)
+    public virtual List<object> expandGroupRows(IList<object> rawRows)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawRows); i++)
+        for (int i = 0; i < (rawRows?.Count ?? 0); i++)
         {
-            object raw = getValue(rawRows, i);
+            object raw = (rawRows != null && i < rawRows.Count ? rawRows[i] : null);
             string? rowType = this.safeString(raw, "marketType");
             List<object> nestedMarkets = this.safeList(raw, "markets");
             if ((rowType == "group") && ((nestedMarkets != null)))
@@ -2808,11 +2808,11 @@ public partial class limitless : PredictionExchange
         object paramsValue = parameters;
         if ((outcome != null))
         {
-            object warn = true;
+            bool warn = true;
             IList<object> warnparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
-            warn = warnparamsValueVariable[0];
+            warn = (bool)warnparamsValueVariable[0];
             paramsValue = warnparamsValueVariable[1];
-            if (isTrue(warn))
+            if (warn)
             {
                 throw new BadRequest ((this.id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")) ;
             }
@@ -2857,13 +2857,13 @@ public partial class limitless : PredictionExchange
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, "outcome");
         }
-        object paginate = false;
+        bool paginate = false;
         int maxLimit = 100;
         object paramsValue = parameters;
         IList<object> paginateparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate);
-        paginate = paginateparamsValueVariable[0];
+        paginate = (bool)paginateparamsValueVariable[0];
         paramsValue = paginateparamsValueVariable[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             paramsValue = this.omit(paramsValue, "paginate");
             return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, paramsValue, "nextCursor", "cursor", null, maxLimit));
@@ -3641,7 +3641,7 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         object apiGroup = getValue(api, 0);
         string? access = this.safeString(api, 1, "public");
-        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
@@ -3694,7 +3694,7 @@ public partial class limitless : PredictionExchange
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    public override object handleErrors(object statusCode, string statusText, string url, string method, object responseHeaders, object responseBody, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? statusCode, string statusText, string url, string method, object responseHeaders, object responseBody, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

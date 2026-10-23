@@ -612,14 +612,14 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " handleBookDelta not supported yet")) ;
     }
 
-    public virtual void handleDeltasWithKeys(object bookSide, object deltas, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual void handleDeltasWithKeys(object bookSide, IList<object> deltas, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            List<object> bidAsk = this.parseOrderBookBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            List<object> bidAsk = this.parseOrderBookBidAsk((deltas != null && i < deltas.Count ? deltas[i] : null), priceKey, amountKey, countOrIdKey);
             (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -630,12 +630,12 @@ public partial class BaseExchange
         return -1;
     }
 
-    public virtual List<object> arraysConcat(object arraysOfArrays)
+    public virtual List<object> arraysConcat(IList<object> arraysOfArrays)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(arraysOfArrays); i++)
+        for (int i = 0; i < (arraysOfArrays?.Count ?? 0); i++)
         {
-            result = this.arrayConcat(result, getValue(arraysOfArrays, i));
+            result = this.arrayConcat(result, (arraysOfArrays != null && i < arraysOfArrays.Count ? arraysOfArrays[i] : null));
         }
         return result;
     }
@@ -861,20 +861,20 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual IList<object> filterByLimit(object array, object limit = null, object key = null, bool? fromStart = null)
+    public virtual IList<object> filterByLimit(IList<object> array, object limit = null, object key = null, bool? fromStart = null)
     {
         key ??= "timestamp";
         fromStart ??= false;
         if (this.valueIsDefined(limit))
         {
-            int arrayLength = getArrayLength(array);
+            int arrayLength = (array?.Count ?? 0);
             if (arrayLength > 0)
             {
                 bool ascending = true;
-                if ((inOp(getValue(array, 0), key)))
+                if ((inOp((array != null && 0 < array.Count ? array[0] : null), key)))
                 {
-                    double? first = this.safeFloat(getValue(array, 0), key);
-                    double? last = this.safeFloat(getValue(array, (arrayLength - 1)), key);
+                    double? first = this.safeFloat((array != null && 0 < array.Count ? array[0] : null), key);
+                    double? last = this.safeFloat((array != null && (arrayLength - 1) < array.Count ? array[(arrayLength - 1)] : null), key);
                     if ((first != null) && (last != null))
                     {
                         ascending = isGreaterThanOrEqual(last, first); // true if array is sorted in ascending order based on 'timestamp'
@@ -978,16 +978,16 @@ public partial class BaseExchange
     {
         if (enabled == true)
         {
-            if (((IDictionary<string, object>)this.urls).ContainsKey("test"))
+            if (this.urls.ContainsKey("test"))
             {
-                if (((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null) is string))
+                if (((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null) is string))
                 {
-                    ((IDictionary<string,object>)this.urls)["apiBackup"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
-                    ((IDictionary<string,object>)this.urls)["api"] = ((IDictionary<string,object>)this.urls)["test"];
+                    this.urls["apiBackup"] = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
+                    this.urls["api"] = this.urls["test"];
                 } else
                 {
-                    ((IDictionary<string,object>)this.urls)["apiBackup"] = this.clone((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null));
-                    ((IDictionary<string,object>)this.urls)["api"] = this.clone(((IDictionary<string,object>)this.urls)["test"]);
+                    this.urls["apiBackup"] = this.clone((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null));
+                    this.urls["api"] = this.clone(this.urls["test"]);
                 }
             } else
             {
@@ -995,16 +995,16 @@ public partial class BaseExchange
             }
             // set flag
             this.isSandboxModeEnabled = true;
-        } else if (((IDictionary<string, object>)this.urls).ContainsKey("apiBackup"))
+        } else if (this.urls.ContainsKey("apiBackup"))
         {
-            if (((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null) is string))
+            if (((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null) is string))
             {
-                ((IDictionary<string,object>)this.urls)["api"] = ((object)((IDictionary<string,object>)this.urls)["apiBackup"]);
+                this.urls["api"] = ((object)this.urls["apiBackup"]);
             } else
             {
-                ((IDictionary<string,object>)this.urls)["api"] = this.clone(((IDictionary<string,object>)this.urls)["apiBackup"]);
+                this.urls["api"] = this.clone(this.urls["apiBackup"]);
             }
-            object newUrls = this.omit(this.urls, "apiBackup");
+            Dictionary<string, object> newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
             // set flag
             this.isSandboxModeEnabled = false;
@@ -1025,12 +1025,12 @@ public partial class BaseExchange
         }
         if (enable)
         {
-            ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
-            ((IDictionary<string,object>)this.urls)["api"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("demo") ? ((IDictionary<string, object>)this.urls)["demo"] : null);
-        } else if (((IDictionary<string, object>)this.urls).ContainsKey("apiBackupDemoTrading"))
+            this.urls["apiBackupDemoTrading"] = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
+            this.urls["api"] = (this.urls != null && this.urls.ContainsKey("demo") ? this.urls["demo"] : null);
+        } else if (this.urls.ContainsKey("apiBackupDemoTrading"))
         {
-            ((IDictionary<string,object>)this.urls)["api"] = ((object)((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"]);
-            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            this.urls["api"] = ((object)this.urls["apiBackupDemoTrading"]);
+            Dictionary<string, object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         this.options["enableDemoTrading"] = enable;
@@ -2996,19 +2996,19 @@ public partial class BaseExchange
         return fee;
     }
 
-    public virtual object findNearestCeiling(object arr, object providedValue)
+    public virtual object findNearestCeiling(IList<object> arr, object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-        int length = getArrayLength(arr);
+        int length = (arr?.Count ?? 0);
         for (int i = 0; i < length; i++)
         {
-            object current = getValue(arr, i);
+            object current = (arr != null && i < arr.Count ? arr[i] : null);
             if (isLessThanOrEqual(providedValue, current))
             {
                 return current;
             }
         }
-        return getValue(arr, (length - 1));
+        return (arr != null && (length - 1) < arr.Count ? arr[(length - 1)] : null);
     }
 
     public virtual List<object> addKeyInArrayItems(object obj, object keyName)
@@ -3372,7 +3372,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual Dictionary<string, object> convertOHLCVToTradingView(object ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, bool? ms = null)
+    public virtual Dictionary<string, object> convertOHLCVToTradingView(IList<object> ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, bool? ms = null)
     {
         timestamp ??= "t";
         open ??= "o";
@@ -3388,21 +3388,21 @@ public partial class BaseExchange
         result[(string)low] = new List<object>() {};
         result[(string)close] = new List<object>() {};
         result[(string)volume] = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ohlcvs); i++)
+        for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
         {
-            object ts = ms == true ? getValue(getValue(ohlcvs, i), 0) : this.parseToInt(divide(getValue(getValue(ohlcvs, i), 0), 1000));
+            object ts = ms == true ? getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 0) : this.parseToInt(divide(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 0), 1000));
             object resultTimestamp = (result != null && timestamp != null && result.ContainsKey((string)timestamp) ? result[(string)timestamp] : null);
             ((IList<object>)resultTimestamp).Add(ts);
             object resultOpen = (result != null && open != null && result.ContainsKey((string)open) ? result[(string)open] : null);
-            ((IList<object>)resultOpen).Add(getValue(getValue(ohlcvs, i), 1));
+            ((IList<object>)resultOpen).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 1));
             object resultHigh = (result != null && high != null && result.ContainsKey((string)high) ? result[(string)high] : null);
-            ((IList<object>)resultHigh).Add(getValue(getValue(ohlcvs, i), 2));
+            ((IList<object>)resultHigh).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 2));
             object resultLow = (result != null && low != null && result.ContainsKey((string)low) ? result[(string)low] : null);
-            ((IList<object>)resultLow).Add(getValue(getValue(ohlcvs, i), 3));
+            ((IList<object>)resultLow).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 3));
             object resultClose = (result != null && close != null && result.ContainsKey((string)close) ? result[(string)close] : null);
-            ((IList<object>)resultClose).Add(getValue(getValue(ohlcvs, i), 4));
+            ((IList<object>)resultClose).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 4));
             object resultVolume = (result != null && volume != null && result.ContainsKey((string)volume) ? result[(string)volume] : null);
-            ((IList<object>)resultVolume).Add(getValue(getValue(ohlcvs, i), 5));
+            ((IList<object>)resultVolume).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 5));
         }
         return result;
     }
@@ -3530,16 +3530,16 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual IList<object> marketsForSymbols(object symbols = null)
+    public virtual IList<object> marketsForSymbols(IList<object> symbols = null)
     {
         if ((symbols == null))
         {
             return null;
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            result.Add(this.market(getValue(symbols, i)));
+            result.Add(this.market((symbols != null && i < symbols.Count ? symbols[i] : null)));
         }
         return result;
     }
@@ -5577,7 +5577,7 @@ public partial class BaseExchange
         return null;
     }
 
-    public virtual object handleErrors(object statusCode, string statusText, string url, string method, object responseHeaders, object responseBody, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public virtual object handleErrors(Int64? statusCode, string statusText, string url, string method, object responseHeaders, object responseBody, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
@@ -6134,7 +6134,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " currencyToPrecision() requires a code argument")) ;
         }
-        object currency = getValue(this.currencies, code);
+        object currency = (((IDictionary<string,object>)this.currencies) != null && code != null && ((IDictionary<string,object>)this.currencies).ContainsKey(code) ? ((IDictionary<string,object>)this.currencies)[code] : null);
         object precision = this.safeValue(currency, "precision");
         if ((networkCode != null))
         {
@@ -6942,7 +6942,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual void checkRequiredArgument(string? methodName, object argument, string argumentName, object options = null)
+    public virtual void checkRequiredArgument(string? methodName, object argument, string argumentName, IList<object> options = null)
     {
         /**
         * @ignore
@@ -6954,7 +6954,7 @@ public partial class BaseExchange
         * @returns {undefined}
         */
         options ??= new List<object>();
-        int optionsLength = getArrayLength(options);
+        int optionsLength = (options?.Count ?? 0);
         if (((argument == null)) || ((optionsLength > 0) && (!(this.inArray(argument, options)))))
         {
             string messageOptions = String.Join(", ", ((IList<object>)options).ToArray());
@@ -7226,7 +7226,7 @@ public partial class BaseExchange
         IDictionary<string, object> paramsPaginationDirection = ((IDictionary<string, object>)paginationDirectionparamsPaginationDirectionVariable[1]);
         object paginationTimestamp = null;
         IList<object> removeRepeatedOptionparamsRemoveRepeatedVariable = (IList<object>)this.handleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", removeRepeated);
-        var removeRepeatedOption = removeRepeatedOptionparamsRemoveRepeatedVariable[0];
+        bool removeRepeatedOption = (bool)removeRepeatedOptionparamsRemoveRepeatedVariable[0];
         IDictionary<string, object> paramsRemoveRepeated = ((IDictionary<string, object>)removeRepeatedOptionparamsRemoveRepeatedVariable[1]);
         Int64 calls = 0;
         List<object> result = new List<object>() {};
@@ -7337,7 +7337,7 @@ public partial class BaseExchange
             }
         }
         object uniqueResults = result;
-        if (isTrue(removeRepeatedOption))
+        if (removeRepeatedOption)
         {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
@@ -7840,12 +7840,12 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseOption () is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseOptionChain(object response, string? currencyKey = null, string? symbolKey = null)
+    public virtual Dictionary<string, object> parseOptionChain(IList<object> response, string? currencyKey = null, string? symbolKey = null)
     {
         Dictionary<string, object> optionStructures = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object info = getValue(response, i);
+            object info = (response != null && i < response.Count ? response[i] : null);
             string? currencyId = ((currencyKey == null)) ? null : this.safeString(info, currencyKey);
             Dictionary<string, object> currency = this.safeCurrency(currencyId);
             string? marketId = ((symbolKey == null)) ? null : this.safeString(info, symbolKey);

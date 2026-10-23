@@ -5592,7 +5592,7 @@ func (this *Aster) KeccakMessage(message any) any {
 func (this *Aster) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.KeccakMessage(message), Slice(privateKey, int64(-64), nil))
 }
-func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) string {
+func (this *Aster) SignWithdrawPayload(withdrawPayload map[string]any, network any) string {
 	var chainId *int64 = this.SafeInteger(withdrawPayload, "chainId")
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
@@ -5667,12 +5667,8 @@ func (this *Aster) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 

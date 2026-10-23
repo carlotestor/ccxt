@@ -1151,7 +1151,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         account.put("used", this.safeString(balance, "new_locked"));
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject(this.balance, code, account);
+            this.balance.put(code, account);
         }
         this.balance = this.safeBalance(this.balance);
     }
@@ -1442,7 +1442,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
         if (!java.util.Objects.equals(future, null))
         {
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         }
         return message;
     }

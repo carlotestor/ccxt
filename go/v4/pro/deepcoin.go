@@ -179,7 +179,7 @@ func (this *Deepcoin) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], market a
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), ccxt.GetValue(market, "type"))
 	var requestId int64 = this.RequestId()
 	var client ccxt.ClientInterface = this.Client(url)
-	var existingSubscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var existingSubscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if existingSubscription == nil {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id+" no subscription for ", messageHash)))
 	}
@@ -1736,12 +1736,12 @@ func (this *Deepcoin) HandleSubscriptionStatus(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(first, "d")
 	var action *string = this.SafeString(data, "A") // 1 = subscribe, 0 = unsubscribe
 	if action != nil && *action == "0" {
-		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 		var subId *int64 = this.SafeInteger(data, "L")
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, subId) // original watch subscription
 		var subHash *string = this.SafeString(subscription, "subHash")
 		var unsubHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subHash))
-		var unsubsciption any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash, map[string]any{}) // unWatch subscription
+		var unsubsciption any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{}) // unWatch subscription
 		this.HandleUnSubscription(client, unsubsciption)
 	}
 }
@@ -1774,7 +1774,7 @@ func (this *Deepcoin) HandleErrorMessage(client any, message any) {
 	var first map[string]any = ccxt.SafeMapTyped(response, 0)
 	var data map[string]any = ccxt.SafeMapTyped(first, "d")
 	var requestId *int64 = this.SafeInteger(data, "L")
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, requestId)
 	var messageHash *string = this.SafeString(subscription, "subHash")
 	var feedback string = this.Id + " " + this.Json(message)

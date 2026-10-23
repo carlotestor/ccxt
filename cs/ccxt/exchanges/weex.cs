@@ -4977,7 +4977,7 @@ public partial class weex : Exchange
         if ((sandboxMode == true) && ((baseId != null)))
         {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
-            return ((string?)((object)(add(baseId, "SUSDT"))));
+            return ((string?)((object)(((object)(baseId == null ? null : baseId + "SUSDT")))));
         }
         return this.safeString(market, "id");
     }
@@ -5048,7 +5048,7 @@ public partial class weex : Exchange
             }
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());
-            object payload = add(add(add(timestamp, method), "/"), endpoint);
+            object payload = add(add(((object)(timestamp == null ? null : timestamp + method)), "/"), endpoint);
             if (hasJsonBody)
             {
                 payload = add(payload, requestBody);
@@ -5070,7 +5070,7 @@ public partial class weex : Exchange
                 { "User-Agent", "ccxt" },
             };
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -5085,7 +5085,7 @@ public partial class weex : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         //
         //     {

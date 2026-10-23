@@ -4314,15 +4314,11 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		request["limit"] = mathMin(limit, 100)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(paramsApiKeyIndex, "fetchMyTrades", "until", "from")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["from"] = until
+		request["from"] = *until
 	}
 	var market map[string]any = nil
 	if symbol != nil {

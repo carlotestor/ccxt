@@ -954,7 +954,7 @@ impl ZaifCore {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("id".to_string(), to_string_val(&get_value(&data, &Value::Str("order_id".into()))));
+        m.insert("id".to_string(), to_string_val(&data.as_map().and_then(|__m| __m.get("order_id")).cloned().unwrap_or(Value::Null)));
     m
 }), &[market]);
 
@@ -1280,7 +1280,7 @@ impl ZaifCore {
     pub fn custom_nonce(&self) -> Option<String> {
         let mut num: Value = self.number_to_string((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut nonce: Value = (match &num { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
-        return to_fixed(&nonce, &Value::Int(8)).as_str().map(str::to_owned);
+        return Value::str(format!("{:.*}", 8, nonce.as_f64().unwrap_or(0.0))).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

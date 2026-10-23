@@ -7654,7 +7654,7 @@ public class Bingx extends BingxApi
         Object version = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
         Object access = (section == null || 2 >= ((List<?>)section).size() ? null : ((List<?>)section).get(2));
         Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-        String url = (String) this.implodeHostname(Helpers.GetValue(this.urls.get("api"), type));
+        String url = (String) this.implodeHostname((type == null ? null : ((Map<String, Object>)this.urls.get("api")).get(type)));
         if (Boolean.TRUE.equals(isSandbox) && java.util.Objects.equals(url, null))
         {
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + type) + " endpoints")) ;

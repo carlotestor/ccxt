@@ -1054,7 +1054,7 @@ pub trait ExchangeBase:
                 let mut entryKeyValue: Value = self.safe_integer(entry.clone(), key.clone(), &[]);
                 let mut entryKeyGESince: Value = Value::Bool((entryKeyValue != Value::Null) && (entryKeyValue.as_f64() != Some(0.0)) && (since != Value::Null) && (entryKeyValue.as_f64().unwrap_or(f64::NAN) >= since.as_f64().unwrap_or(f64::NAN)));
                 let mut secondCondition: Value = (if sinceIsDefined.as_bool() == Some(true) { entryKeyGESince } else { Value::Bool(true) });
-                if is_true(&firstCondition) && is_true(&secondCondition) {
+                if firstCondition.as_bool() == Some(true) && secondCondition.as_bool() == Some(true) {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(entry); }
                 }
             }
@@ -2708,9 +2708,9 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (in_op(&marketsById, &value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))) {
-                let mut marketsByIdArray: Value = get_value(&marketsById, &value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                append_to_array(&mut marketsByIdArray, value.clone());
+            if (marketsById.as_map().is_some_and(|__m| value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+                let mut marketsByIdArray: Value = marketsById.as_map().and_then(|__m| value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                if let Value::Arr(__a) = &mut marketsByIdArray { std::sync::Arc::make_mut(__a).push(value.clone()); };
                 add_element_to_object(&mut marketsById, &value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), marketsByIdArray);
             }  else {
                 add_element_to_object(&mut marketsById, &value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::from(vec![value.clone()]));
@@ -2755,12 +2755,12 @@ pub trait ExchangeBase:
         let mut marketsSortedById: Value = self.keysort(self.markets_by_id.clone(), &[]);
         self.symbols = object_keys(&marketsSortedBySymbol);
         self.ids = object_keys(&marketsSortedById);
-        let mut numCurrencies: Value = Value::Int(0);
+        let mut numCurrencies: i64 = 0;
         if (currencies != Value::Null) {
             let mut keys: Value = object_keys(&currencies);
-            numCurrencies = Value::Int(keys.len() as i64);
+            numCurrencies = keys.len() as i64;
         }
-        if numCurrencies.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        if (numCurrencies as f64) > ((0i64) as f64) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             { let __t = self.map_to_safe_map(self.deep_extend(self.currencies.clone(), &[currencies.clone()])); self.currencies = __t; }
         }  else {
@@ -3004,12 +3004,12 @@ pub trait ExchangeBase:
                 trades = rawTrades;
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
-            let mut tradesLength: Value = Value::Int(0);
+            let mut tradesLength: i64 = 0;
             let mut isArray: bool = matches!(&trades, Value::Arr(_));
             if isArray {
-                tradesLength = Value::Int(trades.len() as i64);
+                tradesLength = trades.len() as i64;
             }
-            if isArray && (tradesLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+            if isArray && ((tradesLength as f64) > ((0i64) as f64)) {
                 // move properties that are defined in trades up into the order
                 if (orderDict.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut orderDict, &Value::Str("symbol".into()), crate::value::get_value_k(&trades.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), "symbol"));
@@ -3107,7 +3107,7 @@ pub trait ExchangeBase:
                 // copy fee to avoid modification by reference
                 let mut feeCopy: Value = self.deep_extend(fee, &[]);
                 { let __be_tmp = self.safe_number_k(feeCopy.clone(), "cost", &[]); add_element_to_object(&mut feeCopy, &Value::Str("cost".into()), __be_tmp); };
-                if (in_op(&feeCopy, &Value::Str("rate".into()))) {
+                if (feeCopy.as_map().is_some_and(|__m| __m.contains_key("rate"))) {
                     { let __be_tmp = self.safe_number_k(feeCopy.clone(), "rate", &[]); add_element_to_object(&mut feeCopy, &Value::Str("rate".into()), __be_tmp); };
                 }
                 append_to_array(&mut reducedFees, feeCopy);
@@ -3705,7 +3705,7 @@ pub trait ExchangeBase:
                 }
                 let mut rateKey: Value = (if (rate == Value::Null) { Value::Str("".into()) } else { rate.clone() });
                 if (in_op(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey)) {
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&get_value(&reduced, &feeCurrencyCode), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); };
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); };
                 }  else {
                     add_element_to_object(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4055,23 +4055,23 @@ pub trait ExchangeBase:
             let mut __for_first_107: bool = true;
             while { if !__for_first_107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_107 = false; i.as_f64().unwrap_or(f64::NAN) < ((ohlcvs.len() as i64) as f64) } {
             let mut ts: Value = (if is_true(&ms) { ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { self.parse_to_int((match ((ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) });
-            let mut resultTimestamp: Value = get_value(&result, &timestamp);
-            append_to_array(&mut resultTimestamp, ts);
+            let mut resultTimestamp: Value = result.as_map().and_then(|__m| timestamp.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut resultTimestamp { std::sync::Arc::make_mut(__a).push(ts); };
             crate::set_value(&mut result, &timestamp, resultTimestamp);
-            let mut resultOpen: Value = get_value(&result, &open);
-            append_to_array(&mut resultOpen, ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null));
+            let mut resultOpen: Value = result.as_map().and_then(|__m| open.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut resultOpen { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &open, resultOpen);
-            let mut resultHigh: Value = get_value(&result, &high);
-            append_to_array(&mut resultHigh, ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null));
+            let mut resultHigh: Value = result.as_map().and_then(|__m| high.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut resultHigh { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &high, resultHigh);
-            let mut resultLow: Value = get_value(&result, &low);
-            append_to_array(&mut resultLow, ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null));
+            let mut resultLow: Value = result.as_map().and_then(|__m| low.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut resultLow { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &low, resultLow);
-            let mut resultClose: Value = get_value(&result, &close);
-            append_to_array(&mut resultClose, ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null));
+            let mut resultClose: Value = result.as_map().and_then(|__m| close.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut resultClose { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &close, resultClose);
-            let mut resultVolume: Value = get_value(&result, &volume);
-            append_to_array(&mut resultVolume, ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null));
+            let mut resultVolume: Value = result.as_map().and_then(|__m| volume.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut resultVolume { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &volume, resultVolume);
         }
         }
@@ -4639,11 +4639,11 @@ pub trait ExchangeBase:
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsLength: Value = Value::Int(0);
+        let mut symbolsLength: i64 = 0;
         if (symbolsNormalized != Value::Null) {
-            symbolsLength = Value::Int(symbolsNormalized.len() as i64);
+            symbolsLength = symbolsNormalized.len() as i64;
         }
-        let mut noSymbols: bool = (symbolsNormalized == Value::Null) || (symbolsLength.as_f64() == Some(0.0));
+        let mut noSymbols: bool = (symbolsNormalized == Value::Null) || (((symbolsLength as f64) == 0.0));
         if (matches!(&response, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);

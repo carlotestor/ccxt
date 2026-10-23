@@ -3757,7 +3757,7 @@ public partial class coinbaseinternational : Exchange
         object rpcMethod = add(add(access, "/"), path);
         object requestParams = this.handleRouteAndParams("sign", parameters);
         bool isNativeDeribit = this.isNativeDeribitCredentials();
-        string baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest", "");
+        string baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest", "");
         if (isNativeDeribit)
         {
             baseApiUrl = "https://www.deribit.com/api/v2";
@@ -3951,7 +3951,7 @@ public partial class coinbaseinternational : Exchange
         return ((this.apiKey.Length == 8)) && ((this.secret.Length == 43));
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }

@@ -3190,12 +3190,8 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagResolvedparamsTagVariable []any = this.HandleParamString(params, "tag")
-	tagResolved := func() any {
-		if p, _ := tagResolvedparamsTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagResolved *string = nil
+	if p, ok := tagResolvedparamsTagVariable[0].(*string); ok { tagResolved = p }
 	var paramsTag map[string]any = MapTyped(tagResolvedparamsTagVariable[1])
 	if this.Markets == nil {
 
@@ -3221,7 +3217,7 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		request["currency"] = currency["id"]
 		request["address"] = address
 		if tagResolved != nil {
-			request["secondary_address"] = tagResolved
+			request["secondary_address"] = *tagResolved
 		}
 
 		r1 := <-this.PrivatePostWithdrawsCoin(this.Extend(request, paramsOmitted))

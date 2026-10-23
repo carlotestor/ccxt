@@ -2337,12 +2337,8 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
-	cost := func() any {
-		if p, _ := costparamsCostVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var cost *string = nil
+	if p, ok := costparamsCostVariable[0].(*string); ok { cost = p }
 	var paramsCost map[string]any = MapTyped(costparamsCostVariable[1])
 	if (typeVar == "market") && (side == "buy") {
 		if cost == nil {
@@ -2379,23 +2375,19 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
 	var reduceOnlyparamsReduceOnlyVariable []any = this.HandleParamBool(params, "reduceOnly")
-	reduceOnly := func() any {
-		if p, _ := reduceOnlyparamsReduceOnlyVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var reduceOnly *bool = nil
+	if p, ok := reduceOnlyparamsReduceOnlyVariable[0].(*bool); ok { reduceOnly = p }
 	var paramsReduceOnly map[string]any = MapTyped(reduceOnlyparamsReduceOnlyVariable[1])
 	if side == "buy" {
 		request["side"] = func() string {
-			if reduceOnly == true {
+			if reduceOnly != nil && *reduceOnly == true {
 				return "BUY_CLOSE"
 			}
 			return "BUY_OPEN"
 		}()
 	} else if side == "sell" {
 		request["side"] = func() string {
-			if reduceOnly == true {
+			if reduceOnly != nil && *reduceOnly == true {
 				return "SELL_CLOSE"
 			}
 			return "SELL_OPEN"
@@ -3400,12 +3392,8 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 		panic(NotSupported(this.Id + " fetchTradingFees(): does not support " + *marketType + " markets"))
 	} else if this.InArray(marketType, []any{"swap", "future"}) {
 		var symbolparamsSymbolVariable []any = this.HandleParamString(paramsMarketType, "symbol")
-		symbol := func() any {
-			if p, _ := symbolparamsSymbolVariable[0].(*string); p != nil {
-				return *p
-			}
-			return nil
-		}()
+		var symbol *string = nil
+		if p, ok := symbolparamsSymbolVariable[0].(*string); ok { symbol = p }
 		var paramsSymbol map[string]any = MapTyped(symbolparamsSymbolVariable[1])
 		if symbol == nil {
 			panic(BadRequest(this.Id + " fetchTradingFees requires a params[\"symbol\"]"))

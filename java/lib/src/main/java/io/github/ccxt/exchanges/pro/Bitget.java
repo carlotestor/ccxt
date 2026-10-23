@@ -3050,7 +3050,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Boolean.TRUE.equals(uta))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = ((Boolean.TRUE.equals(uta))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPublic") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
@@ -3059,10 +3059,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     if (Boolean.TRUE.equals(uta))
                     {
-                        url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPublic");
+                        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("utaPublic");
                     } else
                     {
-                        url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "public");
+                        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("public");
                     }
                 }
             }
@@ -3081,7 +3081,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Boolean.TRUE.equals(uta))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = ((Boolean.TRUE.equals(uta))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPublic") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
@@ -3090,10 +3090,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     if (Boolean.TRUE.equals(uta))
                     {
-                        url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPublic");
+                        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("utaPublic");
                     } else
                     {
-                        url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "public");
+                        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("public");
                     }
                 }
             }
@@ -3113,7 +3113,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         return BaseExchange.supplyAsync(() -> {
 
             Boolean isUta = (java.util.Objects.equals(uta, true));
-            Object url = ((Boolean.TRUE.equals(isUta))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPrivate") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            Object url = ((Boolean.TRUE.equals(isUta))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPrivate") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
@@ -3122,10 +3122,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     if (Boolean.TRUE.equals(isUta))
                     {
-                        url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPrivate");
+                        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("utaPrivate");
                     } else
                     {
-                        url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "private");
+                        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("private");
                     }
                 }
             }
@@ -3147,7 +3147,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Boolean.TRUE.equals(uta))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = ((Boolean.TRUE.equals(uta))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPublic") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
@@ -3155,7 +3155,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 String instType = this.safeString(argsArrayFirst, "instType");
                 if ((!java.util.Objects.equals(instType, "SCOIN-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDT-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDC-FUTURES")))
                 {
-                    url = ((Boolean.TRUE.equals(uta))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "public");
+                    url = ((Boolean.TRUE.equals(uta))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("utaPublic") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("public");
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3196,7 +3196,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -3206,7 +3206,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Boolean.TRUE.equals(uta))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPrivate") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            Object url = ((Boolean.TRUE.equals(uta))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPrivate") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
@@ -3215,10 +3215,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     if (Boolean.TRUE.equals(uta))
                     {
-                        url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPrivate");
+                        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("utaPrivate");
                     } else
                     {
-                        url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "private");
+                        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("demo")).get("private");
                     }
                 }
             }
@@ -3242,7 +3242,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //
         String messageHash = "authenticated";
         io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-        ((io.github.ccxt.ws.Future)future).resolve(true);
+        future.resolve(true);
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
@@ -3269,9 +3269,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 String messageHash = "authenticated";
                 client.reject(e, messageHash);
-                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                if (client.subscriptions.containsKey(messageHash))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                    client.subscriptions.remove(messageHash);
                 }
             } else
             {
@@ -3480,16 +3480,16 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             ((Map<String,Object>)this.orderbooks).remove(symbol);
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
+        if (client.subscriptions.containsKey(subMessageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
+            client.subscriptions.remove(subMessageHash);
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+        if (client.subscriptions.containsKey(messageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove(messageHash);
+            client.subscriptions.remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
-        if (((Map<?, ?>)client.futures).containsKey(subMessageHash))
+        if (client.futures.containsKey(subMessageHash))
         {
             client.reject(error, subMessageHash);
         }
@@ -3517,16 +3517,16 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             ((Map<String,Object>)this.trades).remove(symbol);
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
+        if (client.subscriptions.containsKey(subMessageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
+            client.subscriptions.remove(subMessageHash);
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+        if (client.subscriptions.containsKey(messageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove(messageHash);
+            client.subscriptions.remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " trades ") + symbol));
-        if (((Map<?, ?>)client.futures).containsKey(subMessageHash))
+        if (client.futures.containsKey(subMessageHash))
         {
             client.reject(error, subMessageHash);
         }
@@ -3554,16 +3554,16 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             ((Map<String,Object>)this.tickers).remove(symbol);
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
+        if (client.subscriptions.containsKey(subMessageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
+            client.subscriptions.remove(subMessageHash);
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+        if (client.subscriptions.containsKey(messageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove(messageHash);
+            client.subscriptions.remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " ticker ") + symbol));
-        if (((Map<?, ?>)client.futures).containsKey(subMessageHash))
+        if (client.futures.containsKey(subMessageHash))
         {
             client.reject(error, subMessageHash);
         }

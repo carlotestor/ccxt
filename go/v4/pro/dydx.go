@@ -378,7 +378,7 @@ func (this *Dydx) HandleDelta(bookside any, delta any) {
 		var amount *float64 = this.SafeFloat(delta, 1)
 		bookside.(ccxt.IOrderBookSide).Store(price, amount)
 	} else {
-		var bidAsk any = this.ParseOrderBookBidAsk(delta, "price", "size")
+		var bidAsk []any = this.ParseOrderBookBidAsk(delta, "price", "size")
 		bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }

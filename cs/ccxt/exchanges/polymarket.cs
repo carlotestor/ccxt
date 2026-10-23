@@ -3032,14 +3032,14 @@ public partial class polymarket : Exchange
      * @param {any[]} row the positional array to compact
      * @returns {any[]} the compacted array
      */
-    public virtual object compactSignable(object row)
+    public virtual object compactSignable(IList<object> row)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(row); i++)
+        for (int i = 0; i < (row?.Count ?? 0); i++)
         {
-            if (!(getValue(row, i) == null))
+            if (!((row != null && i < row.Count ? row[i] : null) == null))
             {
-                result.Add(getValue(row, i));
+                result.Add((row != null && i < row.Count ? row[i] : null));
             }
         }
         return result;
@@ -3123,7 +3123,7 @@ public partial class polymarket : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiType = getValue(api, 0);
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiType), "/"), this.implodeParams(path, parameters));
+        object url = add(add(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiType), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersResolved = new Dictionary<string, object>() {
             { "Accept", "application/json" },
@@ -3161,7 +3161,7 @@ public partial class polymarket : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -3177,7 +3177,7 @@ public partial class polymarket : Exchange
         //     }
         //
         object source = response;
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((Convert.ToInt64(code) >= 400)))
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((code >= 400)))
         {
             // request-level failures of the batch trade endpoints arrive
             // wrapped into a single-element array of the same error shape
@@ -3190,15 +3190,15 @@ public partial class polymarket : Exchange
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
-            if (isEqual(code, 400))
+            if ((code == 400))
             {
                 throw new BadRequest (feedback) ;
             }
             // an unmapped error on a 4xx or 5xx response falls through so the
             // http status fallback can apply a retryable classification, while
             // covering statuses the base table does not know
-            string codeAsString = code.ToString();
-            if (((Convert.ToInt64(code) < 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
+            string codeAsString = ((object)code).ToString();
+            if ((((code == null || code < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError (feedback) ;
             }

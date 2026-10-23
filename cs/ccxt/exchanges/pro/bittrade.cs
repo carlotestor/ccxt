@@ -73,7 +73,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
+        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "public"), hostname);
         string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
@@ -151,7 +151,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
+        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "public"), hostname);
         string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
@@ -249,7 +249,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
+        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "public"), hostname);
         string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
@@ -343,7 +343,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
+        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "public"), hostname);
         string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
@@ -421,7 +421,7 @@ public partial class bittrade : ccxt.bittrade
             Dictionary<string, object> hostname = new Dictionary<string, object>() {
                 { "hostname", this.hostname },
             };
-            string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
+            string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "public"), hostname);
             string requestId = ((string)this.requestId());
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "req", messageHash },

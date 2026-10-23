@@ -805,7 +805,7 @@ impl KalshiCore {
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
                         let mut entryMarkets: Value = crate::value::get_value_k(&eventEntry, "markets");
-                        append_to_array(&mut entryMarkets, m);
+                        if let Value::Arr(__a) = &mut entryMarkets { std::sync::Arc::make_mut(__a).push(m); };
                         add_element_to_object(&mut eventEntry, &Value::Str("markets".into()), entryMarkets);
                     }
                 }
@@ -1121,7 +1121,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut active: Value = Value::Bool((status.as_deref() == Some("active")) || (status.as_deref() == Some("open")));
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         let mut result: Value = self.safe_string_lower_k(raw.clone(), "result", &[]);
-        let mut resolved: Value = Value::Bool((status.as_deref() == Some("settled")) || ((result != Value::Null) && (result.as_str() != Some(""))));
+        let mut resolved: bool = (status.as_deref() == Some("settled")) || ((result != Value::Null) && (result.as_str() != Some("")));
         let mut endDate: Value = self.safe_string_k(raw.clone(), "expiration_time", &[]);
         let mut volume: Value = self.safe_number2(raw.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[]);
         let mut liquidity: Value = self.safe_number2(raw.clone(), Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[]);
@@ -1135,7 +1135,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut eventPartsLength: Value = Value::Int(eventParts.len() as i64);
         if eventPartsLength.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64) {
             let mut seriesParts: Value = self.array_slice(eventParts, Value::Int(0), &[(match (&(eventPartsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]);
-            seriesTicker = join(&seriesParts, &Value::Str("-".into()));
+            seriesTicker = Value::str(seriesParts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"));
         }
         // market symbol (no outcome suffix)
         let mut subtitleOrTicker: Value = ticker.clone();
@@ -1175,7 +1175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventTicker.clone(), subtitleOrTicker.clone(), label.clone());
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
-            if matches!(&resolved, Value::Bool(true)) && (result != Value::Null) && (result.as_str() != Some("")) {
+            if resolved && (result != Value::Null) && (result.as_str() != Some("")) {
                 winnerRaw = (Value::Bool(label.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == result.as_str()));
                 settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
                 if winnerRaw.as_bool() == Some(true) {
@@ -1235,7 +1235,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), active);
-        m.insert("resolved".to_string(), resolved);
+        m.insert("resolved".to_string(), Value::Bool(resolved));
         m.insert("resolvedOutcome".to_string(), marketResolvedOutcome);
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
@@ -1665,8 +1665,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 tickers.push(ticker.clone());
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            let mut grouped: Value = get_value(&outcomesByTicker, &ticker);
-            append_to_array(&mut grouped, outcomeObj);
+            let mut grouped: Value = outcomesByTicker.as_map().and_then(|__m| ticker.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(outcomeObj); };
             crate::set_value(&mut outcomesByTicker, &ticker, grouped.clone());
             if let Value::Dict(__d) = &mut outcomesByTicker { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ticker), grouped.clone()); }
         }
@@ -2365,11 +2365,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomesLength: Value = Value::Int(0);
+        let mut outcomesLength: i64 = 0;
         if (outcomes != Value::Null) {
-            outcomesLength = Value::Int(outcomes.len() as i64);
+            outcomesLength = outcomes.len() as i64;
         }
-        if outcomesLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        if (outcomesLength as f64) > ((0i64) as f64) {
             self.load_outcomes(&[outcomes.clone()]).await;
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
@@ -2378,7 +2378,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut positions: Value = self.safe_list_k(response, "market_positions", &[Value::from(vec![])]);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        if (outcomesLength.as_f64() == Some(0.0)) {
+        if (((outcomesLength as f64) == 0.0)) {
             return self.parse_prediction_positions(positions.clone(), &[]);
         }
         let mut parsed: Value = self.parse_prediction_positions(positions, &[]);

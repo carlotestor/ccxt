@@ -552,7 +552,7 @@ impl BlofinCore {
         let mut action: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (action.as_deref() == Some("snapshot")) {
             let mut orderBookSnapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone()]);
-            add_element_to_object(&mut orderBookSnapshot, &Value::Str("nonce".into()), self.safe_integer_k(data.clone(), "seqId", &[]));
+            if let Value::Dict(__r03d) = &mut orderBookSnapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data.clone(), "seqId", &[])); }
             orderbook.reset(orderBookSnapshot);
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
@@ -866,7 +866,7 @@ impl BlofinCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
-            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &unifiedTimeframe, stored.clone());
+            if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&unifiedTimeframe), stored.clone()); }
         }
         {
                         let mut i: Value = Value::Int(0);

@@ -292,7 +292,7 @@ public partial class mudrex : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null) || !(response is IDictionary<string, object>))
         {
@@ -310,11 +310,11 @@ public partial class mudrex : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = text.ToLower();
-            if (isEqual(code, 401) || low.IndexOf("auth", StringComparison.Ordinal) >= 0)
+            if ((code == 401) || low.IndexOf("auth", StringComparison.Ordinal) >= 0)
             {
                 throw new AuthenticationError (msg) ;
             }
-            if (isEqual(code, 429) || low.IndexOf("rate", StringComparison.Ordinal) >= 0)
+            if ((code == 429) || low.IndexOf("rate", StringComparison.Ordinal) >= 0)
             {
                 throw new RateLimitExceeded (msg) ;
             }
@@ -322,7 +322,7 @@ public partial class mudrex : Exchange
             {
                 throw new InsufficientFunds (msg) ;
             }
-            if (isEqual(code, 400))
+            if ((code == 400))
             {
                 throw new BadRequest (msg) ;
             }

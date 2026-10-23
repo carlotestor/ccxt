@@ -504,7 +504,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
         String bidAskHash = ("bidask:" + symbol);
-        if (((Map<?, ?>)client.futures).containsKey(bidAskHash))
+        if (client.futures.containsKey(bidAskHash))
         {
             var error = new UnsubscribeError(((this.id + " ") + bidAskHash));
             client.reject(error, bidAskHash);
@@ -672,7 +672,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, message);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -1038,7 +1038,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Balances snapshot = (this.fetchBalance(snapshotParams)).join();
                 Map<String, Object> emptyBalance = new HashMap<String, Object>() {{}}; // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
                 Map<String, Object> seeded = this.extend(snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
-                Helpers.addElementToObject(this.balance, subaccountIdKey, seeded);
+                this.balance.put(subaccountIdKey, seeded);
             }
             String topic = (this.numberToString(subaccountId) + ".balances");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1247,7 +1247,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         if (Boolean.TRUE.equals(updated))
         {
-            Helpers.addElementToObject(this.balance, subaccountIdKey, this.safeBalance(((Object)subBalance)));
+            this.balance.put(subaccountIdKey, this.safeBalance(((Object)subBalance)));
             client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(subaccountIdKey)), topic);
         }
         Integer positionUpdatesLength = ((List<?>)positionUpdates).size();
@@ -1286,9 +1286,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                if (client.subscriptions.containsKey(messageHash))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                    client.subscriptions.remove(messageHash);
                 }
             } else
             {
@@ -1345,7 +1345,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             String id = this.safeString(message, "id");
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
-            List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
             Boolean matched = false;
             for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
             {
@@ -1393,15 +1393,15 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             // client.resolve (message, messageHash);
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove("authenticated");
+                client.subscriptions.remove("authenticated");
             }
         }
     }

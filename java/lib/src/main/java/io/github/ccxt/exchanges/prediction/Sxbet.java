@@ -2753,9 +2753,9 @@ public class Sxbet extends SxbetApi
                 {
                     this.options.put("wsConnected", false);
                 }
-                if ((!java.util.Objects.equals(subscription, null)) && (((Map<?, ?>)client.subscriptions).containsKey(subscription)))
+                if ((!java.util.Objects.equals(subscription, null)) && (client.subscriptions.containsKey(subscription)))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)subscription);
+                    client.subscriptions.remove((String)subscription);
                 }
                 Helpers.addElementToObject(this.options, "wsPendingRequests", this.omit(pendingRequests, requestIdString));
                 client.reject(error, failedHash);

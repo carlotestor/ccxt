@@ -2249,11 +2249,11 @@ impl BackpackCore {
     m
 })]);
         let mut source: Option<String> = self.safe_string_k(query.clone(), "source", &[Value::Str("Venue".into())]).as_str().map(str::to_owned);
-        let mut symbolsLength: Value = Value::Int(0);
+        let mut symbolsLength: i64 = 0;
         if (symbols != Value::Null) {
-            symbolsLength = Value::Int(symbols.len() as i64);
+            symbolsLength = symbols.len() as i64;
         }
-        let mut symbolsNormalized: Value = (if (symbolsLength.as_f64() == Some(0.0)) { Value::Null } else { self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]) });
+        let mut symbolsNormalized: Value = (if (((symbolsLength as f64) == 0.0)) { Value::Null } else { self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]) });
         let mut symbolsResolved: Value = (if (symbolsNormalized == Value::Null) { Value::Array(self.markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()) } else { symbolsNormalized });
         let mut hasRfqSymbol: bool = false;
         let mut hasStockSymbol: bool = false;
@@ -2488,10 +2488,10 @@ impl BackpackCore {
         }
         let mut timestamp: Value = self.parse_to_int((match ((microseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol, &[timestamp]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(response, "lastUpdateId", &[]));
+        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(response, "lastUpdateId", &[])); }
         if (limit != Value::Null) {
-            { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "bids"), Value::Int(0), &[limit.clone()]); add_element_to_object(&mut orderbook, &Value::Str("bids".into()), __be_tmp); };
-            { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "asks"), Value::Int(0), &[limit]); add_element_to_object(&mut orderbook, &Value::Str("asks".into()), __be_tmp); };
+            { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "bids"), Value::Int(0), &[limit.clone()]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("bids".into(), __be_tmp); } };
+            { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "asks"), Value::Int(0), &[limit]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("asks".into(), __be_tmp); } };
         }
         return orderbook;
 

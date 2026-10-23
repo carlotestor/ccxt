@@ -156,7 +156,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 apiPart = "publicMarket";
             }
-            return (this.watchMultiple((String) (Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), apiPart)), messageHashes, payload, rawHashes, null)).join();
+            return (this.watchMultiple((String) ((apiPart == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(apiPart))), messageHashes, payload, rawHashes, null)).join();
         });
 
     }
@@ -166,7 +166,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Long newValue;
         synchronized (this) {
         newValue = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", newValue);
+        this.options.put("requestId", newValue);
         }
         return newValue;
     }
@@ -494,8 +494,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             }
             String symbolValue = this.symbol(symbol);
             parameters.put("callerMethodName", "watchOHLCV");
-            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
-            return Helpers.GetValue(Helpers.GetValue(result, symbolValue), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
+            return Helpers.GetValue((result == null || symbolValue == null ? null : result.get(symbolValue)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -797,7 +797,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 mapLiteral1.put("options", mapLiteral2);
                 defaultOptions.put("ws", mapLiteral1);
                 this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
-                this.client(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateTrading"));
+                this.client(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateTrading"));
             }
             return null;
         });

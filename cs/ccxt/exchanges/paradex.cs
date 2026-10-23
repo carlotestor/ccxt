@@ -1420,7 +1420,7 @@ public partial class paradex : Exchange
         object interval = null;
         if (((hours != null)) && Precise.stringGt(hours, "0"))
         {
-            interval = add(hours, "h");
+            interval = ((object)(hours == null ? null : hours + "h"));
         }
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -4009,7 +4009,7 @@ public partial class paradex : Exchange
         {
             version = "v2";
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), version);
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), version);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4091,7 +4091,7 @@ public partial class paradex : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

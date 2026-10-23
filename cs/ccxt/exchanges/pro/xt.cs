@@ -83,7 +83,7 @@ public partial class xt : ccxt.xt
         object url = this.safeString(apiUrls, tradeType);
         if (!isContract)
         {
-            url = add(url, "/private");
+            url = ((object)(url == null ? null : url + "/private"));
         }
         var client = this.client(url);
         string? token = this.safeString(client.subscriptions, "token");
@@ -365,7 +365,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker");
         string? defaultMethod = this.safeString(options, "method", "ticker");
         object method = this.safeString(parameters, "method", defaultMethod);
-        string? name = ((string)add(add(method, "@"), (market.ContainsKey("id") ? market["id"] : null)));
+        string? name = ((string)add(((object)(method == null ? null : method + "@")), (market.ContainsKey("id") ? market["id"] : null)));
         return ccxt.BaseExchange.ToTicker(await this.subscribe(name, "public", "watchTicker", market, null, parameters));
     }
 
@@ -391,7 +391,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> options = this.safeDict(this.options, "unWatchTicker");
         string? defaultMethod = this.safeString(options, "method", "ticker");
         object method = this.safeString(parameters, "method", defaultMethod);
-        string? name = ((string)add(add(method, "@"), (market.ContainsKey("id") ? market["id"] : null)));
+        string? name = ((string)add(((object)(method == null ? null : method + "@")), (market.ContainsKey("id") ? market["id"] : null)));
         string messageHash = ("unsubscribe::" + name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters);
     }
@@ -889,7 +889,7 @@ public partial class xt : ccxt.xt
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "position::contract");
         }

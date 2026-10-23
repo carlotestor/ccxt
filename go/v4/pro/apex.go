@@ -358,7 +358,7 @@ func (this *Apex) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messag
 	var client ccxt.ClientInterface = this.Client(url)
 	var newTopics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(topics); i++ {
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.GetValue(messageHashes, i))) {
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(messageHashes, i))) {
 			newTopics = append(newTopics, ccxt.GetValue(topics, i))
 		}
 	}
@@ -473,7 +473,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Apex) HandleDelta(bookside any, delta any) {
-	var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func (this *Apex) HandleDeltas(bookside any, deltas any) {
@@ -1334,7 +1334,7 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, o
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		// auth sign
 		var request map[string]any = map[string]any{
@@ -1428,8 +1428,8 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
-							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 							}
 						} else {
 							var messageHash *string = this.SafeString(message, "reqId")
@@ -1630,8 +1630,8 @@ func (this *Apex) HandleAuthenticate(client any, message any) any {
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 	}
 	return message

@@ -5658,12 +5658,8 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var response map[string]any = nil
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(paramsProductType, "fetchOrderBook", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = MapTyped(stockparamsStockVariable[1])
 	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "fetchOrderBook", false)
 	if r1.Err != nil {
@@ -5673,7 +5669,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var utaparamsUTAVariable []any = listRecv5500
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
-	var isStock bool = (stock == true)
+	var isStock bool = (stock != nil && *stock == true)
 	var isStockOrUta bool = (isStock || (uta == true))
 	if isStock {
 		if limit != nil {
@@ -5934,12 +5930,8 @@ func (this *Bitget) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	var response map[string]any = nil
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(paramsProductType, "fetchTicker", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = MapTyped(stockparamsStockVariable[1])
 	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "fetchTicker", false)
 	if r1.Err != nil {
@@ -5949,7 +5941,7 @@ func (this *Bitget) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	var utaparamsUTAVariable []any = listRecv5747
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
-	var isStock bool = (stock == true)
+	var isStock bool = (stock != nil && *stock == true)
 	var isStockOrUta bool = (isStock || (uta == true))
 	if isStockOrUta {
 		request["category"] = productType
@@ -6221,12 +6213,8 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var productType *string = SafeStringPtr(productTypeparamsProductTypeVariable[0])
 	var paramsProductType map[string]any = MapTyped(productTypeparamsProductTypeVariable[1])
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(paramsProductType, "fetchTickers", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = MapTyped(stockparamsStockVariable[1])
 	// only if passedSubType && productType is undefined, then use spot
 	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "fetchTickers", false)
@@ -6237,7 +6225,7 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var utaparamsUTAVariable []any = listRecv5999
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
-	var isStock bool = (stock == true)
+	var isStock bool = (stock != nil && *stock == true)
 	var isStockOrUta bool = (isStock || (uta == true))
 	if isStockOrUta {
 		if symbols != nil {
@@ -6644,14 +6632,9 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var stock any = nil
+	var stock *bool = nil
 	var stockparamsPaginateVariable []any = this.HandleOptionBoolAndParamsNullable(paramsPaginate, "fetchTrades", "stock", stockDefault)
-	stock = func() any {
-		if p, _ := stockparamsPaginateVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	if p, ok := stockparamsPaginateVariable[0].(*bool); ok { stock = p }
 	paramsPaginate = stockparamsPaginateVariable[1]
 	var uta any = nil
 	r2 := <-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchTrades", false)
@@ -6662,7 +6645,7 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	var utaparamsPaginateVariable []any = listRecv6395
 	uta = GetValue(utaparamsPaginateVariable, 0)
 	paramsPaginate = GetValue(utaparamsPaginateVariable, 1)
-	var isStock bool = (stock == true)
+	var isStock bool = (stock != nil && *stock == true)
 	var isStockOrUta bool = (isStock || (uta == true))
 	if limit != nil {
 		if isStockOrUta {
@@ -7287,17 +7270,13 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(paramsUTA, "fetchOHLCV", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = MapTyped(stockparamsStockVariable[1])
 	var marketType string
 	var timeframes any = nil
 	var timeframesOption any = this.HandleOption("fetchOHLCV", "timeframes")
-	var isStock bool = (stock == true)
+	var isStock bool = (stock != nil && *stock == true)
 	var isStockOrUta bool = (isStock || (uta == true))
 	if isStockOrUta {
 		timeframes = GetValue(timeframesOption, "uta")
@@ -8395,12 +8374,8 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var marginMode *string = SafeStringPtr(GetValue(marginParams, 0))
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(params, "createOrder", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = MapTyped(stockparamsStockVariable[1])
 	var triggerPrice *float64 = this.SafeNumber2(paramsStock, "stopPrice", "triggerPrice")
 	var stopLossTriggerPrice *float64 = this.SafeNumber(paramsStock, "stopLossPrice")
@@ -8424,7 +8399,7 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var utaparamsUTAVariable []any = listRecv7995
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
-	var isStock bool = (stock == true)
+	var isStock bool = (stock != nil && *stock == true)
 	var isStockOrUta bool = (isStock || (uta == true))
 	if isStock {
 		if isTriggerOrder || isStopLossOrTakeProfitTrigger || hasStopLoss || hasTakeProfit || isTrailingPercentOrder {
@@ -8646,17 +8621,12 @@ func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side 
 		}
 	}
 	var reduceOnly *bool = this.SafeBool(paramsProductType, "reduceOnly", false)
-	var hedged any = nil
+	var hedged *bool = nil
 	var hedgedparamsProductTypeVariable []any = this.HandleParamBool(paramsProductType, "hedged", false)
-	hedged = func() any {
-		if p, _ := hedgedparamsProductTypeVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	if p, ok := hedgedparamsProductTypeVariable[0].(*bool); ok { hedged = p }
 	paramsProductType = GetValue(hedgedparamsProductTypeVariable, 1)
 	if reduceOnly != nil && *reduceOnly {
-		if (hedged == true) || isStopLossOrTakeProfitTrigger {
+		if (hedged != nil && *hedged == true) || isStopLossOrTakeProfitTrigger {
 			var reduceOnlyPosSide string = "short"
 			if side != nil && *side == "sell" {
 				reduceOnlyPosSide = "long"
@@ -8666,7 +8636,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side 
 			request["reduceOnly"] = "yes"
 		}
 	} else {
-		if hedged == true {
+		if hedged != nil && *hedged == true {
 			var posSide string = "short"
 			if side != nil && *side == "buy" {
 				posSide = "long"
@@ -8708,17 +8678,12 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	}()
 	paramsMarketType = GetValue(hedgedparamsMarketTypeVariable, 1)
 	// backward compatibility for `oneWayMode`
-	var oneWayMode any = nil
+	var oneWayMode *bool = nil
 	var oneWayModeparamsMarketTypeVariable []any = this.HandleParamBool(paramsMarketType, "oneWayMode")
-	oneWayMode = func() any {
-		if p, _ := oneWayModeparamsMarketTypeVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	if p, ok := oneWayModeparamsMarketTypeVariable[0].(*bool); ok { oneWayMode = p }
 	paramsMarketType = GetValue(oneWayModeparamsMarketTypeVariable, 1)
 	if oneWayMode != nil {
-		hedged = !(oneWayMode == true)
+		hedged = (oneWayMode == nil || *oneWayMode != true)
 	}
 	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	var triggerPrice *float64 = this.SafeNumber2(paramsMarketType, "stopPrice", "triggerPrice")
@@ -9009,7 +8974,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan AsyncResult[[]Order], orders any
 			if marginMode == nil {
 				marginMode = DerefScalar(currentMarginMode)
 			} else {
-				if !IsEqual(marginMode, currentMarginMode) {
+				if !((marginMode == nil && currentMarginMode == nil) || (currentMarginMode != nil && marginMode == *currentMarginMode)) {
 					panic(BadRequest(this.Id + " createOrders() requires all orders to have the same margin mode (isolated or cross)"))
 				}
 			}
@@ -9122,7 +9087,7 @@ func (this *Bitget) createOrdersBody(ch chan AsyncResult[[]Order], orders any, o
 			if marginMode == nil {
 				marginMode = DerefScalar(currentMarginMode)
 			} else {
-				if !IsEqual(marginMode, currentMarginMode) {
+				if !((marginMode == nil && currentMarginMode == nil) || (currentMarginMode != nil && marginMode == *currentMarginMode)) {
 					panic(BadRequest(this.Id + " createOrders() requires all orders to have the same margin mode (isolated or cross)"))
 				}
 			}
@@ -9563,14 +9528,9 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	var paramsMarginMode any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("cancelOrder", params)
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
-	var stock any = nil
+	var stock *bool = nil
 	var stockparamsMarginModeVariable []any = this.HandleOptionBoolAndParamsNullable(paramsMarginMode, "cancelOrder", "stock", stockDefault)
-	stock = func() any {
-		if p, _ := stockparamsMarginModeVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	if p, ok := stockparamsMarginModeVariable[0].(*bool); ok { stock = p }
 	paramsMarginMode = stockparamsMarginModeVariable[1]
 	var request map[string]any = map[string]any{}
 	var trailing *bool = this.SafeBool(paramsMarginMode, "trailing")
@@ -9588,7 +9548,7 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	var utaparamsMarginModeVariable []any = listRecv9012
 	uta = GetValue(utaparamsMarginModeVariable, 0)
 	paramsMarginMode = GetValue(utaparamsMarginModeVariable, 1)
-	var isStock bool = (stock == true)
+	var isStock bool = (stock != nil && *stock == true)
 	var isStockOrUta bool = (isStock || (uta == true))
 	var isPlanOrder bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing == true)
 	var isContract bool = (market["swap"] == true) || (market["future"] == true)

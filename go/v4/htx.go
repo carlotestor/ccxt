@@ -3410,7 +3410,7 @@ func (this *Htx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	//     }
 	//
 	var rawTickers []any = SafeList2Typed(response, "data", "ticks", []any{})
-	var tickers any = this.ParseTickers(rawTickers, symbolsNormalized, paramsSubType)
+	var tickers map[string]any = this.ParseTickers(rawTickers, symbolsNormalized, paramsSubType)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized))}
 	return nil
@@ -3973,7 +3973,7 @@ func (this *Htx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		market = this.Market(symbol)
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate)
-	var paramsUntil any = nil
+	var paramsUntil map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
@@ -5706,7 +5706,7 @@ func (this *Htx) fetchContractOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var paramsUntil any = nil
+	var paramsUntil map[string]any = nil
 	var response any = nil
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var stopLossTakeProfit *bool = this.SafeBool(params, "stopLossTakeProfit")
@@ -7806,7 +7806,7 @@ func (this *Htx) createOrdersBody(ch chan AsyncResult[[]Order], orders any, opti
 			if marginMode == nil {
 				marginMode = DerefScalar(currentMarginMode)
 			} else {
-				if !IsEqual(marginMode, currentMarginMode) {
+				if !((marginMode == nil && currentMarginMode == nil) || (currentMarginMode != nil && marginMode == *currentMarginMode)) {
 					panic(BadRequest(this.Id + " createOrders() requires all orders to have the same margin mode (isolated or cross)"))
 				}
 			}
@@ -9284,12 +9284,8 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagValueparamsTagVariable []any = this.HandleParamString(params, "tag")
-	tagValue := func() any {
-		if p, _ := tagValueparamsTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagValue *string = nil
+	if p, ok := tagValueparamsTagVariable[0].(*string); ok { tagValue = p }
 	var paramsTag map[string]any = MapTyped(tagValueparamsTagVariable[1])
 	if this.Markets == nil {
 
@@ -9305,7 +9301,7 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 		"currency": ToLower(currency["id"]),
 	}
 	if tagValue != nil {
-		request["addr-tag"] = tagValue // only for XRP?
+		request["addr-tag"] = *tagValue // only for XRP?
 	}
 	var networkCodeparamsNetworkVariable []any = this.HandleNetworkCodeAndParams(paramsTag)
 	networkCode := func() any {

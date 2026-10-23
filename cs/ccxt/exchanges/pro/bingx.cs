@@ -112,10 +112,10 @@ public partial class bingx : ccxt.bingx
         query = subTypequeryVariable[1];
         if (marketType == "swap")
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         } else
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), marketType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), marketType);
         }
         string id = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -173,10 +173,10 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         if ((marketType == "swap"))
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         } else
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), marketType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), marketType);
         }
         string? dataType = ((string)add((market.ContainsKey("id") ? market["id"] : null), "@ticker"));
         string? messageHash = this.getMessageHash("ticker", this.safeString(market, "symbol"));
@@ -292,7 +292,7 @@ public partial class bingx : ccxt.bingx
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
-        string? inverseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "inverse");
+        string? inverseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "inverse");
         bool isInverse = ((inverseUrl != null)) && ((((string)client.url).IndexOf(inverseUrl, StringComparison.Ordinal) == 0));
         ccxt.Ticker ticker = this.parseWsTicker(data, market, isInverse);
         this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
@@ -424,10 +424,10 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         if ((marketType == "swap"))
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         } else
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), marketType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), marketType);
         }
         string? rawHash = ((string)add((market.ContainsKey("id") ? market["id"] : null), "@trade"));
         string messageHash = ("trade::" + symbolValue);
@@ -634,10 +634,10 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         if ((marketType == "swap"))
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         } else
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), marketType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), marketType);
         }
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 100);
@@ -1016,10 +1016,10 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         if ((marketType == "swap"))
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         } else
         {
-            url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), marketType);
+            url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), marketType);
         }
         if ((url == null))
         {
@@ -1148,10 +1148,10 @@ public partial class bingx : ccxt.bingx
             {
                 throw new NotSupported ((this.id + " watchOrders is not supported for inverse swap markets yet")) ;
             }
-            baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+            baseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         } else
         {
-            baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
+            baseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type);
             request = new Dictionary<string, object>() {
                 { "id", uuid },
                 { "reqType", "sub" },
@@ -1236,10 +1236,10 @@ public partial class bingx : ccxt.bingx
             {
                 throw new NotSupported ((this.id + " watchMyTrades is not supported for inverse swap markets yet")) ;
             }
-            baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+            baseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         } else
         {
-            baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
+            baseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type);
             request = new Dictionary<string, object>() {
                 { "id", uuid },
                 { "reqType", "sub" },
@@ -1284,12 +1284,12 @@ public partial class bingx : ccxt.bingx
         }
         await this.authenticate();
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        var type = typeparamsMarketTypeVariable[0];
+        string type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchBalance", null, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        bool isSpot = ((type is "spot"));
+        bool isSpot = ((type == "spot"));
         string spotSubHash = "spot:balance";
         string swapSubHash = "swap:private";
         string spotMessageHash = "spot:balance";
@@ -1307,7 +1307,7 @@ public partial class bingx : ccxt.bingx
         Dictionary<string, object> request = null;
         string? baseUrl = null;
         string uuid = this.uuid();
-        if ((type is "swap"))
+        if ((type == "swap"))
         {
             if ((subType == "inverse"))
             {
@@ -1315,10 +1315,10 @@ public partial class bingx : ccxt.bingx
             }
             // swap balance updates are pushed automatically over the listenKey connection,
             // so we must not send a subscription message (an empty one is rejected with 80014)
-            baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+            baseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         } else
         {
-            baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
+            baseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type);
             request = new Dictionary<string, object>() {
                 { "id", uuid },
                 { "dataType", "ACCOUNT_UPDATE" },
@@ -1338,7 +1338,7 @@ public partial class bingx : ccxt.bingx
         bool? awaitBalanceSnapshot = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false).Item1;
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future(add(type, ":fetchBalanceSnapshot"));
+            await client.future((type + ":fetchBalanceSnapshot"));
         }
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", false },
@@ -1375,7 +1375,7 @@ public partial class bingx : ccxt.bingx
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve();
             client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
@@ -1424,7 +1424,7 @@ public partial class bingx : ccxt.bingx
         }
         string subscriptionHash = "swap:private";
         messageHash = ("swap:positions" + messageHash);
-        string? baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+        string? baseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), subType);
         string? userStreamKey = this.safeString(this.options, "listenKey");
         if ((baseUrl == null) || (userStreamKey == null))
         {
@@ -1493,7 +1493,7 @@ public partial class bingx : ccxt.bingx
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "swap:positions");
         }
@@ -1672,7 +1672,7 @@ public partial class bingx : ccxt.bingx
             for (int i = 0; i < (types?.Count ?? 0); i++)
             {
                 string? type = ((string)types[i]);
-                string? baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
+                string? baseUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type);
                 if ((baseUrl == null))
                 {
                     continue;
@@ -2035,7 +2035,7 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> a = this.safeDict(message, "a", new Dictionary<string, object>() {});
         List<object> data = this.safeList(a, "B", new List<object>() {});
         Int64? timestamp = this.safeInteger2(message, "T", "E");
-        string? spotUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
+        string? spotUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "spot");
         bool isSpot = ((spotUrl != null)) && ((((string)client.url).IndexOf(spotUrl, StringComparison.Ordinal) == 0));
         string type = "swap";
         if (isSpot)

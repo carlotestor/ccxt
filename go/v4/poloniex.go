@@ -4194,12 +4194,8 @@ func (this *Poloniex) withdrawBody(ch chan AsyncResult[Transaction], code string
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
@@ -4216,7 +4212,7 @@ func (this *Poloniex) withdrawBody(ch chan AsyncResult[Transaction], code string
 	}
 	request["network"] = this.NetworkCodeToId(networkCode, code)
 	if tagWithdrawTag != nil {
-		request["paymentId"] = tagWithdrawTag
+		request["paymentId"] = *tagWithdrawTag
 	}
 
 	r := <-this.PrivatePostV2WalletsWithdraw(this.Extend(request, paramsNetworkCode))
@@ -4823,14 +4819,10 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\""))
 	}
 	var hedgedparamsHedgedVariable []any = this.HandleParamBool(paramsMarginMode, "hedged", false)
-	hedged := func() any {
-		if p, _ := hedgedparamsHedgedVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var hedged *bool = nil
+	if p, ok := hedgedparamsHedgedVariable[0].(*bool); ok { hedged = p }
 	var paramsHedged map[string]any = MapTyped(hedgedparamsHedgedVariable[1])
-	if hedged == true {
+	if hedged != nil && *hedged == true {
 		if _, ok := paramsHedged["posSide"]; !ok {
 			panic(ArgumentsRequired(this.Id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\""))
 		}

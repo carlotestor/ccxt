@@ -65,7 +65,7 @@ public partial class extended : ccxt.extended
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbolValue);
         string query = this.urlencode(parameters);
-        string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/orderbooks/") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string url = ((this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws") + "/orderbooks/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
             url = url + ("?" + query);
@@ -154,7 +154,7 @@ public partial class extended : ccxt.extended
     public async virtual Task<object> watchPrivate(object messageHash, object subscription = null)
     {
         this.checkRequiredCredentials();
-        string url = (this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/account");
+        string url = (this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws") + "/account");
         if (((this.clients == null)) || !((this.clients != null && this.clients.ContainsKey(url))))
         {
             Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
@@ -605,7 +605,7 @@ public partial class extended : ccxt.extended
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("fundingRate:" + symbolValue);
         string query = this.urlencode(parameters);
-        string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/funding/") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string url = ((this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws") + "/funding/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
             url = url + ("?" + query);
@@ -682,7 +682,7 @@ public partial class extended : ccxt.extended
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("markPrice:" + symbolValue);
         string query = this.urlencode(parameters);
-        string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/prices/mark/") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string url = ((this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws") + "/prices/mark/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
             url = url + ("?" + query);
@@ -747,7 +747,7 @@ public partial class extended : ccxt.extended
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + symbolValue);
         string query = this.urlencode(parameters);
-        string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/publicTrades/") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string url = ((this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws") + "/publicTrades/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
             url = url + ("?" + query);
@@ -863,7 +863,7 @@ public partial class extended : ccxt.extended
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, paramsOmitted));
-        string url = ((((((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/candles/") + ((market.ContainsKey("id") ? market["id"] : null))) + "/") + candleType) + "?") + query);
+        string url = ((((((this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws") + "/candles/") + ((market.ContainsKey("id") ? market["id"] : null))) + "/") + candleType) + "?") + query);
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
             { "symbol", symbolValue },
@@ -912,7 +912,7 @@ public partial class extended : ccxt.extended
             cacheKey = timeframe;
         } else
         {
-            cacheKey = add(add(timeframe, ":"), candleType);
+            cacheKey = add(((object)(timeframe == null ? null : timeframe + ":")), candleType);
         }
         string? messageHash = this.safeString(subscription, "messageHash");
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});

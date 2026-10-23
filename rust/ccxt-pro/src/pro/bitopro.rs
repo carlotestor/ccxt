@@ -749,10 +749,10 @@ impl BitoproCore {
                 m.insert("X-BITOPRO-SIGNATURE".to_string(), signature);
             m
         });
-        add_element_to_object(get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())), &Value::Str("headers".into()), headers);
+        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())) { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), headers); }
         // instantiate client
         self.client(&[url]);
-        add_element_to_object(get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())), &Value::Str("headers".into()), originalHeaders);
+        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())) { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), originalHeaders); }
 }
 
 /*

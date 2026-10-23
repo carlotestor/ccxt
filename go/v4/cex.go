@@ -838,12 +838,8 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 		request["fromDateISO"] = this.Iso8601(since)
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(params, "until", "till")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if until != nil {
 		request["toDateISO"] = this.Iso8601(until)
@@ -1026,12 +1022,8 @@ func (this *Cex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		request["fromISO"] = this.Iso8601(since)
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(paramsDataType, "until", "till")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if until != nil {
 		request["toISO"] = this.Iso8601(until)
@@ -1253,12 +1245,8 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var accountNameparamsAccountVariable []any = this.HandleParamString(params, "account", "")
-	accountName := func() any {
-		if p, _ := accountNameparamsAccountVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var accountName *string = nil
+	if p, ok := accountNameparamsAccountVariable[0].(*string); ok { accountName = p }
 	var paramsAccount map[string]any = MapTyped(accountNameparamsAccountVariable[1]) // default is empty string
 	var methodparamsMethodVariable []any = this.HandleParamString(paramsAccount, "method", "privatePostGetMyWalletBalance")
 	var method *string = SafeStringPtr(methodparamsMethodVariable[0])
@@ -1388,15 +1376,11 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status st
 		request["serverCreateTimestampFrom"] = this.Milliseconds() - (364*24)*60*60*1000
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(params, "until", "till")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if until != nil {
-		request["serverCreateTimestampTo"] = until
+		request["serverCreateTimestampTo"] = *until
 	}
 
 	r1 := <-this.PrivatePostGetMyOrders(this.Extend(request, paramsUntil))
@@ -1999,15 +1983,11 @@ func (this *Cex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		request["pageSize"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(params, "until", "till")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if until != nil {
-		request["dateTo"] = until
+		request["dateTo"] = *until
 	}
 
 	r1 := <-this.PrivatePostGetMyTransactionHistory(this.Extend(request, paramsUntil))
@@ -2125,15 +2105,11 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 		request["pageSize"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(params, "until", "till")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if until != nil {
-		request["dateTo"] = until
+		request["dateTo"] = *until
 	}
 
 	r1 := <-this.PrivatePostGetMyFundingHistory(this.Extend(request, paramsUntil))

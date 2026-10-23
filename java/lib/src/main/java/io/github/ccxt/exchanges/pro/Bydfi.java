@@ -117,7 +117,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Long reqid;
         synchronized (this) {
         reqid = (Long) this.sum(this.safeInteger(this.options, "reqid", 0), 1);
-        Helpers.addElementToObject(this.options, "reqid", reqid);
+        this.options.put("reqid", reqid);
         }
         return reqid;
     }
@@ -345,9 +345,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     {
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
         Client client = this.client(url);
-        Object subscriptions = client.subscriptions;
+        Map<String, Object> subscriptions = client.subscriptions;
         List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-        List<String> keys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
+        List<String> keys = new ArrayList<String>(subscriptions.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -398,8 +398,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
-            return Helpers.GetValue(Helpers.GetValue(result, symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
+            return Helpers.GetValue((result == null || symbol == null ? null : result.get(symbol)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1128,7 +1128,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = "fetchBalanceSnapshot";
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1147,7 +1147,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Balances response = (this.fetchBalance(parameters)).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+            io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
             future.resolve();
             client.resolve(this.balance, "balance");
             return null;
@@ -1198,7 +1198,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String messageHash = "balance";
-        if (((Map<?, ?>)client.futures).containsKey(messageHash))
+        if (client.futures.containsKey(messageHash))
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
             List<Object> balances = (List<Object>) this.safeList(data, "B", new ArrayList<Object>(Arrays.asList()));

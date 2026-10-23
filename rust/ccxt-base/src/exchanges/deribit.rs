@@ -2987,7 +2987,7 @@ impl DeribitCore {
         let mut timestamp: Value = self.safe_integer_k(result.clone(), "timestamp", &[]);
         let mut nonce: Value = self.safe_integer_k(result.clone(), "change_id", &[]);
         let mut orderbook: Value = self.parse_order_book(result, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
+        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce); }
         return orderbook;
 
     Value::Null
@@ -3253,9 +3253,9 @@ impl DeribitCore {
         }
         let mut isStopOrder: bool = isStopLossOrder || isTakeProfitOrder;
         let mut isLimitOrder: bool = (type_var.as_str() == Some("limit")) || isStopLimit || isTakeLimit;
-        let mut isMarketOrder: Value = Value::Bool((type_var.as_str() == Some("market")) || isStopMarket || isTakeMarket);
+        let mut isMarketOrder: bool = (type_var.as_str() == Some("market")) || isStopMarket || isTakeMarket;
         let mut exchangeSpecificPostOnly: Value = self.safe_value_k(params.clone(), "post_only", &[]);
-        let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), exchangeSpecificPostOnly, &[params.clone()]);
+        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarketOrder.clone()), exchangeSpecificPostOnly, &[params.clone()]);
         if isLimitOrder {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("limit".into())); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price)); }
@@ -3271,7 +3271,7 @@ impl DeribitCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_price".into(), self.price_to_precision(symbol, triggerPrice)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger".into(), trigger); }
             if isStopLossOrder {
-                if matches!(&isMarketOrder, Value::Bool(true)) {
+                if isMarketOrder {
                     // stop_market (sell only)
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("stop_market".into())); }
                 }  else {
@@ -3279,7 +3279,7 @@ impl DeribitCore {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("stop_limit".into())); }
                 }
             }  else {
-                if matches!(&isMarketOrder, Value::Bool(true)) {
+                if isMarketOrder {
                     // take_market (buy only)
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("take_market".into())); }
                 }  else {

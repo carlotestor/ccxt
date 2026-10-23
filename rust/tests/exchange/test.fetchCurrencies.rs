@@ -81,7 +81,7 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
         let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".into()));
-        if !(in_op(&ids, &code)) {
+        if !(ids.as_map().is_some_and(|__m| code.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             if let Value::Dict(__d) = &mut ids { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&code), get_value(&currency, &Value::Str("id".into()))); }
         }  else {
             let mut isDifferent: Value = Value::Bool(!is_equal(&ids.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &get_value(&currency, &Value::Str("id".into()))));

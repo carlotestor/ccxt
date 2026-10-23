@@ -3190,7 +3190,7 @@ impl BingxCore {
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "lastUpdateId", &[]);
         let mut timestamp: Value = self.safe_integer2(orderbook.clone(), Value::Str("T".into()), Value::Str("ts".into()), &[]);
         let mut result: Value = self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
-        add_element_to_object(&mut result, &Value::Str("nonce".into()), nonce);
+        if let Value::Dict(__r03d) = &mut result { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce); }
         return result;
 
     Value::Null
@@ -4744,7 +4744,7 @@ impl BingxCore {
                 m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
             m
         });
-        let mut isMarketOrder: Value = Value::Bool(typeValue.as_str() == Some("MARKET"));
+        let mut isMarketOrder: bool = typeValue.as_str() == Some("MARKET");
         let mut isSpot: bool = marketType.as_str() == Some("spot");
         let mut isTwapOrder: bool = typeValue.as_str() == Some("TWAP");
         if isTwapOrder && isSpot {
@@ -4765,7 +4765,7 @@ impl BingxCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&exchangeClientOrderId), clientOrderId); }
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsMarketType.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder.clone(), Value::Bool(timeInForce.as_deref() == Some("PostOnly")), &[paramsMarketType]);
+        let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(timeInForce.as_deref() == Some("PostOnly")), &[paramsMarketType]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if postOnly.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PostOnly")) {
@@ -4781,7 +4781,7 @@ impl BingxCore {
             if (cost != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".into(), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost.clone()))); }
             }  else {
-                if matches!(&isMarketOrder, Value::Bool(true)) && (price != Value::Null) {
+                if isMarketOrder && (price != Value::Null) {
                     // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     let mut calculatedCost: Value = crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price.clone()));
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".into(), self.parse_to_numeric(calculatedCost)); }
@@ -4789,11 +4789,11 @@ impl BingxCore {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone()))); }
                 }
             }
-            if !(matches!(&isMarketOrder, Value::Bool(true))) {
+            if !(isMarketOrder) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price.clone()))); }
             }
             if (triggerPrice != Value::Null) {
-                if matches!(&isMarketOrder, Value::Bool(true)) && (side.as_str() == Some("buy")) && (self.safe_string_k(request.clone(), "quoteOrderQty", &[]) == Value::Null) {
+                if isMarketOrder && (side.as_str() == Some("buy")) && (self.safe_string_k(request.clone(), "quoteOrderQty", &[]) == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders".into()))));
                 }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
@@ -4858,7 +4858,7 @@ impl BingxCore {
             let mut reduceOnly: bool = (reduceOnlyParam.as_bool() == Some(true)) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             if isTriggerOrder {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), triggerPrice))); }
-                if matches!(&isMarketOrder, Value::Bool(true)) || (typeValue.as_str() == Some("TRIGGER_MARKET")) {
+                if isMarketOrder || (typeValue.as_str() == Some("TRIGGER_MARKET")) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("TRIGGER_MARKET".into())); }
                 }  else if (typeValue.as_str() == Some("LIMIT")) || (typeValue.as_str() == Some("TRIGGER_LIMIT")) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("TRIGGER_LIMIT".into())); }
@@ -4867,14 +4867,14 @@ impl BingxCore {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
                 if isStopLossPriceOrder {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), stopLossPrice))); }
-                    if matches!(&isMarketOrder, Value::Bool(true)) || (typeValue.as_str() == Some("STOP_MARKET")) {
+                    if isMarketOrder || (typeValue.as_str() == Some("STOP_MARKET")) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP_MARKET".into())); }
                     }  else if (typeValue.as_str() == Some("LIMIT")) || (typeValue.as_str() == Some("STOP")) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP".into())); }
                     }
                 }  else if isTakeProfitPriceOrder {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), takeProfitPrice))); }
-                    if matches!(&isMarketOrder, Value::Bool(true)) || (typeValue.as_str() == Some("TAKE_PROFIT_MARKET")) {
+                    if isMarketOrder || (typeValue.as_str() == Some("TAKE_PROFIT_MARKET")) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("TAKE_PROFIT_MARKET".into())); }
                     }  else if (typeValue.as_str() == Some("LIMIT")) || (typeValue.as_str() == Some("TAKE_PROFIT")) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("TAKE_PROFIT".into())); }

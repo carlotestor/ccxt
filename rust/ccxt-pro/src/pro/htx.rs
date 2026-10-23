@@ -844,7 +844,7 @@ impl HtxCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
             if (symbol != Value::Null) && (timeframe != Value::Null) {
-                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
             }
         }
         let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
@@ -1001,7 +1001,7 @@ impl HtxCore {
             if (nonce == Value::Null) {
                 return true;
             }
-            add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), nonce.clone());
+            if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce.clone()); }
             let mut snapshotTimestamp: Value = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
             if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("lastTimestamp".into(), snapshotTimestamp.clone()); }
             let mut snapshotLimit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
@@ -1371,7 +1371,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut linear: bool = subType.as_str() == Some("linear");
         let mut swap: bool = type_var.as_str() == Some("swap");
         let mut future: bool = type_var.as_str() == Some("future");
-        let mut isV5Linear: Value = Value::Bool(linear && (swap || future));
+        let mut isV5Linear: bool = linear && (swap || future);
         if (type_var.as_str() == Some("spot")) {
             let mut mode: Value = Value::Null;
             if (mode == Value::Null) {
@@ -1381,7 +1381,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade.clearing".into()), Value::Str("#".into())).into()), marketId).into()), Value::Str("#".into())).into()), mode).into());
             channel = messageHash.clone();
-        }  else if matches!(&isV5Linear, Value::Bool(true)) {
+        }  else if isV5Linear {
             let mut channelAndMessageHashAndParams: Value = self.get_v5_linear_channel_and_message_hash(Value::Str("trade".into()), &[market.clone(), paramsRequest.clone()]);
             channel = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(0), &[]);
             messageHash = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(1), &[]);
@@ -1401,7 +1401,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut subscriptionParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("isV5".to_string(), isV5Linear);
+                m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
         trades = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, subscriptionParams]).await;
@@ -1545,13 +1545,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut linear: bool = subType.as_str() == Some("linear");
         let mut swap: bool = type_var.as_str() == Some("swap");
         let mut future: bool = type_var.as_str() == Some("future");
-        let mut isV5Linear: Value = Value::Bool(linear && (swap || future));
+        let mut isV5Linear: bool = linear && (swap || future);
         let mut messageHash: Value = Value::Null;
         let mut channel: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("#".into())).into()), suffix).into());
             channel = messageHash.clone();
-        }  else if matches!(&isV5Linear, Value::Bool(true)) {
+        }  else if isV5Linear {
             let mut channelAndMessageHashAndParams: Value = self.get_v5_linear_channel_and_message_hash(Value::Str("orders".into()), &[market.clone(), paramsRequest.clone()]);
             channel = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(0), &[]);
             messageHash = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(1), &[]);
@@ -1566,7 +1566,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut subscriptionParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("isV5".to_string(), isV5Linear);
+                m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
         let mut orders: Value = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, subscriptionParams]).await;
@@ -2192,15 +2192,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut linear: bool = subType.as_str() == Some("linear");
         let mut swap: bool = type_var.as_str() == Some("swap");
         let mut future: bool = type_var.as_str() == Some("future");
-        let mut isV5Linear: Value = Value::Bool(linear && (swap || future));
+        let mut isV5Linear: bool = linear && (swap || future);
         let mut isLinear: Value = (Value::Bool(subType.as_str() == Some("linear")));
-        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isLinear, Value::Bool(true), Value::Bool(false), isV5Linear.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isLinear, Value::Bool(true), Value::Bool(false), Value::Bool(isV5Linear.clone())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginMode, Value::Str(":positions".into())).into()), messageHash).into());
         let mut channel: Value = Value::Str("positions.*".into());
         if (marginMode.as_str() == Some("cross")) {
             channel = Value::Str("positions_cross.*".into());
         }
-        if matches!(&isV5Linear, Value::Bool(true)) {
+        if isV5Linear {
             let mut v5Market: Value = Value::Null;
             if (symbolsNormalized != Value::Null) && (Value::Int(symbolsNormalized.len() as i64).as_f64() == Some(1.0)) {
                 v5Market = market;
@@ -2214,7 +2214,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut subscriptionParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("isV5".to_string(), isV5Linear);
+                m.insert("isV5".to_string(), Value::Bool(isV5Linear));
                 m.insert("margin".to_string(), marginMode.clone());
             m
         });
@@ -2436,13 +2436,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut linear: bool = subType.as_str() == Some("linear");
         let mut swap: bool = type_var.as_str() == Some("swap");
         let mut future: bool = type_var.as_str() == Some("future");
-        let mut isV5Linear: Value = Value::Bool(linear && (swap || future));
+        let mut isV5Linear: bool = linear && (swap || future);
         if (type_var.as_str() == Some("spot")) {
             let mut mode: Value = self.safe_string2(self.options.clone(), Value::Str("watchBalance".into()), Value::Str("mode".into()), &[Value::Str("2".into())]);
             mode = self.safe_string_k(paramsOmitted.clone(), "mode", &[mode.clone()]);
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("accounts.update".into()), Value::Str("#".into())).into()), mode).into());
             channel = messageHash.clone();
-        }  else if matches!(&isV5Linear, Value::Bool(true)) {
+        }  else if isV5Linear {
             marginMode = self.safe_string_k(paramsOmitted.clone(), "margin", &[Value::Str("cross".into())]);
             channel = Value::Str("account".into());
             messageHash = Value::Str("account".into());
@@ -2509,7 +2509,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("subType".to_string(), subType.clone());
                 m.insert("margin".to_string(), marginMode);
-                m.insert("isV5".to_string(), isV5Linear);
+                m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
         return self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, subscriptionParams]).await;

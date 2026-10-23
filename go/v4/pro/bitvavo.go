@@ -1255,14 +1255,14 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	if ccxt.IsEqual(ccxt.GetValue(orderbook, "nonce"), nil) {
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
 		// multi-symbol watches share one subscription object, so the
 		// snapshot-in-flight flag must be tracked per market
 		var flagKey any = ccxt.Add("watchingOrderBookSnapshot@", marketId)
 		var watchingOrderBookSnapshot *bool = this.SafeBool(subscription, flagKey)
 		if watchingOrderBookSnapshot == nil {
 			ccxt.AddElementToObject(subscription, flagKey, true)
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, subscription)
+			client.(ccxt.ClientInterface).SubscriptionSet(messageHash, subscription)
 			var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBookSnapshot")
 			var delay *int64 = this.SafeInteger(options, "delay", this.RateLimit)
 			// fetch the snapshot in a separate async call after a warmup delay
@@ -1287,7 +1287,7 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.Or
 	// in that case the buffered delta message identifies the market
 	var marketId *string = this.SafeString2(subscription, "marketId", "market", this.SafeString(message, "market"))
 	var snapshotSymbol *string = this.SafeSymbol(marketId, nil, "-")
-	if !(ccxt.InOp(this.Orderbooks, snapshotSymbol)) {
+	if !this.WsCacheHas("Orderbooks", snapshotSymbol) {
 
 		// this snapshot fetch was scheduled before an unsubscribe removed the
 		// order book - skip it so the getBook request is not sent for a dead market
@@ -1358,8 +1358,8 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 	// subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
 	// instead of suppressing the request as an already-active subscription
 	var snapshotHash any = ccxt.Add("getBook@", marketId)
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), snapshotHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), snapshotHash)
+	if client.(ccxt.ClientInterface).SubscriptionHas(snapshotHash) {
+		client.(ccxt.ClientInterface).SubscriptionDel(snapshotHash)
 	}
 }
 func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
@@ -1388,7 +1388,7 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", marketId))
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 			var method any = this.SafeValue(subscription, "method")
 			if method != nil {
 				ccxt.CallDynamically(method, client, message, subscription)
@@ -1457,16 +1457,16 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]a
 	//
 	// the confirmation carries the remaining subscriptions without identifying
 	// which unsubscribe request it belongs to, so settle every pending unsubscription
-	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), key)) {
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(key)) {
 			continue
 		}
 		if !strings.HasPrefix(key, "unsubscribe:") {
 			continue
 		}
-		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), key)
+		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), key)
 		var subHash string = strings.Replace(key, "unsubscribe:", "", 1)
 		this.CleanCache(subscription)
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, key)
@@ -2884,7 +2884,7 @@ func (this *Bitvavo) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var timestamp int64 = this.Milliseconds()
 		var stringTimestamp string = strconv.FormatInt(timestamp, 10)
@@ -2904,7 +2904,7 @@ func (this *Bitvavo) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 			panic(r.Err)
 		}
 		future = r.Value
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, future)
+		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
 	}
 
 	var resolved *string
@@ -2935,8 +2935,8 @@ func (this *Bitvavo) HandleAuthenticationMessage(client any, message map[string]
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		// allows further authentication attempts
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 	}
 }

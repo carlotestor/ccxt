@@ -623,7 +623,7 @@ func (this *Okx) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := this.FilterByArray(this.FundingRates, "symbol", symbolsNormalized).(type) {
+	switch resolvedBox := this.FilterByArray(this.WsCacheSnapshot("FundingRates"), "symbol", symbolsNormalized).(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -2031,7 +2031,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	var resyncHashes []any = []any{}
 	var resyncNeeded bool = false
 	for i := 0; i < len(messageHashes); i++ {
-		if ccxt.IsEqual(this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), func() any {
+		if ccxt.IsEqual(this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
@@ -2238,7 +2238,7 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (prevSeqId != nil) && (prevSeqId == nil || *prevSeqId != int64(-1)) && (nonce != prevSeqId && (nonce == nil || prevSeqId == nil || *nonce != *prevSeqId)) {
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
 		}
@@ -2366,7 +2366,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 			ccxt.AddElementToObject(orderbook, "symbol", symbol)
 			this.HandleOrderBookMessage(client, update, orderbook, messageHash, market)
-			if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+			if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 				break
 			}
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -2385,9 +2385,9 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 					return nil
 				}()
 				this.HandleOrderBookMessage(client, update, orderbook, messageHash, market)
-				if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+				if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 					// a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
-					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, "resync")
+					client.(ccxt.ClientInterface).SubscriptionSet(messageHash, "resync")
 					break
 				}
 				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -2397,7 +2397,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 		// watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
 		// shared order-book cache when watchOrderBook subscribed to this
 		// channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.(*ccxt.WSClient).Subscriptions)
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
 			if !(ccxt.InOp(this.Orderbooks, symbol)) {
 				if symbol != nil {
 					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
@@ -2443,7 +2443,7 @@ func (this *Okx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 		var method string = "GET"

@@ -4728,18 +4728,14 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	}
 	var usesHedged bool = isSwapOrFuture && (positionSide == nil)
 	var hedgedparamsHedgedOptionVariable []any = this.HandleOptionBoolAndParamsNullable(paramsSwapOrFuture, "createOrder", "hedged")
-	hedged := func() any {
-		if p, _ := hedgedparamsHedgedOptionVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var hedged *bool = nil
+	if p, ok := hedgedparamsHedgedOptionVariable[0].(*bool); ok { hedged = p }
 	var paramsHedgedOption map[string]any = MapTyped(hedgedparamsHedgedOptionVariable[1])
 	var paramsHedged any = paramsSwapOrFuture
 	if usesHedged {
 		paramsHedged = paramsHedgedOption
 	}
-	var omitReduceOnly bool = usesHedged && (hedged == true) && isReduceOnly
+	var omitReduceOnly bool = usesHedged && (hedged != nil && *hedged == true) && isReduceOnly
 	var paramsReduceOnly any = paramsHedged
 	if omitReduceOnly {
 		paramsReduceOnly = this.Omit(paramsHedged, "reduceOnly")
@@ -4777,7 +4773,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			if positionSide != nil {
 				AddElementToObject(request, "posSide", positionSide)
 			} else {
-				if hedged == true {
+				if hedged != nil && *hedged == true {
 					var isBuy bool = (IsEqual(side, "buy"))
 					var isProtective bool = (takeProfitPrice != nil) || (stopLossPrice != nil) || isReduceOnly
 					if isProtective {
@@ -7833,12 +7829,8 @@ func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {

@@ -94,7 +94,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     public Long requestId()
     {
         Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        this.options.put("requestId", requestId);
         return requestId;
     }
 
@@ -142,7 +142,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
             if (!java.util.Objects.equals(future, null))
             {
-                ((io.github.ccxt.ws.Future)future).resolve(true);
+                future.resolve(true);
             }
         }
     }
@@ -810,7 +810,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         client.resolve(this.balance, "balance");
     }
 
-    public Object parseWsBalance(Map<String, Object> data)
+    public Map<String, Object> parseWsBalance(Map<String, Object> data)
     {
         // the account channel carries margin, not token holdings: the account value (collateral with
         // unrealized pnl) is the total, the free collateral what can still back a new position, and the
@@ -830,7 +830,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             result.put(code, account);
         }
-        return this.safeBalance(result);
+        return (Map<String, Object>) (this.safeBalance(result));
     }
 
     public Map<String, Object> handleTicker(Client client, Map<String, Object> message)

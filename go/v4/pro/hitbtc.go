@@ -110,7 +110,7 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var timestamp int64 = this.Milliseconds()
 		var timestampString *string = this.NumberToString(timestamp)
@@ -419,7 +419,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		var item any = ccxt.GetValue(data, marketId)
 		var messageHash string = "orderbooks::" + *symbol
 		if _, ok := this.Orderbooks[*symbol]; !ok {
-			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
@@ -541,12 +541,8 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var methodNameparamsMethodVariable []any = this.HandleParamString(params, "callerMethodName", "watchTickers")
-	methodName := func() any {
-		if p, _ := methodNameparamsMethodVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var methodName *string = nil
+	if p, ok := methodNameparamsMethodVariable[0].(*string); ok { methodName = p }
 	var paramsMethod map[string]any = ccxt.MapTyped(methodNameparamsMethodVariable[1]) // watchTicker passes its own name, so options.watchTicker still applies to it
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, methodName)
 	var defaultMethod *string = this.SafeString(options, "method", "ticker/{speed}/batch")
@@ -2038,8 +2034,8 @@ func (this *Hitbtc) HandleAuthenticate(client any, message any) any {
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 	}
 	return message
@@ -2072,8 +2068,8 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 							if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 								var messageHash string = "authenticated"
 								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+								if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+									client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 								}
 							} else {
 								client.(ccxt.ClientInterface).Reject(e, id) // trade requests use the request id as the message hash
@@ -2081,13 +2077,13 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 							// subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
 							// authentication errors included: a private channel the api key has no access to is refused with 1003
 							// the login request has no id, so a login error matches no subscription
-							var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+							var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 							for i := 0; i < len(subscriptionHashes); i++ {
 								var subscriptionHash string = subscriptionHashes[i]
-								var subscriptionId *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "id")
+								var subscriptionId *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "id")
 								if (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
 									client.(ccxt.ClientInterface).Reject(e, subscriptionHash)
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash) // so a retry sends the subscribe request again
+									client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash) // so a retry sends the subscribe request again
 								}
 							}
 							return true

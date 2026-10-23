@@ -828,7 +828,7 @@ func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 		if channel == nil {
 			return nil
 		}
-		return this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channel)
+		return this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel)
 	}()
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
@@ -927,7 +927,7 @@ func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 		if channel == nil {
 			return nil
 		}
-		return this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channel)
+		return this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel)
 	}()
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
@@ -1097,7 +1097,7 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message any) {
 		return
 	}
 	var unsubHash string = "unsubscribe:" + *channel
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash)
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash)
 	if subscription == nil {
 		return
 	}

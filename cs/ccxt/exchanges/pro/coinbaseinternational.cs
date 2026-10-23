@@ -113,9 +113,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         if (isTrue(isPrivate))
         {
-            return getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "wsPrivate");
+            return getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "wsPrivate");
         }
-        return getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        return getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
     }
 
     public override object ping(WebSocketClient client)
@@ -1364,11 +1364,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
         bool isPrivate = (interval is "raw");
         IList<object> useDepthEndpointparamsDepthEndpointVariable = (IList<object>)this.handleOptionAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
-        var useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable[0];
+        bool useDepthEndpoint = (bool)useDepthEndpointparamsDepthEndpointVariable[0];
         IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable[1]);
         IDictionary<string, object> paramsChannel = paramsDepthEndpoint;
         object descriptor = ((string)interval);
-        if (isTrue(useDepthEndpoint))
+        if (useDepthEndpoint)
         {
             IList<object> depthparamsDepthVariable = (IList<object>)this.handleOptionAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             var depth = depthparamsDepthVariable[0];
@@ -1431,11 +1431,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         var interval = intervalparamsIntervalVariable[0];
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
         IList<object> useDepthEndpointparamsDepthEndpointVariable = (IList<object>)this.handleOptionAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
-        var useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable[0];
+        bool useDepthEndpoint = (bool)useDepthEndpointparamsDepthEndpointVariable[0];
         IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable[1]);
         object paramsChannel = paramsDepthEndpoint;
         object descriptor = ((string)interval);
-        if (isTrue(useDepthEndpoint))
+        if (useDepthEndpoint)
         {
             IList<object> depthparamsDepthVariable = (IList<object>)this.handleOptionAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             var depth = depthparamsDepthVariable[0];

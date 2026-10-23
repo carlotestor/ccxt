@@ -112,7 +112,7 @@ public partial class weex : ccxt.weex
         {
             type = "contract";
         }
-        string url = (this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type) + "/public");
+        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type) + "/public");
         return await this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscriptionExtended);
     }
 
@@ -126,7 +126,7 @@ public partial class weex : ccxt.weex
         {
             type = "contract";
         }
-        string url = (this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type) + "/private");
+        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type) + "/private");
         this.authenticate(url);
         string method = "SUBSCRIBE";
         bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
@@ -1821,15 +1821,15 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        var type = typeparamsMarketTypeVariable[0];
+        string type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        bool isContract = (!(type is "spot"));
+        bool isContract = (!(type == "spot"));
         string urlType = "spot";
         if (isContract)
         {
             urlType = "contract";
         }
-        string url = (this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType) + "/private");
+        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), urlType) + "/private");
         this.authenticate(url);
         var client = this.client(url);
         this.setBalanceCache(client, type);
@@ -1838,9 +1838,9 @@ public partial class weex : ccxt.weex
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future(add(type, ":fetchBalanceSnapshot"));
+            await client.future((type + ":fetchBalanceSnapshot"));
         }
-        object messageHash = add(add(type, ":"), "balance");
+        object messageHash = ((type + ":") + "balance");
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash, type, "account", isContract, paramsMarketType));
     }
 
@@ -1876,7 +1876,7 @@ public partial class weex : ccxt.weex
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve();
             client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
@@ -1994,7 +1994,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        string url = (this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "contract") + "/private");
+        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "contract") + "/private");
         this.authenticate(url);
         var client = this.client(url);
         IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true);
@@ -2050,7 +2050,7 @@ public partial class weex : ccxt.weex
             cache.append(position);
         }
         // don't remove the future from the .futures cache
-        Future future = ((Future)getValue(client.futures, messageHash));
+        Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
         (future as Future).resolve(cache);
         client.resolve(cache, "positions");
     }

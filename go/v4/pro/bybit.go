@@ -1699,7 +1699,7 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 	}
 }
 func (this *Bybit) HandleDelta(bookside any, delta any) {
-	var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func (this *Bybit) HandleDeltas(bookside any, deltas any) {
@@ -3492,7 +3492,7 @@ func (this *Bybit) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messa
 	if topicsLength == messageHashesLength {
 		for i := 0; i < topicsLength; i++ {
 			var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, i))
-			if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+			if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 				newTopics = append(newTopics, ccxt.GetValue(topics, i))
 			}
 		}
@@ -3501,9 +3501,9 @@ func (this *Bybit) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messa
 		// recorded on any subscription so a later call with a new hash
 		// does not resend already-subscribed topics.
 		var subscribedTopics map[string]any = map[string]any{}
-		var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		for i := 0; i < len(subscriptionHashes); i++ {
-			var existing map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHashes[i])
+			var existing map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHashes[i])
 			var recordedTopics []any = ccxt.SafeListTyped(existing, "topics")
 			var recordedLength int = len(recordedTopics)
 			for j := 0; j < recordedLength; j++ {
@@ -3606,7 +3606,7 @@ func (this *Bybit) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, 
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var expiresInt int64 = this.Milliseconds() + 10000
 		var expires *string = this.NumberToString(expiresInt)
@@ -3695,17 +3695,17 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 						var reqId *string = this.SafeString2(message, "req_id", "reqId")
 						var foundSubscription bool = false
 						if reqId != nil {
-							var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+							var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 							for i := 0; i < len(keys); i++ {
 								var messageHash string = keys[i]
-								if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+								if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 									continue
 								}
-								var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+								var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 								var subId *string = this.SafeString(subscription, "id")
 								if reqId == subId || (reqId != nil && subId != nil && *reqId == *subId) {
 									foundSubscription = true
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+									client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 									client.(ccxt.ClientInterface).Reject(error, messageHash)
 								}
 							}
@@ -3716,8 +3716,8 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 							} else if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 								var authenticatedHash string = "authenticated"
 								client.(ccxt.ClientInterface).Reject(error, authenticatedHash)
-								if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash) {
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)
+								if client.(ccxt.ClientInterface).SubscriptionHas(authenticatedHash) {
+									client.(ccxt.ClientInterface).SubscriptionDel(authenticatedHash)
 								}
 								var op *string = this.SafeString(message, "op")
 								if (op != nil) && (op == nil || *op != "auth") {
@@ -3909,8 +3909,8 @@ func (this *Bybit) HandleAuthenticate(client any, message any) any {
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 	}
 	return message
@@ -3946,14 +3946,14 @@ func (this *Bybit) HandleUnSubscribe(client any, message map[string]any) any {
 	//     },
 	// }
 	var reqId *string = this.SafeString(message, "req_id")
-	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var messageHash string = keys[i]
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 			continue
 		}
 		if strings.HasPrefix(messageHash, "unsubscribe") {
-			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 			var subId *string = this.SafeString(subscription, "id")
 			if reqId != subId && (reqId == nil || subId == nil || *reqId != *subId) {
 				continue

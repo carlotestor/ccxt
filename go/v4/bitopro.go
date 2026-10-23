@@ -2353,12 +2353,8 @@ func (this *Bitopro) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -2394,7 +2390,7 @@ func (this *Bitopro) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		request["protocol"] = networkId
 	}
 	if tagWithdrawTag != nil {
-		request["message"] = tagWithdrawTag
+		request["message"] = *tagWithdrawTag
 	}
 
 	r1 := <-this.PrivatePostWalletWithdrawCurrency(this.Extend(request, paramsOmitted))

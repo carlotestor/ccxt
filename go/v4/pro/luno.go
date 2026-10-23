@@ -525,8 +525,8 @@ func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any,
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
 		var market map[string]any = this.Market(symbol)
 		var subscriptionHash any = ccxt.Add("/stream/", market["id"])
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
 		}
 		client.(ccxt.ClientInterface).Reset(error)
 		ccxt.Remove(this.Clients, client.(ccxt.ClientInterface).GetUrl())
@@ -538,7 +538,7 @@ func (this *Luno) HandleMessage(client any, message any) {
 	if ccxt.IsEqual(message, "") {
 		return
 	}
-	var subscriptions []any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions []any = client.(ccxt.ClientInterface).SubscriptionValues()
 	var subscriptionsLength int = len(subscriptions)
 	if subscriptionsLength == 0 {
 		// the subscription was dropped after a sequence gap, ignore the

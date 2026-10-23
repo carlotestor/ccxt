@@ -2554,7 +2554,7 @@ func (this *Bybit) SafeMarket(optionalArgs ...any) map[string]any {
 	}
 	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
 }
-func (this *Bybit) GetBybitType(method any, market any, optionalArgs ...any) []any {
+func (this *Bybit) GetBybitType(method string, market any, optionalArgs ...any) []any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(method, market, params)
@@ -4005,7 +4005,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		request["start"] = this.ParseToInt(math.Ceil(float64(*since)/float64(duration))) * duration
 	}
 	request["limit"] = limitResolved // max 1000, default 1000
-	var paramsUntil any = nil
+	var paramsUntil map[string]any = nil
 	request, paramsUntil = this.HandleUntilOption("end", request, paramsPaginate)
 	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var response map[string]any = nil
@@ -4019,7 +4019,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		response = r2.Value
 	} else {
 		var price *string = this.SafeString(paramsUntil, "price")
-		var paramsOmitted any = this.Omit(paramsUntil, "price")
+		var paramsOmitted map[string]any = this.OmitDict(paramsUntil, "price")
 		if market["linear"] == true {
 			request["category"] = "linear"
 		} else if market["inverse"] == true {
@@ -7153,14 +7153,10 @@ func (this *Bybit) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		"category": marketType,
 	}
 	var isTriggerparamsTriggerVariable []any = this.HandleParamBool2(paramsValue, "trigger", "stop", false)
-	isTrigger := func() any {
-		if p, _ := isTriggerparamsTriggerVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var isTrigger *bool = nil
+	if p, ok := isTriggerparamsTriggerVariable[0].(*bool); ok { isTrigger = p }
 	paramsTrigger := GetValue(isTriggerparamsTriggerVariable, 1)
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 		request["orderFilter"] = "StopOrder"
 	}
 
@@ -7225,7 +7221,7 @@ func (this *Bybit) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	var innerListLength int = len(innerList)
 	if innerListLength == 0 {
 		var extra string = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
-		if isTrigger == true {
+		if isTrigger != nil && *isTrigger == true {
 			extra = ""
 		}
 		panic(OrderNotFound("Order " + ToString(id) + " was not found." + extra))
@@ -8945,12 +8941,8 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 
 	r := <-this.IsUnifiedEnabledAsync()
@@ -8995,7 +8987,7 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		"accountType": accountType,
 	}
 	if tagWithdrawTag != nil {
-		request["tag"] = tagWithdrawTag
+		request["tag"] = *tagWithdrawTag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(paramsAccountType)
 	var networkCode *string = SafeStringPtr(networkCodequeryVariable[0])

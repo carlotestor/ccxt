@@ -124,7 +124,7 @@ public partial class PredictionExchange : BaseExchange
         throw new ArgumentsRequired ((((this.id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug") + extraNames) + " to scope the search")) ;
     }
 
-    public virtual object applyEventFetchParams(object events, object parameters = null, object queries = null)
+    public virtual object applyEventFetchParams(object events, object parameters = null, IList<object> queries = null)
     {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently.
@@ -157,7 +157,7 @@ public partial class PredictionExchange : BaseExchange
         int queriesLength = 0;
         if ((queries != null))
         {
-            queriesLength = getArrayLength(queries);
+            queriesLength = (queries?.Count ?? 0);
         }
         if (queriesLength > 0)
         {
@@ -310,18 +310,18 @@ public partial class PredictionExchange : BaseExchange
         return s;
     }
 
-    public virtual object filterEventsByTags(object events, object tags = null)
+    public virtual object filterEventsByTags(object events, IList<object> tags = null)
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if (((tags == null)) || ((getArrayLength(tags) == 0)))
+        if (((tags == null)) || (((tags?.Count ?? 0) == 0)))
         {
             return events;
         }
         List<object> wanted = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tags); i++)
+        for (int i = 0; i < (tags?.Count ?? 0); i++)
         {
-            string? wantedKey = this.normalizeTagKey(getValue(tags, i));
+            string? wantedKey = this.normalizeTagKey((tags != null && i < tags.Count ? tags[i] : null));
             if (wantedKey != "")
             {
                 // an empty normalized key would substring-match every tag
@@ -885,11 +885,11 @@ public partial class PredictionExchange : BaseExchange
      * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
      * @returns {object} the outcome cache
      */
-    public async virtual Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
+    public async virtual Task<Dictionary<string, object>> FetchOutcomes(IList<object> outcomeSymbols)
     {
-        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
+        for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
+            ccxt.BaseExchange.FromDict(await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null)));
         }
         return ccxt.BaseExchange.ToDict(this.outcomes);
     }
@@ -1991,12 +1991,12 @@ public partial class PredictionExchange : BaseExchange
         return ((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + hex);
     }
 
-    public virtual string? rlpEncodeList(object items)
+    public virtual string? rlpEncodeList(IList<object> items)
     {
         object concatenated = "";
-        for (int i = 0; i < getArrayLength(items); i++)
+        for (int i = 0; i < (items?.Count ?? 0); i++)
         {
-            concatenated = add(concatenated, getValue(items, i));
+            concatenated = add(concatenated, (items != null && i < items.Count ? items[i] : null));
         }
         Int64? byteLength = this.parseToInt(((double)((string)concatenated).Length / 2));
         if (((byteLength == null || byteLength < 56)))

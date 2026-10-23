@@ -1357,7 +1357,7 @@ impl TokocryptoCore {
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut timestamp: Value = self.safe_integer2(response, Value::Str("T".into()), Value::Str("timestamp".into()), &[]);
         let mut orderbook: Value = self.parse_order_book(data.clone(), symbol, &[timestamp]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(data, "lastUpdateId", &[]));
+        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data, "lastUpdateId", &[])); }
         return orderbook;
 
     Value::Null

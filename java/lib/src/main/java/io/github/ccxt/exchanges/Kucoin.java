@@ -13843,7 +13843,7 @@ public class Kucoin extends KucoinApi
                 Map<String, Object> response = (this.utaPrivateGetAccountMode(parameters)).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 String accountMode = this.safeString(data, "selfAccountMode");
-                Helpers.addElementToObject(this.options, "uta", (java.util.Objects.equals(accountMode, "UNIFIED")));
+                this.options.put("uta", (java.util.Objects.equals(accountMode, "UNIFIED")));
             }
             Boolean uta = java.util.Objects.equals(this.safeBool(this.options, "uta", (Object) null), true);
             return uta;

@@ -1323,7 +1323,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseId: Value = self.safe_string_k(market.clone(), "base_asset", &[id.clone()]);
         let mut instrumentType: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut isSpot: Value = (Value::Bool(instrumentType.as_deref() == Some("spot")));
-        let mut isSwap: Value = Value::Bool(!(matches!(&isSpot, Value::Bool(true))));
+        let mut isSwap: bool = !(matches!(&isSpot, Value::Bool(true)));
         let mut quoteId: Value = Value::Str("USDC".into());
         let mut settleId: Value = Value::Null;
         let mut type_var: Value = Value::Str("spot".into());
@@ -1342,7 +1342,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             quoteId = self.safe_string(idParts, Value::Int(1), &[quoteId.clone()]);
         }
         let mut isolatedOnly: Value = self.safe_bool_k(market.clone(), "isolated_only", &[Value::Bool(false)]);
-        if matches!(&isSwap, Value::Bool(true)) {
+        if isSwap {
             settleId = quoteId.clone();
             type_var = Value::Str("swap".into());
             linear = Value::Bool(true);
@@ -1360,7 +1360,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        if matches!(&isSwap, Value::Bool(true)) {
+        if isSwap {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
         }
         let mut fees: Value = self.safe_dict(self.fees.clone(), type_var.clone(), &[Value::Map({
@@ -1385,11 +1385,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), type_var);
         m.insert("spot".to_string(), isSpot);
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), isSwap.clone());
+        m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), isSwap);
+        m.insert("contract".to_string(), Value::Bool(isSwap));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
         m.insert("taker".to_string(), taker);
@@ -3898,7 +3898,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (rawIsolated != Value::Null) {
             isIsolated = rawIsolated;
         }
-        let mut marginMode: Value = (if is_true(&isIsolated) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
+        let mut marginMode: Value = (if isIsolated.as_bool() == Some(true) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
         let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
         if (side != Value::Null) {
             side = (if (side.as_str() == Some("bid")) { Value::Str("long".into()) } else { Value::Str("short".into()) });

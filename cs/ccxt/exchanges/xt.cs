@@ -5760,7 +5760,7 @@ public partial class xt : Exchange
         string? symbol = this.safeSymbol(marketId, market, "_", "swap");
         Int64? timestamp = this.safeInteger(contract, "nextCollectionTime");
         object collectionInterval = this.safeString(contract, "collectionInternal");
-        object interval = ((collectionInterval != null)) ? (add(collectionInterval, "h")) : null;
+        object interval = ((collectionInterval != null)) ? (((object)(collectionInterval == null ? null : collectionInterval + "h"))) : null;
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -6103,7 +6103,7 @@ public partial class xt : Exchange
     public virtual object mergePositionBreakInfo(object entry, IDictionary<string, object> breakBySymbolSide)
     {
         object marketId = this.safeString(entry, "symbol");
-        string? key = ((string)add(add(marketId, "_"), this.safeString(entry, "positionSide")));
+        string? key = ((string)add(((object)(marketId == null ? null : marketId + "_")), this.safeString(entry, "positionSide")));
         IDictionary<string, object> breakEntry = this.safeDict(breakBySymbolSide, key);
         if ((breakEntry == null))
         {
@@ -6707,7 +6707,7 @@ public partial class xt : Exchange
         return this.parseOrder(result, market);
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         //
         // spot: error
@@ -6799,7 +6799,7 @@ public partial class xt : Exchange
         {
             payload = request;
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), endpoint);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

@@ -2122,11 +2122,11 @@ public partial class poloniex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseOpenOrders(object orders, IDictionary<string, object> market, object result)
+    public virtual object parseOpenOrders(IList<object> orders, IDictionary<string, object> market, object result)
     {
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> order = ((IDictionary<string, object>)(orders != null && i < orders.Count ? orders[i] : null));
             Dictionary<string, object> extended = this.extend(order, new Dictionary<string, object>() {
                 { "status", "open" },
                 { "type", "limit" },
@@ -3347,7 +3347,7 @@ public partial class poloniex : Exchange
     public virtual List<object> prepareRequestForDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!(inOp(this.currencies, code)))
+        if (!((((IDictionary<string,object>)this.currencies) != null && code != null && ((IDictionary<string,object>)this.currencies).ContainsKey(code))))
         {
             throw new BadSymbol ((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
@@ -4493,10 +4493,10 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "spot");
+        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "spot");
         if (this.inArray(apiName, new List<object>() {"swapPublic", "swapPrivate"}))
         {
-            url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "swap");
+            url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "swap");
         }
         if ((method == "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
         {
@@ -4559,7 +4559,7 @@ public partial class poloniex : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

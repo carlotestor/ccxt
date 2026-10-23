@@ -163,7 +163,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        this.options.put("requestId", requestId);
         }
         return (String) (String.valueOf(requestId));
     }
@@ -692,7 +692,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 if ((maxAttempts != null && (numAttempts == null || numAttempts < maxAttempts)))
                 {
                     // safety guard
-                    if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                    if (client.subscriptions.containsKey(messageHash))
                     {
                         Object nextAttempts = this.sum(numAttempts, 1);
                         Object delayTime = 1000;
@@ -701,7 +701,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                             delayTime = this.sum(1000, (lastTimestamp - snapshotTimestamp));
                         }
                         subscription.put("numAttempts", nextAttempts);
-                        ((Map)client.subscriptions).put(messageHash, subscription);
+                        client.subscriptions.put(messageHash, subscription);
                         this.scheduleCallback(delayTime, "watchOrderBookSnapshot", client, message, subscription);
                     }
                 } else
@@ -727,7 +727,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             if (!java.util.Objects.equals(messageHash, null))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                client.subscriptions.remove((String)messageHash);
             }
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -773,7 +773,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 if (!java.util.Objects.equals(messageHash, null))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    client.subscriptions.remove((String)messageHash);
                 }
                 client.reject(e, messageHash);
             }
@@ -2334,7 +2334,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             account.put("total", this.safeString(data, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
             this.balance = this.safeBalance(this.balance);
             client.resolve(this.balance, channel);
@@ -2363,7 +2363,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     Map<String, Object> account = this.account();
                     account.put("free", this.safeString(detail, "withdraw_available"));
                     account.put("total", this.safeString(detail, "equity"));
-                    Helpers.addElementToObject(this.balance, code, account);
+                    this.balance.put(code, account);
                 }
                 this.balance = this.safeBalance(this.balance);
                 client.resolve(this.balance, "account");
@@ -2417,7 +2417,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 unifiedAccount.put("used", marginFrozen);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(this.balance, code, unifiedAccount);
+                    this.balance.put(code, unifiedAccount);
                 }
                 this.balance = this.safeBalance(this.balance);
                 client.resolve(this.balance, "accounts_unify");
@@ -2435,7 +2435,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         account.put("free", this.safeString2(first, "withdraw_available", "margin_available"));
                         account.put("used", this.safeString(first, "margin_frozen"));
                         account.put("total", this.safeString(first, "margin_balance"));
-                        Helpers.addElementToObject(this.balance, code, account);
+                        this.balance.put(code, account);
                         this.balance = this.safeBalance(this.balance);
                     }
                 } else
@@ -2451,7 +2451,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            Helpers.addElementToObject(this.balance, code, account);
+                            this.balance.put(code, account);
                         }
                         this.balance = this.safeBalance(this.balance);
                     }
@@ -2469,7 +2469,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     account.put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(this.balance, code, account);
+                        this.balance.put(code, account);
                     }
                     this.balance = this.safeBalance(this.balance);
                 }
@@ -2511,11 +2511,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
             }
             // clean up
-            if (((Map<?, ?>)client.subscriptions).containsKey(id))
+            if (client.subscriptions.containsKey(id))
             {
                 if (!java.util.Objects.equals(id, null))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)id);
+                    client.subscriptions.remove((String)id);
                 }
             }
         }
@@ -2771,8 +2771,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        Object promise = ((Map)client.futures).get("auth");
-        ((io.github.ccxt.ws.Future)promise).resolve(message);
+        io.github.ccxt.ws.Future promise = client.futures.get("auth");
+        promise.resolve(message);
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
@@ -2830,20 +2830,20 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     String messageHash = this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
-                    if (((Map<?, ?>)client.subscriptions).containsKey(id))
+                    if (client.subscriptions.containsKey(id))
                     {
                         if (!java.util.Objects.equals(id, null))
                         {
-                            ((Map<String,Object>)client.subscriptions).remove((String)id);
+                            client.subscriptions.remove((String)id);
                         }
                     }
                     // the subscription is keyed by the messageHash, not by the id -
                     // without removing it a repeated watch call attaches to a future
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
-                    if ((!java.util.Objects.equals(messageHash, null)) && (((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+                    if ((!java.util.Objects.equals(messageHash, null)) && (client.subscriptions.containsKey(messageHash)))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                        client.subscriptions.remove((String)messageHash);
                     }
                 }
             }
@@ -2863,9 +2863,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     client.reject(e, "auth");
                     String method = "auth";
-                    if (((Map<?, ?>)client.subscriptions).containsKey(method))
+                    if (client.subscriptions.containsKey(method))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove((String)method);
+                        client.subscriptions.remove((String)method);
                     }
                     return false;
                 } else
@@ -3254,21 +3254,21 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             if (java.util.Objects.requireNonNullElse(isPrivate, false))
             {
-                hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "spot"), "private");
+                hostnameURL = Helpers.GetValue(Helpers.GetValue((api == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(api)), "spot"), "private");
             } else
             {
                 if (java.util.Objects.requireNonNullElse(isFeed, false))
                 {
-                    hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "spot"), "feed");
+                    hostnameURL = Helpers.GetValue(Helpers.GetValue((api == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(api)), "spot"), "feed");
                 } else
                 {
-                    hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "spot"), "public");
+                    hostnameURL = Helpers.GetValue(Helpers.GetValue((api == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(api)), "spot"), "public");
                 }
             }
             url = this.implodeParams(hostnameURL, hostname);
         } else
         {
-            Object baseUrl = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), type);
+            Object baseUrl = Helpers.GetValue((api == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(api)), type);
             Object subTypeUrl = ((Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isLinear, true)))) ? Helpers.GetValue(baseUrl, "linear") : Helpers.GetValue(baseUrl, "inverse");
             if (java.util.Objects.requireNonNullElse(isPrivate, false))
             {
@@ -3467,7 +3467,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 }};
                 this.watch(url, messageHash, request, messageHash, subscription);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }

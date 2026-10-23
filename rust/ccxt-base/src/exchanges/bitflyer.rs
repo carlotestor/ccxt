@@ -631,13 +631,13 @@ impl BitflyerCore {
             let mut marketType: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);
             let mut swap: Value = (Value::Bool(marketType.as_deref() == Some("FX")));
             let mut future: Value = (Value::Bool(marketType.as_deref() == Some("Futures")));
-            let mut spot: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && !(matches!(&future, Value::Bool(true))));
+            let mut spot: bool = !(matches!(&swap, Value::Bool(true))) && !(matches!(&future, Value::Bool(true)));
             let mut type_var: Value = Value::Str("spot".into());
             let mut settle: Value = Value::Null;
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
             let mut expiry: Value = Value::Null;
-            if matches!(&spot, Value::Bool(true)) {
+            if spot {
                 baseId = self.safe_string(currencies.clone(), Value::Int(0), &[]);
                 quoteId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
             }  else if matches!(&swap, Value::Bool(true)) {
@@ -701,15 +701,15 @@ impl BitflyerCore {
                     m.insert("quoteId".to_string(), quoteId);
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), type_var);
-                    m.insert("spot".to_string(), spot.clone());
+                    m.insert("spot".to_string(), Value::Bool(spot.clone()));
                     m.insert("margin".to_string(), Value::Bool(false));
                     m.insert("swap".to_string(), swap);
                     m.insert("future".to_string(), future);
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), Value::Bool(true));
                     m.insert("contract".to_string(), contract);
-                    m.insert("linear".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
-                    m.insert("inverse".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
+                    m.insert("linear".to_string(), (if spot { Value::Null } else { Value::Bool(true) }));
+                    m.insert("inverse".to_string(), (if spot { Value::Null } else { Value::Bool(false) }));
                     m.insert("taker".to_string(), taker);
                     m.insert("maker".to_string(), maker);
                     m.insert("contractSize".to_string(), Value::Null);

@@ -3630,7 +3630,7 @@ public partial class myriad : PredictionExchange
     public async virtual Task<object> subscribeMyriadChannel(string? messageHash, string? channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         // finish the connect handshake first so the subscribe frame is sent after the connect reply
         await this.connectCentrifugo(url);
         Int64 requestId = this.requestId(url);
@@ -3734,7 +3734,7 @@ public partial class myriad : PredictionExchange
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string channel = ((("orderbook:" + networkId) + ":") + marketId);
         string messageHash = ("orderbook::" + sym);
-        string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         await this.connectCentrifugo(url);
         var client = this.client(url);
@@ -4034,7 +4034,7 @@ public partial class myriad : PredictionExchange
             throw new ArgumentsRequired ((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
         int symbolsLength = getArrayLength(outcomes);
-        string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         await this.connectCentrifugo(url);
         await this.loadOutcomes(outcomes);
         var client = this.client(url);
@@ -4252,7 +4252,7 @@ public partial class myriad : PredictionExchange
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
         string channel = ((("positions:" + networkId) + ":") + trader);
         string messageHash = "positions";
-        string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         await this.connectCentrifugo(url);
         var client = this.client(url);
         bool isNewSubscription = (this.safeValue(client.subscriptions, channel) == null);
@@ -4371,7 +4371,7 @@ public partial class myriad : PredictionExchange
         return address.ToLower();
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ((response == null))
@@ -4406,7 +4406,7 @@ public partial class myriad : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiGroup = getValue(api, 0);
-        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "myriad"));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

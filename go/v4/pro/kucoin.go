@@ -281,8 +281,8 @@ func (this *Kucoin) subscribeBody(ch chan ccxt.AsyncResult[any], url any, messag
 	}
 	var message map[string]any = this.Extend(request, params)
 	var client ccxt.ClientInterface = this.Client(url)
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash)) {
+		client.(ccxt.ClientInterface).SubscriptionSet(requestId, subscriptionHash)
 	}
 
 	r := <-this.Watch(url, messageHash, message, subscriptionHash, subscription)
@@ -331,8 +331,8 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan ccxt.AsyncResult[any], messag
 	var message map[string]any = this.Extend(request, params)
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), urlType)
 	var client ccxt.ClientInterface = this.Client(url)
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, messageHash)
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+		client.(ccxt.ClientInterface).SubscriptionSet(requestId, messageHash)
 	}
 
 	r := <-this.Watch(url, messageHash, message, messageHash, subscription)
@@ -385,8 +385,8 @@ func (this *Kucoin) subscribePrivateUtaBody(ch chan ccxt.AsyncResult[any], messa
 	}
 	url := r.Value
 	var client ccxt.ClientInterface = this.Client(url)
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)) {
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscribeHash)
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+		client.(ccxt.ClientInterface).SubscriptionSet(requestId, subscribeHash)
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, message, []any{subscribeHash}, subscription)
@@ -538,8 +538,8 @@ func (this *Kucoin) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], url any
 	var client ccxt.ClientInterface = this.Client(url)
 	for i := 0; i < ccxt.GetArrayLength(subscriptionHashes); i++ {
 		var subscriptionHash *string = ccxt.SafeStringPtr(ccxt.GetValue(subscriptionHashes, i))
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash)) {
+			client.(ccxt.ClientInterface).SubscriptionSet(requestId, subscriptionHash)
 		}
 	}
 
@@ -576,8 +576,8 @@ func (this *Kucoin) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], url 
 	var client ccxt.ClientInterface = this.Client(url)
 	for i := 0; i < ccxt.GetArrayLength(subscriptionHashes); i++ {
 		var subscriptionHash *string = ccxt.SafeStringPtr(ccxt.GetValue(subscriptionHashes, i))
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash)) {
+			client.(ccxt.ClientInterface).SubscriptionSet(requestId, subscriptionHash)
 		}
 	}
 
@@ -958,8 +958,8 @@ func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[map[
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), urlType)
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHashWithSymbols string = channel + ":" + ccxt.Join(symbols, ",")
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHashWithSymbols)) {
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, messageHashWithSymbols)
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHashWithSymbols)) {
+		client.(ccxt.ClientInterface).SubscriptionSet(requestId, messageHashWithSymbols)
 	}
 
 	r := <-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription)
@@ -2619,12 +2619,12 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 		var deltaEnd *int64 = this.SafeInteger2(data, "sequenceEnd", "timestamp")
 		if nonce == nil {
 			var cacheLength int = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())
-			var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+			var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 			var subscription any = nil
 			for i := 0; i < len(subscriptions); i++ {
 				var key string = subscriptions[i]
 				if (ccxt.GetIndexOf(key, topicSymbol) >= 0) && (ccxt.GetIndexOf(key, topicChannel) >= 0) {
-					subscription = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), key)
+					subscription = client.(ccxt.ClientInterface).SubscriptionGet(key)
 					break
 				}
 			}
@@ -2687,7 +2687,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 		var deltaEnd *int64 = this.SafeInteger(data, "C")
 		if nonce == nil {
 			var cacheLength int = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())
-			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 5)
 			var utaParams map[string]any = map[string]any{
@@ -2816,12 +2816,12 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message any) {
 	//     }
 	//
 	var id *string = this.SafeString(message, "id")
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id)) {
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(id)) {
 		return
 	}
-	var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), id)
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
-	ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
+	var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), id)
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
+	client.(ccxt.ClientInterface).SubscriptionDel(id)
 	var method any = this.SafeValue(subscription, "method")
 	if method != nil {
 		ccxt.CallDynamically(method, client, message, subscription)
@@ -3781,8 +3781,8 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 			"privateChannel": true,
 		}
 		var message map[string]any = this.Extend(request, paramsOmitted)
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash)) {
+			client.(ccxt.ClientInterface).SubscriptionSet(requestId, subscriptionHash)
 		}
 
 		r6 := <-this.Watch(url, messageHash, message, uniformType)
@@ -3804,7 +3804,7 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	}
 }
 func (this *Kucoin) SetBalanceCache(client any, typeVar *string) {
-	if (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
+	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")

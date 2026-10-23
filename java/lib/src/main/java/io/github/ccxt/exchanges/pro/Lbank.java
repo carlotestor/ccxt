@@ -83,7 +83,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         synchronized (this) {
         Long previousValue = this.safeInteger(this.options, "requestId", 0);
         newValue = (Long) this.sum(previousValue, 1);
-        Helpers.addElementToObject(this.options, "requestId", newValue);
+        this.options.put("requestId", newValue);
         }
         return newValue;
     }
@@ -873,7 +873,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         account.put("total", this.safeString(data, "asset"));
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject(this.balance, code, account);
+            this.balance.put(code, account);
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
@@ -1117,7 +1117,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Client client = this.client(url);
             Long now = this.milliseconds();
             String messageHash = "authenticateFlight";
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
                 // a flight is already in progress - wake when the leader settles
                 // it: the subscribeKey is then in the bucket
@@ -1139,7 +1139,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                     {
                         throw new ExchangeError((this.id + " failed to get subscribe key")) ;
                     }
-                    ((Map)client.subscriptions).put("authenticated", new HashMap<String, Object>() {{
+                    client.subscriptions.put("authenticated", new HashMap<String, Object>() {{
         put( "key", Lbank.this.safeString(response, "data") );
         put( "expires", Lbank.this.sum(now, 3300000) );
     }});
@@ -1159,12 +1159,12 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                         {
                             throw new ExchangeError((this.id + " failed to refresh the SubscribeKey")) ;
                         }
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(client, "subscriptions"), "authenticated"), "expires", this.sum(now, 3300000)); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                        Helpers.addElementToObject((client.subscriptions == null ? null : client.subscriptions.get("authenticated")), "expires", this.sum(now, 3300000)); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                     }
                 }
                 // settle the flight through the client so that every write to the
                 // futures map happens inside the base class
-                client.resolve(Helpers.GetValue(((Map)client.subscriptions).get("authenticated"), "key"), messageHash);
+                client.resolve(Helpers.GetValue(client.subscriptions.get("authenticated"), "key"), messageHash);
             } catch(Exception e)
             {
                 // reject the flight - all waiters throw and the next caller
@@ -1173,7 +1173,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             // rethrows a rejected flight to the leader and attaches the handler
             // that keeps an alone leader from crashing on an unhandled rejection
-            ((io.github.ccxt.ws.Future)future).getFuture().join();
+            future.getFuture().join();
             return this.safeString(this.safeDict(client.subscriptions, "authenticated", (Object) null), "key");
         });
 

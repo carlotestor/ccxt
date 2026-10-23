@@ -1125,7 +1125,7 @@ impl BydfiCore {
     m
 })]);
         let mut orderBook: Value = self.parse_order_book(data.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
-        add_element_to_object(&mut orderBook, &Value::Str("nonce".into()), self.safe_integer_k(data, "lastUpdateId", &[]));
+        if let Value::Dict(__r03d) = &mut orderBook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data, "lastUpdateId", &[])); }
         return orderBook;
 
     Value::Null

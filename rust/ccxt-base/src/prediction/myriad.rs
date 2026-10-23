@@ -681,7 +681,7 @@ impl MyriadCore {
         let mut allRawMarkets: Vec<Value> = Vec::new();
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
-        let mut collected: Value = Value::Int(0);
+        let mut collected: i64 = 0;
         let mut page: Value = Value::Int(1);
         loop {
             let __ws_arg_1 = self.extend(Value::Map({
@@ -703,14 +703,14 @@ impl MyriadCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1330: bool = true;
                 while { if !__for_first_1330 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1330 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
-                if collected.as_f64().unwrap_or(f64::NAN) < maxMarkets.as_f64().unwrap_or(f64::NAN) {
+                if (collected as f64) < maxMarkets.as_f64().unwrap_or(f64::NAN) {
                     allRawMarkets.push(rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-                    collected = Value::Int(allRawMarkets.len() as i64);
+                    collected = allRawMarkets.len() as i64;
                 }
             }
             }
             page = self.sum(&[page.clone(), Value::Int(1)]);
-            if rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || collected.as_f64().unwrap_or(f64::NAN) >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
+            if rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || (collected as f64) >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
                 break;
             }
         }
@@ -921,7 +921,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut collected: Value = Value::Int(0);
+        let mut collected: i64 = 0;
         let mut page: Value = Value::Int(1);
         loop {
             let mut request: Value = Value::Map({
@@ -953,14 +953,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (questionId != Value::Null) {
                     if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&questionId), Value::Bool(true)); }
                 }
-                if collected.as_f64().unwrap_or(f64::NAN) < maxQuestions.as_f64().unwrap_or(f64::NAN) {
+                if (collected as f64) < maxQuestions.as_f64().unwrap_or(f64::NAN) {
                     allRawQuestions.push(rawQuestion);
-                    collected = Value::Int(allRawQuestions.len() as i64);
+                    collected = allRawQuestions.len() as i64;
                 }
             }
             }
             page = self.sum(&[page.clone(), Value::Int(1)]);
-            if (rawQuestionsLength < limit.as_f64().unwrap_or(f64::NAN)) || (collected.as_f64().unwrap_or(f64::NAN) >= maxQuestions.as_f64().unwrap_or(f64::NAN)) {
+            if (rawQuestionsLength < limit.as_f64().unwrap_or(f64::NAN)) || ((collected as f64) >= maxQuestions.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
         }
@@ -3850,8 +3850,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 marketKeys.push(key.clone());
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            let mut grouped: Value = get_value(&outcomesByMarket, &key);
-            append_to_array(&mut grouped, outcomeObj.clone());
+            let mut grouped: Value = outcomesByMarket.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(outcomeObj.clone()); };
             crate::set_value(&mut outcomesByMarket, &key, grouped.clone());
             if let Value::Dict(__d) = &mut outcomesByMarket { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), grouped.clone()); }
         }
@@ -4256,7 +4256,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue, Value::Int(1)]);
         if (url != Value::Null) {
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())), &url, newValue.clone());
+            if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); }
         }
         return newValue;
 

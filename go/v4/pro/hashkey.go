@@ -1080,7 +1080,7 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	return nil
 }
 func (this *Hashkey) SetBalanceCache(client any, typeVar *string, subscribeHash string) {
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
+	if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")

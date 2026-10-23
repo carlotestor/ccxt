@@ -4175,7 +4175,7 @@ impl OkxCore {
         let mut future: Value = (Value::Bool(type_var.as_str() == Some("future")));
         let mut swap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
         let mut option: Value = (Value::Bool(type_var.as_str() == Some("option")));
-        let mut contract: Value = Value::Bool(matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)) || matches!(&option, Value::Bool(true)));
+        let mut contract: bool = matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)) || matches!(&option, Value::Bool(true));
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseCcy", &[Value::Str("".into())]); // defaulting to '' because some weird preopen markets have empty baseId
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCcy", &[Value::Str("".into())]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settleCcy", &[]);
@@ -4205,7 +4205,7 @@ impl OkxCore {
         let mut expiry: Value = Value::Null;
         let mut strikePrice: Value = Value::Null;
         let mut optionType: Value = Value::Null;
-        if matches!(&contract, Value::Bool(true)) {
+        if contract {
             if (settle != Value::Null) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
             }
@@ -4267,10 +4267,10 @@ impl OkxCore {
         m.insert("future".to_string(), future);
         m.insert("option".to_string(), option);
         m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("live")));
-        m.insert("contract".to_string(), contract.clone());
-        m.insert("linear".to_string(), (if matches!(&contract, Value::Bool(true)) { quoteEqualSettle } else { Value::Null }));
-        m.insert("inverse".to_string(), (if matches!(&contract, Value::Bool(true)) { baseEqualSettle } else { Value::Null }));
-        m.insert("contractSize".to_string(), (if matches!(&contract, Value::Bool(true)) { __ws_arg_0 } else { Value::Null }));
+        m.insert("contract".to_string(), Value::Bool(contract.clone()));
+        m.insert("linear".to_string(), (if contract { quoteEqualSettle } else { Value::Null }));
+        m.insert("inverse".to_string(), (if contract { baseEqualSettle } else { Value::Null }));
+        m.insert("contractSize".to_string(), (if contract { __ws_arg_0 } else { Value::Null }));
         m.insert("expiry".to_string(), expiry);
         m.insert("expiryDatetime".to_string(), __ws_arg_1);
         m.insert("strike".to_string(), __ws_arg_2);
@@ -4305,7 +4305,7 @@ impl OkxCore {
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), (if matches!(&contract, Value::Bool(true)) { Value::Null } else { maxSpotCost }));
+        m.insert("max".to_string(), (if contract { Value::Null } else { maxSpotCost }));
     m
 }));
     m
@@ -5799,21 +5799,21 @@ impl OkxCore {
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tdMode".into(), marginMode.clone()); }
         }
-        let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
-        let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("post_only")), &[paramsReduceOnly]);
+        let mut isMarketOrder: bool = type_var.as_str() == Some("market");
+        let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[paramsReduceOnly]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut orderParams: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("currency".into()), Value::Str("ccy".into()), Value::Str("marginMode".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("slOrdPx".into()), Value::Str("tpOrdPx".into()), Value::Str("margin".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPrice".into())]), &[]);
         let mut ioc: bool = (timeInForce.as_deref() == Some("IOC")) || (type_var.as_str() == Some("ioc"));
         let mut fok: bool = (timeInForce.as_deref() == Some("FOK")) || (type_var.as_str() == Some("fok"));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
-        let mut marketIOC: bool = (matches!(&isMarketOrder, Value::Bool(true)) && ioc) || (type_var.as_str() == Some("optimal_limit_ioc"));
+        let mut marketIOC: bool = (isMarketOrder && ioc) || (type_var.as_str() == Some("optimal_limit_ioc"));
         let mut defaultTgtCcy: Value = self.safe_string_k(self.options.clone(), "tgtCcy", &[Value::Str("base_ccy".into())]);
         let mut tgtCcy: Value = self.safe_string_k(orderParams.clone(), "tgtCcy", &[defaultTgtCcy]);
         if (contract.as_bool() != Some(true)) && (!margin) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tgtCcy".into(), tgtCcy.clone()); }
         }
-        if matches!(&isMarketOrder, Value::Bool(true)) || marketIOC {
+        if isMarketOrder || marketIOC {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("market".into())); }
             if (spot.as_bool() == Some(true)) && (side.as_str() == Some("buy")) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
@@ -5962,7 +5962,7 @@ impl OkxCore {
         if trigger {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("trigger".into())); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPx".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPx".into(), (if matches!(&isMarketOrder, Value::Bool(true)) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), price) })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPx".into(), (if isMarketOrder { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), price) })); }
         }  else if conditional {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("conditional".into())); }
             let mut twoWayCondition: bool = (takeProfitPrice != Value::Null) && (stopLossPrice != Value::Null);
@@ -10559,8 +10559,8 @@ impl OkxCore {
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item, &[]);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 if let Value::Dict(__d) = &mut borrowRateStructure { std::sync::Arc::make_mut(__d).insert("period".into(), Value::Int(31536000000)); }
-                let mut borrrowRateCode: Value = get_value(&borrowRateHistories, &code);
-                append_to_array(&mut borrrowRateCode, borrowRateStructure);
+                let mut borrrowRateCode: Value = borrowRateHistories.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                if let Value::Arr(__a) = &mut borrrowRateCode { std::sync::Arc::make_mut(__a).push(borrowRateStructure); };
                 crate::set_value(&mut borrowRateHistories, &code, borrrowRateCode);
             }
         }
@@ -10571,7 +10571,7 @@ impl OkxCore {
             let mut __for_first_1020: bool = true;
             while { if !__for_first_1020 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1020 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut code: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            { let __be_tmp = self.filter_by_currency_since_limit(get_value(&borrowRateHistories, &code), &[code.clone(), since.clone(), limit.clone()]); if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[code.clone(), since.clone(), limit.clone()]); if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
         }
         }
         return borrowRateHistories;
@@ -11310,15 +11310,15 @@ impl OkxCore {
             m
         });
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchOpenInterests".into()), &[market, params, Value::Str("swap".into())]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsSubType = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut instType: Value = Value::Str("SWAP".into());
+        let mut instType: String = "SWAP".to_string();
         if (marketType.as_str() == Some("future")) {
-            instType = Value::Str("FUTURES".into());
-        }  else if (instType.as_str() == Some("option")) {
-            instType = Value::Str("OPTION".into());
+            instType = "FUTURES".to_string();
+        }  else if ((instType == "option")) {
+            instType = "OPTION".to_string();
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), instType.clone());
+                m.insert("instType".to_string(), Value::str(instType.clone()));
             m
         });
         let mut uly: Value = self.safe_string_k(paramsSubType.clone(), "uly", &[]);
@@ -11329,7 +11329,7 @@ impl OkxCore {
         if (instFamily != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instFamily".into(), instFamily.clone()); }
         }
-        if (instType.as_str() == Some("OPTION")) && (uly == Value::Null) && (instFamily == Value::Null) {
+        if ((instType == "OPTION")) && (uly == Value::Null) && (instFamily == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets".into()))));
         }
         let __ws_arg_81 = self.extend(request, &[paramsSubType]);
@@ -11786,7 +11786,7 @@ impl OkxCore {
             while { if !__for_first_1023 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1023 = false; i.as_f64().unwrap_or(f64::NAN) < ((depositWithdrawCodes.len() as i64) as f64) } {
             let mut code: Value = depositWithdrawCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(get_value(&depositWithdrawFees, &code), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
         }
         }
         return depositWithdrawFees;

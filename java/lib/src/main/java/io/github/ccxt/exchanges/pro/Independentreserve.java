@@ -258,7 +258,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             orderbook.reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
-            Helpers.addElementToObject(client.subscriptions, messageHash, this.extend(subscription, new HashMap<String, Object>() {{
+            client.subscriptions.put(messageHash, this.extend(subscription, new HashMap<String, Object>() {{
     put( "receivedSnapshot", true );
 }}));
         } else
@@ -297,7 +297,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             if (!Helpers.isEqual(calculatedChecksum, responseChecksum))
             {
                 var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
                 ((Map<String,Object>)this.orderbooks).remove(symbol);
                 client.reject(error, messageHash);
                 return;

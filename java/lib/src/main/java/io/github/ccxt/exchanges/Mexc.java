@@ -7275,7 +7275,7 @@ public class Mexc extends MexcApi
         {
             if (java.util.Objects.equals(section, "broker"))
             {
-                String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), section), access);
+                String apiUrl = this.safeString((section == null ? null : ((Map<String, Object>)this.urls.get("api")).get(section)), access);
                 if (java.util.Objects.equals(apiUrl, null))
                 {
                     throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -7283,7 +7283,7 @@ public class Mexc extends MexcApi
                 url = ((apiUrl + "/") + pathValue);
             } else
             {
-                String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), section), access);
+                String apiUrl = this.safeString((section == null ? null : ((Map<String, Object>)this.urls.get("api")).get(section)), access);
                 if (java.util.Objects.equals(apiUrl, null))
                 {
                     throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -7332,7 +7332,7 @@ public class Mexc extends MexcApi
             }
         } else if (java.util.Objects.equals(section, "contract") || java.util.Objects.equals(section, "spot2"))
         {
-            String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), section), access);
+            String apiUrl = this.safeString((section == null ? null : ((Map<String, Object>)this.urls.get("api")).get(section)), access);
             if (java.util.Objects.equals(apiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

@@ -1182,9 +1182,9 @@ impl BtseCore {
         //     }
         //
         let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut isSpot: Value = Value::Bool(marketType.as_deref() == Some("Spot"));
-        let mut isFuture: Value = Value::Bool(marketType.as_deref() == Some("FuturesTimeBased"));
-        let mut isSwap: Value = Value::Bool(marketType.as_deref() == Some("FuturesPerpetual"));
+        let mut isSpot: bool = marketType.as_deref() == Some("Spot");
+        let mut isFuture: bool = marketType.as_deref() == Some("FuturesTimeBased");
+        let mut isSwap: bool = marketType.as_deref() == Some("FuturesPerpetual");
         let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
@@ -1203,10 +1203,10 @@ impl BtseCore {
         let mut type_var: Value = Value::Str("spot".into());
         let mut expiry: Value = Value::Null;
         let mut contractSize: Value = Value::Null;
-        if !(matches!(&isSpot, Value::Bool(true))) {
+        if !(isSpot) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), quote).into())).into());
             contractSize = self.safe_string_k(market.clone(), "contractSize", &[]);
-            if matches!(&isFuture, Value::Bool(true)) {
+            if isFuture {
                 expiry = self.safe_integer_k(market.clone(), "contractEndTime", &[]);
                 symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".into()), self.yymmdd(expiry.clone(), &[])).into())).into());
                 type_var = Value::Str("future".into());
@@ -1218,7 +1218,7 @@ impl BtseCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if matches!(&isSpot, Value::Bool(true)) {
+        if isSpot {
             fees = self.safe_dict_k(self.fees.clone(), "spot", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1230,20 +1230,20 @@ impl BtseCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote.clone());
-        m.insert("settle".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { quote }));
+        m.insert("settle".to_string(), (if isSpot { Value::Null } else { quote }));
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId.clone());
-        m.insert("settleId".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { quoteId }));
+        m.insert("settleId".to_string(), (if isSpot { Value::Null } else { quoteId }));
         m.insert("type".to_string(), type_var);
-        m.insert("spot".to_string(), isSpot.clone());
-        m.insert("margin".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
-        m.insert("swap".to_string(), isSwap.clone());
-        m.insert("future".to_string(), isFuture.clone());
+        m.insert("spot".to_string(), Value::Bool(isSpot.clone()));
+        m.insert("margin".to_string(), (if isSpot { Value::Bool(false) } else { Value::Null }));
+        m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
+        m.insert("future".to_string(), Value::Bool(isFuture.clone()));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), Value::Bool(matches!(&isSwap, Value::Bool(true)) || matches!(&isFuture, Value::Bool(true))));
-        m.insert("linear".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
-        m.insert("inverse".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
+        m.insert("contract".to_string(), Value::Bool(isSwap || isFuture));
+        m.insert("linear".to_string(), (if isSpot { Value::Null } else { Value::Bool(true) }));
+        m.insert("inverse".to_string(), (if isSpot { Value::Null } else { Value::Bool(false) }));
         m.insert("taker".to_string(), fees.as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
         m.insert("maker".to_string(), fees.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));

@@ -623,7 +623,7 @@ impl ParadexCore {
         });
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut snapshot: Value = self.parse_order_book(orderbookData, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
-        add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), self.safe_integer_k(data, "seq_no", &[]));
+        if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data, "seq_no", &[])); }
         orderbook.reset(snapshot);
         let mut messageHash: Value = self.safe_string_k(params, "channel", &[]);
         client.resolve(&[orderbook, messageHash]);
@@ -986,17 +986,17 @@ impl ParadexCore {
             m
         });
         let mut messageHashes: Vec<Value> = Vec::new();
-        let mut symbolsLength: Value = Value::Int(0);
+        let mut symbolsLength: i64 = 0;
         if (symbolsNormalized != Value::Null) {
-            symbolsLength = Value::Int(symbolsNormalized.len() as i64);
+            symbolsLength = symbolsNormalized.len() as i64;
         }
-        if (symbolsLength.as_f64() == Some(0.0)) {
+        if (((symbolsLength as f64) == 0.0)) {
             messageHashes.push(channel.clone());
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_589: bool = true;
-                while { if !__for_first_589 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_589 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_589 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_589 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
             }
             }

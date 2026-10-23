@@ -697,7 +697,7 @@ impl BullishCore {
         let mut sequenceNumberRange: Value = self.safe_list_k(data, "sequenceNumberRange", &[Value::from(vec![])]);
         if ((sequenceNumberRange.len() as i64) as f64) > ((0i64) as f64) {
             let mut lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            add_element_to_object(&mut parsed, &Value::Str("nonce".into()), self.safe_integer(sequenceNumberRange, lastIndex, &[]));
+            if let Value::Dict(__r03d) = &mut parsed { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer(sequenceNumberRange, lastIndex, &[])); }
         }
         orderbook.reset(parsed);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
@@ -1108,7 +1108,7 @@ impl BullishCore {
                 let mut __for_first_182: bool = true;
                 while { if !__for_first_182 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_182 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedKeys.len() as i64) as f64) } {
                 let mut parsedKey: Value = parsedKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &parsedKey, parsed.as_map().and_then(|__m| parsedKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &tradingAccountId) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&parsedKey), parsed.as_map().and_then(|__m| parsedKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
             }
             }
             { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| tradingAccountId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
@@ -1123,9 +1123,9 @@ impl BullishCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(data, "lockedQuantity", &[])); }
             let mut code: Value = self.safe_currency_code(assetId, &[]);
             if (tradingAccountId != Value::Null) && (code != Value::Null) {
-                add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &code, account);
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &tradingAccountId) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), account); }
             }
-            add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &Value::Str("info".into()), message);
+            if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &tradingAccountId) { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); }
             { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| tradingAccountId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
         }
         let mut messageHash: Value = Value::Str("balance".into());

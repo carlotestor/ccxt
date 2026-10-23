@@ -889,7 +889,7 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 	}
 }
 func (this *Toobit) HandleDelta(bookside any, delta any) {
-	var bidAsk any = this.ParseOrderBookBidAsk(delta)
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func (this *Toobit) HandleOrderBookPartialSnapshot(client any, message map[string]any) {
@@ -1019,7 +1019,7 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 	_ = subscriptionHash
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if (subscriptionHash == nil) || (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
+	if (subscriptionHash == nil) || (client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash)) {
 		return
 	}
 	var typeVar string = "contract"

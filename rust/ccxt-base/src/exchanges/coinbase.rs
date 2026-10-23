@@ -2208,12 +2208,12 @@ impl CoinbaseCore {
             if (base == Value::Null) {
                 continue;
             }
-            let mut type_var: Value = Value::Str("crypto".into());
+            let mut type_var: String = "crypto".to_string();
             if (matches!((&dataById, &baseId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                type_var = Value::Str("fiat".into());
+                type_var = "fiat".to_string();
             }
             // https://github.com/ccxt/ccxt/issues/6066
-            if (type_var.as_str() == Some("crypto")) {
+            if ((type_var == "crypto")) {
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_531: bool = true;
@@ -2770,7 +2770,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fundingInterval: Option<String> = self.safe_string_k(futureProductDetails.clone(), "funding_interval", &[]).as_str().map(str::to_owned);
         let mut displayName: Value = self.safe_string_k(market.clone(), "display_name", &[]);
         let mut isPerpetualDisplayName: bool = (displayName != Value::Null) && (displayName.as_str().is_some_and(|__s| __s.ends_with("PERP")));
-        let mut isSwap: Value = Value::Bool((contractExpiryType.as_deref() == Some("PERPETUAL")) || (fundingInterval.is_some()) || isPerpetualDisplayName);
+        let mut isSwap: bool = (contractExpiryType.as_deref() == Some("PERPETUAL")) || (fundingInterval.is_some()) || isPerpetualDisplayName;
         let mut baseId: Value = self.safe_string_k(futureProductDetails, "contract_root_unit", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_currency_id", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -2782,7 +2782,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tradingDisabled: bool = (isDisabled.as_bool() == Some(true)) || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut type_var: Value = Value::Null;
-        if matches!(&isSwap, Value::Bool(true)) {
+        if isSwap {
             type_var = Value::Str("swap".into());
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote).into());
         }  else {
@@ -2806,8 +2806,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), type_var);
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), isSwap.clone());
-        m.insert("future".to_string(), Value::Bool(!(matches!(&isSwap, Value::Bool(true)))));
+        m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
+        m.insert("future".to_string(), Value::Bool(!(isSwap)));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(!tradingDisabled));
         m.insert("contract".to_string(), Value::Bool(true));
@@ -2816,8 +2816,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("taker".to_string(), taker);
         m.insert("maker".to_string(), maker);
         m.insert("contractSize".to_string(), contractSize);
-        m.insert("expiry".to_string(), (if matches!(&isSwap, Value::Bool(true)) { Value::Null } else { expireTimestamp }));
-        m.insert("expiryDatetime".to_string(), (if matches!(&isSwap, Value::Bool(true)) { Value::Null } else { expireDateTime }));
+        m.insert("expiry".to_string(), (if isSwap { Value::Null } else { expireTimestamp }));
+        m.insert("expiryDatetime".to_string(), (if isSwap { Value::Null } else { expireDateTime }));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -5350,9 +5350,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut maxLimit: Value = Value::Int(300);
-        let mut limitValue: Value = self.parse_to_int(maxLimit.clone());
-        if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) < maxLimit.as_f64().unwrap_or(f64::NAN)) {
+        let mut maxLimit: i64 = 300;
+        let mut limitValue: Value = self.parse_to_int(Value::Int(maxLimit.clone()));
+        if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) < (maxLimit as f64)) {
             limitValue = self.parse_to_int(limit);
         }
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -7050,8 +7050,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 let mut isCloudAPiKey: bool = (Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (self.secret.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN")));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                let mut isV2CloudAPiKey: Value = Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool() == Some(true) || (self.secret.as_str().is_some_and(|__s| __s.ends_with("="))));
-                if isCloudAPiKey || matches!(&isV2CloudAPiKey, Value::Bool(true)) {
+                let mut isV2CloudAPiKey: bool = (Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool() == Some(true) || (self.secret.as_str().is_some_and(|__s| __s.ends_with("=")));
+                if isCloudAPiKey || isV2CloudAPiKey {
                     if isCloudAPiKey && (self.apiKey.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN"))) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
                     }
@@ -7073,7 +7073,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     //     'uri': uri,
                     //     'iat': seconds,
                     // }
-                    let mut token: Value = self.create_auth_token(seconds, &[method.clone(), url.clone(), isV2CloudAPiKey.clone()]);
+                    let mut token: Value = self.create_auth_token(seconds, &[method.clone(), url.clone(), Value::Bool(isV2CloudAPiKey.clone())]);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into());
                 }  else {

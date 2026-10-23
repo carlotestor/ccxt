@@ -1905,7 +1905,7 @@ public class Predictfun extends PredictfunApi
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
-        Helpers.addElementToObject(this.options, "chainId", ((Boolean.TRUE.equals(enable))) ? 97 : 56);
+        this.options.put("chainId", ((Boolean.TRUE.equals(enable))) ? 97 : 56);
         Helpers.addElementToObject(this.requiredCredentials, "apiKey", !Boolean.TRUE.equals(enable));
         if (!java.util.Objects.equals(wasSandbox, enable))
         {
@@ -1916,13 +1916,13 @@ public class Predictfun extends PredictfunApi
             {
                 Helpers.addElementToObject(this.options, "backupJwtToken", this.safeString(this.options, "jwtToken"));
                 Helpers.addElementToObject(this.options, "backupJwtTokenExpiresAt", this.safeInteger(this.options, "jwtTokenExpiresAt", 0));
-                Helpers.addElementToObject(this.options, "jwtToken", null);
+                this.options.remove("jwtToken");
                 this.options.put("jwtTokenExpiresAt", 0);
             } else
             {
                 Helpers.addElementToObject(this.options, "jwtToken", this.safeString(this.options, "backupJwtToken"));
                 Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", this.safeInteger(this.options, "backupJwtTokenExpiresAt", 0));
-                Helpers.addElementToObject(this.options, "backupJwtToken", null);
+                this.options.remove("backupJwtToken");
                 this.options.put("backupJwtTokenExpiresAt", 0);
             }
         }
@@ -2027,7 +2027,7 @@ public class Predictfun extends PredictfunApi
             // measured from before the round trip, so the cached window closes a little early rather
             // than a little late
             Long tokenExpiresIn = this.safeInteger(this.options, "tokenExpiresIn", 86400000);
-            Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", this.sum(now, tokenExpiresIn));
+            this.options.put("jwtTokenExpiresAt", this.sum(now, tokenExpiresIn));
             return token;
         });
 
@@ -3004,7 +3004,7 @@ public class Predictfun extends PredictfunApi
         // or aged out before its window closes is replayed for the life of the process
         if ((statusCode != null && ((Number) statusCode).doubleValue() == 401))
         {
-            Helpers.addElementToObject(this.options, "jwtToken", null);
+            this.options.remove("jwtToken");
             this.options.put("jwtTokenExpiresAt", 0);
         }
         String error = this.safeString(response, "error");
@@ -3415,9 +3415,9 @@ public class Predictfun extends PredictfunApi
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
         String subscribeHash = this.safeString(subscription, "subscribeHash");
-        if ((!java.util.Objects.equals(subscribeHash, null)) && (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
+        if ((!java.util.Objects.equals(subscribeHash, null)) && (client.subscriptions.containsKey(subscribeHash)))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+            client.subscriptions.remove((String)subscribeHash);
         }
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.safeString(subscription, "topic"), "walletEvents"))
@@ -3465,9 +3465,9 @@ public class Predictfun extends PredictfunApi
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         // leaving it behind would make a later watch believe it is still subscribed
         String subscribeHash = this.safeString(subscription, "subscribeHash");
-        if ((!java.util.Objects.equals(subscribeHash, null)) && (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
+        if ((!java.util.Objects.equals(subscribeHash, null)) && (client.subscriptions.containsKey(subscribeHash)))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+            client.subscriptions.remove((String)subscribeHash);
         }
         // cleanCache drops a cache only when the subscription names that one topic, and the wallet
         // topic backs two of them - so the caches it cannot reach are dropped here by the hashes
@@ -3686,7 +3686,7 @@ public class Predictfun extends PredictfunApi
         // topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
         // whatever is already live on this connection plus the hash watch () is about to register
         List<Object> hashes = new ArrayList<Object>(Arrays.asList("orders", "myTrades"));
-        List<Object> futures = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> futures = new ArrayList<Object>(client.futures.keySet());
         Integer futuresLength = ((List<?>)futures).size();
         for (var i = 0; (futuresLength != null && i < futuresLength); i++)
         {
@@ -3777,7 +3777,7 @@ public class Predictfun extends PredictfunApi
         synchronized (this) {
         Long previous = this.safeInteger(this.options, "requestId", 0);
         next = (Long) this.sum(previous, 1);
-        Helpers.addElementToObject(this.options, "requestId", next);
+        this.options.put("requestId", next);
         }
         return next;
     }

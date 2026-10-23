@@ -343,7 +343,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 									delete(this.Orderbooks, *symbol)
 								}
 								if topic != nil {
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
+									client.(ccxt.ClientInterface).SubscriptionDel(topic)
 								}
 								client.(ccxt.ClientInterface).Reject(e, topic)
 								return nil
@@ -367,7 +367,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
+			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(topic)
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 			if symbol != nil {
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
@@ -426,7 +426,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 					ret_ = func(this *Woo) any {
 						// catch block:
 						if messageHash != nil {
-							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+							client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 						}
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						return nil
@@ -446,11 +446,11 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 			if !ccxt.StructAbsent(r.Value) {
 				snapshot = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 			}
-			if ccxt.IsEqual(this.SafeDict(this.Orderbooks, symbol), nil) {
+			if ccxt.IsEqual(this.WsCacheGet("Orderbooks", symbol), nil) {
 
 				return nil
 			}
-			var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+			var orderbook any = this.WsCacheGet("Orderbooks", symbol)
 			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
 			for i := 0; i < ccxt.GetArrayLength(messages); i++ {
@@ -467,7 +467,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 				}
 			}
 			if symbol != nil {
-				ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+				this.WsCacheSet("Orderbooks", symbol, orderbook)
 			}
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 			return nil
@@ -1361,7 +1361,7 @@ func (this *Woo) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var messageHash string = "authenticated"
 	var event string = "auth"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var ts string = ccxt.ToString(this.Nonce())
 		var auth string = "|" + ts
@@ -2248,8 +2248,8 @@ func (this *Woo) HandleErrorMessage(client any, message any) any {
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
-							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(error)
@@ -2285,7 +2285,7 @@ func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	//
 	var subscribeHash *string = this.SafeString(message, "data")
 	var unsubscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subscribeHash))
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash, map[string]any{})
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubscribeHash, map[string]any{})
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var unsubMessageHashes []any = ccxt.SafeListTyped(subscription, "unsubMessageHashes")
 	for i := 0; i < len(subMessageHashes); i++ {
@@ -2406,7 +2406,7 @@ func (this *Woo) HandleSubscribe(client any, message map[string]any) any {
 	//     }
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var method any = this.SafeValue(subscription, "method")
 	if method != nil {
@@ -2432,8 +2432,8 @@ func (this *Woo) HandleAuth(client any, message map[string]any) {
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		// allows further authentication attempts
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel("authenticated")
 		}
 	}
 }

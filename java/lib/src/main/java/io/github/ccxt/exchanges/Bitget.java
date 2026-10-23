@@ -3728,7 +3728,7 @@ public class Bitget extends BitgetApi
                 {
                     accountIsUTa = false;
                 }
-                Helpers.addElementToObject(this.options, "uta", accountIsUTa);
+                this.options.put("uta", accountIsUTa);
                 return new ArrayList<Object>(Arrays.asList(accountIsUTa, paramsUta));
             }
             return new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(defaultValue, false), paramsUta));
@@ -3875,8 +3875,8 @@ public class Bitget extends BitgetApi
                             isolatedKeys.add(entrySymbol);
                         }
                     }
-                    Helpers.addElementToObject(this.options, "crossMarginPairsData", crossKeys);
-                    Helpers.addElementToObject(this.options, "isolatedMarginPairsData", isolatedKeys);
+                    this.options.put("crossMarginPairsData", crossKeys);
+                    this.options.put("isolatedMarginPairsData", isolatedKeys);
                 } else
                 {
                     markets = (List<Object>) this.arrayConcat(markets, data);

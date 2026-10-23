@@ -3437,8 +3437,8 @@ impl HashkeyCore {
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         });
-        let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
-        if matches!(&isMarketOrder, Value::Bool(true)) {
+        let mut isMarketOrder: bool = type_var.as_str() == Some("market");
+        if isMarketOrder {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("priceType".into(), Value::Str("MARKET".into())); }
         }
         if (price != Value::Null) {
@@ -3456,7 +3456,7 @@ impl HashkeyCore {
         let mut timeInForceParamparamsTimeInForceVariable = self.handle_param_string(paramsReduceOnly, Value::Str("timeInForce".into()), &[]);
         let mut timeInForceParam: Value = timeInForceParamparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = timeInForceParamparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder, Value::Bool(timeInForceParam.as_str() == Some("LIMIT_MAKER")), &[paramsTimeInForce]);
+        let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForceParam.as_str() == Some("LIMIT_MAKER")), &[paramsTimeInForce]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut timeInForce: Value = timeInForceParam;

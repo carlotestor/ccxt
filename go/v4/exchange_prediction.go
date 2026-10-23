@@ -9,10 +9,10 @@ import "strings"
 
 type PredictionExchange struct {
 	BaseExchange
-	Outcomes        any
-	Outcomes_by_id  any
-	Events          any
-	Events_by_slug  any
+	Outcomes        map[string]any
+	Outcomes_by_id  map[string]any
+	Events          map[string]any
+	Events_by_slug  map[string]any
 	ReloadingEvents bool
 	EventsLoading   any
 }
@@ -364,7 +364,7 @@ func (this *PredictionExchange) SetEvents(events any) map[string]any {
 	// merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
 	// index by the unified `event` handle too (that's the identifier every outcome's `event`
 	// field carries), so getEvent (handle) resolves without each exchange hand-writing it
-	if IsEqual(this.Events, nil) {
+	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
 	if this.Events_by_slug == nil {
@@ -376,28 +376,28 @@ func (this *PredictionExchange) SetEvents(events any) map[string]any {
 		var slug *string = this.SafeString(event, "slug")
 		var handle *string = this.SafeString(event, "event")
 		if id != nil {
-			AddElementToObject(this.Events, id, event)
+			this.Events[*id] = event
 		}
 		if handle != nil {
-			AddElementToObject(this.Events, handle, event)
+			this.Events[*handle] = event
 		}
 		if slug != nil {
-			AddElementToObject(this.Events_by_slug, slug, event)
+			this.Events_by_slug[*slug] = event
 		}
 	}
-	return MapTyped(this.Events)
+	return this.Events
 }
-func (this *PredictionExchange) EventsList() any {
+func (this *PredictionExchange) EventsList() []any {
 	// the cached events as a list; empty on a cold instance (this.events is keyed by both
 	// id and handle, so de-duplicate by identity before returning)
-	if IsEqual(this.Events, nil) {
+	if this.Events == nil {
 		return []any{}
 	}
 	var result []any = []any{}
 	var seen map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(this.Events)
 	for i := 0; i < len(keys); i++ {
-		var event any = GetValue(this.Events, keys[i])
+		var event any = this.Events[keys[i]]
 		var identity *string = this.SafeString2(event, "id", "event", keys[i])
 		if !(func() bool {
 			if identity == nil {
@@ -429,9 +429,9 @@ func (this *PredictionExchange) loadEventsHelperBody(ch chan AsyncResult[map[str
 	_ = reload
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !(reload == true) && (!IsEqual(this.Events, nil) && !IsEqual(this.Events, nil)) {
+	if !(reload == true) && this.Events != nil {
 
-		ch <- AsyncResult[map[string]PredictionEvent]{Value: PredictionEventMapFromMap(MapTyped(this.Events))}
+		ch <- AsyncResult[map[string]PredictionEvent]{Value: PredictionEventMapFromMap(this.Events)}
 		return nil
 	}
 
@@ -473,7 +473,7 @@ func (this *PredictionExchange) loadEventsBody(ch chan AsyncResult[map[string]Pr
 func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
 	// cache-only event resolver (the event analogue of this.outcome) - the cache fills
 	// through fetchEvents; this never fetches
-	if (!IsEqual(this.Events, nil)) && (InOp(this.Events, eventIdOrSlug)) {
+	if (this.Events != nil) && (InOp(this.Events, eventIdOrSlug)) {
 		return GetValue(this.Events, eventIdOrSlug)
 	}
 	if (this.Events_by_slug != nil) && (InOp(this.Events_by_slug, eventIdOrSlug)) {
@@ -751,7 +751,7 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 			AddElementToObject(oc, "outcome", ocSymbol)
 		}
 		if ocId != nil {
-			AddElementToObject(this.Outcomes_by_id, ocId, oc)
+			this.Outcomes_by_id[*ocId] = oc
 		}
 	}
 }
@@ -863,12 +863,12 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[map[string]
 			}
 		}
 
-		ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(MapTyped(this.Outcomes))}
+		ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(this.Outcomes)}
 		return nil
 	}
 	if !(reload == true) && (this.Outcomes != nil) && !this.IsEmpty(this.Outcomes) {
 
-		ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(MapTyped(this.Outcomes))}
+		ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(this.Outcomes)}
 		return nil
 	}
 
@@ -878,7 +878,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[map[string]
 	}
 	this.PopulateOutcomes()
 
-	ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(MapTyped(this.Outcomes))}
+	ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(this.Outcomes)}
 	return nil
 }
 
@@ -906,7 +906,7 @@ func (this *PredictionExchange) fetchOutcomesBody(ch chan AsyncResult[map[string
 		}
 	}
 
-	ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(MapTyped(this.Outcomes))}
+	ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(this.Outcomes)}
 	return nil
 }
 func (this *PredictionExchange) LoadOutcomeAsync(outcomeSymbol any, optionalArgs ...any) <-chan AsyncResult[PredictionOutcome] {

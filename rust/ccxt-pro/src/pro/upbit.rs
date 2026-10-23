@@ -339,7 +339,7 @@ impl UpbitCore {
             finalMessage.push(get_value(&subscriptions, &key));
         }
         }
-        return self.watch_multiple(url, messageHashes.clone(), &[Value::Array(finalMessage), messageHashes]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[Value::Array(finalMessage), messageHashes.clone()]).await;
 
     Value::Null
 }
@@ -775,7 +775,7 @@ impl UpbitCore {
             message.push(requests.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
         }
         }
-        return self.watch(url, messageHashResolved.clone(), &[Value::Array(message), messageHashResolved]).await;
+        return self.watch(url, messageHashResolved.clone(), &[Value::Array(message), messageHashResolved.clone()]).await;
 
     Value::Null
 }

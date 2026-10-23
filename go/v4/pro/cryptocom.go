@@ -2143,8 +2143,8 @@ func (this *Cryptocom) HandleErrorMessage(client any, message any) any {
 						if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(e, messageHash)
-							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(e, id)
@@ -2270,7 +2270,7 @@ func (this *Cryptocom) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var method string = "public/auth"
 		var nonce string = ccxt.ToString(this.IncrementingNonce())
@@ -2315,14 +2315,14 @@ func (this *Cryptocom) HandleAuthenticate(client any, message map[string]any) {
 }
 func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 	var id *string = this.SafeString(message, "id")
-	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var messageHash string = keys[i]
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 			continue
 		}
 		if strings.HasPrefix(messageHash, "unsubscribe") {
-			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 			var subId *string = this.SafeString(subscription, "id")
 			if id != subId && (id == nil || subId == nil || *id != *subId) {
 				continue

@@ -114,7 +114,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Long requestId;
         synchronized (this) {
         requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        this.options.put("requestId", requestId);
         }
         return requestId;
     }
@@ -457,7 +457,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             account.put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
             this.balance = this.safeBalance(this.balance);
         }
@@ -1684,10 +1684,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //     ]
         // }
         String id = this.safeString(message, "id", "");
-        if (((Map<?, ?>)client.subscriptions).containsKey(id))
+        if (client.subscriptions.containsKey(id))
         {
             Object method = this.safeValue(client.subscriptions, id);
-            ((Map<String,Object>)client.subscriptions).remove((String)id);
+            client.subscriptions.remove((String)id);
             if (!java.util.Objects.equals(method, true))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});
@@ -1754,9 +1754,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
         }
     }
@@ -1819,9 +1819,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 }};
                 String subscriptionHash = String.valueOf(requestId);
                 Map<String, Object> message = this.extend(request, parameters);
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+                if (!(client.subscriptions.containsKey(messageHash)))
                 {
-                    ((Map)client.subscriptions).put(subscriptionHash, "handleAuthenticate");
+                    client.subscriptions.put(subscriptionHash, "handleAuthenticate");
                 }
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
                 Helpers.addElementToObject(client.subscriptions, messageHash, future);

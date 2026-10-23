@@ -115,7 +115,7 @@ func (this *Polymarket) SendSubscription(action string, channels any, messageHas
 	}()
 	var willSend bool = false
 	for i := 0; i < ccxt.GetArrayLength(hashesToCheck); i++ {
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.GetValue(hashesToCheck, i))) {
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(hashesToCheck, i))) {
 			willSend = true
 		}
 	}
@@ -135,7 +135,7 @@ func (this *Polymarket) SendSubscription(action string, channels any, messageHas
 		"subMessageHashes": subMessageHashes,
 	}
 	var pending map[string]any = this.Extend(basePending, context)
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "req:"+strconv.FormatInt(id, 10), pending)
+	client.(ccxt.ClientInterface).SubscriptionSet("req:"+strconv.FormatInt(id, 10), pending)
 	return this.Extend(request, params)
 }
 
@@ -989,7 +989,7 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var id int64 = this.RequestId()
 		var pending map[string]any = map[string]any{
@@ -997,7 +997,7 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 			"messageHashes":    []any{messageHash},
 			"subMessageHashes": []any{messageHash},
 		}
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "req:"+strconv.FormatInt(id, 10), pending)
+		client.(ccxt.ClientInterface).SubscriptionSet("req:"+strconv.FormatInt(id, 10), pending)
 		var request map[string]any = map[string]any{
 			"id":  id,
 			"req": "post",
@@ -1609,9 +1609,9 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		// through its pending entry, anything else counts like a pong
 		if id != nil {
 			var postKey string = "req:" + *id
-			var postPending any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), postKey)
+			var postPending any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), postKey)
 			if postPending != nil {
-				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), postKey)
+				client.(ccxt.ClientInterface).SubscriptionDel(postKey)
 				var postAction *string = this.SafeString(postPending, "method")
 				if postAction != nil && *postAction == "auth" {
 					var authStatus *string = this.SafeString(data, "status")
@@ -1625,8 +1625,8 @@ func (this *Polymarket) HandleAck(client any, message any) {
 					} else {
 						authError := ccxt.AuthenticationError(this.Id + " authentication failed " + this.Json(data))
 						client.(ccxt.ClientInterface).Reject(authError, "authenticated")
-						if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated") {
-							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+						if client.(ccxt.ClientInterface).SubscriptionHas("authenticated") {
+							client.(ccxt.ClientInterface).SubscriptionDel("authenticated")
 						}
 					}
 					return
@@ -1640,11 +1640,11 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		return
 	}
 	var key string = "req:" + *id
-	var pending any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), key)
+	var pending any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), key)
 	if pending == nil {
 		return
 	}
-	ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), key)
+	client.(ccxt.ClientInterface).SubscriptionDel(key)
 	var messageHashes []any = ccxt.SafeListTyped(pending, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(pending, "subMessageHashes")
 	var action *string = this.SafeString(pending, "method")
@@ -1675,8 +1675,8 @@ func (this *Polymarket) HandleAck(client any, message any) {
 				}
 				return nil
 			}()
-			if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+				client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			}
 			if action != nil && *action == "sub" {
 				var subMessageHash any = func() any {
@@ -1685,8 +1685,8 @@ func (this *Polymarket) HandleAck(client any, message any) {
 					}
 					return nil
 				}()
-				if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
-					ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
+				if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
+					client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
 				}
 			}
 		}

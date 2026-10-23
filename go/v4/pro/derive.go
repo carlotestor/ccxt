@@ -180,7 +180,7 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 			if topic == nil {
 				return nil
 			}
-			return ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
+			return client.(ccxt.ClientInterface).SubscriptionGet(topic)
 		}()
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		if symbol != nil {
@@ -762,7 +762,7 @@ func (this *Derive) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var requestId int64 = this.RequestId(url)
 		var now *string = this.NumberToString(this.Nonce())
@@ -1547,8 +1547,8 @@ func (this *Derive) HandleErrorMessage(client any, message any) any {
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
-							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(error)
@@ -1616,10 +1616,10 @@ func (this *Derive) HandleMessage(client any, message any) {
 	if ccxt.InOp(message, "id") {
 		var id *string = this.SafeString(message, "id")
 		// the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
-		var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		var matched bool = false
 		for i := 0; i < len(subscriptionKeys); i++ {
-			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionKeys[i])
+			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionKeys[i])
 			var subscriptionId *string = this.SafeString(subscription, "id")
 			if (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
 				matched = true
@@ -1660,8 +1660,8 @@ func (this *Derive) HandleAuth(client any, message any) {
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		// allows further authentication attempts
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel("authenticated")
 		}
 	}
 }

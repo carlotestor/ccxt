@@ -145,7 +145,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 }};
                 this.watch(url, messageHash, request, messageHash, null);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -1685,14 +1685,14 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         if (java.util.Objects.equals(success, true))
         {
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
         }
         return message;
@@ -1730,9 +1730,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 {
                     String messageHash = "authenticated";
                     client.reject(e, messageHash);
-                    if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                    if (client.subscriptions.containsKey(messageHash))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                        client.subscriptions.remove(messageHash);
                     }
                 } else
                 {
@@ -1741,7 +1741,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
                 // authentication errors included: a private channel the api key has no access to is refused with 1003
                 // the login request has no id, so a login error matches no subscription
-                List<Object> subscriptionHashes = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
                 for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
                 {
                     Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
@@ -1749,7 +1749,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     if ((!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
                     {
                         client.reject(e, subscriptionHash);
-                        ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash); // so a retry sends the subscribe request again
+                        client.subscriptions.remove((String)subscriptionHash); // so a retry sends the subscribe request again
                     }
                 }
                 return true;

@@ -3960,7 +3960,7 @@ impl LbankCore {
                             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::from(vec![fee.clone()]))); }
                         }  else {
                             let mut resultCodeInfo: Value = crate::value::get_value_k(&result.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "info");
-                            append_to_array(&mut resultCodeInfo, fee.clone());
+                            if let Value::Arr(__a) = &mut resultCodeInfo { std::sync::Arc::make_mut(__a).push(fee.clone()); };
                         }
                         let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(fee, "chain", &[]), code.clone()]);
                         if (networkCode != Value::Null) {

@@ -386,7 +386,7 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Alpaca) HandleDelta(bookside any, delta any) {
-	var bidAsk any = this.ParseOrderBookBidAsk(delta, "p", "s")
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "p", "s")
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func (this *Alpaca) HandleDeltas(bookside any, deltas any) {
@@ -843,7 +843,7 @@ func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any,
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var request any = map[string]any{
 			"action": "auth",

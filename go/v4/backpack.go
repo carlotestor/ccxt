@@ -1914,7 +1914,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		panic(r1.Err)
 	}
 	response := r1.Raw
-	var tickers any = this.ParseTickers(response)
+	var tickers map[string]any = this.ParseTickers(response)
 	var responseById map[string]any = this.IndexBy(response, "symbol")
 	var externalResponse any = []any{}
 	var externalResponseById map[string]any = map[string]any{}
@@ -3023,15 +3023,11 @@ func (this *Backpack) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		request["limit"] = limit // default 100, max 1000
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchDeposits", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	listEp2866 := <-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, paramsUntil))
@@ -3091,15 +3087,11 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		request["limit"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchWithdrawals", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["to"] = until
+		request["to"] = *until
 	}
 
 	listEp2922 := <-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, paramsUntil))

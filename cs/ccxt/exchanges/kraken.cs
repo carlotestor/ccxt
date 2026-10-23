@@ -4144,7 +4144,7 @@ public partial class kraken : Exchange
             {
                 headersSigned["Content-Type"] = "application/x-www-form-urlencoded";
             }
-            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+            string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
             if ((baseApiUrl == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4160,7 +4160,7 @@ public partial class kraken : Exchange
         {
             url = ("/" + path);
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4178,11 +4178,11 @@ public partial class kraken : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if (isEqual(code, 520))
+        if ((code == 520))
         {
-            throw new ExchangeNotAvailable (((((this.id + " ") + code.ToString()) + " ") + reason)) ;
+            throw new ExchangeNotAvailable (((((this.id + " ") + ((object)code).ToString()) + " ") + reason)) ;
         }
         if ((response == null))
         {

@@ -1411,7 +1411,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, "datetime", datetime)
 	} else {
 		// snapshot
-		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		// size the book from the subscribed depth (10 by default), not from
 		// the level count of this snapshot: a thin market's snapshot can
 		// carry fewer levels than the subscription and must not cap the book
@@ -1480,7 +1480,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		var localChecksum int64 = this.Crc32(payload, false)
 		if c == nil || *c != localChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			if symbol != nil {
 				delete(this.Orderbooks, *symbol)
 			}
@@ -1551,7 +1551,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var authenticated string = "authenticated"
-	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
+	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), authenticated)
 	var now int64 = this.Seconds()
 	var start *int64 = this.SafeInteger(subscription, "start")
 	var expires *int64 = this.SafeInteger(subscription, "expires", int64(-1))
@@ -1576,7 +1576,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
+			subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), authenticated)
 
 			ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(subscription, "token")}
 			return nil
@@ -1622,7 +1622,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty token"))
 				}
 				ccxt.AddElementToObject(subscription, "start", now)
-				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated, subscription)
+				client.(ccxt.ClientInterface).SubscriptionSet(authenticated, subscription)
 				// settle the flight and wake every waiter - resolve () also
 				// clears the registry entry, so the next refresh re-leads
 				client.(ccxt.ClientInterface).Resolve(token, messageHash)
@@ -1637,7 +1637,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
+		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), authenticated)
 	}
 
 	ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(subscription, "token")}
@@ -2277,7 +2277,7 @@ func (this *Kraken) HandleSubscriptionStatus(client any, message map[string]any)
 	//
 	var channelId *string = this.SafeString(message, "channelID")
 	if channelId != nil {
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), channelId, message)
+		client.(ccxt.ClientInterface).SubscriptionSet(channelId, message)
 	}
 }
 func (this *Kraken) HandleErrorMessage(client any, message any) bool {

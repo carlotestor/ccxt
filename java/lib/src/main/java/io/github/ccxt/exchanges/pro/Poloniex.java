@@ -119,7 +119,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
             this.checkRequiredCredentials(true);
             String timestamp = this.numberToString(this.milliseconds());
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             String messageHash = "authenticated";
             Client client = this.client(url);
             Object future = this.safeValue(client.subscriptions, messageHash);
@@ -241,7 +241,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             String messageHash = String.valueOf(this.nonce());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", messageHash );
@@ -589,7 +589,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             String name = "trades";
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             List<String> marketIds = this.marketIds(symbolsNormalized);
             Map<String, Object> subscribe = new HashMap<String, Object>();
             subscribe.put("event", "subscribe");
@@ -741,7 +741,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             // balance from a rest snapshot once per subscription - otherwise the
             // first resolves would only list the currencies that changed since
             // subscribing
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             Client client = this.client(url);
             this.setBalanceCache(client, name);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
@@ -758,7 +758,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     public void setBalanceCache(Client client, Object type)
     {
-        if (((Map<?, ?>)client.subscriptions).containsKey(type))
+        if (client.subscriptions.containsKey(type))
         {
             return;
         }
@@ -767,7 +767,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -807,9 +807,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             this.balance = this.safeBalance(this.balance);
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve(this.balance, type);
             }
@@ -1516,7 +1516,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             newAccount.put("used", this.safeString(balance, "hold"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, newAccount);
+                this.balance.put(code, newAccount);
             }
         }
         this.balance = this.safeBalance(this.balance);
@@ -1653,9 +1653,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 {
                     String messageHash = "authenticated";
                     client.reject(e, messageHash);
-                    if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                    if (client.subscriptions.containsKey(messageHash))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                        client.subscriptions.remove(messageHash);
                     }
                 } else
                 {
@@ -1687,9 +1687,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
         }
         return message;

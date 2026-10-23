@@ -1957,7 +1957,7 @@ public partial class pacifica : Exchange
         return new List<object>() {request, operationType};
     }
 
-    public virtual Dictionary<string, object> batchOrdersRequest(object actions)
+    public virtual Dictionary<string, object> batchOrdersRequest(IList<object> actions)
     {
         //
         // [
@@ -1993,7 +1993,7 @@ public partial class pacifica : Exchange
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         //
-        int lenActions = getArrayLength(actions);
+        int lenActions = (actions?.Count ?? 0);
         object maxLenOption = this.handleOption("batchOrdersRequest", "batchOrdersMax");
         if ((maxLenOption != null))
         {
@@ -4153,7 +4153,7 @@ public partial class pacifica : Exchange
         throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -4188,7 +4188,7 @@ public partial class pacifica : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback); // documented message prefixes are more specific than the http-status echo
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
             Int64? statusCode = this.parseToInt(code);
-            string codeAsString = code.ToString();
+            string codeAsString = ((object)code).ToString();
             if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError (feedback) ;
@@ -4210,7 +4210,7 @@ public partial class pacifica : Exchange
             urlKey = "test";
         }
         object apiName = getValue(api, 0);
-        string? baseApiUrl = this.safeString((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), apiName);
+        string? baseApiUrl = this.safeString((this.urls != null && urlKey != null && this.urls.ContainsKey(urlKey) ? this.urls[urlKey] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

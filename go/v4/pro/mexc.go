@@ -1145,7 +1145,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "orderbook:" + *symbol
-	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
@@ -1175,7 +1175,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 					}
 					ret_ = func(this *Mexc) any {
 						// catch block:
-						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+						client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						// return
 						shouldReturn = true

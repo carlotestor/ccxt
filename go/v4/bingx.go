@@ -7638,12 +7638,8 @@ func (this *Bingx) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
@@ -7677,7 +7673,7 @@ func (this *Bingx) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		request["network"] = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 	}
 	if tagWithdrawTag != nil {
-		request["addressTag"] = tagWithdrawTag
+		request["addressTag"] = *tagWithdrawTag
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsWalletType, []any{"walletType", "network"})
 

@@ -676,7 +676,7 @@ func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
 	//         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
 	//     }
 	//
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var id *int64 = this.SafeInteger(message, "i")
 	var subscription any = func() any {
 		if id == nil {

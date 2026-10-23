@@ -134,7 +134,7 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	var typeVar *string = this.SafeString(message, "type", this.SafeString(data, "t"))
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
@@ -151,7 +151,7 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	}
 	var previousNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (previousNonce != nil) && (!ccxt.IsEqual(nonce, ccxt.Add(previousNonce, 1))) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		delete(this.Orderbooks, *symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -514,7 +514,7 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
-	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(subscriptions); i++ {
 		var messageHash string = subscriptions[i]
 		if strings.Index(messageHash, "myTrades:") == 0 {
@@ -726,7 +726,7 @@ func (this *Extended) HandleOrders(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
-	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(subscriptions); i++ {
 		var messageHash string = subscriptions[i]
 		if strings.Index(messageHash, "orders:") == 0 {
@@ -1015,7 +1015,7 @@ func (this *Extended) HandleTrades(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbol
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if stored == nil {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1182,10 +1182,10 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Extended) FindSubscription(client any, name string) any {
-	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), key)
+		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), key)
 		var subscriptionName *string = this.SafeString(subscription, "name")
 		if subscriptionName != nil && *subscriptionName == name {
 			return subscription

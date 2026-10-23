@@ -1481,15 +1481,11 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		request["limit"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchFundingRateHistory", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	r1 := <-this.PublicGetV1FapiMarketFundingRateHistory(this.Extend(request, paramsUntil))

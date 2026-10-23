@@ -700,14 +700,10 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false)
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(paramsUta, "watchOHLCV", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
-	var isStockOrUta bool = ((stock == true) || (uta == true))
+	var isStockOrUta bool = ((stock != nil && *stock == true) || (uta == true))
 	instTypeparamsInstTypeVariable := this.GetInstType("watchOHLCV", market, isStockOrUta, paramsStock)
 	var instType *string = ccxt.SafeStringPtr(instTypeparamsInstTypeVariable[0])
 	var paramsInstType map[string]any = ccxt.MapTyped(instTypeparamsInstTypeVariable[1])
@@ -787,14 +783,10 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	var uta *bool = ccxt.SafeBoolPtr(ccxt.GetValue(values, 0))
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(params, "watchOHLCV", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
-	var isStockOrUta bool = ((stock == true) || (uta != nil && *uta == true))
+	var isStockOrUta bool = ((stock != nil && *stock == true) || (uta != nil && *uta == true))
 	instTypeparamsInstTypeVariable := this.GetInstType("watchOHLCV", market, isStockOrUta, paramsStock)
 	var instType *string = ccxt.SafeStringPtr(instTypeparamsInstTypeVariable[0])
 	var paramsInstType map[string]any = ccxt.MapTyped(instTypeparamsInstTypeVariable[1])
@@ -1039,15 +1031,11 @@ func (this *Bitget) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 	var market map[string]any = this.Market(symbol)
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(params, "unWatchOrderBook", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "unWatchOrderBook", "uta", false)
-	var isStockOrUta bool = ((stock == true) || (uta == true))
+	var isStockOrUta bool = ((stock != nil && *stock == true) || (uta == true))
 	var paramsRequest any = paramsUta
 	if isStockOrUta {
 		paramsRequest = this.Extend(paramsUta, map[string]any{
@@ -1179,15 +1167,11 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var stockDefault *bool = this.SafeBool(firstMarket, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(params, "watchOrderBookForSymbols", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var stock *bool = nil
+	if p, ok := stockparamsStockVariable[0].(*bool); ok { stock = p }
 	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false)
-	var isStockOrUta bool = ((stock == true) || (uta == true))
+	var isStockOrUta bool = ((stock != nil && *stock == true) || (uta == true))
 	var channel string = "books"
 	var incrementalFeed bool = true
 	if (ccxt.IsEqual(limit, 1)) || (ccxt.IsEqual(limit, 5)) || (ccxt.IsEqual(limit, 15)) || (ccxt.IsEqual(limit, 50)) {
@@ -3463,7 +3447,7 @@ func (this *Bitget) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 		var auth string = timestamp + "GET" + "/user/verify"
@@ -3571,8 +3555,8 @@ func (this *Bitget) HandleErrorMessage(client any, message any) any {
 						if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(e, messageHash)
-							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 							}
 						} else {
 							// Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
@@ -3778,11 +3762,11 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 	if ccxt.InOp(this.Orderbooks, symbol) {
 		delete(this.Orderbooks, *symbol)
 	}
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
+	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
+		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
 	}
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " orderbook " + *symbol)
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
@@ -3808,11 +3792,11 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	if ccxt.InOp(this.Trades, symbol) {
 		delete(this.Trades, *symbol)
 	}
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
+	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
+		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
 	}
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " trades " + *symbol)
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
@@ -3838,11 +3822,11 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message any) {
 	if this.Tickers.Has(symbol) {
 		this.Tickers.Delete(symbol)
 	}
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
+	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
+		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
 	}
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " ticker " + *symbol)
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {

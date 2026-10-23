@@ -760,13 +760,13 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     public void onError(Client client, Object error)
     {
-        Helpers.addElementToObject(this.options, "ws-expires", null);
+        this.options.remove("ws-expires");
         super.onError(client, error);
     }
 
     public void onClose(Client client, Object error)
     {
-        Helpers.addElementToObject(this.options, "ws-expires", null);
+        this.options.remove("ws-expires");
         super.onClose(client, error);
     }
 }

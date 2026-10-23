@@ -1405,7 +1405,7 @@ func (this *Weex) HandleOrderBook(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var messageHash string = "orderbook::" + *symbol
 	if _, ok := this.Orderbooks[*symbol]; !ok {
-		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		if limit != nil {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
@@ -1436,7 +1436,7 @@ func (this *Weex) HandleOrderBook(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Weex) HandleDelta(bookside any, delta any) {
-	var bidAsk any = this.ParseOrderBookBidAsk(delta)
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 
@@ -2338,7 +2338,7 @@ func (this *Weex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 	return nil
 }
 func (this *Weex) SetBalanceCache(client any, typeVar any) {
-	if (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
+	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
@@ -2774,7 +2774,7 @@ func (this *Weex) HandleSubscriptionStatus(client any, message any) any {
 	//     { "result": true, "id": 2 }
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if unsubscribe != nil && *unsubscribe {

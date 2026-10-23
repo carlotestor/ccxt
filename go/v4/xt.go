@@ -5844,12 +5844,8 @@ func (this *Xt) withdrawBody(ch chan AsyncResult[Transaction], code string, amou
 	}
 	var currency map[string]any = this.Currency(code)
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -5864,7 +5860,7 @@ func (this *Xt) withdrawBody(ch chan AsyncResult[Transaction], code string, amou
 		"address":  address,
 	}
 	if tagWithdrawTag != nil {
-		request["memo"] = tagWithdrawTag
+		request["memo"] = *tagWithdrawTag
 	}
 
 	r1 := <-this.PrivateSpotPostWithdraw(this.Extend(request, paramsNetworkCode))

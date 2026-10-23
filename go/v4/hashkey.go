@@ -2559,12 +2559,8 @@ func (this *Hashkey) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
@@ -2581,7 +2577,7 @@ func (this *Hashkey) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		"quantity": amount,
 	}
 	if tagWithdrawTag != nil {
-		request["addressExt"] = tagWithdrawTag
+		request["addressExt"] = *tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
@@ -3308,12 +3304,8 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol *string, typeVar *string, sid
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
 	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
-	cost := func() any {
-		if p, _ := costparamsCostVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var cost *string = nil
+	if p, ok := costparamsCostVariable[0].(*string); ok { cost = p }
 	var paramsCost map[string]any = MapTyped(costparamsCostVariable[1])
 	if cost != nil {
 		request["quantity"] = this.CostToPrecision(symbol, cost)
@@ -3376,15 +3368,11 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol *string, typeVar *string, sid
 		request["priceType"] = "INPUT"
 	}
 	var reduceOnlyparamsReduceOnlyVariable []any = this.HandleParamBool(params, "reduceOnly", false)
-	reduceOnly := func() any {
-		if p, _ := reduceOnlyparamsReduceOnlyVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var reduceOnly *bool = nil
+	if p, ok := reduceOnlyparamsReduceOnlyVariable[0].(*bool); ok { reduceOnly = p }
 	var paramsReduceOnly map[string]any = MapTyped(reduceOnlyparamsReduceOnlyVariable[1])
 	var suffix string = "_OPEN"
-	if reduceOnly == true {
+	if reduceOnly != nil && *reduceOnly == true {
 		suffix = "_CLOSE"
 	}
 	request["side"] = ToUpper(side) + suffix

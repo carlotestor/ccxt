@@ -2051,7 +2051,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	}
 	panic(NotSupported(Add(Add(this.Id+" fetchOrderBook() does not support ", market["type"]), " markets")))
 }
-func (this *Mexc) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
+func (this *Mexc) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) []any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)
@@ -7533,12 +7533,8 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	}
 	var currency map[string]any = this.Currency(code)
 	var tagResolvedparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagResolved := func() any {
-		if p, _ := tagResolvedparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagResolved *string = nil
+	if p, ok := tagResolvedparamsWithdrawTagVariable[0].(*string); ok { tagResolved = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagResolvedparamsWithdrawTagVariable[1])
 	var internal *bool = this.SafeBool(paramsWithdrawTag, "internal", false)
 	if internal != nil && *internal {
@@ -7578,7 +7574,7 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 		"amount":  amount,
 	}
 	if tagResolved != nil {
-		request["memo"] = tagResolved
+		request["memo"] = *tagResolved
 	}
 	if !IsEqual(network, nil) {
 		request["netWork"] = network

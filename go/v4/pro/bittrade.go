@@ -519,7 +519,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 					}
 					ret_ = func(this *Bittrade) any {
 						// catch block:
-						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+						client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						return nil
 					}(this)
@@ -695,7 +695,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message any) any {
 	if id == nil {
 		return message
 	}
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id)
 	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
@@ -703,8 +703,8 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message any) any {
 			return ccxt.CallDynamically(method, client, message, subscription)
 		}
 		// clean up
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
+		if client.(ccxt.ClientInterface).SubscriptionHas(id) {
+			client.(ccxt.ClientInterface).SubscriptionDel(id)
 		}
 	}
 	return message
@@ -802,7 +802,7 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 		if id == nil {
 			return false
 		}
-		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 		var subscription any = this.SafeDict(subscriptionsById, id)
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
@@ -821,8 +821,8 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 								var messageHash *string = this.SafeString(subscription, "messageHash")
 								client.(ccxt.ClientInterface).Reject(e, messageHash)
 								client.(ccxt.ClientInterface).Reject(e, id)
-								if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id) {
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
+								if client.(ccxt.ClientInterface).SubscriptionHas(id) {
+									client.(ccxt.ClientInterface).SubscriptionDel(id)
 								}
 								return nil
 							}(this)

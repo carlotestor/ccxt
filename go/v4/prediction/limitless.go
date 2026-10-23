@@ -3947,7 +3947,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			rawMarkets = append(rawMarkets, ccxt.GetValue(listRaw, i))
 		}
 	}
-	if ccxt.IsEqual(this.Events, nil) {
+	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
 	if this.Markets == nil {

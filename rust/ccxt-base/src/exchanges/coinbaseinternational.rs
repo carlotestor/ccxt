@@ -1316,17 +1316,17 @@ impl CoinbaseinternationalCore {
         let mut settlementPeriod: Option<String> = self.safe_string_k(market.clone(), "settlement_period", &[]).as_str().map(str::to_owned);
         let mut isSpot: Value = (Value::Bool(kind.as_str() == Some("spot")));
         let mut isPerpetual: Value = (Value::Bool(settlementPeriod.as_deref() == Some("perpetual")));
-        let mut isFuture: Value = Value::Bool(!(matches!(&isPerpetual, Value::Bool(true))) && (Value::Int(kind.as_str().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+        let mut isFuture: bool = !(matches!(&isPerpetual, Value::Bool(true))) && (Value::Int(kind.as_str().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64));
         let mut isOption: Value = (Value::Bool(Value::Int(kind.as_str().and_then(|__s| __s.find("option")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
-        let mut comboPosition: Value = Value::Int(kind.as_str().and_then(|__s| __s.find("combo")).map(|__i| __i as i64).unwrap_or(-1));
-        let mut isComboMarket: bool = comboPosition.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut comboPosition: i64 = kind.as_str().and_then(|__s| __s.find("combo")).map(|__i| __i as i64).unwrap_or(-1);
+        let mut isComboMarket: bool = (comboPosition as f64) >= ((0i64) as f64);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut type_var: Value = Value::Str("swap".into());
         if matches!(&isSpot, Value::Bool(true)) {
             type_var = Value::Str("spot".into());
-        }  else if matches!(&isFuture, Value::Bool(true)) {
+        }  else if isFuture {
             type_var = Value::Str("future".into());
         }  else if matches!(&isOption, Value::Bool(true)) {
             type_var = Value::Str("option".into());
@@ -1344,12 +1344,12 @@ impl CoinbaseinternationalCore {
         let mut marketSettleId: Value = (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { settleId });
         let mut minTradeAmount: Value = self.safe_number_k(market.clone(), "min_trade_amount", &[]);
         let mut tickSize: Value = self.safe_number_k(market.clone(), "tick_size", &[]);
-        let mut isFutureOrOption: bool = matches!(&isFuture, Value::Bool(true)) || matches!(&isOption, Value::Bool(true));
+        let mut isFutureOrOption: bool = isFuture || matches!(&isOption, Value::Bool(true));
         let mut expiry: Value = (if isFutureOrOption { self.safe_integer_k(market.clone(), "expiration_timestamp", &[]) } else { Value::Null });
         let mut active: Value = self.safe_bool_k(market.clone(), "is_active", &[]);
         let mut strike: Value = self.safe_number_k(market.clone(), "strike", &[]);
         let mut optionType: Value = self.safe_string_k(market.clone(), "option_type", &[]);
-        if !isComboMarket && (matches!(&isOption, Value::Bool(true)) || matches!(&isFuture, Value::Bool(true))) {
+        if !isComboMarket && (matches!(&isOption, Value::Bool(true)) || isFuture) {
             let mut expiryString: Value = self.yymmdd(expiry.clone(), &[Value::Str("".into())]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), expiryString).into());
         }
@@ -1376,7 +1376,7 @@ impl CoinbaseinternationalCore {
                 m.insert("spot".to_string(), isSpot.clone());
                 m.insert("margin".to_string(), Value::Bool(false));
                 m.insert("swap".to_string(), isPerpetual);
-                m.insert("future".to_string(), isFuture);
+                m.insert("future".to_string(), Value::Bool(isFuture));
                 m.insert("option".to_string(), isOption);
                 m.insert("active".to_string(), active);
                 m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));

@@ -81,9 +81,9 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             }});
             Client client = this.client(url);
             String subscriptionsKey = "upbitPublicSubscriptions";
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionsKey)))
+            if (!(client.subscriptions.containsKey(subscriptionsKey)))
             {
-                ((Map)client.subscriptions).put(subscriptionsKey, this.createSafeDictionary(true));
+                client.subscriptions.put(subscriptionsKey, this.createSafeDictionary(true));
             }
             Object subscriptions = (client.subscriptions == null || subscriptionsKey == null ? null : client.subscriptions.get(subscriptionsKey));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -484,9 +484,9 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Client client = this.client(url);
             // Track private channel subscriptions to support multiple concurrent watches
             String subscriptionsKey = "upbitPrivateSubscriptions";
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionsKey)))
+            if (!(client.subscriptions.containsKey(subscriptionsKey)))
             {
-                ((Map)client.subscriptions).put(subscriptionsKey, this.createSafeDictionary(true));
+                client.subscriptions.put(subscriptionsKey, this.createSafeDictionary(true));
             }
             Object channelKey = channel;
             if (!java.util.Objects.equals(symbolResolved, null))
@@ -900,7 +900,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             account.put("used", frozen);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
             this.balance = this.safeBalance(this.balance);
         }

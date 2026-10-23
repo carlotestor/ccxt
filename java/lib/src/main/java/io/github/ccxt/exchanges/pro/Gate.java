@@ -876,7 +876,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             this.handleBookDelta(storedOrderBook, delta);
         } else
         {
-            ((Map<String,Object>)client.subscriptions).remove(messageHash);
+            client.subscriptions.remove(messageHash);
             storedOrderBook.put("nonce", null);
             storedOrderBook.put("cache", new ArrayList<Object>(Arrays.asList()));
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
@@ -1705,7 +1705,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             account.put("total", this.safeString2(rawBalance, "total", "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
         }
         String channel = this.safeString(message, "channel");
@@ -1813,7 +1813,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = (type + ":fetchPositionsSnapshot");
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1844,10 +1844,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                ((io.github.ccxt.ws.Future)future).resolve(cache);
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                future.resolve(cache);
                 client.resolve(cache, (type + ":position"));
             }
             return null;
@@ -2419,9 +2419,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             } catch(Exception e)
             {
                 client.reject(e, messageHash);
-                if ((!java.util.Objects.equals(messageHash, null)) && (((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+                if ((!java.util.Objects.equals(messageHash, null)) && (client.subscriptions.containsKey(messageHash)))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    client.subscriptions.remove((String)messageHash);
                 }
                 // remove subscriptions for watchSymbols
                 String channel = this.safeString(message, "channel");
@@ -2441,16 +2441,16 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                         }
                         String symbol = this.safeSymbol((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)), (Map<String, Object>) null, "_", java.util.Objects.toString(marketType, null));
                         String messageHashSymbol = (((parsedChannel == null || 1 >= parsedChannel.size() ? null : parsedChannel.get(1)) + ":") + symbol);
-                        if ((!java.util.Objects.equals(messageHashSymbol, null)) && (((Map<?, ?>)client.subscriptions).containsKey(messageHashSymbol)))
+                        if ((!java.util.Objects.equals(messageHashSymbol, null)) && (client.subscriptions.containsKey(messageHashSymbol)))
                         {
-                            ((Map<String,Object>)client.subscriptions).remove(messageHashSymbol);
+                            client.subscriptions.remove(messageHashSymbol);
                         }
                     }
                 }
             }
-            if ((!java.util.Objects.equals(id, null)) && (((Map<?, ?>)client.subscriptions).containsKey(id)))
+            if ((!java.util.Objects.equals(id, null)) && (client.subscriptions.containsKey(id)))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)id);
+                client.subscriptions.remove((String)id);
             }
             return true;
         }
@@ -2483,11 +2483,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object method = (methods == null || channel == null ? null : methods.get(channel));
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(id))
+        if (client.subscriptions.containsKey(id))
         {
             if (!java.util.Objects.equals(id, null))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)id);
+                client.subscriptions.remove((String)id);
             }
         }
     }
@@ -2513,11 +2513,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         // }
         //
         String id = this.safeString(message, "id");
-        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+            if (!(client.subscriptions.containsKey(messageHash)))
             {
                 continue;
             }
@@ -2766,7 +2766,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Long reqid;
         synchronized (this) {
         reqid = (Long) this.sum(this.safeInteger(this.options, "reqid", 0), 1);
-        Helpers.addElementToObject(this.options, "reqid", reqid);
+        this.options.put("reqid", reqid);
         }
         return reqid;
     }
@@ -2788,10 +2788,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             if (!java.util.Objects.equals(subscription, null))
             {
                 Client client = this.client(url);
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+                if (!(client.subscriptions.containsKey(messageHash)))
                 {
                     String tempSubscriptionHash = String.valueOf(requestId);
-                    ((Map)client.subscriptions).put(tempSubscriptionHash, messageHash);
+                    client.subscriptions.put(tempSubscriptionHash, messageHash);
                 }
             }
             Map<String, Object> message = this.extend(request, parameters);
@@ -2871,7 +2871,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         String messageHash = "authenticated";
         io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-        ((io.github.ccxt.ws.Future)future).resolve(true);
+        future.resolve(true);
     }
 
     public CompletableFuture<Object> requestPrivate(String url, Map<String, Object> reqParams, String channel, String requestId)
@@ -2955,11 +2955,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 request.put("payload", payloadValue);
             }
             Client client = this.client(url);
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+            if (!(client.subscriptions.containsKey(messageHash)))
             {
                 String tempSubscriptionHash = String.valueOf(requestId);
                 // in case of authenticationError we will throw
-                ((Map)client.subscriptions).put(tempSubscriptionHash, messageHash);
+                client.subscriptions.put(tempSubscriptionHash, messageHash);
             }
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, messageHash)).join();

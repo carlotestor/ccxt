@@ -185,11 +185,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         result = self.filter_events_by_tags(result.clone(), &[(match params.get("tags") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null })]);
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
-        let mut queriesLength: Value = Value::Int(0);
+        let mut queriesLength: i64 = 0;
         if (queries != Value::Null) {
-            queriesLength = Value::Int(queries.len() as i64);
+            queriesLength = queries.len() as i64;
         }
-        if queriesLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        if (queriesLength as f64) > ((0i64) as f64) {
             result = self.filter_events_by_search_in(result.clone(), queries, &[(match params.get("searchIn") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         }
         let mut sort: Option<String> = (match params.get("sort") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -258,11 +258,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut searchIn = get_arg(optional_args, 0, Value::Null);
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
-        let mut queriesLength: Value = Value::Int(0);
+        let mut queriesLength: i64 = 0;
         if (queries != Value::Null) {
-            queriesLength = Value::Int(queries.len() as i64);
+            queriesLength = queries.len() as i64;
         }
-        if (searchIn == Value::Null) || (queries == Value::Null) || (queriesLength.as_f64() == Some(0.0)) {
+        if (searchIn == Value::Null) || (queries == Value::Null) || (((queriesLength as f64) == 0.0)) {
             return events;
         }
         let mut checkTitle: bool = (searchIn.as_str() == Some("title")) || (searchIn.as_str() == Some("both"));
@@ -939,10 +939,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 }
             }
             }
-            let mut missingLength: Value = Value::Int(missing.len() as i64);
+            let mut missingLength: i64 = missing.len() as i64;
             let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
             let mut loadAll: Value = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]);
-            if (missingLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && loadAll.as_bool() == Some(true) && !wasWarm && !is_true(&reload) {
+            if ((missingLength as f64) > ((0i64) as f64)) && loadAll.as_bool() == Some(true) && !wasWarm && !is_true(&reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 self.load_outcomes(&[]).await;
@@ -950,16 +950,16 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_206: bool = true;
-                    while { if !__for_first_206 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_206 = false; i.as_f64().unwrap_or(f64::NAN) < missingLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_206 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_206 = false; i.as_f64().unwrap_or(f64::NAN) < (missingLength as f64) } {
                     if !(self.has_outcome(missing.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                         if let Value::Arr(__a) = &mut stillMissing { std::sync::Arc::make_mut(__a).push(missing.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); }
                     }
                 }
                 }
                 missing = stillMissing;
-                missingLength = Value::Int(missing.len() as i64);
+                missingLength = missing.len() as i64;
             }
-            if missingLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+            if (missingLength as f64) > ((0i64) as f64) {
                 self.fetch_outcomes(missing).await;
             }
             return self.pred().outcomes.clone();

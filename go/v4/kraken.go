@@ -1188,7 +1188,7 @@ func (this *Kraken) ParseTradingFee(fee map[string]any, market map[string]any) T
 		"tierBased":  true,
 	})
 }
-func (this *Kraken) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
+func (this *Kraken) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) []any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)

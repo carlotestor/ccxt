@@ -2121,16 +2121,16 @@ func (this *Lighter) HandleErrorMessage(client any, message any) bool {
 						var id *string = this.SafeString(message, "id")
 						var handled bool = false
 						if id != nil {
-							var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+							var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 							for i := 0; i < len(subscriptionKeys); i++ {
 								var subscriptionHash string = subscriptionKeys[i]
-								var subscriptionId *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "id")
-								var subscription *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "subscription")
+								var subscriptionId *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "id")
+								var subscription *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "subscription")
 								if id == subscriptionId || (id != nil && subscriptionId != nil && *id == *subscriptionId) {
 									client.(ccxt.ClientInterface).Reject(e, subscriptionHash)
 									handled = true
 									if subscription != nil {
-										ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscription)
+										client.(ccxt.ClientInterface).SubscriptionDel(subscription)
 									}
 								}
 							}
@@ -2268,15 +2268,15 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 		// it here would make the next watchTicker re-subscribe a channel the venue still
 		// considers subscribed, and its "30003 Already Subscribed" frame carries no id,
 		// so handleErrorMessage rejects every future on the socket
-		var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		for i := 0; i < len(subscriptionHashes); i++ {
 			var subscriptionHash string = subscriptionHashes[i]
 			if strings.HasPrefix(subscriptionHash, "ticker") {
-				var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+				var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHash)
 				var subscriptionParams map[string]any = ccxt.SafeMapTyped(subscription, "params")
 				var subscribedChannel *string = this.SafeString(subscriptionParams, "channel")
 				if subscribedChannel != nil && *subscribedChannel == "market_stats/all" {
-					ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+					client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
 					if _, ok := client.(ccxt.ClientInterface).GetFutures()[subscriptionHash]; ok {
 						error := ccxt.UnsubscribeError(this.Id + " " + subscriptionHash)
 						client.(ccxt.ClientInterface).Reject(error, subscriptionHash)
@@ -2285,8 +2285,8 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 			}
 		}
 		var allMessageHash string = "unsubscribe:" + this.GetMessageHash("ticker")
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), allMessageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), allMessageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(allMessageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(allMessageHash)
 		}
 		client.(ccxt.ClientInterface).Resolve(true, allMessageHash)
 		var tickersStructure map[string]any = map[string]any{

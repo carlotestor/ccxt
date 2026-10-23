@@ -2916,11 +2916,11 @@ impl XtCore {
         let mut timestamp: Value = self.safe_integer2(orderBook.clone(), Value::Str("timestamp".into()), Value::Str("t".into()), &[]);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut ob: Value = self.parse_order_book(orderBook.clone(), symbol.clone(), &[timestamp.clone()]);
-            add_element_to_object(&mut ob, &Value::Str("nonce".into()), self.safe_integer_k(orderBook.clone(), "lastUpdateId", &[]));
+            if let Value::Dict(__r03d) = &mut ob { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(orderBook.clone(), "lastUpdateId", &[])); }
             return ob;
         }
         let mut swapOb: Value = self.parse_order_book(orderBook.clone(), symbol, &[timestamp, Value::Str("b".into()), Value::Str("a".into())]);
-        add_element_to_object(&mut swapOb, &Value::Str("nonce".into()), self.safe_integer2(orderBook, Value::Str("u".into()), Value::Str("lastUpdateId".into()), &[]));
+        if let Value::Dict(__r03d) = &mut swapOb { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer2(orderBook, Value::Str("u".into()), Value::Str("lastUpdateId".into()), &[])); }
         return swapOb;
 
     Value::Null

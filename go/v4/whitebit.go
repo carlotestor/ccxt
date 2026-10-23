@@ -2850,12 +2850,8 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		"side":   side,
 	}
 	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
-	cost := func() any {
-		if p, _ := costparamsCostVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var cost *string = nil
+	if p, ok := costparamsCostVariable[0].(*string); ok { cost = p }
 	var paramsCost map[string]any = MapTyped(costparamsCostVariable[1])
 	if cost != nil {
 		if (side != "buy") || (typeVar != "market") {

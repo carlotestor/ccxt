@@ -1356,7 +1356,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(balance, "timestamp", timestamp);
         Helpers.addElementToObject(balance, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.balance, type, this.safeBalance(balance));
+        this.balance.put(type, this.safeBalance(balance));
         String messageHash = this.getMessageHash("balances", (String) null, type);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
         return true;
@@ -1722,7 +1722,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Boolean handled = false;
             if (!java.util.Objects.equals(id, null))
             {
-                List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
                     Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
@@ -1734,7 +1734,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                         handled = true;
                         if (!java.util.Objects.equals(subscription, null))
                         {
-                            ((Map<String,Object>)client.subscriptions).remove((String)subscription);
+                            client.subscriptions.remove((String)subscription);
                         }
                     }
                 }
@@ -1886,7 +1886,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             // it here would make the next watchTicker re-subscribe a channel the venue still
             // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
             // so handleErrorMessage rejects every future on the socket
-            List<Object> subscriptionHashes = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
@@ -1897,8 +1897,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                     String subscribedChannel = this.safeString(subscriptionParams, "channel");
                     if (java.util.Objects.equals(subscribedChannel, "market_stats/all"))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
-                        if (((Map<?, ?>)client.futures).containsKey(subscriptionHash))
+                        client.subscriptions.remove((String)subscriptionHash);
+                        if (client.futures.containsKey(subscriptionHash))
                         {
                             var error = new UnsubscribeError(((this.id + " ") + subscriptionHash));
                             client.reject(error, subscriptionHash);
@@ -1907,9 +1907,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 }
             }
             String allMessageHash = ("unsubscribe:" + this.getMessageHash("ticker", (String) null, (String) null));
-            if (((Map<?, ?>)client.subscriptions).containsKey(allMessageHash))
+            if (client.subscriptions.containsKey(allMessageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(allMessageHash);
+                client.subscriptions.remove(allMessageHash);
             }
             client.resolve(true, allMessageHash);
             Map<String, Object> tickersStructure = new HashMap<String, Object>() {{

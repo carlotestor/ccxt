@@ -3850,7 +3850,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Long tokenRefreshInMilliseconds = this.parseToInt(((expiresIn * 1000L) * refreshRatio));
             this.token = accessToken;
             Helpers.addElementToObject(this.options, "v2AccessToken", accessToken);
-            Helpers.addElementToObject(this.options, "v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
+            this.options.put("v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
             return accessToken;
         }).thenApply(res -> (String) res);
 

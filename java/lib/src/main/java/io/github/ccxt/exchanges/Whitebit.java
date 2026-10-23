@@ -5145,7 +5145,7 @@ public class Whitebit extends WhitebitApi
         Map<String, Object> publicHeaders = new HashMap<String, Object>() {{}};
         publicHeaders.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), version), accessibility);
+        String apiUrl = this.safeString((version == null ? null : ((Map<String, Object>)this.urls.get("api")).get(version)), accessibility);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

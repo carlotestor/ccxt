@@ -77,10 +77,10 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 	})
 	var client ccxt.ClientInterface = this.Client(url)
 	var subscriptionsKey string = "upbitPublicSubscriptions"
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)) {
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, this.CreateSafeDictionary(true))
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionsKey)) {
+		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
-	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)
+	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey)
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
@@ -579,14 +579,14 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol any, c
 	var client ccxt.ClientInterface = this.Client(url)
 	// Track private channel subscriptions to support multiple concurrent watches
 	var subscriptionsKey string = "upbitPrivateSubscriptions"
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)) {
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, this.CreateSafeDictionary(true))
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionsKey)) {
+		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
 	var channelKey any = channel
 	if symbolResolved != nil {
 		channelKey = ccxt.Add(channel+":", symbolResolved)
 	}
-	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)
+	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey)
 	var isNewChannel bool = !(ccxt.InOp(subscriptions, channelKey))
 	if isNewChannel {
 		ccxt.AddElementToObject(subscriptions, channelKey, request)

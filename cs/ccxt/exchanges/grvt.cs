@@ -3803,12 +3803,12 @@ public partial class grvt : Exchange
         object requestPath = path;
         object query = this.omit(parameters, this.extractParams(requestPath));
         object apiName = getValue(api, 0);
-        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        object apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = add(apiUrl, requestPath);
+        object url = (apiUrl == null ? null : apiUrl + (string)(object)(requestPath));
         string queryString = "";
         if ((method == "GET"))
         {
@@ -3842,7 +3842,7 @@ public partial class grvt : Exchange
             this.checkRequiredCredentials();
             if (queryString != "")
             {
-                requestPath = add(add(requestPath, "?"), queryString);
+                requestPath = add(((object)(requestPath == null ? null : requestPath + "?")), queryString);
             }
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
@@ -3870,7 +3870,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if (url.EndsWith("auth/api_key/login") || url.EndsWith("auth/wallet/login"))
         {

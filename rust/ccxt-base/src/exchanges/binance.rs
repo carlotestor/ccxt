@@ -7276,7 +7276,7 @@ impl BinanceCore {
         let mut loadAllOptions: Value = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("loadAllOptions".into()), &[Value::Bool(false)]);
         if (loadAllOptions.as_bool() == Some(true)) {
             if !(self.in_array(Value::Str("option".into()), rawFetchMarkets.clone()).as_bool() == Some(true)) {
-                append_to_array(&mut rawFetchMarkets, Value::Str("option".into()));
+                if let Value::Arr(__a) = &mut rawFetchMarkets { std::sync::Arc::make_mut(__a).push(Value::Str("option".into())); };
             }
         }
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
@@ -7646,7 +7646,7 @@ impl BinanceCore {
             future = true;
         }
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut spot: Value = Value::Bool(!(contract.as_bool() == Some(true)));
+        let mut spot: bool = !(contract.as_bool() == Some(true));
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
         let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
         let mut status: Option<String> = self.safe_string2(market.clone(), Value::Str("status".into()), Value::Str("contractStatus".into()), &[]).as_str().map(str::to_owned);
@@ -7684,7 +7684,7 @@ impl BinanceCore {
 })]);
         }
         let mut active: Value = (Value::Bool(status.as_deref() == Some("TRADING")));
-        if matches!(&spot, Value::Bool(true)) {
+        if spot {
             let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
@@ -7699,7 +7699,7 @@ impl BinanceCore {
         }
         let mut isMarginTradingAllowed: Value = self.safe_bool_k(market.clone(), "isMarginTradingAllowed", &[Value::Bool(false)]);
         let mut marginModes: Value = Value::Null;
-        if matches!(&spot, Value::Bool(true)) {
+        if spot {
             let mut hasCrossMargin: Value = self.in_array(id.clone(), self.options.as_map().and_then(|__m| __m.get("crossMarginPairsData")).cloned().unwrap_or(Value::Null));
             let mut hasIsolatedMargin: Value = self.in_array(id.clone(), self.options.as_map().and_then(|__m| __m.get("isolatedMarginPairsData")).cloned().unwrap_or(Value::Null));
             marginModes = Value::Map({
@@ -7717,7 +7717,7 @@ impl BinanceCore {
             });
         }
         let mut unifiedType: Value = Value::Null;
-        if matches!(&spot, Value::Bool(true)) {
+        if spot {
             unifiedType = Value::Str("spot".into());
         }  else if swap {
             unifiedType = Value::Str("swap".into());
@@ -7749,8 +7749,8 @@ impl BinanceCore {
                 m.insert("quoteId".to_string(), quoteId);
                 m.insert("settleId".to_string(), settleId);
                 m.insert("type".to_string(), unifiedType);
-                m.insert("spot".to_string(), spot.clone());
-                m.insert("margin".to_string(), Value::Bool(matches!(&spot, Value::Bool(true)) && isMarginTradingAllowed.as_bool() == Some(true)));
+                m.insert("spot".to_string(), Value::Bool(spot.clone()));
+                m.insert("margin".to_string(), Value::Bool(spot && isMarginTradingAllowed.as_bool() == Some(true)));
                 m.insert("marginModes".to_string(), marginModes);
                 m.insert("swap".to_string(), Value::Bool(swap));
                 m.insert("future".to_string(), Value::Bool(future));
@@ -8253,7 +8253,7 @@ impl BinanceCore {
         //
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "T", &[]);
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol, &[timestamp]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer2(response, Value::Str("lastUpdateId".into()), Value::Str("u".into()), &[]));
+        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer2(response, Value::Str("lastUpdateId".into()), Value::Str("u".into()), &[])); }
         return orderbook;
 
     Value::Null
@@ -10974,7 +10974,7 @@ impl BinanceCore {
         let mut isLinear: bool = market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
         let mut isInverse: bool = market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
         let mut isPortfolioMarginInverse: bool = is_true(&isPortfolioMargin) && isInverse;
-        let mut isAlgoOrder: Value = Value::Bool(isSwapOrFuture && is_true(&isConditional) && (!isPortfolioMarginInverse));
+        let mut isAlgoOrder: Value = Value::Bool(isSwapOrFuture && isConditional.as_bool() == Some(true) && (!isPortfolioMarginInverse));
         let mut sor: Value = self.safe_bool2(params.clone(), Value::Str("sor".into()), Value::Str("SOR".into()), &[Value::Bool(false)]);
         let mut test: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         let mut stock: Value = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]);

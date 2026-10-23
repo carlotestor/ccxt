@@ -210,7 +210,7 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	var subscriptionHash string = "old:" + *symbolValue
 	var client any = this.SafeValue(this.Clients, url)
 	if client != nil {
-		var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		for i := 0; i < len(subscriptionKeys); i++ {
 			var subscriptionKey string = subscriptionKeys[i]
 			if subscriptionKey == subscriptionHash {
@@ -1373,7 +1373,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if (nonce == nil) || (!ccxt.IsEqual(incrementalId, ccxt.Add(nonce, 1))) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook() skipped a message")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
@@ -1389,7 +1389,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Cex) HandleDelta(bookside any, delta any) {
-	var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func (this *Cex) HandleDeltas(bookside any, deltas any) {
@@ -2126,7 +2126,7 @@ func (this *Cex) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		this.CheckRequiredCredentials()
 		var nonce string = strconv.FormatInt(this.Seconds(), 10)

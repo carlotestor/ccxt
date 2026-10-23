@@ -9331,16 +9331,16 @@ impl BybitCore {
         let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
         let mut amountString: Value = self.safe_string2(item.clone(), Value::Str("amount".into()), Value::Str("change".into()), &[]);
         let mut afterString: Value = self.safe_string2(item.clone(), Value::Str("wallet_balance".into()), Value::Str("cashBalance".into()), &[]);
-        let mut direction: Value = Value::Str("in".into());
+        let mut direction: String = "in".to_string();
         if crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
-            direction = Value::Str("out".into());
+            direction = "out".to_string();
         }
         let mut before: Value = Value::Null;
         let mut after: Value = Value::Null;
         let mut amount: Value = Value::Null;
         if (afterString != Value::Null) && (amountString != Value::Null) {
             let mut difference: Value = Value::Null;
-            if (direction.as_str() == Some("out")) {
+            if ((direction == "out")) {
                 difference = amountString.clone();
             }  else {
                 difference = crate::precise::Precise::stringNeg(&amountString);
@@ -9357,7 +9357,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), Value::str(direction));
         m.insert("account".to_string(), self.safe_string_k(item.clone(), "wallet_id", &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "tx_id", &[]));
         m.insert("referenceAccount".to_string(), Value::Null);
@@ -12736,10 +12736,10 @@ impl BybitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
-        let mut symbolsLength: Value = Value::Int(0);
+        let mut symbolsLength: i64 = 0;
         if (symbols != Value::Null) {
-            symbolsLength = Value::Int(symbols.len() as i64);
-            if symbolsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+            symbolsLength = symbols.len() as i64;
+            if (symbolsLength as f64) > ((0i64) as f64) {
                 market = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             }
         }
@@ -12753,7 +12753,7 @@ impl BybitCore {
                 m.insert("category".to_string(), subType);
             m
         });
-        if (symbols != Value::Null) && (symbolsLength.as_f64() == Some(1.0)) {
+        if (symbols != Value::Null) && (((symbolsLength as f64) == 1.0)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market, "id", &[])); }
         }
         if (since != Value::Null) {

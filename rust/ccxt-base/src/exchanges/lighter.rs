@@ -854,7 +854,7 @@ impl LighterCore {
         if lighterPrivateKeyIsSet && (libraryPath != Value::Null) && (apiKeyIndex != Value::Null) && (accountIndex != Value::Null) {
             // load lighter library, and create lighter client
             signer = self.load_lighter_library(libraryPath.clone(), chainId.clone(), privateKey.clone(), self.parse_to_int(apiKeyIndex.clone()), self.parse_to_int(accountIndex.clone()), &[Value::Bool(true)]).await;
-            add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".into())), &accountIndex), &apiKeyIndex), &Value::Str("signer".into()), signer.clone());
+            if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".into())), &accountIndex), &apiKeyIndex) { std::sync::Arc::make_mut(__r05d).insert("signer".to_string(), signer.clone()); }
             return signer;
         }
         let mut privateKeyIsSet: bool = (self.privateKey.clone() != Value::Null) && (self.privateKey.as_str() != Some(""));
@@ -864,7 +864,7 @@ impl LighterCore {
             }
             // load lighter library without creating lighter client
             signer = self.load_lighter_library(libraryPath, chainId, Value::Str("".into()), self.parse_to_int(apiKeyIndex.clone()), self.parse_to_int(accountIndex.clone()), &[Value::Bool(false)]).await;
-            add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".into())), &accountIndex), &apiKeyIndex), &Value::Str("signer".into()), signer.clone());
+            if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".into())), &accountIndex), &apiKeyIndex) { std::sync::Arc::make_mut(__r05d).insert("signer".to_string(), signer.clone()); }
             let mut res: Value = Box::pin(self.change_api_key(&[])).await;
             Box::pin(self.handle_builder_fee_approval(self.parse_to_int(accountIndex), self.parse_to_int(apiKeyIndex))).await;
             return res;
@@ -882,10 +882,10 @@ impl LighterCore {
 })); }
         }
         if !(in_op(&self.options.as_map().and_then(|__m| __m.get("auths")).cloned().unwrap_or(Value::Null), &strAccountIndex)) {
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())), &strAccountIndex, Value::Map({
+            if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&strAccountIndex), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !(in_op(&get_value(&self.options.as_map().and_then(|__m| __m.get("auths")).cloned().unwrap_or(Value::Null), &strAccountIndex), &strApiKeyIndex)) {
             add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())), &strAccountIndex), &strApiKeyIndex, Value::Map({
@@ -1096,8 +1096,8 @@ impl LighterCore {
             m
         });
         let mut token: Value = self.lighter_create_auth_token(crate::value::get_value_k(&get_value(&get_value(&self.options.as_map().and_then(|__m| __m.get("auths")).cloned().unwrap_or(Value::Null), &accountIndex), &apiKeyIndex), "signer"), request);
-        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())), &accountIndex), &apiKeyIndex), &Value::Str("deadline".into()), deadline);
-        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())), &accountIndex), &apiKeyIndex), &Value::Str("token".into()), token.clone());
+        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())), &accountIndex), &apiKeyIndex) { std::sync::Arc::make_mut(__r05d).insert("deadline".to_string(), deadline); }
+        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())), &accountIndex), &apiKeyIndex) { std::sync::Arc::make_mut(__r05d).insert("token".to_string(), token.clone()); }
         return token.as_str().map(str::to_owned);
 }
 
@@ -1161,7 +1161,7 @@ impl LighterCore {
         let mut standardTier: bool = false;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut isStandardTier: Value = self.check_if_standard_tier(self.parse_to_int(accountIndex.clone())).await;
-            if is_true(&isStandardTier) {
+            if isStandardTier.as_bool() == Some(true) {
                 standardTier = true;
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
             }  else {
@@ -1313,8 +1313,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         self.public_post_send_tx(&[request]).await;
-        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".into())), &strAccountIndex), &strApiKeyIndex), &Value::Str("lighterPrivateKey".into()), privateKey);
-        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".into())), &strAccountIndex), &strApiKeyIndex), &Value::Str("signer".into()), signer.clone()); // reassign signer in go
+        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".into())), &strAccountIndex), &strApiKeyIndex) { std::sync::Arc::make_mut(__r05d).insert("lighterPrivateKey".to_string(), privateKey); }
+        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".into())), &strAccountIndex), &strApiKeyIndex) { std::sync::Arc::make_mut(__r05d).insert("signer".to_string(), signer.clone()); } // reassign signer in go
         Box::pin(self.handle_builder_fee_approval(accountIndex, apiKeyIndex)).await;
         return signer;
 
@@ -1568,7 +1568,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut signer: Value = self.load_account(self.options.as_map().and_then(|__m| __m.get("chainId")).cloned().unwrap_or(Value::Null), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[params.clone()]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut isStandardTier: Value = self.check_if_standard_tier(accountIndex.clone()).await;
-            if is_true(&isStandardTier) {
+            if isStandardTier.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;

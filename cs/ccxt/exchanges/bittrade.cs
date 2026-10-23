@@ -1914,7 +1914,7 @@ public partial class bittrade : Exchange
         {
             IDictionary<string, object> broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
             object brokerId = this.safeString(broker, "id");
-            request["client-order-id"] = add(brokerId, this.uuid());
+            request["client-order-id"] = ((object)(brokerId == null ? null : brokerId + this.uuid()));
         } else
         {
             request["client-order-id"] = clientOrderId;
@@ -2498,7 +2498,7 @@ public partial class bittrade : Exchange
                 url = url + ("?" + this.urlencode(parameters));
             }
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2516,7 +2516,7 @@ public partial class bittrade : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

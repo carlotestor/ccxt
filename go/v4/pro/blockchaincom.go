@@ -252,7 +252,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 		var marketId *string = this.SafeString(message, "symbol")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash string = "ohlcv:" + *symbol
-		var request map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var request map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
 		var timeframe *string = this.FindTimeframe(timeframeId)
 		var ohlcv []any = ccxt.SafeListTypedDefault(message, "price", []any{})
@@ -918,7 +918,7 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Blockchaincom) HandleDelta(bookside any, delta any) {
-	var bookArray any = this.ParseOrderBookBidAsk(delta, "px", "qty", "num")
+	var bookArray []any = this.ParseOrderBookBidAsk(delta, "px", "qty", "num")
 	bookside.(ccxt.IOrderBookSide).StoreArray(bookArray)
 }
 func (this *Blockchaincom) HandleDeltas(bookside any, deltas any) {
@@ -977,7 +977,7 @@ func (this *Blockchaincom) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var isAuthenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var isAuthenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if isAuthenticated == nil {
 		this.CheckRequiredCredentials()
 		var request map[string]any = map[string]any{

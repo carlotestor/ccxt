@@ -160,7 +160,7 @@ func (this *Bydfi) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHashes
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var subHash string = "private"
 	var client ccxt.ClientInterface = this.Client(url)
-	var privateSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subHash)
+	var privateSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subHash)
 	var subscription map[string]any = map[string]any{}
 	var paramsLogin any = nil
 	if privateSubscription == nil {
@@ -421,7 +421,7 @@ func (this *Bydfi) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 func (this *Bydfi) GetMessageHashesForTickersUnsubscription() []any {
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	var client ccxt.ClientInterface = this.Client(url)
-	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
+	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var messageHashes []any = []any{}
 	var keys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(keys); i++ {
@@ -1504,7 +1504,7 @@ func (this *Bydfi) HandleSubscriptionStatus(client any, message any) any {
 	//     }
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var isUnSubMessage *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if isUnSubMessage != nil && *isUnSubMessage {

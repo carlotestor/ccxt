@@ -1060,7 +1060,7 @@ public class Toobit extends ToobitApi
             Object response = cachedInfo;
             if (!java.util.Objects.equals(cachedInfo, null))
             {
-                Helpers.addElementToObject(this.options, "exchangeInfo", null); // reset it to avoid using old cached data
+                this.options.remove("exchangeInfo"); // reset it to avoid using old cached data
             } else
             {
                 response = (this.commonGetApiV1ExchangeInfo(parameters)).join();

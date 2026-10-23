@@ -641,9 +641,9 @@ impl HitbtcCore {
         if (snapshot != Value::Null) {
             data = snapshot.clone();
         }
-        let mut type_var: Value = Value::Str("update".into());
+        let mut type_var: String = "update".to_string();
         if (snapshot != Value::Null) && (snapshot != Value::Null) {
-            type_var = Value::Str("snapshot".into());
+            type_var = "snapshot".to_string();
         }
         let mut marketIds: Value = object_keys(&data);
         {
@@ -670,7 +670,7 @@ impl HitbtcCore {
             let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(item.clone(), "t", &[]);
             let mut nonce: Value = self.safe_integer_k(item.clone(), "s", &[]);
-            if (type_var.as_str() == Some("snapshot")) {
+            if ((type_var == "snapshot")) {
                 let mut parsedSnapshot: Value = self.parse_order_book(item.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into())]);
                 orderbook.reset(parsedSnapshot);
             }  else {
@@ -1352,7 +1352,7 @@ impl HitbtcCore {
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 stored = ArrayCacheByTimestamp::new(limit);
-                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
             }
             let mut ohlcvs: Value = self.parse_ws_ohlc_vs(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
             {

@@ -1140,7 +1140,7 @@ func (this *Bigone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		var instruments []any = listEp1110.Value
 		data = this.ToArray(instruments)
 	}
-	var tickers any = this.ParseTickers(data, symbolsNormalized)
+	var tickers map[string]any = this.ParseTickers(data, symbolsNormalized)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized))}
 	return nil
@@ -2982,12 +2982,8 @@ func (this *Bigone) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
@@ -3004,7 +3000,7 @@ func (this *Bigone) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		"amount":         this.CurrencyToPrecision(code, amount),
 	}
 	if tagWithdrawTag != nil {
-		request["memo"] = tagWithdrawTag
+		request["memo"] = *tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])

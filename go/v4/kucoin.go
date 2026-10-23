@@ -3870,7 +3870,7 @@ func (this *Kucoin) fetchContractTickersBody(ch chan AsyncResult[map[string]Tick
 	//    }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var tickers any = this.ParseTickers(data, symbols)
+	var tickers map[string]any = this.ParseTickers(data, symbols)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbols))}
 	return nil
@@ -5791,18 +5791,13 @@ func (this *Kucoin) CreateContractOrderRequest(symbol *string, typeVar *string, 
 		}
 	}
 	var reduceOnly *bool = this.SafeBool(paramsOmitted, "reduceOnly", false)
-	var hedged any = nil
+	var hedged *bool = nil
 	var hedgedparamsOmittedVariable []any = this.HandleParamBool(paramsOmitted, "hedged", false)
-	hedged = func() any {
-		if p, _ := hedgedparamsOmittedVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	if p, ok := hedgedparamsOmittedVariable[0].(*bool); ok { hedged = p }
 	paramsOmitted = GetValue(hedgedparamsOmittedVariable, 1)
 	if reduceOnly != nil && *reduceOnly {
 		request["reduceOnly"] = reduceOnly
-		if hedged == true {
+		if hedged != nil && *hedged == true {
 			var reduceOnlyPosSide string = "SHORT"
 			if side != nil && *side == "sell" {
 				reduceOnlyPosSide = "LONG"
@@ -5810,7 +5805,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol *string, typeVar *string, 
 			request["positionSide"] = reduceOnlyPosSide
 		}
 	} else {
-		if hedged == true {
+		if hedged != nil && *hedged == true {
 			var posSide string = "SHORT"
 			if side != nil && *side == "buy" {
 				posSide = "LONG"
@@ -7372,15 +7367,11 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan AsyncResult[[]Order], optiona
 	}
 	var trigger bool = false
 	var triggerOptionparamsTriggerVariable []any = this.HandleParamBool(params, "trigger", trigger)
-	triggerOption := func() any {
-		if p, _ := triggerOptionparamsTriggerVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var triggerOption *bool = nil
+	if p, ok := triggerOptionparamsTriggerVariable[0].(*bool); ok { triggerOption = p }
 	var paramsTrigger map[string]any = MapTyped(triggerOptionparamsTriggerVariable[1])
 	var orderFilter string = "NORMAL"
-	if triggerOption == true {
+	if triggerOption != nil && *triggerOption == true {
 		orderFilter = "ADVANCED"
 	}
 	var request map[string]any = map[string]any{
@@ -10439,12 +10430,8 @@ func (this *Kucoin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -10461,7 +10448,7 @@ func (this *Kucoin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		"withdrawType": "ADDRESS",
 	}
 	if tagWithdrawTag != nil {
-		request["memo"] = tagWithdrawTag
+		request["memo"] = *tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	networkCode := func() any {
@@ -11796,12 +11783,8 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 	}
 	var transferType string = "INTERNAL"
 	var transferTypeOptionparamsTransferTypeVariable []any = this.HandleParamString2(params, "transferType", "type", transferType)
-	transferTypeOption := func() any {
-		if p, _ := transferTypeOptionparamsTransferTypeVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var transferTypeOption *string = nil
+	if p, ok := transferTypeOptionparamsTransferTypeVariable[0].(*string); ok { transferTypeOption = p }
 	var paramsTransferType map[string]any = MapTyped(transferTypeOptionparamsTransferTypeVariable[1])
 	var fromUserId any = nil
 	var fromUserIdOptionparamsFromUserIdVariable []any = this.HandleParamString2(paramsTransferType, "fromUserId", "fromUid", fromUserId)
@@ -11811,13 +11794,13 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 	var toUserIdOptionparamsToUserIdVariable []any = this.HandleParamString2(paramsFromUserId, "toUserId", "toUid", toUserId)
 	var toUserIdOption *string = SafeStringPtr(toUserIdOptionparamsToUserIdVariable[0])
 	var paramsToUserId map[string]any = MapTyped(toUserIdOptionparamsToUserIdVariable[1])
-	if (transferTypeOption == "PARENT_TO_SUB") || (transferTypeOption == "SUB_TO_SUB") {
+	if (transferTypeOption != nil && *transferTypeOption == "PARENT_TO_SUB") || (transferTypeOption != nil && *transferTypeOption == "SUB_TO_SUB") {
 		if toUserIdOption == nil {
 			panic(ExchangeError(this.Id + " transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers"))
 		} else {
 			request["toUid"] = toUserIdOption
 		}
-	} else if (transferTypeOption == "SUB_TO_PARENT") || (transferTypeOption == "SUB_TO_SUB") {
+	} else if (transferTypeOption != nil && *transferTypeOption == "SUB_TO_PARENT") || (transferTypeOption != nil && *transferTypeOption == "SUB_TO_SUB") {
 		if fromUserIdOption == nil {
 			panic(ExchangeError(this.Id + " transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers"))
 		} else {

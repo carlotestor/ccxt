@@ -484,10 +484,10 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.Market
 			var outcomeSymbol *string = this.SafeString2(outcome, "outcome", "symbol")
 			var outcomeId_ *string = this.SafeString2(outcome, "outcomeId", "id")
 			if outcomeSymbol != nil {
-				ccxt.AddElementToObject(this.Outcomes, outcomeSymbol, outcome)
+				this.Outcomes[*outcomeSymbol] = outcome
 			}
 			if outcomeId_ != nil {
-				ccxt.AddElementToObject(this.Outcomes_by_id, outcomeId_, outcome)
+				this.Outcomes_by_id[*outcomeId_] = outcome
 			}
 		}
 	}
@@ -1487,7 +1487,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	if ccxt.IsEqual(outcomeInput, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " resolveOutcomeInput() requires an outcome symbol or id"))
 	}
-	if (this.Outcomes == nil) || (this.Outcomes_by_id == nil) {
+	if this.Outcomes == nil || this.Outcomes_by_id == nil {
 		panic(ccxt.ExchangeError(this.Id + " outcomes not loaded"))
 	}
 	var sideHint any = this.ParseOutcomeInputSideHint(outcomeInput)

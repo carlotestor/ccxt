@@ -2111,8 +2111,8 @@ impl PhemexCore {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&side), orders); }
         }
         }
-        { let __be_tmp = self.sort_by(get_value(&result, &bidsKey), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&bidsKey), __be_tmp); } }
-        { let __be_tmp = self.sort_by(get_value(&result, &asksKey), Value::Int(0), &[]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&asksKey), __be_tmp); } }
+        { let __be_tmp = self.sort_by(result.as_map().and_then(|__m| bidsKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&bidsKey), __be_tmp); } }
+        { let __be_tmp = self.sort_by(result.as_map().and_then(|__m| asksKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Int(0), &[]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&asksKey), __be_tmp); } }
         return result;
 
     Value::Null
@@ -6113,7 +6113,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut timestamp: Value = self.seconds();
             let mut xPhemexRequestExpiry: Value = self.safe_integer_k(self.options.clone(), "x-phemex-request-expiry", &[Value::Int(60)]);
             let mut expiry: Value = self.sum(&[timestamp, xPhemexRequestExpiry]);
-            let mut expiryString: Value = to_string_val(&expiry);
+            let mut expiryString: Value = Value::str(expiry.to_string());
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("x-phemex-access-token".to_string(), self.apiKey.clone());

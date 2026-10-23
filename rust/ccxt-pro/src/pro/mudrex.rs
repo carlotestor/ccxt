@@ -501,7 +501,7 @@ impl MudrexCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
             if (symbol != Value::Null) && (tf != Value::Null) {
-                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &tf, stored.clone());
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), stored.clone()); }
             }
         }
         stored.append(parsed);

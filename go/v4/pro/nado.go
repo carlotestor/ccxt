@@ -301,7 +301,7 @@ func (this *Nado) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
-	if !(ccxt.InOp(this.Orderbooks, market["symbol"])) {
+	if !this.WsCacheHas("Orderbooks", market["symbol"]) {
 
 		r1 := <-this.FetchOrderBookAsync(symbol, limit)
 		if r1.Err != nil {
@@ -311,7 +311,7 @@ func (this *Nado) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 		if !ccxt.StructAbsent(r1.Value) {
 			snapshot = ccxt.StructBox(r1.Value, ccxt.OrderBookToMap)
 		}
-		ccxt.AddElementToObject(this.Orderbooks, market["symbol"], this.OrderBook(snapshot, limit))
+		this.WsCacheSet("Orderbooks", market["symbol"], this.OrderBook(snapshot, limit))
 	}
 
 	r2 := <-this.WatchPublicAsync("book_depth", market, messageHash, params)
@@ -397,7 +397,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 		var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, messageHash)
-		if !(ccxt.InOp(this.Orderbooks, market["symbol"])) {
+		if !this.WsCacheHas("Orderbooks", market["symbol"]) {
 
 			r1 := <-this.FetchOrderBookAsync(symbol, limit)
 			if r1.Err != nil {
@@ -407,7 +407,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 			if !ccxt.StructAbsent(r1.Value) {
 				snapshot = ccxt.StructBox(r1.Value, ccxt.OrderBookToMap)
 			}
-			ccxt.AddElementToObject(this.Orderbooks, market["symbol"], this.OrderBook(snapshot, limit))
+			this.WsCacheSet("Orderbooks", market["symbol"], this.OrderBook(snapshot, limit))
 		}
 	}
 
@@ -1919,10 +1919,10 @@ func (this *Nado) watchPublicBody(ch chan ccxt.AsyncResult[any], streamType any,
 		"symbol":     this.SafeString(market, "symbol"),
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+	var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscribeHash)
 	if clientSubscription == nil {
 		var id *string = this.SafeString(request, "id")
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id), map[string]any{
+		client.(ccxt.ClientInterface).SubscriptionSet(ccxt.Add("subscription:", id), map[string]any{
 			"subscribeHash": subscribeHash,
 		})
 		this.WatchMultiple(url, []any{subscribeHash}, request, []any{subscribeHash}, subscription)
@@ -1947,7 +1947,7 @@ func (this *Nado) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], streamType a
 	_ = params
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "subscriptions")
 	var client ccxt.ClientInterface = this.Client(url)
-	var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if clientSubscription != nil {
 
 		r := <-this.Watch(url, messageHash)
@@ -1977,7 +1977,7 @@ func (this *Nado) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], streamType a
 	var subscription map[string]any = map[string]any{
 		"streamType": streamType,
 	}
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", this.NumberToString(id)), map[string]any{
+	client.(ccxt.ClientInterface).SubscriptionSet(ccxt.Add("subscription:", this.NumberToString(id)), map[string]any{
 		"subscribeHash": subscribeHash,
 	})
 	this.WatchMultiple(url, []any{subscribeHash}, request, []any{messageHash}, subscription)
@@ -2022,7 +2022,7 @@ func (this *Nado) unWatchPrivateBody(ch chan ccxt.AsyncResult[bool], stream any,
 		"messageHash": messageHash,
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", this.NumberToString(id)), map[string]any{
+	client.(ccxt.ClientInterface).SubscriptionSet(ccxt.Add("unsubscription:", this.NumberToString(id)), map[string]any{
 		"messageHash":     messageHash,
 		"unsubscribeHash": unsubscribeHash,
 	})
@@ -2060,7 +2060,7 @@ func (this *Nado) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "subscriptions")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated != nil {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		if future != nil {
@@ -2121,7 +2121,7 @@ func (this *Nado) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 		"tx":        tx,
 		"signature": signature,
 	}
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("authentication:", this.NumberToString(id)), messageHash)
+	client.(ccxt.ClientInterface).SubscriptionSet(ccxt.Add("authentication:", this.NumberToString(id)), messageHash)
 
 	r2 := <-this.Watch(url, messageHash, this.Extend(request, paramsSubaccount), messageHash)
 	if r2.Err != nil {
@@ -2194,7 +2194,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamT
 	var client ccxt.ClientInterface = this.Client(url)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, i))
-		var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 		if clientSubscription == nil {
 			var market any = ccxt.GetValue(markets, i)
 			var id int64 = this.RequestId()
@@ -2206,13 +2206,13 @@ func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamT
 			}()
 			var request map[string]any = this.CreatePublicSubscriptionRequest("subscribe", streamType, market, id, requestParams)
 			var subscribeHash string = "subscribe:" + this.Json(request["stream"])
-			var streamSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+			var streamSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscribeHash)
 			if streamSubscription == nil {
 				var subscription map[string]any = map[string]any{
 					"streamType": streamType,
 					"symbol":     this.SafeString(market, "symbol"),
 				}
-				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", this.NumberToString(id)), map[string]any{
+				client.(ccxt.ClientInterface).SubscriptionSet(ccxt.Add("subscription:", this.NumberToString(id)), map[string]any{
 					"subscribeHash": subscribeHash,
 				})
 				this.WatchMultiple(url, []any{subscribeHash}, request, []any{subscribeHash}, subscription)
@@ -2246,7 +2246,7 @@ func (this *Nado) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], streamType a
 	}
 	var unsubscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", messageHash))
 	var client ccxt.ClientInterface = this.Client(url)
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", this.NumberToString(id)), map[string]any{
+	client.(ccxt.ClientInterface).SubscriptionSet(ccxt.Add("unsubscription:", this.NumberToString(id)), map[string]any{
 		"messageHash":     messageHash,
 		"unsubscribeHash": unsubscribeHash,
 	})
@@ -2299,7 +2299,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool], stre
 			"id":          id,
 			"messageHash": messageHash,
 		}
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", this.NumberToString(id)), map[string]any{
+		client.(ccxt.ClientInterface).SubscriptionSet(ccxt.Add("unsubscription:", this.NumberToString(id)), map[string]any{
 			"messageHash":     messageHash,
 			"unsubscribeHash": unsubscribeHash,
 		})
@@ -2809,19 +2809,19 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	var maxTimestamp *string = this.SafeString(orderbook, "maxTimestamp")
 	var lastMaxTimestamp *string = this.SafeString(message, "last_max_timestamp")
 	if (maxTimestamp != nil) && (lastMaxTimestamp != nil) && (maxTimestamp != lastMaxTimestamp && (maxTimestamp == nil || lastMaxTimestamp == nil || *maxTimestamp != *lastMaxTimestamp)) {
-		var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		for i := 0; i < len(subscriptions); i++ {
 			var subscriptionHash string = subscriptions[i]
-			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHash)
 			var streamType *string = this.SafeString(subscription, "streamType")
 			var subscriptionSymbol *string = this.SafeString(subscription, "symbol")
 			if (streamType != nil && *streamType == "book_depth") && (subscriptionSymbol == symbol || (subscriptionSymbol != nil && symbol != nil && *subscriptionSymbol == *symbol)) {
-				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+				client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
 			}
 		}
-		var subscriptionMsg any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var subscriptionMsg any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 		if subscriptionMsg != nil {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 		delete(this.Orderbooks, *symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
@@ -2856,37 +2856,37 @@ func (this *Nado) HandleExecuteResponse(client any, message any) {
 		return
 	}
 	var messageHash string = "execute:" + *id
-	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if subscription != nil {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(message, messageHash)
 }
 func (this *Nado) HandleSubscription(client any, message any) {
 	var id *string = this.SafeString(message, "id")
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), ccxt.Add("subscription:", id))
 	if subscription != nil {
 		var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
+		client.(ccxt.ClientInterface).SubscriptionDel(ccxt.Add("subscription:", id))
 		client.(ccxt.ClientInterface).Resolve(message, subscribeHash)
 	}
 }
 func (this *Nado) HandleAuthentication(client any, message any) {
 	var id *string = this.SafeString(message, "id")
-	var messageHash *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("authentication:", id))
+	var messageHash *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), ccxt.Add("authentication:", id))
 	if messageHash != nil {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("authentication:", id))
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, true)
+		client.(ccxt.ClientInterface).SubscriptionDel(ccxt.Add("authentication:", id))
+		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, true)
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	}
 }
 func (this *Nado) HandleUnsubscription(client any, message any) {
 	var id *string = this.SafeString(message, "id")
-	var unsubscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", id))
+	var unsubscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), ccxt.Add("unsubscription:", id))
 	if unsubscription != nil {
 		var messageHash *string = this.SafeString(unsubscription, "messageHash")
 		var unsubscribeHash *string = this.SafeString(unsubscription, "unsubscribeHash")
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", id))
+		client.(ccxt.ClientInterface).SubscriptionDel(ccxt.Add("unsubscription:", id))
 		if messageHash != nil {
 			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, unsubscribeHash)
 			this.HandleUnsubscriptionCache(messageHash)
@@ -2894,10 +2894,10 @@ func (this *Nado) HandleUnsubscription(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(true, unsubscribeHash)
 		return
 	}
-	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(subscriptions); i++ {
 		var unsubscribeHash string = subscriptions[i]
-		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash)
+		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubscribeHash)
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if subscriptionId != id && (subscriptionId == nil || id == nil || *subscriptionId != *id) {
 			continue
@@ -2998,17 +2998,17 @@ func (this *Nado) HandleErrorMessage(client any, message any) bool {
 	var id *string = this.SafeString(message, "id")
 	if id != nil {
 		var executeHash string = "execute:" + *id
-		var executeSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), executeHash)
+		var executeSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), executeHash)
 		if executeSubscription != nil {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), executeHash)
+			client.(ccxt.ClientInterface).SubscriptionDel(executeHash)
 			client.(ccxt.ClientInterface).Reject(feedback, executeHash)
 			return true
 		}
 	}
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), ccxt.Add("subscription:", id))
 	if subscription != nil {
 		var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
+		client.(ccxt.ClientInterface).SubscriptionDel(ccxt.Add("subscription:", id))
 		client.(ccxt.ClientInterface).Reject(feedback, subscribeHash)
 	} else {
 		client.(ccxt.ClientInterface).Reject(feedback)
@@ -3036,12 +3036,12 @@ func (this *Nado) HandleMessage(client any, message any) {
 		return
 	}
 	if (id != nil) && hasResult {
-		var authentication *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), "authentication:"+*id)
+		var authentication *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "authentication:"+*id)
 		if authentication != nil {
 			this.HandleAuthentication(client, message)
 			return
 		}
-		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "subscription:"+*id)
+		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "subscription:"+*id)
 		if subscription != nil {
 			this.HandleSubscription(client, message)
 			return

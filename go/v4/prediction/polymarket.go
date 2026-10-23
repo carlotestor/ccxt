@@ -3764,7 +3764,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		}
 	}
 	// Parse and merge into class-level caches
-	if ccxt.IsEqual(this.Events, nil) {
+	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
 	if this.Markets == nil {
@@ -4759,10 +4759,10 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	if outcomeValue == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTicker() missing outcome"))
 	}
-	if !(ccxt.InOp(this.Orderbooks, outcomeValue)) {
+	if !this.WsCacheHas("Orderbooks", outcomeValue) {
 		var seededBook any = this.OrderBook(map[string]any{})
 		if outcomeValue != nil {
-			ccxt.AddElementToObject(this.Orderbooks, outcomeValue, seededBook)
+			this.WsCacheSet("Orderbooks", outcomeValue, seededBook)
 		}
 	}
 	var url any = ccxt.GetValue(this.Urls["api"], "ws")

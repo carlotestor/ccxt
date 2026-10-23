@@ -113,7 +113,7 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var accessPath string = "/ws"
 		var requestString string = "GET\n" + accessPath + "\nsignTimestamp=" + *timestamp
@@ -156,7 +156,7 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		//        "channel": "auth"
 		//    }
 		//
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, future)
+		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
 	}
 
 	var resolved *string
@@ -1058,7 +1058,7 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	return nil
 }
 func (this *Poloniex) SetBalanceCache(client any, typeVar string) {
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar) {
+	if client.(ccxt.ClientInterface).SubscriptionHas(typeVar) {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
@@ -1703,7 +1703,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var name string = "book_lv2"
 		var messageHash string = name + "::" + *symbol
-		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var timestamp *int64 = this.SafeInteger(item, "ts")
 		var asks []any = ccxt.SafeListTyped(item, "asks")
@@ -1919,8 +1919,8 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 							if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 								var messageHash string = "authenticated"
 								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+								if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+									client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 								}
 							} else {
 								client.(ccxt.ClientInterface).Reject(e, id)
@@ -1964,8 +1964,8 @@ func (this *Poloniex) HandleAuthenticate(client any, message any) any {
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 	}
 	return message

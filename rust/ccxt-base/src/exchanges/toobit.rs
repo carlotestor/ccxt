@@ -2678,7 +2678,7 @@ impl ToobitCore {
             }
         }
         let mut paramsOmitted: Value = self.omit(paramsTrigger, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
-        if !(in_op(&paramsOmitted, &Value::Str("newClientOrderId".into()))) {
+        if !(paramsOmitted.as_map().is_some_and(|__m| __m.contains_key("newClientOrderId"))) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("newClientOrderId".into(), self.uuid(&[])); }
         }
         return Value::from(vec![request, paramsOmitted]);

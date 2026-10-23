@@ -3574,10 +3574,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut tradeStatus: Option<String> = self.safe_string_k(market.clone(), "trade_status", &[]).as_str().map(str::to_owned);
             let mut marginStatus: Option<i64> = self.safe_integer_k(market.clone(), "status", &[Value::Int(1)]).as_i64(); // 0 disabled, 1 enabled
             let mut leverage: Option<f64> = self.safe_number_k(market.clone(), "leverage", &[]).as_f64();
-            let mut margin: Value = Value::Bool(leverage.is_some());
+            let mut margin: bool = leverage.is_some();
             let mut buyStart: Value = self.safe_integer_product_k(spotMarket.clone(), "buy_start", Value::Int(1000), &[]); // buy_start is the trading start time, while sell_start is offline orders start time
             let mut createdTs: Value = (if (buyStart.as_f64() != Some(0.0)) { buyStart } else { Value::Null });
-            let mut active: Value = Value::Bool((tradeStatus.as_deref() == Some("tradable")) || (matches!(&margin, Value::Bool(true)) && (marginStatus == Some(1))));
+            let mut active: Value = Value::Bool((tradeStatus.as_deref() == Some("tradable")) || (margin && (marginStatus == Some(1))));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
@@ -3590,7 +3590,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));
-                    m.insert("margin".to_string(), margin.clone());
+                    m.insert("margin".to_string(), Value::Bool(margin.clone()));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
@@ -3634,7 +3634,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(market.clone(), "min_quote_amount", &[]));
-        m.insert("max".to_string(), (if matches!(&margin, Value::Bool(true)) { self.safe_number_k(market.clone(), "max_quote_amount", &[]) } else { Value::Null }));
+        m.insert("max".to_string(), (if margin { self.safe_number_k(market.clone(), "max_quote_amount", &[]) } else { Value::Null }));
     m
 }));
     m
@@ -3866,7 +3866,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut maxMultiplier: Value = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &priceDeviate);
         let mut minPrice: Value = crate::precise::Precise::stringMul(&minMultiplier, &markPrice);
         let mut maxPrice: Value = crate::precise::Precise::stringMul(&maxMultiplier, &markPrice);
-        let mut isLinear: Value = Value::Bool(quote.as_str() == settle.as_str());
+        let mut isLinear: bool = quote.as_str() == settle.as_str();
         let mut contractSize: Value = self.safe_string_k(market.clone(), "quanto_multiplier", &[]);
         // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
         if (contractSize.as_str() == Some("0")) {
@@ -3900,8 +3900,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), isLinear.clone());
-        m.insert("inverse".to_string(), Value::Bool(!(matches!(&isLinear, Value::Bool(true)))));
+        m.insert("linear".to_string(), Value::Bool(isLinear.clone()));
+        m.insert("inverse".to_string(), Value::Bool(!(isLinear)));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".into()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0002".into()), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
@@ -5250,7 +5250,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountKey: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Int(1) } else { Value::Str("s".into()) });
         let mut nonce: Value = self.safe_integer_k(response.clone(), "id", &[]);
         let mut result: Value = self.parse_order_book(response, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), priceKey, amountKey]);
-        add_element_to_object(&mut result, &Value::Str("nonce".into()), nonce);
+        if let Value::Dict(__r03d) = &mut result { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce); }
         return result;
 
     Value::Null

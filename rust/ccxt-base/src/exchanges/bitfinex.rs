@@ -1484,7 +1484,7 @@ impl BitfinexCore {
             }  else {
                 type_var = Value::Str("spot".into());
             }
-            let mut swap: Value = Value::Bool(type_var.as_str() == Some("swap"));
+            let mut swap: bool = type_var.as_str() == Some("swap");
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
             if Value::Int(id.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
@@ -1509,7 +1509,7 @@ impl BitfinexCore {
             // quoteId = 'f' + quoteId;
             let mut settle: Value = Value::Null;
             let mut settleId: Value = Value::Null;
-            if matches!(&swap, Value::Bool(true)) {
+            if swap {
                 settle = quote.clone();
                 settleId = quote.clone();
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
@@ -1529,14 +1529,14 @@ impl BitfinexCore {
                     m.insert("type".to_string(), type_var);
                     m.insert("spot".to_string(), Value::Bool(spot.clone()));
                     m.insert("margin".to_string(), Value::Bool((spot && self.in_array(id, marginIds.clone()).as_bool() == Some(true))));
-                    m.insert("swap".to_string(), swap.clone());
+                    m.insert("swap".to_string(), Value::Bool(swap.clone()));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), Value::Bool(true));
                     m.insert("contract".to_string(), Value::Bool(!(spot)));
-                    m.insert("linear".to_string(), (if matches!(&swap, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
-                    m.insert("inverse".to_string(), (if matches!(&swap, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
-                    m.insert("contractSize".to_string(), (if matches!(&swap, Value::Bool(true)) { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));
+                    m.insert("linear".to_string(), (if swap { Value::Bool(true) } else { Value::Null }));
+                    m.insert("inverse".to_string(), (if swap { Value::Bool(false) } else { Value::Null }));
+                    m.insert("contractSize".to_string(), (if swap { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);
                     m.insert("strike".to_string(), Value::Null);
@@ -5386,16 +5386,16 @@ impl BitfinexCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
         }
         // flag values may be summed to combine flags
-        let mut flags: Value = Value::Int(0);
+        let mut flags: i64 = 0;
         if postOnly && reduceOnly.as_bool() == Some(true) {
-            flags = Value::Int(5120);
+            flags = 5120;
         }  else if postOnly {
-            flags = Value::Int(4096);
+            flags = 4096;
         }  else if reduceOnly.as_bool() == Some(true) {
-            flags = Value::Int(1024);
+            flags = 1024;
         }
-        if (flags.as_f64() != Some(0.0)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("flags".into(), flags); }
+        if (((flags as f64) != 0.0)) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("flags".into(), Value::Int(flags)); }
         }
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cid".into(), clientOrderId); }

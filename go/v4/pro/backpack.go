@@ -246,7 +246,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash any = ccxt.Add(kind+":"+*symbol+"@", topic)
 		var subscriptionKey any = ccxt.Add("marketData:", topic)
-		var subscriptions any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionKey, map[string]any{})
+		var subscriptions any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionKey, map[string]any{})
 		if unwatch == true {
 			subscriptions = this.Omit(subscriptions, messageHash)
 			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, ccxt.Add("unsubscribe:", messageHash))
@@ -262,7 +262,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 			})
 			messageHashes = append(messageHashes, messageHash)
 		}
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionKey, subscriptions)
+		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionKey, subscriptions)
 		var subscriptionHashes []string = ccxt.ObjectKeys(subscriptions)
 		var subscriptionsLength int = len(subscriptionHashes)
 		if !(unwatch == true) || (subscriptionsLength == 0) {
@@ -635,7 +635,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	//
 	var ticker any = this.SafeDict(message, "data", map[string]any{})
 	var stream *string = this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), "marketData:"+*stream)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + *stream)
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -731,7 +731,7 @@ func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) any {
 func (this *Backpack) HandleStockTicker(client any, message any) bool {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var stream *string = this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), "marketData:"+*stream)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + *stream)
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -861,7 +861,7 @@ func (this *Backpack) HandleBidAsk(client any, message any) {
 	//     }
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var stream *string = this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), "marketData:"+*stream)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + *stream)
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -1645,8 +1645,8 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 		var marketId any = this.WsVenueMarketId("watchOrderBookForSymbols", this.Market(symbol), query)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("depth.", marketId))
 		topics = append(topics, topic)
-		if _, ok := this.Orderbooks[symbol]; !ok {
-			this.Orderbooks[symbol] = this.OrderBook(map[string]any{}, limit)
+		if !this.WsCacheHas("Orderbooks", symbol) {
+			this.WsCacheSet("Orderbooks", symbol, this.OrderBook(map[string]any{}, limit))
 		}
 	}
 

@@ -299,7 +299,7 @@ public partial class apex : ccxt.apex
         if ((url == null))
         {
             string timeStamp = this.milliseconds().ToString();
-            url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public") + "&timestamp=") + timeStamp);
+            url = ((this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public") + "&timestamp=") + timeStamp);
             this.options["wsPublicUrl"] = url;
         }
         return url;
@@ -311,7 +311,7 @@ public partial class apex : ccxt.apex
         if ((url == null))
         {
             string timeStamp = this.milliseconds().ToString();
-            url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "&timestamp=") + timeStamp);
+            url = ((this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private") + "&timestamp=") + timeStamp);
             this.options["wsPrivateUrl"] = url;
         }
         return url;
@@ -920,7 +920,7 @@ public partial class apex : ccxt.apex
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }

@@ -7065,7 +7065,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
-    public virtual object parseUtaBalance(object balance, object response = null)
+    public virtual object parseUtaBalance(IList<object> balance, object response = null)
     {
         object info = ((response != null)) ? response : balance;
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -7094,7 +7094,7 @@ public partial class bitget : Exchange
         //         "balance": "0.01"
         //     }
         //
-        for (int i = 0; i < getArrayLength(balance); i++)
+        for (int i = 0; i < (balance?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(balance, i);
             Dictionary<string, object> account = this.account();
@@ -14586,7 +14586,7 @@ public partial class bitget : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
@@ -14659,7 +14659,7 @@ public partial class bitget : Exchange
         string pathPart = "/api";
         string request = ("/" + this.implodeParams(path, parameters));
         string payload = (pathPart + request);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), endpoint);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

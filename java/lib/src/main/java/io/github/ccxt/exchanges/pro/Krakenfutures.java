@@ -116,7 +116,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -1702,9 +1702,9 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash")), code, newAccount);
                 }
             }
-            Helpers.addElementToObject(this.balance, "cash", this.pruneStaleBalanceKeys((Map<String, Object>) (((Map<String, Object>)this.balance).get("cash")), (Map<String, Object>) (holdingCodes)));
-            Helpers.addElementToObject(this.balance, "cash", this.safeBalance(((Map<String, Object>)this.balance).get("cash")));
-            updatedBalance = ((Map<String, Object>)this.balance).get("cash");
+            Helpers.addElementToObject(this.balance, "cash", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("cash")), (Map<String, Object>) (holdingCodes)));
+            this.balance.put("cash", this.safeBalance(this.balance.get("cash")));
+            updatedBalance = this.balance.get("cash");
         }
         if (!java.util.Objects.equals(futures, null))
         {
@@ -1732,12 +1732,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject(Helpers.GetValue((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), symbol), code, newAccount);
                 }
             }
-            Helpers.addElementToObject(this.balance, "margin", this.pruneStaleBalanceKeys((Map<String, Object>) (((Map<String, Object>)this.balance).get("margin")), (Map<String, Object>) (futuresSymbols)));
-            Helpers.addElementToObject(this.balance, "margin", this.safeBalance(((Map<String, Object>)this.balance).get("margin")));
-            client.resolve(((Map<String, Object>)this.balance).get("margin"), (messageHash + ":futures"));
+            Helpers.addElementToObject(this.balance, "margin", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("margin")), (Map<String, Object>) (futuresSymbols)));
+            this.balance.put("margin", this.safeBalance(this.balance.get("margin")));
+            client.resolve(this.balance.get("margin"), (messageHash + ":futures"));
             if (java.util.Objects.equals(updatedBalance, null))
             {
-                updatedBalance = ((Map<String, Object>)this.balance).get("margin");
+                updatedBalance = this.balance.get("margin");
             }
         }
         if (!java.util.Objects.equals(flexFutures, null))
@@ -1764,12 +1764,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), code, newAccount);
                 }
             }
-            Helpers.addElementToObject(this.balance, "flex", this.pruneStaleBalanceKeys((Map<String, Object>) (((Map<String, Object>)this.balance).get("flex")), (Map<String, Object>) (flexCodes)));
-            Helpers.addElementToObject(this.balance, "flex", this.safeBalance(((Map<String, Object>)this.balance).get("flex")));
-            client.resolve(((Map<String, Object>)this.balance).get("flex"), (messageHash + ":flex_futures"));
+            Helpers.addElementToObject(this.balance, "flex", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("flex")), (Map<String, Object>) (flexCodes)));
+            this.balance.put("flex", this.safeBalance(this.balance.get("flex")));
+            client.resolve(this.balance.get("flex"), (messageHash + ":flex_futures"));
             if (java.util.Objects.equals(updatedBalance, null))
             {
-                updatedBalance = ((Map<String, Object>)this.balance).get("flex");
+                updatedBalance = this.balance.get("flex");
             }
         }
         // resolve the plain hash exactly once per message, with the unified
@@ -1950,7 +1950,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
     public Boolean subscriptionExistsForHash(String url, String hash)
     {
         Client client = this.client(url);
-        return (((Map<?, ?>)client.subscriptions).containsKey(hash));
+        return (client.subscriptions.containsKey(hash));
     }
 
     public String getMessageHash(Object unifiedElementName, String subChannelName, String symbol)
@@ -2069,14 +2069,14 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.addElementToObject(this.options, "challenge", challenge);
             Helpers.addElementToObject(this.options, "signedChallenge", signature);
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
         }
         return message;

@@ -974,15 +974,15 @@ impl CoinbaseinternationalCore {
         let mut interval: Value = intervalparamsIntervalVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsInterval: Value = intervalparamsIntervalVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut channels: Value = Value::from(vec![]);
-        let mut symbolsLength: Value = Value::Int(0);
+        let mut symbolsLength: i64 = 0;
         if (symbolsResolved != Value::Null) {
-            symbolsLength = Value::Int(symbolsResolved.len() as i64);
+            symbolsLength = symbolsResolved.len() as i64;
         }
-        if (symbolsResolved != Value::Null) && (symbolsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+        if (symbolsResolved != Value::Null) && ((symbolsLength as f64) > ((0i64) as f64)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_259: bool = true;
-                while { if !__for_first_259 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_259 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_259 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_259 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
                 if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.market_id(symbolsResolved.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))).into()), Value::Str(".".into())).into()), interval).into())); }
             }
             }
@@ -1024,15 +1024,15 @@ impl CoinbaseinternationalCore {
         let mut interval: Value = intervalparamsIntervalVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsInterval: Value = intervalparamsIntervalVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut channels: Vec<Value> = Vec::new();
-        let mut symbolsLength: Value = Value::Int(0);
+        let mut symbolsLength: i64 = 0;
         if (symbolsResolved != Value::Null) {
-            symbolsLength = Value::Int(symbolsResolved.len() as i64);
+            symbolsLength = symbolsResolved.len() as i64;
         }
-        if (symbolsResolved != Value::Null) && (symbolsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+        if (symbolsResolved != Value::Null) && ((symbolsLength as f64) > ((0i64) as f64)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_260: bool = true;
-                while { if !__for_first_260 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_260 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_260 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_260 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
                 channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.market_id(symbolsResolved.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))).into()), Value::Str(".".into())).into()), interval).into()));
             }
             }
@@ -1741,7 +1741,7 @@ impl CoinbaseinternationalCore {
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         if (self.safe_value(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit));
+            if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), ArrayCacheByTimestamp::new(limit)); }
         }
         let mut stored: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
@@ -2154,15 +2154,15 @@ impl CoinbaseinternationalCore {
     pub async fn resubscribe_order_book(&mut self, mut channel: Value) -> Value {
         let mut channelParts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut channelPartsLength: Value = Value::Int(channelParts.len() as i64);
-        let mut isPrivate: Value = Value::Bool(self.safe_string(channelParts, (match (&(channelPartsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str() == Some("raw"));
-        let mut url: Value = self.get_ws_url(&[isPrivate.clone()]);
-        if matches!(&isPrivate, Value::Bool(true)) {
+        let mut isPrivate: bool = self.safe_string(channelParts, (match (&(channelPartsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str() == Some("raw");
+        let mut url: Value = self.get_ws_url(&[Value::Bool(isPrivate.clone())]);
+        if isPrivate {
             self.authenticate(&[]).await;
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                m.insert("method".to_string(), (if matches!(&isPrivate, Value::Bool(true)) { Value::Str("private/unsubscribe".into()) } else { Value::Str("public/unsubscribe".into()) }));
+                m.insert("method".to_string(), (if isPrivate { Value::Str("private/unsubscribe".into()) } else { Value::Str("public/unsubscribe".into()) }));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), Value::from(vec![channel.clone()]));
@@ -2176,7 +2176,7 @@ impl CoinbaseinternationalCore {
         if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &channel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &channel);
         }
-        self.subscribe(Value::from(vec![channel.clone()]), Value::from(vec![channel]), &[isPrivate, Value::Map({
+        self.subscribe(Value::from(vec![channel.clone()]), Value::from(vec![channel]), &[Value::Bool(isPrivate), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).await;

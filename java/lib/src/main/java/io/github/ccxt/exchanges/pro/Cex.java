@@ -78,7 +78,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        this.options.put("requestId", requestId);
         }
         return (String) (String.valueOf(requestId));
     }
@@ -190,7 +190,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Client client = (Client)this.safeValue(this.clients, url);
             if (!java.util.Objects.equals(client, null))
             {
-                List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
                     Object subscriptionKey = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
@@ -1234,7 +1234,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
         if ((java.util.Objects.equals(nonce, null)) || (!java.util.Objects.equals(incrementalId, (nonce + 1L))))
         {
-            ((Map<String,Object>)client.subscriptions).remove(messageHash);
+            client.subscriptions.remove(messageHash);
             var error = new InvalidNonce((this.id + " watchOrderBook() skipped a message"));
             client.reject(error, messageHash);
             return;
@@ -1757,7 +1757,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         } catch(Exception error)
         {
             String messageHash = this.safeString(message, "oid");
-            Object future = this.safeValue(Helpers.GetValue(client, "futures"), messageHash);
+            Object future = this.safeValue(client.futures, messageHash);
             if (!java.util.Objects.equals(future, null))
             {
                 client.reject(error, messageHash);
@@ -1823,7 +1823,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
         if (!java.util.Objects.equals(future, null))
         {
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         }
     }
 

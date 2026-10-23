@@ -3071,7 +3071,7 @@ impl SxbetCore {
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue, Value::Int(1)]);
         if (url != Value::Null) {
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())), &url, newValue.clone());
+            if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); }
         }
         return newValue;
 
@@ -3387,7 +3387,7 @@ impl SxbetCore {
         if (held.as_str() != Some("")) && ((match (version.as_str(), held.as_str()) { (Some(__x), Some(__y)) => (match (__x.parse::<f64>(), __y.parse::<f64>()) { (Ok(__p), Ok(__q)) => __p < __q, _ => __x < __y }) || __x == __y, (None, None) => true, _ => false })) {
             return Value::from(refreshed);
         }
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("wsBookVersions".into())), &marketHash, version);
+        if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("wsBookVersions".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&marketHash), version); }
         let mut watchedBooks: Value = self.safe_dict_k(self.options.clone(), "wsWatchedBooks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3901,7 +3901,7 @@ impl SxbetCore {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let mut sendAsQuery: bool = method.as_str() == Some("GET");
         if (method.as_str() == Some("DELETE")) {
-            let mut hasOrdersList: bool = in_op(&query, &Value::Str("orders".into()));
+            let mut hasOrdersList: bool = query.as_map().is_some_and(|__m| __m.contains_key("orders"));
             sendAsQuery = !hasOrdersList;
         }
         let mut bodyValue: Value = Value::Null;

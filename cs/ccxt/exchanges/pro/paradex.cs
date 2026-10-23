@@ -49,7 +49,7 @@ public partial class paradex : ccxt.paradex
 
     public virtual object getWsUrl()
     {
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if (!(this.safeBool(this.options, "sbe", true) == true))
         {
             return url;
@@ -1461,17 +1461,17 @@ public partial class paradex : ccxt.paradex
         return order;
     }
 
-    public virtual object sbeReadFlags(object frameHex, object offset, object names)
+    public virtual object sbeReadFlags(object frameHex, object offset, IList<object> names)
     {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         List<object> flags = new List<object>() {};
         Int64? bits = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
-        for (int i = 0; i < getArrayLength(names); i++)
+        for (int i = 0; i < (names?.Count ?? 0); i++)
         {
             Int64? bit = this.parseToInt(((Int64?)((double?)bits % 2)));
-            if (((bit == 1)) && (!(getValue(names, i) is "")))
+            if (((bit == 1)) && (!((names != null && i < names.Count ? names[i] : null) is "")))
             {
-                flags.Add(getValue(names, i));
+                flags.Add((names != null && i < names.Count ? names[i] : null));
             }
             bits = this.parseToInt(((double?)bits / 2));
         }

@@ -1500,7 +1500,7 @@ impl CoinbaseexchangeCore {
         //     }
         //
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol, &[]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(response, "sequence", &[]));
+        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(response, "sequence", &[])); }
         return orderbook;
 
     Value::Null

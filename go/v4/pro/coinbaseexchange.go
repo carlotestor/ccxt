@@ -1252,7 +1252,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "level2"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", marketId))
-	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if typeVar != nil && *typeVar == "snapshot" {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {

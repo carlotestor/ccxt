@@ -5102,10 +5102,10 @@ public class Binance extends BinanceApi
                     // first one is the cross-margin promise
                     if ((length != null && length == 0))
                     {
-                        Helpers.addElementToObject(this.options, "crossMarginPairsData", keysList);
+                        this.options.put("crossMarginPairsData", keysList);
                     } else
                     {
-                        Helpers.addElementToObject(this.options, "isolatedMarginPairsData", keysList);
+                        this.options.put("isolatedMarginPairsData", keysList);
                     }
                 } else
                 {
@@ -13509,7 +13509,7 @@ public class Binance extends BinanceApi
                 List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
                 Map<String, Object> linearFees = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
-                Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("linear"), "trading"), "tiers");
+                Object feeTiers = ((Map<String, Object>)((Map<String, Object>)((Map<String, Object>)this.fees).get("linear")).get("trading")).get("tiers");
                 Object maker = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(feeTiers, "maker"), feeTier), 1);
                 Object taker = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(feeTiers, "taker"), feeTier), 1);
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -13548,7 +13548,7 @@ public class Binance extends BinanceApi
                 List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
                 Map<String, Object> inverseFees = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
-                Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("inverse"), "trading"), "tiers");
+                Object feeTiers = ((Map<String, Object>)((Map<String, Object>)((Map<String, Object>)this.fees).get("inverse")).get("trading")).get("tiers");
                 Object maker = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(feeTiers, "maker"), feeTier), 1);
                 Object taker = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(feeTiers, "taker"), feeTier), 1);
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)

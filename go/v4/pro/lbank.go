@@ -1344,7 +1344,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 			panic(r.Err)
 		}
 
-		ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")}
+		ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "authenticated"), "key")}
 		return nil
 	}
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -1366,7 +1366,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				}
 			}()
 			// try block:
-			var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+			var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "authenticated")
 			if authenticated == nil {
 
 				r1 := <-this.SpotPrivatePostSubscribeGetKey(params)
@@ -1381,7 +1381,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				if result == nil || *result != true {
 					panic(ccxt.ExchangeError(this.Id + " failed to get subscribe key"))
 				}
-				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated", map[string]any{
+				client.(ccxt.ClientInterface).SubscriptionSet("authenticated", map[string]any{
 					"key":     this.SafeString(response, "data"),
 					"expires": this.Sum(now, 3300000),
 				})
@@ -1409,7 +1409,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 			}
 			// settle the flight through the client so that every write to the
 			// futures map happens inside the base class
-			client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key"), messageHash)
+			client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionGet("authenticated"), "key"), messageHash)
 			return nil
 		}(this)
 
@@ -1422,7 +1422,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 		panic(r3.Err)
 	}
 
-	ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")}
+	ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "authenticated"), "key")}
 	return nil
 }
 

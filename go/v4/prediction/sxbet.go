@@ -3211,7 +3211,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 	// per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
 	// clears client.(*ccxt.WSClient).Subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
 	var client any = this.Client(url)
-	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "connect")
+	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "connect")
 	if connectSent == nil {
 		this.Options["wsConnected"] = false
 
@@ -3364,8 +3364,8 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 			if subscription != nil && *subscription == "connect" {
 				this.Options["wsConnected"] = false
 			}
-			if (subscription != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscription)) {
-				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscription)
+			if (subscription != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscription)) {
+				client.(ccxt.ClientInterface).SubscriptionDel(subscription)
 			}
 			this.Options["wsPendingRequests"] = this.Omit(pendingRequests, requestIdString)
 			client.(ccxt.ClientInterface).Reject(error, failedHash)
@@ -3463,8 +3463,8 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		panic(r1.Err)
 	}
 	var client any = this.Client(url)
-	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel), nil)
-	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, sym), nil) {
+	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel), nil)
+	if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 		// seed from the REST snapshot so the book is served before the first publication
 		var watchedBooks any = this.SafeDict(this.Options, "wsWatchedBooks")
 		if watchedBooks == nil {
@@ -3481,9 +3481,9 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 			snapshot = r2.Value
 		}
 		this.ApplySxbetWsSnapshot(snapshot)
-		if ccxt.IsEqual(this.SafeValue(this.Orderbooks, sym), nil) {
+		if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 			var emptyBook any = this.OrderBook(map[string]any{})
-			ccxt.AddElementToObject(this.Orderbooks, sym, emptyBook)
+			this.WsCacheSet("Orderbooks", sym, emptyBook)
 		}
 	}
 	var requestId int64 = this.RequestId(url)
@@ -3497,7 +3497,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next publication
-		client.(ccxt.ClientInterface).Resolve(this.SafeValue(this.Orderbooks, sym), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.WsCacheGet("Orderbooks", sym), messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])

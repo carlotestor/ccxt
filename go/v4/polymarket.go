@@ -1383,7 +1383,7 @@ func (this *Polymarket) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fun
 		panic(listEp1309.Err)
 	}
 	var response []any = listEp1309.Value
-	var result any = this.ParseFundingRates(response)
+	var result map[string]any = this.ParseFundingRates(response)
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
 	return nil
@@ -1618,7 +1618,7 @@ func (this *Polymarket) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Op
 		panic(listEp1517.Err)
 	}
 	var response []any = listEp1517.Value
-	var result any = this.ParseOpenInterests(response)
+	var result map[string]any = this.ParseOpenInterests(response)
 
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
 	return nil

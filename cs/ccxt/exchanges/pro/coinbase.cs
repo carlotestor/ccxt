@@ -93,7 +93,7 @@ public partial class coinbase : ccxt.coinbase
             messageHash = add(add(name, "::"), symbol);
             productIds = new List<object> {this.safeString(market, "id")};
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
@@ -152,7 +152,7 @@ public partial class coinbase : ccxt.coinbase
             unWatchMessageHash = ((unWatchMessageHash + "::") + (symbol));
             productIds = new List<object> {this.safeString(market, "id")};
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
@@ -206,7 +206,7 @@ public partial class coinbase : ccxt.coinbase
             productIds.Add(marketId);
             messageHashes.Add(add(add(name, "::"), symbol));
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
@@ -256,7 +256,7 @@ public partial class coinbase : ccxt.coinbase
             watchMessageHashes.Add(add(add(name, "::"), symbol));
             unWatchMessageHashes.Add(((("unsubscribe:" + (name)) + "::") + symbol));
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "product_ids", productIds },
@@ -286,7 +286,7 @@ public partial class coinbase : ccxt.coinbase
         object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         bool isCloudAPiKey = (this.apiKey.IndexOf("organizations/", StringComparison.Ordinal) >= 0) || (this.secret.StartsWith("-----BEGIN"));
-        string? auth = ((string)add(add(timestamp, name), String.Join(",", ((IList<object>)productIds).ToArray())));
+        string? auth = ((string)add(((object)(timestamp == null ? null : timestamp + (string)(object)(name))), String.Join(",", ((IList<object>)productIds).ToArray())));
         if (!isCloudAPiKey)
         {
             subscribe["api_key"] = this.apiKey;

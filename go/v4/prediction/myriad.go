@@ -4519,7 +4519,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url an
 	// connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
 	// clears client.(*ccxt.WSClient).Subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
 	var client any = this.Client(url)
-	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "connect")
+	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "connect")
 	if connectSent == nil {
 		this.Options["wsConnected"] = false
 		var requestId int64 = this.RequestId(url)
@@ -4728,7 +4728,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		panic(r1.Err)
 	}
 	var client any = this.Client(url)
-	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel), nil)
+	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel), nil)
 	if isNewSubscription {
 		// the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
 		// fresh subscription (first call or after a reconnect that cleared client.(*ccxt.WSClient).Subscriptions)
@@ -4748,7 +4748,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next delta
-		client.(ccxt.ClientInterface).Resolve(this.SafeValue(this.Orderbooks, sym), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.WsCacheGet("Orderbooks", sym), messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])
@@ -4782,7 +4782,7 @@ func (this *Myriad) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome st
 	}
 	var orderbook any = this.OrderBook(map[string]any{})
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	ccxt.AddElementToObject(this.Orderbooks, sym, orderbook)
+	this.WsCacheSet("Orderbooks", sym, orderbook)
 	return nil
 }
 func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
@@ -5487,7 +5487,7 @@ func (this *Myriad) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		panic(r1.Err)
 	}
 	var client any = this.Client(url)
-	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel), nil)
+	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel), nil)
 	if isNewSubscription {
 		// the channel pushes only signed deltas; seed absolute share balances from REST so
 		// handlePosition can maintain a running contracts figure

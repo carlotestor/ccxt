@@ -996,7 +996,7 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 		if (newNonce != nil) && ((nonce == nil) || (*newNonce > *nonce)) {
 			nonce = newNonce
 		}
-		var bidask any = this.ParseOrderBookBidAsk(level, priceKey, amountKey)
+		var bidask []any = this.ParseOrderBookBidAsk(level, priceKey, amountKey)
 		var levelSide *int64 = this.SafeInteger(level, 9)
 		var side any = func() any {
 			if (levelSide != nil) && (levelSide == nil || *levelSide != 0) {
@@ -1225,7 +1225,7 @@ func (this *Ndax) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	//         }
 	//     ]
 	//
-	var tickers any = this.ParseTickers(response)
+	var tickers map[string]any = this.ParseTickers(response)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized))}
 	return nil

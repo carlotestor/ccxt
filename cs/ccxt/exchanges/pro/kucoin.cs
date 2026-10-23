@@ -215,7 +215,7 @@ public partial class kucoin : ccxt.kucoin
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        string? url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
+        string? url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), urlType);
         var client = this.client(url);
         if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
         {
@@ -258,7 +258,7 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<string?> getUtaUrl()
     {
         string? utaToken = await this.authenticateUta();
-        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        string? wsUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " getUtaUrl() has no private websocket url")) ;
@@ -275,7 +275,7 @@ public partial class kucoin : ccxt.kucoin
         Int64 now = this.milliseconds();
         bool expired = (((now - lastUpdate)) >= refreshInterval);
         string messageHash = "utaToken";
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"));
         var client = this.client(url);
         if (((utaToken == null)) || expired)
         {
@@ -574,7 +574,7 @@ public partial class kucoin : ccxt.kucoin
             { "symbols", this.marketIds(symbols) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        string? url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
+        string? url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), urlType);
         var client = this.client(url);
         object messageHashWithSymbols = add(add(channel, ":"), String.Join(",", symbols.ToArray()));
         if (!((client.subscriptions != null && messageHashWithSymbols is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))))
@@ -2977,9 +2977,9 @@ public partial class kucoin : ccxt.kucoin
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future(add(uniformType, ":fetchBalanceSnapshot"));
+            await client.future(((object)(uniformType == null ? null : uniformType + ":fetchBalanceSnapshot")));
         }
-        string? messageHash = ((string)add(uniformType, ":balance"));
+        string? messageHash = ((string)((object)(uniformType == null ? null : uniformType + ":balance")));
         if ((utaOption == true))
         {
             Dictionary<string, object> extendedParams = new Dictionary<string, object>() {
@@ -3040,7 +3040,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve();
             client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
@@ -3356,7 +3356,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }
@@ -3385,7 +3385,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve(cache);
             client.resolve(position, ("position:" + (symbol)));
         }
@@ -3938,7 +3938,7 @@ public partial class kucoin : ccxt.kucoin
             }
             ((IDictionary<string,object>)(this.options.ContainsKey("urls") ? this.options["urls"] : null))[type] = null;
         }
-        this.handleErrors(1, "",((string)client.url), "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+        this.handleErrors(ccxt.BaseExchange.ToInt64Arg(1), "",((string)client.url), "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         return ((bool?)((object)(false)));
     }
 

@@ -634,7 +634,7 @@ public class Lighter extends LighterApi
         }
         // apiKeyIndex = this.randNumber (2);
         Integer defaultApiKeyIndex = 254;
-        Helpers.addElementToObject(this.options, "apiKeyIndex", defaultApiKeyIndex); // default to a value to avoid overriding other keys
+        this.options.put("apiKeyIndex", defaultApiKeyIndex); // default to a value to avoid overriding other keys
         return new ArrayList<Object>(Arrays.asList(defaultApiKeyIndex, paramsApiKeyIndex));
     }
 
@@ -994,7 +994,7 @@ public class Lighter extends LighterApi
     {
         super.setSandboxMode(enable);
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
-        Helpers.addElementToObject(this.options, "chainId", ((Boolean.TRUE.equals(enable))) ? 300 : 304);
+        this.options.put("chainId", ((Boolean.TRUE.equals(enable))) ? 300 : 304);
     }
 
     public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)

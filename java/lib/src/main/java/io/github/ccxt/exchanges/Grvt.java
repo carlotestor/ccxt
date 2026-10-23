@@ -817,7 +817,7 @@ public class Grvt extends GrvtApi
             //        "status": "success"
             //    }
             //
-            Helpers.addElementToObject(this.options, "signInExpiration", (now + 86400000L)); // 24 hours
+            this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
             return response;
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -850,7 +850,7 @@ public class Grvt extends GrvtApi
             //        "status": "success"
             //    }
             //
-            Helpers.addElementToObject(this.options, "signInExpiration", (now + 86400000L)); // 24 hours
+            this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
             return response;
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -3952,7 +3952,7 @@ public class Grvt extends GrvtApi
     public Long requestId()
     {
         Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        this.options.put("requestId", requestId);
         return requestId;
     }
 

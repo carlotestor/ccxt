@@ -94,10 +94,10 @@ func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel strin
 	result := r1.Value
 	var checksum *bool = this.SafeBool(this.Options, "checksum", true)
 	if (checksum != nil && *checksum) && (channel == "book") {
-		var sub any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var sub any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 		var subChecksum *bool = this.SafeBool(sub, "checksum")
 		if (sub != nil) && (subChecksum == nil || *subChecksum != true) {
-			ccxt.AddElementToObject(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash), "checksum", true)
+			ccxt.AddElementToObject(client.(ccxt.ClientInterface).SubscriptionGet(messageHash), "checksum", true)
 
 			r2 := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
 				"event": "conf",
@@ -136,13 +136,13 @@ func (this *Bitfinex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channel st
 	var subMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", marketId))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:"+channel+":", marketId))
 	var unSubTopic string = "unsubscribe" + ":" + topic + ":" + symbol
-	var channelId *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), unSubTopic)
+	var channelId *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unSubTopic)
 	var request map[string]any = map[string]any{
 		"event":  "unsubscribe",
 		"chanId": channelId,
 	}
 	var unSubChanMsg any = ccxt.Add("unsubscribe:", channelId)
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChanMsg, subMessageHash)
+	client.(ccxt.ClientInterface).SubscriptionSet(unSubChanMsg, subMessageHash)
 	var subscription map[string]any = map[string]any{
 		"messageHashes":    []any{messageHash},
 		"subMessageHashes": []any{subMessageHash},
@@ -299,13 +299,13 @@ func (this *Bitfinex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var subId *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:trade:"+*interval+":", market["id"])) // trade here because we use the key
-	var channelId *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), subId)
+	var channelId *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subId)
 	var request map[string]any = map[string]any{
 		"event":  "unsubscribe",
 		"chanId": channelId,
 	}
 	var unSubChanMsg any = ccxt.Add("unsubscribe:", channelId)
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChanMsg, subMessageHash)
+	client.(ccxt.ClientInterface).SubscriptionSet(unSubChanMsg, subMessageHash)
 	var subscription map[string]any = map[string]any{
 		"messageHashes":    []any{messageHash},
 		"subMessageHashes": []any{subMessageHash},
@@ -1203,7 +1203,7 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	var localChecksum int64 = this.Crc32(payload, true)
 	var responseChecksum *int64 = this.SafeInteger(message, 2)
 	if responseChecksum == nil || *responseChecksum != localChecksum {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
 		}
@@ -1402,9 +1402,9 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]
 	//
 	var channelId *string = this.SafeString(message, "chanId")
 	var unSubChannel any = ccxt.Add("unsubscribe:", channelId)
-	var subMessageHash *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChannel)
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscribe:", subMessageHash))
-	ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChannel)
+	var subMessageHash *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unSubChannel)
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), ccxt.Add("unsubscribe:", subMessageHash))
+	client.(ccxt.ClientInterface).SubscriptionDel(unSubChannel)
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for i := 0; i < len(messageHashes); i++ {
@@ -1446,7 +1446,7 @@ func (this *Bitfinex) HandleSubscriptionStatus(client any, message map[string]an
 	//  }
 	//
 	var channelId *string = this.SafeString(message, "chanId")
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), channelId, message)
+	client.(ccxt.ClientInterface).SubscriptionSet(channelId, message)
 	// store the opposite direction too for unWatch
 	var mappings map[string]any = map[string]any{
 		"book":    "orderbook",
@@ -1459,13 +1459,13 @@ func (this *Bitfinex) HandleSubscriptionStatus(client any, message map[string]an
 		// handle ohlcv differently because the message is different
 		var key *string = this.SafeString(message, "key")
 		var subKeyId any = ccxt.Add("unsubscribe:", key)
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subKeyId, channelId)
+		client.(ccxt.ClientInterface).SubscriptionSet(subKeyId, channelId)
 	} else {
 		var marketId *string = this.SafeString(message, "symbol")
 		var symbol *string = this.SafeSymbol(marketId)
 		if unifiedChannel != nil {
 			var subId string = "unsubscribe:" + *unifiedChannel + ":" + *symbol
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subId, channelId)
+			client.(ccxt.ClientInterface).SubscriptionSet(subId, channelId)
 		}
 	}
 	return message
@@ -1484,7 +1484,7 @@ func (this *Bitfinex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		// the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
 		var nonce any = this.IncrementingNonce()
@@ -1529,8 +1529,8 @@ func (this *Bitfinex) HandleAuthenticationMessage(client any, message map[string
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		// allows further authentication attempts
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 	}
 }
@@ -1814,7 +1814,7 @@ func (this *Bitfinex) HandleMessage(client any, message any) {
 		if heartbeat != nil && *heartbeat == "hb" {
 			return // skip heartbeats within subscription channels for now
 		}
-		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channelId, map[string]any{})
+		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channelId, map[string]any{})
 		var channel *string = this.SafeString(subscription, "channel")
 		var name *string = this.SafeString(message, 1)
 		var publicMethods map[string]any = map[string]any{

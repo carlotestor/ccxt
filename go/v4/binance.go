@@ -11422,7 +11422,7 @@ func (this *Binance) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	_ = params
 	var market map[string]any = nil
 	var stock any = false
-	var paramsStock any = nil
+	var paramsStock map[string]any = nil
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -11434,8 +11434,8 @@ func (this *Binance) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 		panic(ArgumentsRequired(this.Id + " fetchClosedOrders() requires a symbol argument"))
 	}
 	if stock == true {
-		AddElementToObject(paramsStock, "stock", true)
-		AddElementToObject(paramsStock, "orderStatus", "FILLED")
+		paramsStock["stock"] = true
+		paramsStock["orderStatus"] = "FILLED"
 	}
 
 	r := <-this.FetchOrdersAsync(symbol, since, nil, paramsStock)
@@ -11491,7 +11491,7 @@ func (this *Binance) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
 	_ = params
 	var market map[string]any = nil
 	var stock any = false
-	var paramsStock any = nil
+	var paramsStock map[string]any = nil
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "fetchCanceledOrders", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -11503,8 +11503,8 @@ func (this *Binance) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
 		panic(ArgumentsRequired(this.Id + " fetchCanceledOrders() requires a symbol argument"))
 	}
 	if stock == true {
-		AddElementToObject(paramsStock, "stock", true)
-		AddElementToObject(paramsStock, "orderStatus", "CANCELED")
+		paramsStock["stock"] = true
+		paramsStock["orderStatus"] = "CANCELED"
 	}
 
 	r := <-this.FetchOrdersAsync(symbol, since, nil, paramsStock)
@@ -11560,7 +11560,7 @@ func (this *Binance) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 	_ = params
 	var market map[string]any = nil
 	var stock any = false
-	var paramsStock any = nil
+	var paramsStock map[string]any = nil
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "fetchCanceledAndClosedOrders", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -11572,8 +11572,8 @@ func (this *Binance) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 		panic(ArgumentsRequired(this.Id + " fetchCanceledAndClosedOrders() requires a symbol argument"))
 	}
 	if stock == true {
-		AddElementToObject(paramsStock, "stock", true)
-		AddElementToObject(paramsStock, "orderStatus", "FILLED,CANCELED")
+		paramsStock["stock"] = true
+		paramsStock["orderStatus"] = "FILLED,CANCELED"
 	}
 
 	r := <-this.FetchOrdersAsync(symbol, since, nil, paramsStock)
@@ -14014,12 +14014,8 @@ func (this *Binance) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var tagWithdrawTag *string = nil
+	if p, ok := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); ok { tagWithdrawTag = p }
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
@@ -14035,7 +14031,7 @@ func (this *Binance) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		"address": address,
 	}
 	if tagWithdrawTag != nil {
-		request["addressTag"] = tagWithdrawTag
+		request["addressTag"] = *tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	networkCode := func() any {

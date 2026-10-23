@@ -4702,7 +4702,7 @@ public Object describe()
         throw new NotSupported((this.id + " handleDelta not supported yet")) ;
     }
 
-    public void handleBookDeltas(io.github.ccxt.ws.WsOrderBook orderbook, Object deltas)
+    public void handleBookDeltas(Object orderbook, Object deltas)
     {
         for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
@@ -4710,7 +4710,7 @@ public Object describe()
         }
     }
 
-    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         throw new NotSupported((this.id + " handleBookDelta not supported yet")) ;
     }
@@ -4949,7 +4949,7 @@ public Object describe()
     public Object findMessageHashes(Client client, Object element)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -5882,11 +5882,11 @@ public Object describe()
         {
             String target = (targets == null || i < 0 || i >= targets.size() ? null : targets.get(i));
             Object source = (fallbacks == null || target == null ? null : fallbacks.get(target));
-            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals(Helpers.GetValue(this.has, source), null));
+            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals((this.has == null || source == null ? null : this.has.get(source)), null));
             Boolean targetDefined = (((Map<?, ?>)this.has).containsKey(target)) && (!java.util.Objects.equals((this.has == null || target == null ? null : this.has.get(target)), null));
             if (Boolean.TRUE.equals(sourceDefined) && !Boolean.TRUE.equals(targetDefined))
             {
-                Helpers.addElementToObject(this.has, target, Helpers.GetValue(this.has, source));
+                Helpers.addElementToObject(this.has, target, (this.has == null || source == null ? null : this.has.get(source)));
             }
         }
     }
@@ -6070,11 +6070,11 @@ public Object describe()
             return defaultValue;  // unsupported marketType, check "exchange.features" for details
         }
         // if marketType dict undefined
-        if (java.util.Objects.equals(Helpers.GetValue(this.features, marketType), null))
+        if (java.util.Objects.equals((this.features == null || marketType == null ? null : this.features.get(marketType)), null))
         {
             return defaultValue;
         }
-        Object methodsContainer = Helpers.GetValue(this.features, marketType);
+        Object methodsContainer = (this.features == null || marketType == null ? null : this.features.get(marketType));
         if (java.util.Objects.equals(subType, null))
         {
             if (!java.util.Objects.equals(marketType, "spot"))
@@ -6083,7 +6083,7 @@ public Object describe()
             }
         } else
         {
-            if (!(((Map<?, ?>)Helpers.GetValue(this.features, marketType)).containsKey(subType)))
+            if (!(((Map<?, ?>)(this.features == null || marketType == null ? null : this.features.get(marketType))).containsKey(subType)))
             {
                 return defaultValue;  // unsupported subType, check "exchange.features" for details
             }
@@ -8259,7 +8259,7 @@ public Object describe()
             {
                 if (java.util.Objects.requireNonNullElse(reload, false) || !(((Map<?, ?>)this.options).containsKey("limitsLoaded")))
                 {
-                    Object response = (this.fetchTradingLimits(symbols, new HashMap<String, Object>() {{}})).join();
+                    Map<String, Object> response = (Map<String, Object>) (this.fetchTradingLimits(symbols, new HashMap<String, Object>() {{}})).join();
                     Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
                     Object markets = this.markets;
                     if (java.util.Objects.equals(markets, null))
@@ -8269,9 +8269,9 @@ public Object describe()
                     for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v47 -> j39v47.size(); case String j39v48 -> j39v48.length(); case Object j39v49 -> j39v49.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v49) : 0; }); i++)
                     {
                         Object symbol = Helpers.GetValue(symbolsArray, i);
-                        Helpers.addElementToObject(markets, symbol, this.deepExtend(Helpers.GetValue(markets, symbol), Helpers.GetValue(response, symbol)));
+                        Helpers.addElementToObject(markets, symbol, this.deepExtend(Helpers.GetValue(markets, symbol), (response == null || !(symbol instanceof String) ? null : response.get(symbol))));
                     }
-                    Helpers.addElementToObject(this.options, "limitsLoaded", this.milliseconds());
+                    this.options.put("limitsLoaded", this.milliseconds());
                 }
             }
             return this.markets;
@@ -9424,7 +9424,7 @@ public Object describe()
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object credentialValue = Helpers.GetValue(this, key);
             Boolean credentialMissing = (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, false)) || (java.util.Objects.equals(credentialValue, ""));
-            if ((java.util.Objects.equals(Helpers.GetValue(this.requiredCredentials, key), true)) && Boolean.TRUE.equals(credentialMissing))
+            if ((java.util.Objects.equals((this.requiredCredentials == null || key == null ? null : ((Map<?, ?>)this.requiredCredentials).get(key)), true)) && Boolean.TRUE.equals(credentialMissing))
             {
                 if (java.util.Objects.requireNonNullElse(error, true))
                 {
@@ -10619,7 +10619,7 @@ public Object describe()
             {
                 throw new ExchangeError((this.id + " loadTimeDifference() missing serverTime")) ;
             }
-            Helpers.addElementToObject(this.options, "timeDifference", (after - serverTime));
+            this.options.put("timeDifference", (after - serverTime));
             return this.parseToInt(this.options.get("timeDifference"));
         });
 
@@ -12578,7 +12578,7 @@ public Object describe()
             }
         } else
         {
-            List<Object> clientSubscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v116 -> { synchronized (j39v116) { yield new ArrayList<Object>(j39v116.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> clientSubscriptions = new ArrayList<Object>(client.subscriptions.keySet());
             for (var i = 0; i < ((List<?>)clientSubscriptions).size(); i++)
             {
                 Object sub = (clientSubscriptions == null || i < 0 || i >= clientSubscriptions.size() ? null : clientSubscriptions.get(i));
@@ -12587,7 +12587,7 @@ public Object describe()
                     client.subscriptions.remove((String)sub);
                 }
             }
-            List<Object> clientFutures = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v115 -> { synchronized (j39v115) { yield new ArrayList<Object>(j39v115.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> clientFutures = new ArrayList<Object>(client.futures.keySet());
             for (var i = 0; i < ((List<?>)clientFutures).size(); i++)
             {
                 Object future = (clientFutures == null || i < 0 || i >= clientFutures.size() ? null : clientFutures.get(i));

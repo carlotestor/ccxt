@@ -2129,7 +2129,7 @@ func (this *Btse) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	if limit != nil {
 		request["count"] = *limit
 	}
-	var paramsUntil any = nil
+	var paramsUntil map[string]any = nil
 	request, paramsUntil = this.HandleUntilOption("endTime", request, params)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot")
 	var response any = nil
@@ -3718,15 +3718,11 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 		request["pageSize"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, methodName, "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	r1 := <-this.PrivateGetPublicApiWalletV1UserWalletHistory(this.Extend(request, paramsUntil))
@@ -4048,15 +4044,11 @@ func (this *Btse) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		request["pageSize"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "fetchLedger", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok { until = p }
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	r1 := <-this.PrivateGetPublicApiWalletV1UserWalletHistory(this.Extend(request, paramsUntil))

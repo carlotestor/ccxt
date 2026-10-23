@@ -3300,15 +3300,10 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	//   error table documents the message as "Parameter {} error"
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagValue any = nil
+	var tagValue *string = nil
 	var query any = nil
 	var tagValuequeryVariable []any = this.HandleParamString(params, "tag")
-	tagValue = func() any {
-		if p, _ := tagValuequeryVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	if p, ok := tagValuequeryVariable[0].(*string); ok { tagValue = p }
 	query = GetValue(tagValuequeryVariable, 1)
 
 	r := <-this.LoadMarketsAsync()
@@ -3334,7 +3329,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		query = this.Omit(query, "addrType")
 	}
 	if tagValue != nil {
-		request["tag"] = tagValue
+		request["tag"] = *tagValue
 	}
 	// consume the unified network key unconditionally so it never leaks
 	// onto the wire; an explicit raw params['chain'] takes precedence

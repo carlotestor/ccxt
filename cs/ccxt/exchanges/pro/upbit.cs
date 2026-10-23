@@ -48,7 +48,7 @@ public partial class upbit : ccxt.upbit
         IList<object> symbolsMarket = this.marketSymbols(symbolsRequested);
         IList<object> symbolsNormalized = ((symbolsMarket == null)) ? new List<object>() {} : symbolsMarket;
         IList<object> marketIds = this.marketIds(symbolsNormalized);
-        string? url = this.implodeParams(this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
+        string? url = this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         var client = this.client(url);
@@ -425,7 +425,7 @@ public partial class upbit : ccxt.upbit
         {
             messageHashResolved = add(add(messageHash, ":"), symbolResolved);
         }
-        object url = this.implodeParams(this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
+        object url = this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         url = add(url, "/private");

@@ -1891,9 +1891,9 @@ func (this *Phemex) HandleMessage(client any, message any) {
 	//     ]
 	// }
 	var id *string = this.SafeString(message, "id", "")
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id) {
-		var method any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), id)
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
+	if client.(ccxt.ClientInterface).SubscriptionHas(id) {
+		var method any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), id)
+		client.(ccxt.ClientInterface).SubscriptionDel(id)
 		if method != true {
 			ccxt.CallDynamically(method, client, message)
 			return
@@ -1947,8 +1947,8 @@ func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
 	}
 }
@@ -2014,7 +2014,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var client ccxt.ClientInterface = this.Client(url)
 	var requestId int64 = this.RequestId()
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var expiryDelta int64 = *this.SafeInteger(this.Options, "expires", 120)
 		var expiration any = (this.Seconds() + expiryDelta)
@@ -2028,8 +2028,8 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		}
 		var subscriptionHash string = strconv.FormatInt(requestId, 10)
 		var message map[string]any = this.Extend(request, params)
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, this.HandleAuthenticate)
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+			client.(ccxt.ClientInterface).SubscriptionSet(subscriptionHash, this.HandleAuthenticate)
 		}
 
 		r := <-this.Watch(url, messageHash, message, messageHash)
@@ -2037,7 +2037,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 			panic(r.Err)
 		}
 		future = r.Value
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, future)
+		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
 	}
 
 	var resolved *string
