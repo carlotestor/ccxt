@@ -509,9 +509,9 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             orderbook.put("nonce", null);
             Map<String, Object> market = this.market(symbol);
             String subscriptionHash = ("/stream/" + market.get("id"));
-            if (((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash))
+            if (client.subscriptions.containsKey(subscriptionHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
+                client.subscriptions.remove((String)subscriptionHash);
             }
             client.reset(error);
             ((Map<String,Object>)this.clients).remove((String)client.url);
@@ -526,7 +526,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             return;
         }
-        Object subscriptions = Helpers.objectValues(client.subscriptions);
+        Object subscriptions = new ArrayList<Object>(client.subscriptions.values());
         Integer subscriptionsLength = ((List<?>)subscriptions).size();
         if (java.util.Objects.equals(subscriptionsLength, 0))
         {

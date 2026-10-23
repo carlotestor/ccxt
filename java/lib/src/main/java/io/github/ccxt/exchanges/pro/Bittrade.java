@@ -482,7 +482,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 return orderbook.limit();
             } catch(Exception e)
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)((String)messageHash));
+                client.subscriptions.remove((String)((String)messageHash));
                 client.reject(e, messageHash);
             }
             return null;
@@ -642,9 +642,9 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 return Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
             }
             // clean up
-            if (((Map<?, ?>)client.subscriptions).containsKey(id))
+            if (client.subscriptions.containsKey(id))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)id);
+                client.subscriptions.remove((String)id);
             }
         }
         return message;
@@ -768,9 +768,9 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                     String messageHash = this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
-                    if (((Map<?, ?>)client.subscriptions).containsKey(id))
+                    if (client.subscriptions.containsKey(id))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove((String)id);
+                        client.subscriptions.remove((String)id);
                     }
                 }
             }

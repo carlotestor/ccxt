@@ -1243,7 +1243,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             if (!Helpers.isEqual(localChecksum, c))
             {
                 var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
-                ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                client.subscriptions.remove((String)messageHash);
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                 client.reject(error, messageHash);
                 return;
@@ -1334,7 +1334,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 // through client.resolve () / client.reject () so every write to
                 // that map stays behind the client's own lock
                 String messageHash = "authenticateFlight";
-                if (((Map<?, ?>)client.futures).containsKey(messageHash))
+                if (client.futures.containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the token is then in the subscriptions bucket
@@ -1375,7 +1375,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 }
                 // rethrows the leader's own failure and attaches the handler that
                 // keeps an alone leader's rejection from killing the process
-                ((io.github.ccxt.ws.Future)future).getFuture().join();
+                future.getFuture().join();
                 subscription = this.safeDict(client.subscriptions, authenticated, (Object) null);
             }
             return this.safeString(subscription, "token");
@@ -1913,7 +1913,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         String channelId = this.safeString(message, "channelID");
         if (!java.util.Objects.equals(channelId, null))
         {
-            ((Map)client.subscriptions).put(channelId, message);
+            client.subscriptions.put(channelId, message);
         }
     }
 

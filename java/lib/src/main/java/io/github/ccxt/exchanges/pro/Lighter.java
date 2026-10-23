@@ -1734,7 +1734,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                         handled = true;
                         if (!java.util.Objects.equals(subscription, null))
                         {
-                            ((Map<String,Object>)client.subscriptions).remove((String)subscription);
+                            client.subscriptions.remove((String)subscription);
                         }
                     }
                 }
@@ -1897,8 +1897,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                     String subscribedChannel = this.safeString(subscriptionParams, "channel");
                     if (java.util.Objects.equals(subscribedChannel, "market_stats/all"))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
-                        if (((Map<?, ?>)client.futures).containsKey(subscriptionHash))
+                        client.subscriptions.remove((String)subscriptionHash);
+                        if (client.futures.containsKey(subscriptionHash))
                         {
                             var error = new UnsubscribeError(((this.id + " ") + subscriptionHash));
                             client.reject(error, subscriptionHash);
@@ -1907,9 +1907,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 }
             }
             String allMessageHash = ("unsubscribe:" + this.getMessageHash("ticker", (String) null, (String) null));
-            if (((Map<?, ?>)client.subscriptions).containsKey(allMessageHash))
+            if (client.subscriptions.containsKey(allMessageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(allMessageHash);
+                client.subscriptions.remove(allMessageHash);
             }
             client.resolve(true, allMessageHash);
             Map<String, Object> tickersStructure = new HashMap<String, Object>() {{

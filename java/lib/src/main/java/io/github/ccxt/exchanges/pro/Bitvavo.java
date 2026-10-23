@@ -1055,9 +1055,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
         String snapshotHash = ("getBook@" + marketId);
-        if (((Map<?, ?>)client.subscriptions).containsKey(snapshotHash))
+        if (client.subscriptions.containsKey(snapshotHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)snapshotHash);
+            client.subscriptions.remove((String)snapshotHash);
         }
     }
 
@@ -1144,7 +1144,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(key)))
+            if (!(client.subscriptions.containsKey(key)))
             {
                 continue;
             }
@@ -1160,9 +1160,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in client.rejections instead - that stale entry
             // would immediately reject the next subscribe's fresh future, so clear it here
-            if (((Map<?, ?>)client.rejections).containsKey(subHash))
+            if (client.rejections.containsKey(subHash))
             {
-                ((Map<String,Object>)client.rejections).remove(subHash);
+                client.rejections.remove(subHash);
             }
         }
         return message;
@@ -2196,9 +2196,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
         }
     }

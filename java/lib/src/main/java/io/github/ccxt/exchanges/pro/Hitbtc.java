@@ -145,7 +145,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 }};
                 this.watch(url, messageHash, request, messageHash, null);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -1685,14 +1685,14 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         if (java.util.Objects.equals(success, true))
         {
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
         }
         return message;
@@ -1730,9 +1730,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 {
                     String messageHash = "authenticated";
                     client.reject(e, messageHash);
-                    if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                    if (client.subscriptions.containsKey(messageHash))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                        client.subscriptions.remove(messageHash);
                     }
                 } else
                 {
@@ -1749,7 +1749,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     if ((!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
                     {
                         client.reject(e, subscriptionHash);
-                        ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash); // so a retry sends the subscribe request again
+                        client.subscriptions.remove((String)subscriptionHash); // so a retry sends the subscribe request again
                     }
                 }
                 return true;

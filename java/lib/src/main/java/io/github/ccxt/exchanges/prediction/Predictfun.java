@@ -3415,9 +3415,9 @@ public class Predictfun extends PredictfunApi
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
         String subscribeHash = this.safeString(subscription, "subscribeHash");
-        if ((!java.util.Objects.equals(subscribeHash, null)) && (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
+        if ((!java.util.Objects.equals(subscribeHash, null)) && (client.subscriptions.containsKey(subscribeHash)))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+            client.subscriptions.remove((String)subscribeHash);
         }
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.safeString(subscription, "topic"), "walletEvents"))
@@ -3465,9 +3465,9 @@ public class Predictfun extends PredictfunApi
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         // leaving it behind would make a later watch believe it is still subscribed
         String subscribeHash = this.safeString(subscription, "subscribeHash");
-        if ((!java.util.Objects.equals(subscribeHash, null)) && (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
+        if ((!java.util.Objects.equals(subscribeHash, null)) && (client.subscriptions.containsKey(subscribeHash)))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+            client.subscriptions.remove((String)subscribeHash);
         }
         // cleanCache drops a cache only when the subscription names that one topic, and the wallet
         // topic backs two of them - so the caches it cannot reach are dropped here by the hashes

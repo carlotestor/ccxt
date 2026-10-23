@@ -1053,7 +1053,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             storedOrderBook.put("datetime", this.iso8601(timestamp));
         } catch(Exception e)
         {
-            ((Map<String,Object>)client.subscriptions).remove(messageHash);
+            client.subscriptions.remove(messageHash);
             client.reject(e, messageHash);
             // return;
             shouldReturn = true;

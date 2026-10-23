@@ -889,7 +889,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     public void setBalanceCache(Client client, Object type, Object subscribeHash)
     {
-        if (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash))
+        if (client.subscriptions.containsKey(subscribeHash))
         {
             return;
         }
@@ -898,7 +898,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         if (Boolean.TRUE.equals(snapshot))
         {
             String messageHash = ((type + ":") + "fetchBalanceSnapshot");
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -917,9 +917,9 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }})).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), ("balance:" + type));
             }
@@ -997,7 +997,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             // the client's own accessors
             String messageHash = "authenticateFlight";
             Client client = this.client("authenticationFlights");
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
@@ -1034,7 +1034,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }
             // rethrows the failure to the leader and attaches the handler that
             // keeps an alone-leader rejection from crashing the process
-            ((io.github.ccxt.ws.Future)future).getFuture().join();
+            future.getFuture().join();
             return listenKey;
         });
 

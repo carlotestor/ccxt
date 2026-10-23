@@ -142,7 +142,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
             if (!java.util.Objects.equals(future, null))
             {
-                ((io.github.ccxt.ws.Future)future).resolve(true);
+                future.resolve(true);
             }
         }
     }

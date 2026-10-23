@@ -1783,7 +1783,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !java.util.Objects.equals(nonce, prevSeqId))
         {
             var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
-            ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            client.subscriptions.remove((String)messageHash);
             if (!java.util.Objects.equals(symbol, null))
             {
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
@@ -1911,7 +1911,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 this.orderbooks.put(symbol, orderbook);
                 orderbook.put("symbol", symbol);
                 this.handleOrderBookMessage(client, (Map<String, Object>) (update), orderbook, messageHash, market);
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+                if (!(client.subscriptions.containsKey(messageHash)))
                 {
                     break;
                 }
@@ -1926,10 +1926,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     this.handleOrderBookMessage(client, (Map<String, Object>) (update), orderbook, messageHash, market);
-                    if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+                    if (!(client.subscriptions.containsKey(messageHash)))
                     {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
-                        ((Map)client.subscriptions).put(messageHash, "resync");
+                        client.subscriptions.put(messageHash, "resync");
                         break;
                     }
                     client.resolve(orderbook, messageHash);
@@ -1940,7 +1940,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
             // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
                 if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
                 {
@@ -2000,7 +2000,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 }
                 this.watch(url, messageHash, request, messageHash, null);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -3041,7 +3041,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //     { event: "login", success: true }
         //
         io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
-        ((io.github.ccxt.ws.Future)future).resolve(true);
+        future.resolve(true);
     }
 
     public Object ping(Client client)

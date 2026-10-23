@@ -125,12 +125,12 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 // concurrent callers each minted their own token, last write won, and the losers
                 // carried an orphaned token into name + '@' + listenKey so their streams went dead
                 String messageHash = ("authenticate:" + tradeType);
-                if (((Map<?, ?>)client.futures).containsKey(messageHash))
+                if (client.futures.containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the token is then in the bucket
                     client.future(messageHash).getFuture().join();
-                    return ((Map)client.subscriptions).get("token");
+                    return client.subscriptions.get("token");
                 }
                 // client.futures is the same registry Exchange.watch () dedupes on, so registering
                 // the flight here, before any suspension point, makes concurrent callers wait
@@ -171,7 +171,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                     {
                         throw new AuthenticationError((this.id + " getListenKey() received an empty listen key")) ;
                     }
-                    ((Map)client.subscriptions).put("token", listenKey);
+                    client.subscriptions.put("token", listenKey);
                     client.resolve(listenKey, messageHash);
                 } catch(Exception e)
                 {
@@ -180,9 +180,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                     // to this caller and keeps a waiterless rejection from crashing the process
                     client.reject(e, messageHash);
                 }
-                ((io.github.ccxt.ws.Future)future).getFuture().join();
+                future.getFuture().join();
             }
-            return ((Map)client.subscriptions).get("token");
+            return client.subscriptions.get("token");
         }).thenApply(res -> (String) res);
 
     }
@@ -964,7 +964,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = "fetchPositionsSnapshot";
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -990,10 +990,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 }
             }
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                ((io.github.ccxt.ws.Future)future).resolve(cache);
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                future.resolve(cache);
                 client.resolve(cache, "position::contract");
             }
             return null;
@@ -1952,9 +1952,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String msg = this.safeString(message, "msg");
         if ((java.util.Objects.equals(msg, "invalid_listen_key")) || (java.util.Objects.equals(msg, "token expire")))
         {
-            if (((Map<?, ?>)client.subscriptions).containsKey("token"))
+            if (client.subscriptions.containsKey("token"))
             {
-                ((Map<String,Object>)client.subscriptions).remove("token");
+                client.subscriptions.remove("token");
             }
             this.getListenKey(true);
             return;
