@@ -4453,12 +4453,13 @@ class digifinex extends Exchange {
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
-                $depositWithdrawFee = $this->safe_dict($depositWithdrawFees, $code);
-                if ($depositWithdrawFee === null) {
-                    $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
-                    $depositWithdrawFees[$code]['info'] = array();
+                if ($this->safe_dict($depositWithdrawFees, $code) === null) {
+                    $feeStructure = $this->deposit_withdraw_fee(array());
+                    $feeStructure['info'] = array();
+                    $depositWithdrawFees[$code] = $feeStructure;
                 }
-                $depositWithdrawInfo = $depositWithdrawFees[$code]['info'];
+                $depositWithdrawFee = $depositWithdrawFees[$code];
+                $depositWithdrawInfo = $depositWithdrawFee['info'];
                 $depositWithdrawInfo[] = $entry;
                 $networkId = $this->safe_string($entry, 'chain');
                 $withdrawFee = $this->safe_value($entry, 'min_withdraw_fee');
@@ -4473,14 +4474,14 @@ class digifinex extends Exchange {
                 if ($networkId !== null) {
                     $networkCode = $this->network_id_to_code($networkId, $code);
                     if ($networkCode !== null) {
-                        $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                        $depositWithdrawFee['networks'][$networkCode] = array(
                             'withdraw' => $withdrawResult,
                             'deposit' => $depositResult,
                         );
                     }
                 } else {
-                    $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
-                    $depositWithdrawFees[$code]['deposit'] = $depositResult;
+                    $depositWithdrawFee['withdraw'] = $withdrawResult;
+                    $depositWithdrawFee['deposit'] = $depositResult;
                 }
             }
         }

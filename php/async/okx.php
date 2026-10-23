@@ -3312,8 +3312,8 @@ class okx extends Exchange {
         if (!$shouldOmitSize) {
             $request['sz'] = $this->amount_to_precision($symbol, $amount);
         }
-        $spot = $market['spot'];
-        $contract = $market['contract'];
+        $spot = $this->safe_bool($market, 'spot');
+        $contract = $this->safe_bool($market, 'contract');
         $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');

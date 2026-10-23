@@ -2689,7 +2689,7 @@ class polymarket extends Exchange {
         return $this->create_proxy_credentials($params);
     }
 
-    public function sign_perps_op(mixed $signable, mixed $bodyOp, $params = array()): array {
+    public function sign_perps_op(array $signable, array $bodyOp, $params = array()): array {
         /**
          * @ignore
          * signs a trading operation with the session proxy key - the compact $signable array is msgpack-$encoded and keccak-hashed, the hash is signed inside an EIP-712 Op struct and the structured operation travels next to the $signature

@@ -2907,7 +2907,7 @@ class gate extends Exchange {
         return $this->parse_funding_histories($response, $symbolResolved, $since, $limit);
     }
 
-    public function parse_funding_histories(mixed $response, ?string $symbol, ?int $since, ?int $limit): array {
+    public function parse_funding_histories(array $response, ?string $symbol, ?int $since, ?int $limit): array {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $this->safe_dict($response, $i);
@@ -3642,9 +3642,10 @@ class gate extends Exchange {
         $paramsOmitted = $this->omit($paramsRequest, 'until');
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
-            $request['from'] = $this->parse_to_int($since / 1000);
+            $fromTimestamp = $this->parse_to_int($since / 1000);
+            $request['from'] = $fromTimestamp;
             $distance = ($limitValue - 1) * $duration;
-            $toTimestamp = $this->sum($request['from'], $distance);
+            $toTimestamp = $this->sum($fromTimestamp, $distance);
             $currentTimestamp = $this->seconds();
             $to = min($toTimestamp, $currentTimestamp);
             if ($until !== null) {
@@ -4856,7 +4857,7 @@ class gate extends Exchange {
         if ($useGateFuturesDecimalSize) {
             $sizeRequest = $signedAmount;
         }
-        $request = null;
+        $request = array();
         $nonTriggerOrder = !$isTpsl && ($trigger === null);
         if ($nonTriggerOrder) {
             if ($contract === true) {

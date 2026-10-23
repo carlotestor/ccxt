@@ -78,7 +78,7 @@ class polymarket extends \ccxt\async\polymarket {
         return $requestId;
     }
 
-    public function send_subscription(string $action, array $channels, array $messageHashes, array $subMessageHashes, array $context = array(), $params = array(), ?array $checkHashes = null) {
+    public function send_subscription(string $action, array $channels, array $messageHashes, array $subMessageHashes, array $context = array(), $params = array(), ?array $checkHashes = null): array {
         /**
          * @ignore
          * sends a subscribe or unsubscribe $request and records the $request $id so the ack can be matched back

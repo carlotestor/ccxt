@@ -3022,7 +3022,7 @@ class woo extends Exchange {
         return $this->parse_deposit_address($this->extend($data, array( 'network' => $this->safe_string($request, 'network') )), $currency);
     }
 
-    public function get_dedicated_network_id(mixed $currency, array $params): array {
+    public function get_dedicated_network_id(array $currency, array $params): array {
         list($networkCodeRaw, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         $networkCode = $this->network_id_to_code($networkCodeRaw, $currency['code']);
         $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);

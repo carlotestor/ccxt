@@ -1819,10 +1819,11 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->safe_value($response, 'result');
         if ($market['spot'] === true) {
-            return $this->parse_ticker($ticker[0], $market);
+            $tickers = $this->safe_list($response, 'result', array());
+            return $this->parse_ticker($tickers[0], $market);
         }
+        $ticker = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
     }
 

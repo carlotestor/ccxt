@@ -778,7 +778,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $channel = $this->safe_string($message, 'channel');
         $handlers = array(
             'ticker' => array($this, 'handle_ticker'),

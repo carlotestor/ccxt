@@ -1926,7 +1926,8 @@ class woofipro extends Exchange {
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         $algoType = $this->safe_string($params, 'algoType');
-        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($params, 'childOrders') !== null);
+        $paramsChildOrders = $this->safe_value($params, 'childOrders');
+        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($paramsChildOrders !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -2034,7 +2035,8 @@ class woofipro extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');
-        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_list($params, 'childOrders') !== null);
+        $paramsChildOrders = $this->safe_list($params, 'childOrders');
+        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($paramsChildOrders !== null);
         $response = null;
         if ($isConditional) {
             $response = Async\await($this->v1PrivatePostAlgoOrder($request));
@@ -2104,7 +2106,8 @@ class woofipro extends Exchange {
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
             $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
-            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_list($orderParams, 'childOrders') !== null);
+            $paramsChildOrders = $this->safe_list($orderParams, 'childOrders');
+            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($paramsChildOrders !== null);
             if ($isConditional) {
                 throw new NotSupported($this->id . ' createOrders() only support non-stop order');
             }
@@ -2171,7 +2174,8 @@ class woofipro extends Exchange {
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $isConditional = ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $paramsChildOrders = $this->safe_value($params, 'childOrders');
+        $isConditional = ($triggerPrice !== null) || ($paramsChildOrders !== null);
         $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
         $priceKey = $isConditional ? 'price' : 'order_price';
         if ($price !== null) {

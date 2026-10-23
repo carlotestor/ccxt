@@ -3203,7 +3203,7 @@ class binance extends Exchange {
         return $this->parse_currencies_custom($responseCurrencies, $marginablesById);
     }
 
-    public function parse_currencies_custom(mixed $responseCurrencies, ?array $marginablesById): array {
+    public function parse_currencies_custom(array $responseCurrencies, ?array $marginablesById): array {
         $result = array();
         for ($i = 0; $i < count($responseCurrencies); $i++) {
             $parsed = $this->parse_currency($responseCurrencies[$i]);
@@ -6143,7 +6143,7 @@ class binance extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -9816,7 +9816,7 @@ class binance extends Exchange {
         return $this->parse_transactions($responseList, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type(?string $status, ?string $type = null) {
+    public function parse_transaction_status_by_type(?string $status, ?string $type = null): ?string {
         if ($type === null) {
             return $status;
         }
@@ -11038,7 +11038,7 @@ class binance extends Exchange {
         throw new NotSupported($this->id . ' fetchTradingFees() is not supported for ' . $type . ' markets');
     }
 
-    public function futures_transfer(string $code, mixed $amount, float $type, $params = array()): array {
+    public function futures_transfer(string $code, float $amount, float $type, $params = array()): array {
         /**
          * @ignore
          * transfer between futures account
@@ -12988,7 +12988,7 @@ class binance extends Exchange {
         );
     }
 
-    public function parse_settlements(array $settlements, array $market) {
+    public function parse_settlements(array $settlements, array $market): array {
         //
         // fetchSettlementHistory
         //
@@ -13232,7 +13232,7 @@ class binance extends Exchange {
         ), $currencyResolved);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'FEE' => 'fee',
             'FUNDING_FEE' => 'fee',
@@ -13564,7 +13564,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()): array {
+    public function modify_margin_helper(string $symbol, float $amount, float $addOrReduce, $params = array()): array {
         // used to modify isolated positions
         $defaultType = $this->safe_string($this->options, 'defaultType', 'swap');
         if ($defaultType === 'spot') {
@@ -13890,7 +13890,7 @@ class binance extends Exchange {
         );
     }
 
-    public function create_gift_code(string $code, mixed $amount, $params = array()): array {
+    public function create_gift_code(string $code, ?float $amount, $params = array()): array {
         /**
          * create gift $code
          *
@@ -13931,7 +13931,7 @@ class binance extends Exchange {
         );
     }
 
-    public function redeem_gift_code(mixed $giftcardCode, $params = array()) {
+    public function redeem_gift_code(string $giftcardCode, $params = array()): array {
         /**
          * redeem gift code
          *
@@ -13959,7 +13959,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function verify_gift_code(string $id, $params = array()) {
+    public function verify_gift_code(string $id, $params = array()): array {
         /**
          * verify gift code
          *

@@ -1133,7 +1133,7 @@ class bitvavo extends Exchange {
         return $this->extend($requestUntil, $paramsUntil);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/

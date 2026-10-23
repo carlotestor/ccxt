@@ -1368,7 +1368,10 @@ class modetrade extends \ccxt\async\modetrade {
             $code = $this->safe_currency_code($key);
             $account = $this->account();
             if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
-                $account = $this->balance[$code];
+                $cachedAccount = $this->safe_dict($this->balance, $code);
+                if ($cachedAccount !== null) {
+                    $account = $cachedAccount;
+                }
             }
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');

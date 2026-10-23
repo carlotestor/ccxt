@@ -1831,7 +1831,7 @@ class grvt extends Exchange {
         return $this->to_array($filteredResults[1]);
     }
 
-    public function filter_transfers_by_type(mixed $transfers, string $transferType, $onlyMainAccount = true): array {
+    public function filter_transfers_by_type(array $transfers, string $transferType, $onlyMainAccount = true): array {
         $matchedResults = array();
         $nonMatchedResults = array();
         for ($i = 0; $i < count($transfers); $i++) {

@@ -10843,17 +10843,19 @@ class bitget extends Exchange {
         //
         $chains = $this->safe_list($fee, 'chains', array());
         $chainsLength = count($chains);
+        $networks = array();
+        $withdraw = array(
+            'fee' => null,
+            'percentage' => null,
+        );
         $result = array(
             'info' => $fee,
-            'withdraw' => array(
-                'fee' => null,
-                'percentage' => null,
-            ),
+            'withdraw' => $withdraw,
             'deposit' => array(
                 'fee' => null,
                 'percentage' => null,
             ),
-            'networks' => array(),
+            'networks' => $networks,
         );
         for ($i = 0; $i < $chainsLength; $i++) {
             $chain = $this->safe_dict($chains, $i);
@@ -10861,14 +10863,14 @@ class bitget extends Exchange {
             $currencyCode = $this->safe_string($currency, 'code');
             $networkCode = $this->network_id_to_code($networkId, $currencyCode);
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networks[$networkCode] = array(
                     'deposit' => array( 'fee' => null, 'percentage' => null ),
                     'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
                 );
             }
             if ($chainsLength === 1) {
-                $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
-                $result['withdraw']['percentage'] = false;
+                $withdraw['fee'] = $this->safe_number($chain, 'withdrawFee');
+                $withdraw['percentage'] = false;
             }
         }
         return $result;

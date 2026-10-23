@@ -469,7 +469,7 @@ class bittrade extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_limits_by_id(?string $id, $params = array()) {
+    public function fetch_trading_limits_by_id(?string $id, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trading_limits_by_id(...))($id, $params);
     }
 
@@ -497,7 +497,7 @@ class bittrade extends Exchange {
         return $this->parse_trading_limits($this->safe_dict($response, 'data', array()));
     }
 
-    public function parse_trading_limits(array $limits, ?string $symbol = null, $params = array()) {
+    public function parse_trading_limits(array $limits, ?string $symbol = null, $params = array()): array {
         //
         //   {                                  symbol: "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,

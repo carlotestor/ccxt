@@ -1584,7 +1584,7 @@ class bitstamp extends Exchange {
         return $this->parse_transaction_fees($response);
     }
 
-    public function parse_transaction_fees(mixed $response, ?array $codes = null) {
+    public function parse_transaction_fees(mixed $response, ?array $codes = null): array {
         $result = array();
         $currencies = $this->index_by($response, 'currency');
         $ids = is_array($currencies) ? array_keys($currencies) : array();

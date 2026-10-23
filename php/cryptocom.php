@@ -1517,8 +1517,8 @@ class cryptocom extends Exchange {
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_advanced_order_request($marketId, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
@@ -2664,7 +2664,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function custom_handle_margin_mode_and_params(mixed $methodName, $params = array()): array {
+    public function custom_handle_margin_mode_and_params(string $methodName, $params = array()): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -3573,7 +3573,7 @@ class cryptocom extends Exchange {
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
-            $isSwap = $market['swap'];
+            $isSwap = $this->safe_bool($market, 'swap');
             $takerFeeKey = 'effective_spot_taker_rate_bps';
             if ($isSwap === true) {
                 $takerFeeKey = 'effective_deriv_taker_rate_bps';

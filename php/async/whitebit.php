@@ -1267,14 +1267,16 @@ class whitebit extends Exchange {
             }
             // Build comprehensive funding limits
             $currencyLimits = $this->safe_dict($currency, 'limits', array());
+            $depositLimits = $this->safe_dict($currencyLimits, 'deposit', array());
+            $withdrawLimits = $this->safe_dict($currencyLimits, 'withdraw', array());
             $limits = array(
                 'deposit' => array(
-                    'min' => $currencyLimits['deposit']['min'],
-                    'max' => $currencyLimits['deposit']['max'],
+                    'min' => $depositLimits['min'],
+                    'max' => $depositLimits['max'],
                 ),
                 'withdraw' => array(
-                    'min' => $currencyLimits['withdraw']['min'],
-                    'max' => $currencyLimits['withdraw']['max'],
+                    'min' => $withdrawLimits['min'],
+                    'max' => $withdrawLimits['max'],
                 ),
             );
             // Add fee information if available

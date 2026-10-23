@@ -4380,7 +4380,7 @@ class weex extends Exchange {
         if ($hasJsonBody) {
             $requestBody = $this->json($query);
         }
-        $requestHeaders = null;
+        $requestHeaders = array();
         if ($isPrivate) {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             if (($sandboxMode) && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {

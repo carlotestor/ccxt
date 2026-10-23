@@ -107,7 +107,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, string $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
@@ -121,7 +121,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $newValue;
     }
 
-    public function create_public_request(mixed $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false): array {
+    public function create_public_request(array $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false): array {
         $marketId = $this->safe_string($market, 'symbol'); // spot markets use symbol with slash
         if ($this->safe_string($market, 'type') === 'swap') {
             $marketId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''); // swap markets use symbol without slash
@@ -142,11 +142,11 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $request;
     }
 
-    public function watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), string $suffix = ''): PromiseInterface {
+    public function watch_public(array $market, string $messageHash, string $topicID, $params = array(), string $suffix = ''): PromiseInterface {
         return Async\async(self::do_watch_public(...))($market, $messageHash, $topicID, $params, $suffix);
     }
 
-    private function do_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), string $suffix = '') {
+    private function do_watch_public(array $market, string $messageHash, string $topicID, $params = array(), string $suffix = '') {
         $url = $this->urls['api']['ws']['public'][$market['type']];
         $requestId = $this->request_id();
         $request = $this->create_public_request($market, $requestId, $topicID, $suffix);
@@ -157,11 +157,11 @@ class deepcoin extends \ccxt\async\deepcoin {
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
     }
 
-    public function un_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = ''): PromiseInterface {
+    public function un_watch_public(array $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = ''): PromiseInterface {
         return Async\async(self::do_un_watch_public(...))($market, $messageHash, $topicID, $params, $subscription, $suffix);
     }
 
-    private function do_un_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = '') {
+    private function do_un_watch_public(array $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = '') {
         $url = $this->urls['api']['ws']['public'][$market['type']];
         $requestId = $this->request_id();
         $client = $this->client($url);

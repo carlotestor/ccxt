@@ -716,7 +716,7 @@ class myriad extends Exchange {
         return $this->parse_trade_quote($this->extend($response, array( 'action' => $sideStr )), $outcomeObj);
     }
 
-    public function parse_trade_quote(array $quote, mixed $market = null): array {
+    public function parse_trade_quote(array $quote, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw myriad $quote response into a unified-ish $quote object
@@ -2098,7 +2098,7 @@ class myriad extends Exchange {
         return Precise::string_div($decimalString, $scale);
     }
 
-    public function parse_trade_tx(?string $txHash, array $quote, mixed $market, ?string $side): array {
+    public function parse_trade_tx(?string $txHash, array $quote, array $market, ?string $side): array {
         return $this->safe_prediction_order(array(
             'id' => $txHash,
             'clientOrderId' => null,
@@ -2860,7 +2860,7 @@ class myriad extends Exchange {
             }
         } else {
             $chartsDict = $this->safe_dict($selectedOutcome, 'price_charts', array());
-            $chart = $this->safe_value($chartsDict, $bucketKey);
+            $chart = $this->safe_dict($chartsDict, $bucketKey);
         }
         $pointsList = $this->safe_list($chart, 'prices', $this->safe_list($chart, 'data', $chart));
         $points = ($pointsList !== null) ? $pointsList : array();
@@ -3319,11 +3319,11 @@ class myriad extends Exchange {
         return Async\await($client->future('centrifugoConnected'));
     }
 
-    public function pong(Client $client, mixed $message = null) {
+    public function pong(Client $client, ?array $message = null) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message = null) {
+    private function do_pong(Client $client, ?array $message = null) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         Async\await($client->send('{}'));
     }

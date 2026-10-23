@@ -1179,11 +1179,11 @@ class bitvavo extends Exchange {
         return $this->extend($requestUntil, $paramsUntil);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
          * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/

@@ -1588,7 +1588,7 @@ class backpack extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches venue or external stock candlestick data for the underlying $market
          *

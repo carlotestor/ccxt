@@ -1320,16 +1320,18 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         $orderType = $this->safe_string($outcomeOrder, 'type');
         $timeInForce = $this->safe_string($outcomeOrder, 'timeInForce');
-        $postOnly = $this->safe_bool($outcomeOrder, 'postOnly');
+        // the venue flag and the derived one are each written once, so neither local widens
+        $postOnlyValue = $this->safe_bool($outcomeOrder, 'postOnly');
+        $derivedPostOnly = null;
         if ($timeInForce === null) {
             if ($orderType === 'market') {
                 $timeInForce = 'IOC';
             }
-            if ($postOnly === true) {
+            if ($postOnlyValue === true) {
                 $timeInForce = 'PO';
             }
-        } elseif ($postOnly === null) {
-            $postOnly = ($timeInForce === 'PO');
+        } elseif ($postOnlyValue === null) {
+            $derivedPostOnly = ($timeInForce === 'PO');
         }
         $timestamp = $this->safe_integer($outcomeOrder, 'timestamp');
         $datetime = $this->safe_string($outcomeOrder, 'datetime');
@@ -1355,7 +1357,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             'cost' => $this->parse_number($cost),
             'fee' => $fee,
             'reduceOnly' => $this->safe_bool($outcomeOrder, 'reduceOnly'),
-            'postOnly' => $postOnly,
+            'postOnly' => ($postOnlyValue !== null) ? $postOnlyValue : $derivedPostOnly,
             'trades' => $trades,
             'outcome' => $this->safe_string($outcomeOrder, 'outcome'),
             'outcomeId' => $this->safe_string($outcomeOrder, 'outcomeId'),

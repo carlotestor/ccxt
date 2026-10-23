@@ -174,15 +174,14 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -232,15 +231,14 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTickers');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -325,15 +323,14 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchMarkPrices');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -387,15 +384,14 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchMarkPrices');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -525,13 +521,12 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' watchBidsAsks() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -581,13 +576,12 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');

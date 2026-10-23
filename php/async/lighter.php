@@ -643,7 +643,7 @@ class lighter extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_l1_and_prepare_tx_info(mixed $txInfo, mixed $message, string $privateKey): string {
+    public function sign_l1_and_prepare_tx_info(string $txInfo, string $message, string $privateKey): string {
         $hashMessage = $this->hash_message($message);
         $signature = $this->sign_hash($hashMessage, $privateKey);
         $decTxInfo = $this->parse_json($txInfo);
@@ -809,7 +809,7 @@ class lighter extends Exchange {
          * @param {int} [$params->apiKeyIndex] $apiKeyIndex
          * @param {int} [$params->accountIndex] $accountIndex
          * @param {int} [$params->orderExpiry] $orderExpiry
-         * @return {any[]} $request to be sent to the exchange
+         * @return {array[]} $request to be sent to the exchange
          */
         if ($price === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument');
@@ -913,10 +913,11 @@ class lighter extends Exchange {
             $request['integrator_maker_fee'] = $this->options['integratorMakerFee'];
         }
         $orders = array();
-        $orders[] = $this->extend($request, $paramsRequest);
+        $firstOrder = $this->extend($request, $paramsRequest);
+        $orders[] = $firstOrder;
         if ($hasStopLoss || $hasTakeProfit) {
             // group order
-            $orders[0]['client_order_index'] = 0; // client order index should be 0
+            $firstOrder['client_order_index'] = 0; // client order index should be 0
             $triggerOrderSide = '';
             if ($orderSide === 'BUY') {
                 $triggerOrderSide = 'sell';

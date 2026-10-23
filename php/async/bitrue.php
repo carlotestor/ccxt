@@ -883,8 +883,8 @@ class bitrue extends Exchange {
         }
         $promises = Async\await(Promise\all($promisesRaw));
         $spotMarkets = $this->safe_list($this->safe_dict($promises, 0), 'symbols', array());
-        $futureMarkets = $this->safe_value($promises, 1);
-        $deliveryMarkets = $this->safe_value($promises, 2);
+        $futureMarkets = $this->safe_list($promises, 1, array());
+        $deliveryMarkets = $this->safe_list($promises, 2, array());
         $markets = $spotMarkets;
         $markets = $this->array_concat($markets, $futureMarkets);
         $markets = $this->array_concat($markets, $deliveryMarkets);
@@ -2188,7 +2188,7 @@ class bitrue extends Exchange {
         } elseif ($market['spot'] === true) {
             $request['symbol'] = $market['id'];
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
+            $validOrderTypes = $this->safe_list($market['info'], 'orderTypes', array());
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
                 throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type in market ' . $symbol);
             }

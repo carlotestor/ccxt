@@ -1126,7 +1126,7 @@ class nado extends \ccxt\async\nado {
         if ($requestIdString === null) {
             throw new ArgumentsRequired($this->id . ' watchExecuteRequest() requires requestIdString');
         }
-        $url = $this->urls['api']['ws']['gateway'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'gateway');
         $messageHash = 'execute:' . $requestIdString;
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
@@ -1136,7 +1136,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_watch_public(?string $streamType, mixed $market, string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $stream = array(
             'type' => $streamType,
         );
@@ -1170,7 +1170,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_watch_private(?string $streamType, array $stream, string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $client = $this->client($url);
         $clientSubscription = $this->safe_value($client->subscriptions, $messageHash);
         if ($clientSubscription !== null) {
@@ -1198,7 +1198,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_un_watch_private(array $stream, string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $id = $this->request_id();
         $unsubscribeHash = 'unsubscribe:' . $messageHash;
         $request = array(
@@ -1224,7 +1224,7 @@ class nado extends \ccxt\async\nado {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
@@ -1298,7 +1298,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_watch_public_multiple(?string $streamType, array $markets, array $messageHashes, $params = array(), ?array $subscriptionParams = null) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $client = $this->client($url);
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
@@ -1330,7 +1330,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_un_watch_public(?string $streamType, array $market, string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $id = $this->request_id();
         $request = $this->create_public_subscription_request('unsubscribe', $streamType, $market, $id, $params);
         $subscription = array(
@@ -1351,7 +1351,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_un_watch_public_multiple(?string $streamType, array $markets, array $messageHashes, $params = array(), ?array $subscriptionParams = null) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $client = $this->client($url);
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
@@ -1998,7 +1998,7 @@ class nado extends \ccxt\async\nado {
     }
 
     public function ping(Client $client) {
-        $gatewayUrl = $this->urls['api']['ws']['gateway'];
+        $gatewayUrl = $this->safe_string($this->urls['api']['ws'], 'gateway');
         if ($client->url === $gatewayUrl) {
             // the v2 gateway is kept alive with protocol-level ping frames,
             // returning undefined makes the client send one instead of a message

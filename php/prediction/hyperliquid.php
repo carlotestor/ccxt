@@ -851,11 +851,11 @@ class hyperliquid extends Exchange {
         return $this->safe_prediction_order_book($orderbook, $outcomeObj);
     }
 
-    public function fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($outcome, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches candlestick OHLCV data for an $outcome $market
          *

@@ -3985,7 +3985,7 @@ class htx extends Exchange {
     public function parse_margin_balance_helper(array $balance, string $code, array $result): array {
         $account = null;
         if (is_array($result) && array_key_exists($code ?? '', $result)) {
-            $account = $result[$code];
+            $account = $this->safe_dict($result, $code);
         } else {
             $account = $this->account();
         }

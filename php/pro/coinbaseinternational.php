@@ -112,7 +112,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $requestId;
     }
 
-    public function get_ws_url($isPrivate = false): string {
+    public function get_ws_url(bool $isPrivate = false): string {
         if ($this->isNativeDeribitCredentials()) {
             return 'wss://www.deribit.com/ws/api/v2';
         }
@@ -158,11 +158,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         );
     }
 
-    public function subscribe(array $channels, array $messageHashes, $isPrivate = false, $params = array()) {
+    public function subscribe(array $channels, array $messageHashes, bool $isPrivate = false, $params = array()) {
         return Async\async(self::do_subscribe(...))($channels, $messageHashes, $isPrivate, $params);
     }
 
-    private function do_subscribe(array $channels, array $messageHashes, $isPrivate = false, $params = array()) {
+    private function do_subscribe(array $channels, array $messageHashes, bool $isPrivate = false, $params = array()) {
         /**
          * @ignore
          * subscribes to websocket $channels
@@ -204,11 +204,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return Async\await($this->watch_multiple($url, $messageHashes, $extendedRequest, $channels, $extendedRequest));
     }
 
-    public function un_subscribe(array $channels, $isPrivate = false, $params = array()) {
+    public function un_subscribe(array $channels, bool $isPrivate = false, $params = array()) {
         return Async\async(self::do_un_subscribe(...))($channels, $isPrivate, $params);
     }
 
-    private function do_un_subscribe(array $channels, $isPrivate = false, $params = array()) {
+    private function do_un_subscribe(array $channels, bool $isPrivate = false, $params = array()) {
         /**
          * @ignore
          * unsubscribes from websocket $channels
@@ -1670,11 +1670,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return Async\await($future);
     }
 
-    public function request_ws(string $method, $params = array(), $isPrivate = false) {
+    public function request_ws(string $method, $params = array(), bool $isPrivate = false) {
         return Async\async(self::do_request_ws(...))($method, $params, $isPrivate);
     }
 
-    private function do_request_ws(string $method, $params = array(), $isPrivate = false) {
+    private function do_request_ws(string $method, $params = array(), bool $isPrivate = false) {
         /**
          * @ignore
          * sends a websocket JSON-RPC $request
@@ -2164,11 +2164,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return Async\await($this->request_ws('private/get_cancel_on_disconnect', $paramsResolved, true));
     }
 
-    public function unsubscribe_all_ws($isPrivate = false, $params = array()) {
+    public function unsubscribe_all_ws(bool $isPrivate = false, $params = array()) {
         return Async\async(self::do_unsubscribe_all_ws(...))($isPrivate, $params);
     }
 
-    private function do_unsubscribe_all_ws($isPrivate = false, $params = array()) {
+    private function do_unsubscribe_all_ws(bool $isPrivate = false, $params = array()) {
         /**
          * @ignore
          * unsubscribes from all websocket channels

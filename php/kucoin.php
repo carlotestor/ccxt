@@ -1746,7 +1746,10 @@ class kucoin extends Exchange {
             $promises[] = $this->load_migration_status();
         }
         $responses = $promises;
-        $symbolsData = $fetchSpotMarkets ? $this->safe_list($responses[0], 'data', array()) : array();
+        $symbolsData = array();
+        if ($fetchSpotMarkets) {
+            $symbolsData = $this->safe_list($responses[0], 'data', array());
+        }
         $crossIndex = 0;
         $isolatedIndex = 0;
         $tickersIndex = 0;
@@ -4238,7 +4241,7 @@ class kucoin extends Exchange {
         $market = $this->market($symbol);
         $testOrder = $this->safe_bool($params, 'test', false);
         $paramsOmitted = $this->omit($params, 'test');
-        $hasTpOrSlOrder = ($this->safe_value($paramsOmitted, 'stopLoss') !== null) || ($this->safe_value($paramsOmitted, 'takeProfit') !== null);
+        $hasTpOrSlOrder = ($this->safe_dict($paramsOmitted, 'stopLoss') !== null) || ($this->safe_dict($paramsOmitted, 'takeProfit') !== null);
         $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $paramsOmitted);
         if ($testOrder) {
             $response = $this->futuresPrivatePostOrdersTest($orderRequest);

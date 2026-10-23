@@ -54,7 +54,7 @@ class upbit extends \ccxt\async\upbit {
         $symbolsMarket = $this->market_symbols($symbolsRequested);
         $symbolsNormalized = ($symbolsMarket === null) ? array() : $symbolsMarket;
         $marketIds = $this->market_ids($symbolsNormalized);
-        $url = $this->implode_params($this->urls['api']['ws'], array(
+        $url = $this->implode_params($this->safe_string($this->urls['api'], 'ws'), array(
             'hostname' => $this->hostname,
         ));
         $client = $this->client($url);
@@ -410,7 +410,7 @@ class upbit extends \ccxt\async\upbit {
         if ($symbolResolved !== null) {
             $messageHashResolved = $messageHash . ':' . $symbolResolved;
         }
-        $url = $this->implode_params($this->urls['api']['ws'], array(
+        $url = $this->implode_params($this->safe_string($this->urls['api'], 'ws'), array(
             'hostname' => $this->hostname,
         ));
         $url .= '/private';

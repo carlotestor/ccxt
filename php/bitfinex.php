@@ -898,7 +898,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function parse_currency_custom(mixed $id, array $indexed, array $indexedNetworks): array {
+    public function parse_currency_custom(string $id, array $indexed, array $indexedNetworks): array {
         $code = $this->safe_currency_code($id);
         $label = $this->safe_list($indexed['label'], $id, array());
         $name = $this->safe_string($label, 1);

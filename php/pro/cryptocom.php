@@ -306,7 +306,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         } else {
             $books = $this->safe_dict($data, 'update', array());
             $previousNonce = $this->safe_integer($data, 'pu');
-            $currentNonce = $orderbook['nonce'];
+            $currentNonce = $this->safe_integer($orderbook, 'nonce');
             if ($currentNonce !== $previousNonce) {
                 $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
                 if ($checksum === true) {

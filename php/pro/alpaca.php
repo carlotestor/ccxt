@@ -85,7 +85,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -175,7 +175,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -239,7 +239,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -329,7 +329,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -392,7 +392,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {boolean} [$params->unifiedMargin] use unified margin account
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $url = $this->urls['api']['ws']['trading'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading');
         Async\await($this->authenticate($url));
         $messageHash = 'myTrades';
         if ($this->markets === null) {
@@ -429,7 +429,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $url = $this->urls['api']['ws']['trading'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -654,11 +654,11 @@ class alpaca extends \ccxt\async\alpaca {
         ), $market);
     }
 
-    public function authenticate(string $url, $params = array()) {
+    public function authenticate(?string $url, $params = array()) {
         return Async\async(self::do_authenticate(...))($url, $params);
     }
 
-    private function do_authenticate(string $url, $params = array()) {
+    private function do_authenticate(?string $url, $params = array()) {
         $this->check_required_credentials();
         $messageHash = 'authenticated';
         $client = $this->client($url);
@@ -670,7 +670,7 @@ class alpaca extends \ccxt\async\alpaca {
                 'key' => $this->apiKey,
                 'secret' => $this->secret,
             );
-            if ($url === $this->safe_string($this->urls['api']['ws'], 'trading')) {
+            if ($url === $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading')) {
                 // this auth request is being deprecated in test environment
                 $request = array(
                     'action' => 'authenticate',

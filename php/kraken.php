@@ -1832,7 +1832,7 @@ class kraken extends Exchange {
         return $this->parse_orders($this->safe_list($result, 'orders'));
     }
 
-    public function find_market_by_altname_or_id(mixed $id) {
+    public function find_market_by_altname_or_id(mixed $id): array {
         $marketsByAltname = $this->safe_dict($this->options, 'marketsByAltname', array());
         if (is_array($marketsByAltname) && array_key_exists($id ?? '', $marketsByAltname)) {
             return $marketsByAltname[$id];
@@ -2054,13 +2054,19 @@ class kraken extends Exchange {
                 $price = $this->safe_string($parts, 5);
             }
         }
-        $side = $this->safe_string($description, 'type', $side);
+        $descriptionSide = $this->safe_string($description, 'type');
+        if ($descriptionSide !== null) {
+            $side = $descriptionSide;
+        }
         $rawType = $this->safe_string($description, 'ordertype', $rawType); // orderType has dash, e.g. trailing-stop
         $marketId = $this->safe_string($description, 'pair', $marketId);
         $marketResolved = $this->resolve_market_by_altname_or_id($marketId, $market);
         $symbol = null;
         $timestamp = $this->safe_timestamp($orderOmitted, 'opentm');
-        $amount = $this->safe_string($orderOmitted, 'vol', $amount);
+        $orderAmount = $this->safe_string($orderOmitted, 'vol');
+        if ($orderAmount !== null) {
+            $amount = $orderAmount;
+        }
         $filled = $this->safe_string($orderOmitted, 'vol_exec');
         $fee = null;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -3082,7 +3088,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type(string $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
+    public function parse_transactions_by_type(string $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction($this->extend(array(
@@ -3752,11 +3758,12 @@ class kraken extends Exchange {
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {
                 $message = $this->id . ' ' . $body;
-                if (is_array($response) && array_key_exists('error' ?? '', $response)) {
-                    $numErrors = count($response['error']);
+                $errors = $this->safe_list($response, 'error');
+                if ($errors !== null) {
+                    $numErrors = count($errors);
                     if ($numErrors > 0) {
-                        for ($i = 0; $i < count($response['error']); $i++) {
-                            $error = $response['error'][$i];
+                        for ($i = 0; $i < $numErrors; $i++) {
+                            $error = $errors[$i];
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
                             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
                         }

@@ -1048,8 +1048,8 @@ class zebpay extends Exchange {
         );
         $response = null;
         if ($market['spot'] === true) {
-            list($request, $query) = $this->order_request($symbol, $type, $amount, $request, $price, $query);
-            $response = $this->privateSpotPostV2ExOrders($this->extend($request, $query));
+            $orderRequestResult = $this->order_request($symbol, $type, $amount, $request, $price, $query);
+            $response = $this->privateSpotPostV2ExOrders($this->extend($orderRequestResult[0], $orderRequestResult[1]));
         } else {
             $marginAsset = $this->safe_string($query, 'marginAsset', 'INR');
             $formType = $this->safe_string_upper($query, 'formType', 'ORDER_FORM');

@@ -1206,7 +1206,7 @@ class dydx extends Exchange {
         return $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey): array {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -1217,7 +1217,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey): array {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 

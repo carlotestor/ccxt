@@ -100,7 +100,7 @@ class hitbtc extends \ccxt\async\hitbtc {
          * @return {array} response from exchange
          */
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'private');
         $messageHash = 'authenticated';
         $client = $this->client($url);
         $future = $client->reusableFuture($messageHash);
@@ -162,7 +162,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $symbolsNormalized = $this->market_symbols($symbols);
         $isBatch = mb_strpos($name, 'batch') !== false;
         $resolvedPerSymbol = !$isBatch || ($messageHashPrefix === 'orderbooks'); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        $url = $this->urls['api']['ws']['public'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'public');
         $messageHashes = array();
         if ($symbolsNormalized !== null && $resolvedPerSymbol) {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
@@ -199,7 +199,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $url = $this->urls['api']['ws']['private'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'private');
         $splitName = explode('_subscribe', $name);
         $messageHash = $this->safe_string($splitName, 0, '');
         if ($symbol !== null) {
@@ -231,7 +231,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $url = $this->urls['api']['ws']['private'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'private');
         $messageHash = (string) $this->incrementing_nonce();
         $subscribe = array(
             'method' => $name,

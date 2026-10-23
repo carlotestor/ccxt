@@ -1475,7 +1475,7 @@ class paradex extends Exchange {
         return $this->safe_dict($this->options, 'paradexAccount', array());
     }
 
-    public function onboarding($params = array()) {
+    public function onboarding($params = array()): array {
         $account = $this->retrieve_account();
         $req = array(
             'action' => 'Onboarding',

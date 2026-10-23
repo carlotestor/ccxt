@@ -238,11 +238,12 @@ class onetrading extends \ccxt\async\onetrading {
             $ticker = $tickers[$i];
             $marketId = $this->safe_string($ticker, 'instrument');
             $symbol = $this->safe_symbol($marketId);
-            $this->tickers[$symbol] = $this->parse_ws_ticker($ticker);
+            $parsedTicker = $this->parse_ws_ticker($ticker);
+            $this->tickers[$symbol] = $parsedTicker;
             $timestamp = $this->parse8601($datetime);
-            $this->tickers[$symbol]['timestamp'] = $timestamp;
-            $this->tickers[$symbol]['datetime'] = $this->iso8601($timestamp);
-            $client->resolve($this->tickers[$symbol], 'ticker.' . $symbol);
+            $parsedTicker['timestamp'] = $timestamp;
+            $parsedTicker['datetime'] = $this->iso8601($timestamp);
+            $client->resolve($parsedTicker, 'ticker.' . $symbol);
         }
         $client->resolve($this->tickers, 'tickers');
     }
@@ -1228,15 +1229,16 @@ class onetrading extends \ccxt\async\onetrading {
             $this->safe_number($message, 'close'),
             $this->safe_number($message, 'volume'),
         );
-        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
+        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $symbolOhlcvs;
+        $stored = $this->safe_value($symbolOhlcvs, $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
         }
         $stored->append($parsed);
         if ($symbol !== null && $timeframe !== null) {
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            $symbolOhlcvs[$timeframe] = $stored;
         }
         $client->resolve($stored, $channel);
     }

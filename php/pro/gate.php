@@ -793,8 +793,8 @@ class gate extends \ccxt\async\gate {
             if ((gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk)))) {
                 $bookSide->storeArray($this->parse_order_book_bid_ask($bidAsk));
             } else {
-                $price = $this->safe_float($bidAsk, 'p');
-                $amount = $this->safe_float($bidAsk, 's');
+                $price = $this->safe_number($bidAsk, 'p');
+                $amount = $this->safe_number($bidAsk, 's');
                 $bookSide->store($price, $amount);
             }
         }
@@ -2192,7 +2192,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // subscribe
         //    {

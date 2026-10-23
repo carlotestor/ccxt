@@ -234,12 +234,13 @@ class lbank extends \ccxt\async\lbank {
             );
             $timeframeId = $this->safe_string($message, 'kbar');
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
-            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $ohlcvsForSymbol = $this->safe_dict($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $ohlcvsForSymbol;
+            $stored = $this->safe_value($ohlcvsForSymbol, $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
+                $ohlcvsForSymbol[$timeframe] = $stored;
             }
             $stored->append($parsed);
             $messageHash = 'fetchOHLCV:' . $symbol . ':' . $timeframeId;
@@ -257,12 +258,13 @@ class lbank extends \ccxt\async\lbank {
                 $this->safe_number($rawOHLCV, 'v'),
             );
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
-            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $ohlcvsForSymbol = $this->safe_dict($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $ohlcvsForSymbol;
+            $stored = $this->safe_value($ohlcvsForSymbol, $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
+                $ohlcvsForSymbol[$timeframe] = $stored;
             }
             $stored->append($parsed);
             $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;

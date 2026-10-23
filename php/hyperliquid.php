@@ -1698,7 +1698,7 @@ class hyperliquid extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function construct_phantom_agent(mixed $hash, $isTestnet = true): array {
+    public function construct_phantom_agent(mixed $hash, bool $isTestnet = true): array {
         $source = ($isTestnet) ? 'b' : 'a';
         return array(
             'source' => $source,
@@ -4198,7 +4198,7 @@ class hyperliquid extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, ?float $amount, string $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

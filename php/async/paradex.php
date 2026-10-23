@@ -1549,7 +1549,7 @@ class paradex extends Exchange {
         return $this->safe_dict($this->options, 'paradexAccount', array());
     }
 
-    public function onboarding($params = array()) {
+    public function onboarding($params = array()): PromiseInterface {
         return Async\async(self::do_onboarding(...))($params);
     }
 

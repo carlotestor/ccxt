@@ -869,6 +869,7 @@ class bullish extends Exchange {
                 }
             }
         }
+        $tradingFees = $this->safe_dict($this->fees, 'trading', array());
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -887,8 +888,8 @@ class bullish extends Exchange {
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => $inverse,
-            'taker' => $this->fees['trading']['taker'],
-            'maker' => $this->fees['trading']['maker'],
+            'taker' => $tradingFees['taker'],
+            'maker' => $tradingFees['maker'],
             'contractSize' => $contractSize,
             'expiry' => $this->parse8601($expiryDatetime),
             'expiryDatetime' => $expiryDatetime,

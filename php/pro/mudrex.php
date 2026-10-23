@@ -155,8 +155,8 @@ class mudrex extends \ccxt\async\mudrex {
         if ($priceType === 'mark') {
             $prefix = 'markKline';
         }
-        $streamBaseId = ($market['baseId'] !== null) ? $market['baseId'] : '';
-        $streamQuoteId = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
+        $streamBaseId = $this->safe_string($market, 'baseId', '');
+        $streamQuoteId = $this->safe_string($market, 'quoteId', '');
         $stream = $prefix . '@' . $interval . '@' . strtolower($streamBaseId) . strtolower($streamQuoteId);
         $messageHash = $stream;
         $url = $this->urls['api']['ws'];

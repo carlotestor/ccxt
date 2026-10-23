@@ -112,11 +112,11 @@ class backpack extends \ccxt\async\backpack {
         return $market['id'];
     }
 
-    public function subscribe_ws_tickers(string $methodName, ?array $symbols = null, $params = array(), $bidAsk = false, $unwatch = false): PromiseInterface {
+    public function subscribe_ws_tickers(string $methodName, ?array $symbols = null, $params = array(), bool $bidAsk = false, bool $unwatch = false): PromiseInterface {
         return Async\async(self::do_subscribe_ws_tickers(...))($methodName, $symbols, $params, $bidAsk, $unwatch);
     }
 
-    private function do_subscribe_ws_tickers(string $methodName, ?array $symbols = null, $params = array(), $bidAsk = false, $unwatch = false) {
+    private function do_subscribe_ws_tickers(string $methodName, ?array $symbols = null, $params = array(), bool $bidAsk = false, bool $unwatch = false) {
         /**
          * @ignore
          * subscribes to venue statistics or $stock provider streams with explicit $symbol routing
@@ -696,11 +696,11 @@ class backpack extends \ccxt\async\backpack {
         ), $marketResolved);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
          *

@@ -3002,10 +3002,11 @@ class bybit extends Exchange {
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $symbolMarket = $this->market($symbolsNormalized[0]);
+            $market = $symbolMarket;
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $symbolMarket['id'];
             }
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchFundingRates', $market, $params);
@@ -5190,8 +5191,9 @@ class bybit extends Exchange {
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('cancelAllOrders', $market, $params);
         $request['category'] = $type;
@@ -5414,8 +5416,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchOrdersClassic', $market, $paramsPaginate);
         if ($type === 'spot') {
@@ -5597,8 +5600,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchCanceledAndClosedOrders', $market, $paramsPaginate);
         $request['category'] = $type;
@@ -5774,8 +5778,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchOpenOrders', $market, $paramsPaginate);
         if ($type === 'linear' || $type === 'inverse') {
@@ -5915,8 +5920,9 @@ class bybit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchMyTrades', $market, $paramsPaginate);
         $request['category'] = $type;
@@ -6784,9 +6790,10 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $symbol = $symbolMarket['symbol'];
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchPositions', $market, $paramsPaginate);
         if ($type === 'linear' || $type === 'inverse') {
@@ -8091,7 +8098,6 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $request = array();
-        $market = null;
         $market = $this->market($symbol);
         if (($market['spot'] === true) || ($market['option'] === true)) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() symbol does not support market ' . $symbol);
@@ -8341,8 +8347,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchSettlementHistory', $market, $params);
         if ($type === 'spot') {
@@ -8399,8 +8406,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchMySettlementHistory', $market, $params);
         if ($type === 'spot') {
@@ -8648,7 +8656,7 @@ class bybit extends Exchange {
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->baseCoin] the $baseCoin of the symbol, default is BTC
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by $market symbol
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by market symbol
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -8659,12 +8667,11 @@ class bybit extends Exchange {
             'category' => 'option',
             'baseCoin' => $baseCoin,
         );
-        $market = null;
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbolsNormalized[0]);
-                $request['symbol'] = $market['id'];
+                $symbolMarket = $this->market($symbolsNormalized[0]);
+                $request['symbol'] = $symbolMarket['id'];
             }
         }
         $response = $this->publicGetV5MarketTickers($this->extend($request, $params));
@@ -8795,8 +8802,9 @@ class bybit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchMyLiquidations', $market, $paramsPaginate);
         $request['category'] = $type;
@@ -8946,7 +8954,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $market = null;
         $symbol = null;
         if ($symbols !== null) {
             $market = $this->market($symbols[0]);
@@ -9056,8 +9063,9 @@ class bybit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchFundingHistory', $market, $paramsPaginate);
         $request['category'] = $type;

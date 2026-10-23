@@ -88,7 +88,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         $market = $this->market($symbol);
         $messageHash = $name . '@' . $market['id'];
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => 'subscribe',
             'channels' => array(
@@ -119,7 +119,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $market = $this->market($symbolsNormalized[$i]);
             $args[] = $market['id'];
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => 'subscribe',
             'channels' => array(
@@ -348,7 +348,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $marketIds[] = $market['id'];
             $messageHashes[] = $name . '@' . $market['id'];
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => 'subscribe',
             'channels' => array(
@@ -447,7 +447,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $marketId = $market['id'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageHash = $name . '@' . $marketId . '_' . $interval;
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => 'subscribe',
             'channels' => array(
@@ -571,7 +571,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'markets' => $marketIdsByInterval[$interval],
             );
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => 'subscribe',
             'channels' => $channels,
@@ -673,7 +673,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $symbolValue = $market['symbol'];
         $name = 'book';
         $messageHash = $name . '@' . $market['id'];
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => 'subscribe',
             'channels' => array(
@@ -726,7 +726,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $marketIds[] = $market['id'];
             $messageHashes[] = $name . '@' . $market['id'];
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => 'subscribe',
             'channels' => array(
@@ -901,7 +901,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         $name = 'getBook';
         $messageHash = $name . '@' . $marketId;
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => $name,
             'market' => $marketId,
@@ -1004,7 +1004,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     private function do_un_watch_channels(string $topic, array $channels, array $subMessageHashes, array $subscriptionArgs, $params = array()) {
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'action' => 'unsubscribe',
             'channels' => $channels,
@@ -1078,7 +1078,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
         $marketId = $market['id'];
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $name = 'account';
         $messageHash = 'order:' . $symbolValue;
         $request = array(
@@ -1121,7 +1121,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
         $marketId = $market['id'];
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $name = 'account';
         $messageHash = 'myTrades:' . $symbolValue;
         $request = array(
@@ -1356,7 +1356,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $messageHashStr = (string) $messageHash;
         $request['action'] = $action;
         $request['requestId'] = $messageHash;
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         return Async\await($this->watch($url, $messageHashStr, $request, $messageHashStr));
     }
 
@@ -1935,7 +1935,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     private function do_authenticate($params = array()) {
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $future = $this->safe_value($client->subscriptions, $messageHash);

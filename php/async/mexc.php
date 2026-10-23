@@ -2479,7 +2479,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function create_spot_order_request(mixed $market, ?string $type, ?string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_spot_order_request(array $market, ?string $type, ?string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
         $symbol = $market['symbol'];
         if (($type === null) || ($side === null)) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a type and a side argument');
@@ -2537,11 +2537,11 @@ class mexc extends Exchange {
         return $this->extend($request, $paramsWithoutTif);
     }
 
-    public function create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): PromiseInterface {
+    public function create_spot_order(array $market, string $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_spot_order(...))($market, $type, $side, $amount, $price, $marginMode, $params);
     }
 
-    private function do_create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    private function do_create_spot_order(array $market, string $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
         /**
          * @ignore
          * create a trade $order
@@ -2600,11 +2600,11 @@ class mexc extends Exchange {
         return $order;
     }
 
-    public function create_swap_order(mixed $market, mixed $type, string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): PromiseInterface {
+    public function create_swap_order(array $market, mixed $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_swap_order(...))($market, $type, $side, $amount, $price, $marginMode, $params);
     }
 
-    private function do_create_swap_order(mixed $market, mixed $type, string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    private function do_create_swap_order(array $market, mixed $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
         /**
          * @ignore
          * create a trade order
