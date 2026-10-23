@@ -266,13 +266,14 @@ function w3rep (kind, name, box, texts, ctx, self, tick) {
         return '(' + name + ' is string ' + strVar + ' && ' + at.text + ' < ' + strVar + '.Length ? ' + strVar + '[' + at.text + '].ToString () : null)';
     }
     if (kind === 'add') {
-        // the helper's string branch is `(string)a + (string)b`; a non-null string left never takes
-        // its null branch, so `+` is that same concatenation for every value the local can hold
+        // the helper's string branch is `(string)a + (string)b`, and a null left falls to its
+        // `return null`: `(string)(object)b` unboxes the right operand exactly as `(string)b`
+        // does, and the `(object)` box keeps the result's static type the helper's own
         if (box.kind !== 'string') return undefined;
         const right = w3box (texts[1], ctx, self, 0);
-        if ((right === undefined) || (right.kind !== 'string')) return undefined;
-        if (box.nonNull !== true) return '(' + name + ' == null ? null : ' + name + ' + ' + texts[1].trim () + ')';
-        return '(' + name + ' + ' + texts[1].trim () + ')';
+        const text = ((right !== undefined) && (right.kind === 'string')) ? texts[1].trim () : '(string)(object)(' + texts[1].trim () + ')';
+        const core = (box.nonNull === true) ? name + ' + ' + text : name + ' == null ? null : ' + name + ' + ' + text;
+        return '((object)(' + core + '))';
     }
     return undefined;
 }
@@ -438,8 +439,8 @@ export function w3checks () {
         '(rows is IList<object> w3l1 && i < w3l1.Count ? w3l1[i] : null)');
     runs ('string length', 'object response', 'object text = "abc";\nreturn getArrayLength(text);', '(text is string w3s1 ? w3s1.Length : 0)');
     runs ('string concat', 'object response', 'object id = "a";\nreturn add(id, "-");', '(id + "-")');
-    runs ('nullable string concat', 'object response', 'object id = this.safeString(response, "id");\nreturn add(id, "-");', '(id == null ? null : id + "-")');
-    runs ('safeString2 keys are not a default', 'object response', 'object id = this.safeString2(response, "a", "b");\nreturn add(id, "-");', '(id == null ? null : id + "-")');
+    runs ('nullable string concat', 'object response', 'object id = this.safeString(response, "id");\nreturn add(id, "-");', '((object)(id == null ? null : id + "-"))');
+    runs ('safeString2 keys are not a default', 'object response', 'object id = this.safeString2(response, "a", "b");\nreturn add(id, "-");', '((object)(id == null ? null : id + "-"))');
     runs ('later write joins', 'object response', 'object rows = null;\nrows = new List<object>() {};\nreturn getArrayLength(rows);',
         '(rows is IList<object> w3l1 ? w3l1.Count : 0)');
     keeps ('mixed writes', 'object response', 'object rows = new List<object>() {};\nrows = response;\nreturn getArrayLength(rows);');
