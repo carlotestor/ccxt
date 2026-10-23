@@ -436,7 +436,7 @@ impl BackpackCore {
     m
 }));
         let mut bidAsk = get_arg(optional_args, 2, Value::Bool(false));
-        let mut unwatch = get_arg(optional_args, 3, Value::Bool(false));
+        let unwatch: bool = get_arg(optional_args, 3, Value::Bool(false)).is_truthy();
         let mut query: Value = self.prepare_ws_stock_params(methodName.clone(), params).await;
         let mut stock: Value = self.safe_bool_k(query.clone(), "stock", &[Value::Bool(false)]);
         let mut explicitSource: Value = self.safe_string_k(query.clone(), "source", &[]);
@@ -447,7 +447,7 @@ impl BackpackCore {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut client: Value = self.client(&[url.clone()]);
-        let mut kind: Value = (if is_true(&(bidAsk)) { Value::Str("bidask".into()) } else { Value::Str("ticker".into()) });
+        let mut kind: Value = (if (bidAsk).as_bool() == Some(true) { Value::Str("bidask".into()) } else { Value::Str("ticker".into()) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_38: bool = true;
@@ -509,7 +509,7 @@ impl BackpackCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            if unwatch.as_bool() == Some(true) {
+            if unwatch {
                 subscriptions = self.omit(subscriptions.clone(), messageHash.clone(), &[]);
                 self.clean_unsubscription(client.clone(), messageHash.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), messageHash).into()), &[]);
                 if bidAsk.as_bool() == Some(true) {
@@ -529,7 +529,7 @@ impl BackpackCore {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionKey, subscriptions.clone());
             let mut subscriptionHashes: Value = object_keys(&subscriptions);
             let mut subscriptionsLength: f64 = ((subscriptionHashes.len() as i64) as f64);
-            if !(unwatch.as_bool() == Some(true)) || (subscriptionsLength == 0.0) {
+            if !unwatch || (subscriptionsLength == 0.0) {
                 if !(self.in_array(topic.clone(), topics.clone()).as_bool() == Some(true)) {
                     if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(topic); };
                 }
@@ -542,7 +542,7 @@ impl BackpackCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires at least one matching market".into()))));
         }
         let mut payload: Value = self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into()), Value::Str("interval".into()), Value::Str("channel".into())]), &[]);
-        if unwatch.as_bool() == Some(true) {
+        if unwatch {
             let mut topicsLength: f64 = ((topics.len() as i64) as f64);
             if topicsLength > ((0i64) as f64) {
                 let mut request: Value = self.extend(Value::Map({
@@ -558,7 +558,7 @@ impl BackpackCore {
         }  else {
             self.watch_public(topics, Value::from(messageHashes), &[payload]).await;
         }
-        let mut tickers: Value = (if is_true(&(bidAsk)) { self.bidsasks.clone() } else { self.tickers.clone() });
+        let mut tickers: Value = (if (bidAsk).as_bool() == Some(true) { self.bidsasks.clone() } else { self.tickers.clone() });
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &[Value::from(symbolsResolved)]);
 
     Value::Null
@@ -569,13 +569,13 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut unwatch = get_arg(optional_args, 1, Value::Bool(false));
+        let unwatch: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut method: Value = Value::Str("SUBSCRIBE".into());
-        if is_true(&unwatch) {
+        if unwatch {
             method = Value::Str("UNSUBSCRIBE".into());
         }
         let mut request: Value = Value::Map({
@@ -585,7 +585,7 @@ impl BackpackCore {
             m
         });
         let mut message: Value = self.deep_extend(request, &[params]);
-        if is_true(&unwatch) {
+        if unwatch {
             self.handle_unsubscriptions(url.clone(), messageHashes.clone(), message.clone()).await;
             return Value::Null;
         }
@@ -599,13 +599,13 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut unwatch = get_arg(optional_args, 1, Value::Bool(false));
+        let unwatch: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         self.check_required_credentials(&[]);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
         let mut instruction: Value = Value::Str("subscribe".into());
         let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
         let mut method: Value = Value::Str("SUBSCRIBE".into());
-        if is_true(&unwatch) {
+        if unwatch {
             method = Value::Str("UNSUBSCRIBE".into());
         }
         let mut recvWindow: Value = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]);
@@ -621,7 +621,7 @@ impl BackpackCore {
             m
         });
         let mut message: Value = self.deep_extend(request, &[params]);
-        if is_true(&unwatch) {
+        if unwatch {
             self.handle_unsubscriptions(url.clone(), messageHashes.clone(), message.clone()).await;
             return Value::Null;
         }
@@ -1893,7 +1893,7 @@ impl BackpackCore {
         if (market == Value::Null) {
             topics.push(Value::Str("account.rfqUpdate".into()));
         }
-        let mut orders: Value = self.watch_private(Value::Array(topics), Value::from(vec![messageHash]), &[self.omit(query.clone(), Value::Str("stock".into()), &[])]).await;
+        let mut orders: Value = self.watch_private(Value::from(topics), Value::from(vec![messageHash]), &[self.omit(query.clone(), Value::Str("stock".into()), &[])]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1946,7 +1946,7 @@ impl BackpackCore {
         if (market == Value::Null) {
             topics.push(Value::Str("account.rfqUpdate".into()));
         }
-        return self.watch_private(Value::Array(topics), Value::from(vec![messageHash]), &[self.omit(query, Value::Str("stock".into()), &[]), Value::Bool(true)]).await;
+        return self.watch_private(Value::from(topics), Value::from(vec![messageHash]), &[self.omit(query, Value::Str("stock".into()), &[]), Value::Bool(true)]).await;
 
     Value::Null
 }

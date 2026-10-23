@@ -4059,8 +4059,8 @@ impl KucoinCore {
  * @returns {any} ignore
  */
     pub async fn load_migration_status(&mut self, optional_args: &[Value]) -> Value {
-        let mut force = get_arg(optional_args, 0, Value::Bool(false));
-        if !(matches!(&self.options, Value::Dict(__d) if __d.contains_key("hf"))) || (self.options.as_map().and_then(|__m| __m.get("hf")).cloned().unwrap_or(Value::Null) == Value::Null) || force.as_bool() == Some(true) {
+        let force: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
+        if !(matches!(&self.options, Value::Dict(__d) if __d.contains_key("hf"))) || (self.options.as_map().and_then(|__m| __m.get("hf")).cloned().unwrap_or(Value::Null) == Value::Null) || force {
             let mut result: Value = self.private_get_hf_accounts_opened(&[]).await;
             { let __be_tmp = self.safe_bool_k(result, "data", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hf".into(), __be_tmp); } }
         }
@@ -5696,7 +5696,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("fetchDepositAddress".into()), Value::Str("uta".into()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountType.as_str() == Some("contract")) {
             return self.fetch_contract_deposit_address(code.clone(), &[paramsRequest.clone()]).await;
-        }  else if is_true(&uta) || (accountType.as_str() == Some("uta")) || (accountType.as_str() == Some("unified")) {
+        }  else if uta.as_bool() == Some(true) || (accountType.as_str() == Some("uta")) || (accountType.as_str() == Some("unified")) {
             let __ws_arg_16 = self.extend(paramsRequest.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("uta".to_string(), Value::Bool(true));
@@ -5719,12 +5719,32 @@ impl KucoinCore {
             }
         }
         let mut version: Value = crate::value::get_value_k(&crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("versions")).cloned().unwrap_or(Value::Null), "private"), "GET"), "deposit-addresses");
-        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".into())), &Value::Str("private".into())), &Value::Str("GET".into())) { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), Value::Str("v1".into())); }
+        if let Value::Dict(__bf03d0) = &mut self.options {
+            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("versions".to_string()).or_insert(Value::Null);
+            if let Value::Dict(__bf03d1) = __bf03e1 {
+                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("private".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__bf03d2) = __bf03e2 {
+                    let __bf03e3 = std::sync::Arc::make_mut(__bf03d2).entry("GET".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(__r05d) = __bf03e3 { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), Value::Str("v1".into()));
+                    }
+                }
+            }
+        }
         let __ws_arg_17 = self.extend(request, &[paramsRequest]);
         let mut response: Value = self.private_get_deposit_addresses(&[__ws_arg_17]).await;
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".into())), &Value::Str("private".into())), &Value::Str("GET".into())) { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), version); }
+        if let Value::Dict(__bf03d0) = &mut self.options {
+            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("versions".to_string()).or_insert(Value::Null);
+            if let Value::Dict(__bf03d1) = __bf03e1 {
+                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("private".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__bf03d2) = __bf03e2 {
+                    let __bf03e3 = std::sync::Arc::make_mut(__bf03d2).entry("GET".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(__r05d) = __bf03e3 { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), version);
+                    }
+                }
+            }
+        }
         let mut data: Value = self.safe_dict_k(response, "data", &[]);
         if (data == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again".into()))));
@@ -5849,7 +5869,7 @@ impl KucoinCore {
         let mut paramsRequest: Value = Value::Null;
         { let __destr_tmp = self.handle_option_bool_and_params(params, Value::Str("fetchDepositAddressesByNetwork".into()), Value::Str("uta".into()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             let mut networkCode: Value = Value::Null;
             { let __destr_tmp = self.handle_network_code_and_params(paramsRequest.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if (networkCode != Value::Null) {
@@ -5880,7 +5900,17 @@ impl KucoinCore {
             response = self.uta_private_get_asset_deposit_address(&[__ws_arg_19]).await;
         }  else {
             let mut version: Value = crate::value::get_value_k(&crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("versions")).cloned().unwrap_or(Value::Null), "private"), "GET"), "deposit-addresses");
-            if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".into())), &Value::Str("private".into())), &Value::Str("GET".into())) { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), Value::Str("v2".into())); }
+            if let Value::Dict(__bf03d0) = &mut self.options {
+                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("versions".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__bf03d1) = __bf03e1 {
+                    let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("private".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(__bf03d2) = __bf03e2 {
+                        let __bf03e3 = std::sync::Arc::make_mut(__bf03d2).entry("GET".to_string()).or_insert(Value::Null);
+                        if let Value::Dict(__r05d) = __bf03e3 { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), Value::Str("v2".into()));
+                        }
+                    }
+                }
+            }
             let __ws_arg_20 = self.extend(request, &[paramsRequest]);
             response = self.private_get_deposit_addresses(&[__ws_arg_20]).await;
             //
@@ -5898,7 +5928,17 @@ impl KucoinCore {
             //         ]
             //     }
             //
-            if let Value::Dict(__r05d) = get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".into())), &Value::Str("private".into())), &Value::Str("GET".into())) { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), version); }
+            if let Value::Dict(__bf03d0) = &mut self.options {
+                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("versions".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__bf03d1) = __bf03e1 {
+                    let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("private".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(__bf03d2) = __bf03e2 {
+                        let __bf03e3 = std::sync::Arc::make_mut(__bf03d2).entry("GET".to_string()).or_insert(Value::Null);
+                        if let Value::Dict(__r05d) = __bf03e3 { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), version);
+                        }
+                    }
+                }
+            }
         }
         let mut chains: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut parsed: Value = self.parse_deposit_addresses(chains, &[Value::from(vec![currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]), Value::Bool(false), Value::Map({
@@ -7849,7 +7889,7 @@ impl KucoinCore {
             let mut market: Value = self.market(symbol.clone());
             marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
         }
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             paramsRequest = self.omit(paramsRequest.clone(), Value::Str("uta".into()), &[]);
             paramsRequest = self.extend(paramsRequest.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -8407,10 +8447,10 @@ impl KucoinCore {
         let mut paramsRequest: Value = Value::Null;
         { let __destr_tmp = self.handle_option_bool_and_params(params, Value::Str("fetchOrder".into()), Value::Str("uta".into()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut paramsOmitted: Value = paramsRequest.clone();
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             paramsOmitted = self.omit(paramsRequest, Value::Str("uta".into()), &[]);
         }
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             return self.fetch_uta_order(id.clone(), &[symbol.clone(), paramsOmitted.clone()]).await;
         }
         let mut marketType: Value = Value::Null;
@@ -8744,9 +8784,9 @@ impl KucoinCore {
 }
 
     pub fn handle_trade_type(&self, optional_args: &[Value]) -> Option<String> {
-        let mut isContractMarket = get_arg(optional_args, 0, Value::Bool(false));
+        let isContractMarket: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut marginMode = get_arg(optional_args, 1, Value::Null);
-        let mut isUnified = get_arg(optional_args, 2, Value::Bool(false));
+        let isUnified: bool = get_arg(optional_args, 2, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8755,11 +8795,11 @@ impl KucoinCore {
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut tradeType: Value = (match params.get("tradeType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (tradeType == Value::Null) {
-            if is_true(&isContractMarket) {
+            if isContractMarket {
                 tradeType = Value::Str("FUTURES".into());
             }  else if (marginMode != Value::Null) {
                 tradeType = marginMode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-                if is_true(&isUnified) {
+                if isUnified {
                     if (tradeType.as_str() == Some("ISOLATED")) {
                         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" spot isolated margin is not supported for unified accountMode".into()))));
                     }  else {
@@ -9336,7 +9376,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market, params]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         { let __destr_tmp = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("fetchMyTrades".into()), Value::Str("uta".into()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             paramsRequest = self.extend(paramsRequest.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketType".to_string(), marketType.clone());
@@ -12058,18 +12098,18 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut hf: Value = Value::Null;
         { let __destr_tmp = self.handle_hf_and_params(&[paramsRequest.clone()]); hf = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut requestedType: Value = Value::Null;
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             requestedType = Value::Str("UNIFIED".into());
         }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, paramsRequest.clone(), requestedType.clone()]); requestedType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLedger".into()), &[paramsRequest.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&uta) && (requestedType.as_str() == Some("margin")) {
+        if uta.as_bool() == Some(true) && (requestedType.as_str() == Some("margin")) {
             marginMode = (if (marginMode == Value::Null) { Value::Str("cross".into()) } else { marginMode.clone() }); // default to cross margin for UTA if margin is requested but marginMode is not specified
             requestedType = marginMode.clone();
         }
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             accountsByType = self.safe_dict_k(self.options.clone(), "utaAccountsByType", &[]);
         }
         let mut type_var: Value = Value::Null;
@@ -12079,7 +12119,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             maxLimit = Value::Int(200);
         }  else if (type_var.as_str() == Some("contract")) {
             maxLimit = Value::Int(50);
-        }  else if is_true(&uta) {
+        }  else if uta.as_bool() == Some(true) {
             if (type_var.as_str() == Some("UNIFIED")) || (type_var.as_str() == Some("SPOT")) {
                 maxLimit = Value::Int(200);
             }  else if (type_var.as_str() == Some("FUTURES")) {
@@ -12119,7 +12159,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             }
         }
         let mut response: Value = Value::Null;
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("accountType".into(), type_var.clone()); }
             let __ws_arg_110 = self.extend(request.clone(), &[paramsRequest.clone()]);
             response = self.uta_private_get_account_ledger(&[__ws_arg_110]).await;
@@ -12732,7 +12772,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let mut paramsRequest: Value = Value::Null;
         { let __destr_tmp = self.handle_option_bool_and_params(params, Value::Str("fetchCrossBorrowRate".into()), Value::Str("uta".into()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if !is_true(&uta) {
+        if !(uta.as_bool() == Some(true)) {
             let __ws_arg_119 = self.extend(request.clone(), &[paramsRequest.clone()]);
             let mut responseClassic: Value = self.private_get_margin_borrow_rate(&[__ws_arg_119]).await;
             //
@@ -13175,7 +13215,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             if (marginMode.as_str() == Some("isolated")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unified trading account does not support isolated margin".into()))));
             }
@@ -13672,14 +13712,14 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         if (symbol != Value::Null) {
             market = self.market(symbol);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-        }  else if !is_true(&uta) {
+        }  else if !(uta.as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires a symbol argument".into()))));
         }
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startAt".into(), since); }
         }
         let mut dataList: Value = Value::from(vec![]);
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }
             }
@@ -13979,7 +14019,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             if (since != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startAt".into(), since.clone()); }
             }
@@ -14314,11 +14354,11 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             market = self.market(symbol.clone());
             isContractMarket = market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
             if (isContractMarket.as_bool() != Some(true)) {
-                if !is_true(&uta) {
+                if !(uta.as_bool() == Some(true)) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() supports spot markets only for unified trading accounts".into()))));
                 }
             }
-        }  else if is_true(&uta) {
+        }  else if uta.as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument for uta endpoint".into()))));
         }
         let mut ordersRequests: Value = Value::from(vec![]);
@@ -14346,7 +14386,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut __for_first_903: bool = true;
             while { if !__for_first_903 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_903 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut orderId: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if is_true(&uta) {
+            if uta.as_bool() == Some(true) {
                 if let Value::Arr(__a) = &mut ordersRequests { std::sync::Arc::make_mut(__a).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("orderId".to_string(), orderId.clone());
@@ -14364,7 +14404,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         });
         let mut response: Value = Value::Null;
         let mut orders: Value = Value::from(vec![]);
-        if is_true(&uta) {
+        if uta.as_bool() == Some(true) {
             let mut accountMode: Value = Value::Str("unified".into());
             { let __destr_tmp = self.handle_option_string_and_params(paramsRequest.clone(), Value::Str("cancelOrders".into()), Value::Str("accountMode".into()), &[accountMode.clone()]); accountMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("accountMode".into(), accountMode.clone()); }

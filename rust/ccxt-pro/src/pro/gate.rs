@@ -3072,7 +3072,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut api: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut url: Value = self.safe_value(api, type_var.clone(), &[]);
         if (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
-            return (if is_true(&isInverse) { crate::value::get_value_k(&url, "btc") } else { crate::value::get_value_k(&url, "usdt") });
+            return (if isInverse.as_bool() == Some(true) { crate::value::get_value_k(&url, "btc") } else { crate::value::get_value_k(&url, "usdt") });
         }  else {
             return url;
         }
@@ -3270,7 +3270,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut requiresUid = get_arg(optional_args, 0, Value::Bool(false));
         self.check_required_credentials(&[]);
         // uid is required for some subscriptions only so it's not a part of required credentials
-        if is_true(&requiresUid) {
+        if requiresUid.as_bool() == Some(true) {
             if (self.uid.clone() == Value::Null) || (Value::Int(self.uid.len() as i64).as_f64() == Some(0.0)) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires uid to subscribe".into()))));
             }
@@ -3278,7 +3278,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut idArray: Value = Value::from(vec![self.uid.clone()]);
         let mut payloadWithUid: Value = (if (payload == Value::Null) { idArray.clone() } else { self.array_concat(idArray, payload.clone()) });
         let mut payloadValue: Value = payload;
-        if is_true(&requiresUid) {
+        if requiresUid.as_bool() == Some(true) {
             payloadValue = payloadWithUid;
         }
         let mut time: Value = self.seconds();

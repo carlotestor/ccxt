@@ -2495,7 +2495,7 @@ impl BingxCore {
 })]);
         let mut contractSize: Value = Value::Null;
         if matches!(&swap, Value::Bool(true)) {
-            contractSize = (if checkIsInverse.as_bool() == Some(true) { inverseContractSize } else { self.parse_number(Value::Str("1".into()), &[]) });
+            contractSize = (if (checkIsInverse).as_bool() == Some(true) { inverseContractSize } else { self.parse_number(Value::Str("1".into()), &[]) });
         }
         let mut isActive: Value = Value::Bool(false);
         if (self.safe_string_k(market.clone(), "apiStateOpen", &[]).as_str() == Some("true")) && (self.safe_string_k(market.clone(), "apiStateClose", &[]).as_str() == Some("true")) {
@@ -2505,8 +2505,8 @@ impl BingxCore {
         }  else if checkIsInverse.as_bool() == Some(true) && (self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("1")) {
             isActive = Value::Bool(true); // inverse swap active
         }
-        let mut isInverse: Value = (if matches!(&spot, Value::Bool(true)) { Value::Null } else { checkIsInverse });
-        let mut isLinear: Value = (if matches!(&spot, Value::Bool(true)) { Value::Null } else { checkIsLinear });
+        let mut isInverse: Value = (if (spot).as_bool() == Some(true) { Value::Null } else { checkIsInverse });
+        let mut isLinear: Value = (if (spot).as_bool() == Some(true) { Value::Null } else { checkIsLinear });
         let mut minAmount: Value = Value::Null;
         if !(matches!(&spot, Value::Bool(true))) {
             minAmount = self.safe_number2(market.clone(), Value::Str("minQty".into()), Value::Str("tradeMinQuantity".into()), &[]);
@@ -2600,13 +2600,13 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requests: Value = Value::from(vec![self.fetch_swap_markets(params.clone()).await]);
+        let mut requests: Vec<Value> = vec![self.fetch_swap_markets(params.clone()).await];
         let mut isSandbox: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         if !(isSandbox.as_bool() == Some(true)) {
-            if let Value::Arr(__a) = &mut requests { std::sync::Arc::make_mut(__a).push(self.fetch_inverse_swap_markets(params.clone()).await); }
-            if let Value::Arr(__a) = &mut requests { std::sync::Arc::make_mut(__a).push(self.fetch_spot_markets(params).await); }; // sandbox is swap only
+            requests.push(self.fetch_inverse_swap_markets(params.clone()).await);
+            requests.push(self.fetch_spot_markets(params).await); // sandbox is swap only
         }
-        let mut promises: Value = promise_all(&requests).await;
+        let mut promises: Value = promise_all(&Value::from(requests)).await;
         let mut linearSwapMarkets: Value = self.safe_list(promises.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut inverseSwapMarkets: Value = self.safe_list(promises.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut spotMarkets: Value = self.safe_list(promises, Value::Int(2), &[Value::from(vec![])]);

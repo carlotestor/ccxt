@@ -1250,20 +1250,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if let Value::Dict(__d) = &mut subscriptions { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&subscriptionType), subscription); }
         if let Value::Dict(__d) = &mut wsOptions { std::sync::Arc::make_mut(__d).insert("gen2Subscriptions".into(), subscriptions.clone()); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), wsOptions); }
-        let mut request: Value = Value::from(vec![Value::Map({
+        let mut request: Vec<Value> = vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), Value::Str("ccxt".into()));
     m
-})]);
+})];
         let mut keys: Value = Value::Array(subscriptions.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_133: bool = true;
             while { if !__for_first_133 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_133 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            if let Value::Arr(__a) = &mut request { std::sync::Arc::make_mut(__a).push(get_value(&subscriptions, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))); }
+            request.push(get_value(&subscriptions, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
         }
-        return request;
+        return Value::from(request);
 
     Value::Null
 }

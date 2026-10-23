@@ -1183,7 +1183,7 @@ impl KrakenCore {
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             let mut isActive: Value = Value::Bool(status.as_deref() == Some("online"));
             let mut symbol: Value = id.clone();
-            if !isSynthetic {
+            if !(isSynthetic) {
                 symbol = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
             }
             result.push(Value::Map({
@@ -2662,7 +2662,7 @@ impl KrakenCore {
                 m.insert("quoteId".to_string(), quoteId);
             m
         });
-        if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("delistedMarketsById".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&id), market.clone()); }
+        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("delistedMarketsById".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&id), market.clone()); } }
         return market;
 
     Value::Null

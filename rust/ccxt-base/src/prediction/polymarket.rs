@@ -4171,7 +4171,7 @@ impl PolymarketCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if !isArrayBody {
+        if !(isArrayBody) {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
         let mut bodyValue: Value = Value::Null;

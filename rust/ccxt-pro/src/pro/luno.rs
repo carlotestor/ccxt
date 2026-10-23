@@ -559,7 +559,7 @@ impl LunoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_488: bool = true;
             while { if !__for_first_488 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_488 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidasksValue.len() as i64) as f64) } {
-            result.push(self.custom_parse_bid_ask(get_value(&bidasksValue, &i), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
+            result.push(self.custom_parse_bid_ask(bidasksValue.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
         }
         }
         return Value::from(result);
@@ -573,12 +573,12 @@ impl LunoCore {
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));
         let mut price: Value = self.safe_number(bidask.clone(), priceKey, &[]);
         let mut amount: Value = self.safe_number(bidask.clone(), amountKey, &[]);
-        let mut result: Value = Value::from(vec![price, amount]);
+        let mut result: Vec<Value> = vec![price, amount];
         if (thirdKey != Value::Null) {
             let mut thirdValue: Value = self.safe_string(bidask, thirdKey, &[]);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(thirdValue); }
+            result.push(thirdValue);
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }

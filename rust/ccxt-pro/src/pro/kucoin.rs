@@ -453,7 +453,7 @@ impl KucoinCore {
 }
 
     pub async fn negotiate(&mut self, mut privateChannel: Value, optional_args: &[Value]) -> Value {
-        let mut isFuturesMethod = get_arg(optional_args, 0, Value::Bool(false));
+        let isFuturesMethod: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -462,7 +462,7 @@ impl KucoinCore {
         if privateChannel.as_bool() == Some(true) {
             connectId = Value::Str("private".into());
         }
-        if is_true(&isFuturesMethod) {
+        if isFuturesMethod {
             connectId = Value::Str(format!("{}{}", connectId, Value::Str("Futures".into())).into());
         }
         let mut urls: Value = self.safe_dict_k(self.options.clone(), "urls", &[Value::Map({
@@ -4546,7 +4546,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (match (&(get_value(&client, &Value::Str("url".into()))), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("connectId=".into()), type_var).into()), Value::Str("Futures".into())).into()))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s), Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 type_var = Value::Str(format!("{}{}", type_var, Value::Str("Futures".into())).into());
             }
-            if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("urls".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&type_var), Value::Null); }
+            if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("urls".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&type_var), Value::Null); } }
         }
         self.handle_errors(Value::Int(1), Value::Str("".into()), client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null), Value::Str("".into()), Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -3550,7 +3550,7 @@ impl BybitCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" demo trading does not support in sandbox environment".into()))));
         }
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
-        if is_true(&enable) {
+        if enable.as_bool() == Some(true) {
             { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("apiBackupDemoTrading".to_string(), __be_tmp); } };
             { let __be_tmp = crate::value::get_value_k(&self.urls, "demotrading"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
         }  else if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("apiBackupDemoTrading"))) {
@@ -6896,7 +6896,7 @@ impl BybitCore {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         let mut isMarketBuyAndCostInferable: bool = (lowerCaseType.as_str() == Some("market")) && (side.as_str() == Some("buy")) && ((price != Value::Null) || (cost != Value::Null));
         let mut isMarketOrder: bool = lowerCaseType.as_str() == Some("market");
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && isMarketOrder && is_true(&isUTA) && !isMarketBuyAndCostInferable {
+        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && isMarketOrder && isUTA.as_bool() == Some(true) && !isMarketBuyAndCostInferable {
             // UTA account can specify the cost of the order on both sides
             if (cost != Value::Null) || (price != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketUnit".into(), Value::Str("quoteCoin".into())); }
@@ -7021,13 +7021,13 @@ impl BybitCore {
                 query = self.omit(query.clone(), Value::Str("reduceOnly".into()), &[]);
             }
             // a reduce-only order closes the position on the opposite side
-            let mut isBuyPosition: bool = false;
+            let mut isBuyPosition: Value = Value::Bool(false);
             if (reduceOnly.as_bool() == Some(true)) {
-                isBuyPosition = side.as_str() == Some("sell");
+                isBuyPosition = Value::Bool(side.as_str() == Some("sell"));
             }  else {
-                isBuyPosition = side.as_str() == Some("buy");
+                isBuyPosition = Value::Bool(side.as_str() == Some("buy"));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionIdx".into(), (if (isBuyPosition) { Value::Int(1) } else { Value::Int(2) })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionIdx".into(), (if (isBuyPosition).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(2) })); }
         }
         query = self.omit(query.clone(), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("hedged".into())]), &[]);
         return self.extend(request, &[query]);

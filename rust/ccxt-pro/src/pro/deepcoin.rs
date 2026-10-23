@@ -401,13 +401,13 @@ impl DeepcoinCore {
 
     pub fn create_public_request(&self, mut market: Value, mut requestId: Value, mut topicID: Value, optional_args: &[Value]) -> Value {
         let mut suffix = get_arg(optional_args, 0, Value::Str("".into()));
-        let mut unWatch = get_arg(optional_args, 1, Value::Bool(false));
+        let unWatch: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]); // spot markets use symbol with slash
         if (self.safe_string_k(market.clone(), "type", &[]).as_str() == Some("swap")) {
             marketId = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market, "quoteId", &[Value::Str("".into())])).into()); // swap markets use symbol without slash
         }
         let mut action: Value = Value::Str("1".into()); // subscribe
-        if unWatch.as_bool() == Some(true) {
+        if unWatch {
             action = Value::Str("0".into()); // unsubscribe
         }
         let mut request: Value = Value::Map({

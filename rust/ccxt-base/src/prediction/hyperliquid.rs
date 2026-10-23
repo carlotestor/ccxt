@@ -1678,9 +1678,9 @@ impl HyperliquidCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" outcomes not loaded".into()))));
         }
         let mut sideHint: Value = self.parse_outcome_input_side_hint(outcomeInput.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut candidates: Value = Value::from(vec![outcomeInput.clone()]);
+        let mut candidates: Vec<Value> = vec![outcomeInput.clone()];
         if (outcomeInput.as_str().is_some_and(|__s| __s.starts_with("+"))) {
-            if let Value::Arr(__a) = &mut candidates { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into())); }
+            candidates.push(Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into()));
         }
         let mut digitChars: Value = Value::Str("0123456789".into());
         let mut inputChars: Value = self.string_to_chars_array(outcomeInput.clone());
@@ -1697,16 +1697,16 @@ impl HyperliquidCore {
         }
         }
         if isNumericInput {
-            if let Value::Arr(__a) = &mut candidates { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput).into())); }; // encoding id without #
+            candidates.push(Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput).into())); // encoding id without #
             let mut numeric: Value = self.parse_to_int(outcomeInput.clone());
-            if let Value::Arr(__a) = &mut candidates { std::sync::Arc::make_mut(__a).push(self.outcome_coin(self.outcome_encoding(numeric.clone(), Value::Int(0))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }; // raw outcome id -> YES encoding
-            if let Value::Arr(__a) = &mut candidates { std::sync::Arc::make_mut(__a).push(self.outcome_coin(self.outcome_encoding(numeric, Value::Int(1))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }; // raw outcome id -> NO encoding
+            candidates.push(self.outcome_coin(self.outcome_encoding(numeric.clone(), Value::Int(0))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); // raw outcome id -> YES encoding
+            candidates.push(self.outcome_coin(self.outcome_encoding(numeric, Value::Int(1))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); // raw outcome id -> NO encoding
         }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1233: bool = true;
             while { if !__for_first_1233 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1233 = false; i.as_f64().unwrap_or(f64::NAN) < ((candidates.len() as i64) as f64) } {
-            let mut key: Value = candidates.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut key: Value = candidates.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             if (matches!((&self.exchange.outcomes, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_dict(self.exchange.outcomes.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2708,7 +2708,7 @@ impl HyperliquidCore {
                     }
                 }
                 }
-                if !matches {
+                if !(matches) {
                     continue;
                 }
             }
@@ -2900,9 +2900,9 @@ impl HyperliquidCore {
 }
 
     pub fn construct_phantom_agent(&self, mut hash: Value, optional_args: &[Value]) -> Value {
-        let mut isTestnet = get_arg(optional_args, 0, Value::Bool(true));
+        let isTestnet: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut source: Value = Value::Str("a".into());
-        if is_true(&isTestnet) {
+        if isTestnet {
             source = Value::Str("b".into());
         }
         return Value::Map({

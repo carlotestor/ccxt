@@ -2392,9 +2392,9 @@ impl ParadexCore {
 }
 
     pub async fn prepare_paradex_domain(&mut self, optional_args: &[Value]) -> Value {
-        let mut l1 = get_arg(optional_args, 0, Value::Bool(false));
+        let l1: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut systemConfig: Value = self.get_system_config().await;
-        if l1.as_bool() == Some(true) {
+        if l1 {
             let mut l1D: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::Str("Paradex".into()));
@@ -2800,7 +2800,7 @@ impl ParadexCore {
 }
 
     pub async fn sign_order_request(&mut self, mut request: Value, optional_args: &[Value]) -> Value {
-        let mut modify = get_arg(optional_args, 0, Value::Bool(false));
+        let modify: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut account: Value = self.retrieve_account().await;
         let mut now: Value = self.parse_to_int(self.nonce());
         let mut orderType: Value = self.safe_string_k(request.clone(), "type", &[]);
@@ -2818,7 +2818,7 @@ impl ParadexCore {
                 m.insert("price".to_string(), (if (isMarket) { Value::Str("0".into()) } else { self.scale_number(request.as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null) }));
             m
         });
-        let mut orderFields: Value = Value::from(vec![Value::Map({
+        let mut orderFields: Vec<Value> = vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("timestamp".into()));
         m.insert("type".to_string(), Value::Str("felt".into()));
@@ -2848,28 +2848,28 @@ impl ParadexCore {
         m.insert("name".to_string(), Value::Str("price".into()));
         m.insert("type".to_string(), Value::Str("felt".into()));
     m
-})]);
+})];
         let mut messageTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&modify) {
+        if modify {
             if let Value::Dict(__d) = &mut orderReq { std::sync::Arc::make_mut(__d).insert("id".into(), request.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Arr(__a) = &mut orderFields { std::sync::Arc::make_mut(__a).push(Value::Map({
+            orderFields.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::Str("id".into()));
                     m.insert("type".to_string(), Value::Str("felt".into()));
                 m
-            })); };
+            }));
             messageTypes = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("ModifyOrder".to_string(), orderFields.clone());
+                    m.insert("ModifyOrder".to_string(), Value::from(orderFields.clone()));
                 m
             });
         }  else {
             messageTypes = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Order".to_string(), orderFields);
+                    m.insert("Order".to_string(), Value::from(orderFields));
                 m
             });
         }

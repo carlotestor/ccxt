@@ -108,7 +108,7 @@ impl crate::exchange_generated::ExchangeBase for OpinionCore {
                 "load_multi_sign_address" => self.load_multi_sign_address().await,
                 "load_quote_token" => self.load_quote_token(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "load_trade_market" => self.load_trade_market(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
-                "opinion_order_raw_amounts" => self.opinion_order_raw_amounts(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null)),
+                "opinion_order_raw_amounts" => self.opinion_order_raw_amounts(args.get(0).map(|v| v.is_truthy()).unwrap_or(false), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null)),
                 "opinion_outcome_by_market_id_side" => self.opinion_outcome_by_market_id_side(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1535,7 +1535,7 @@ impl OpinionCore {
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(sig.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null))).into()), self.remove0x_prefix(sig.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null))).into()), self.int_to_base16(sig.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null), &[])).into()).as_str().map(str::to_owned);
 }
 
-    pub fn opinion_order_raw_amounts(&self, mut isMarket: Value, mut side: Value, mut amount: Value, mut price: Value, mut decimals: Value) -> Value {
+    pub fn opinion_order_raw_amounts(&self, isMarket: bool, mut side: Value, mut amount: Value, mut price: Value, mut decimals: Value) -> Value {
         let mut decimalsStr: Value = Value::Str("1".into());
         if (decimals != Value::Null) {
             let mut decimalsCount: Value = self.parse_to_int(decimals);
@@ -1548,7 +1548,7 @@ impl OpinionCore {
             }
         }
         let mut amountStr: Value = self.number_to_string(amount);
-        if is_true(&isMarket) && (side.as_str() == Some("BUY")) {
+        if isMarket && (side.as_str() == Some("BUY")) {
             let mut marketMakerAmountWei: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr, &decimalsStr), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1562,7 +1562,7 @@ impl OpinionCore {
         let mut priceInt: Value = self.safe_string(priceParts.clone(), Value::Int(0), &[Value::Str("0".into())]);
         let mut priceFrac: Value = self.safe_string(priceParts, Value::Int(1), &[Value::Str("".into())]);
         let mut priceDenom: Value = Value::Str("1000000".into());
-        let mut priceNum: Value = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&priceInt, &priceDenom), &pad_end(&priceFrac, &Value::Int(6), &Value::Str("0".into())));
+        let mut priceNum: Value = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&priceInt, &priceDenom), &priceFrac.as_str().map(|__s| Value::Str(format!("{:0<6}", __s).into())).unwrap_or(Value::Null));
         if (priceNum.as_str() == Some("0")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() invalid price ".into())).into()), priceStr)));
         }
@@ -1639,7 +1639,7 @@ impl OpinionCore {
         let mut quoteToken: Value = self.load_quote_token(quoteTokenAddress.clone()).await;
         let mut exchangeAddress: Value = self.safe_string_k(quoteToken.clone(), "ctfExchangeAddress", &[Value::Str("".into())]);
         let mut decimals: Value = self.safe_integer_k(quoteToken, "decimal", &[Value::Int(18)]);
-        let mut amounts: Value = self.opinion_order_raw_amounts(isMarket.clone(), sideStr.clone(), amount, price.clone(), decimals);
+        let mut amounts: Value = self.opinion_order_raw_amounts(isMarket.is_truthy(), sideStr.clone(), amount, price.clone(), decimals);
         let mut makerAmount: Value = self.safe_string_k(amounts.clone(), "makerAmount", &[]);
         let mut takerAmount: Value = self.safe_string_k(amounts, "takerAmount", &[]);
         let mut sideInt: Value = (if (sideStr.as_str() == Some("BUY")) { Value::Int(0) } else { Value::Int(1) });

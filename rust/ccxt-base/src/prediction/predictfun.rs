@@ -117,7 +117,7 @@ impl crate::exchange_generated::ExchangeBase for PredictfunCore {
                 "request_id" => self.request_id(),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "sign_predictfun_order" => self.sign_predictfun_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "sign_predictfun_order" => self.sign_predictfun_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).map(|v| v.is_truthy()).unwrap_or(false), args.get(2).map(|v| v.is_truthy()).unwrap_or(false)),
                 "un_watch_my_trades" => self.un_watch_my_trades(&args[..]).await,
                 "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_orders" => self.un_watch_orders(&args[..]).await,
@@ -889,7 +889,7 @@ impl PredictfunCore {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let mut postParams: Value = self.omit(paramsValue.clone(), Value::Array(postOmitKeys), &[]);
+        let mut postParams: Value = self.omit(paramsValue.clone(), Value::from(postOmitKeys), &[]);
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
         let mut rawStatus: Option<String> = self.safe_string_k(paramsValue, "status", &[]).as_str().map(str::to_owned);
@@ -1888,7 +1888,7 @@ impl PredictfunCore {
             }
         }
         }
-        if !outcomeFound {
+        if !(outcomeFound) {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
@@ -2285,13 +2285,13 @@ impl PredictfunCore {
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable.clone()); }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".into(), (if is_true(&(enable)) { Value::Int(97) } else { Value::Int(56) })); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".into(), (if (enable).as_bool() == Some(true) { Value::Int(97) } else { Value::Int(56) })); }
         if let Value::Dict(__d) = &mut self.requiredCredentials { std::sync::Arc::make_mut(__d).insert("apiKey".into(), Value::Bool(!is_true(&enable))); }
         if (wasSandbox.as_bool() != enable.as_bool()) {
             // a token minted for one host is not valid on the other, so the live one is set aside
             // on the way in and taken back on the way out - a round trip through the sandbox then
             // costs no re-authentication. the sandbox token is not kept: it dies with the switch
-            if is_true(&enable) {
+            if enable.as_bool() == Some(true) {
                 { let __be_tmp = self.safe_string_k(self.options.clone(), "jwtToken", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("backupJwtToken".into(), __be_tmp); } }
                 { let __be_tmp = self.safe_integer_k(self.options.clone(), "jwtTokenExpiresAt", &[Value::Int(0)]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("backupJwtTokenExpiresAt".into(), __be_tmp); } }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("jwtToken".into(), Value::Null); }
@@ -2423,7 +2423,7 @@ impl PredictfunCore {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {object} a dictionary with the order hash and the signature
  */
-    pub fn sign_predictfun_order(&self, mut order: Value, mut isNegRisk: Value, mut isYieldBearing: Value) -> Value {
+    pub fn sign_predictfun_order(&self, mut order: Value, isNegRisk: bool, isYieldBearing: bool) -> Value {
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
         let mut chainIdValue: Value = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]);
@@ -2660,7 +2660,7 @@ impl PredictfunCore {
                 m.insert("signatureType".to_string(), Value::Int(0));
             m
         });
-        let mut signed: Value = self.sign_predictfun_order(contractOrder.clone(), isNegRisk, isYieldBearing);
+        let mut signed: Value = self.sign_predictfun_order(contractOrder.clone(), isNegRisk.is_truthy(), isYieldBearing.is_truthy());
         let __ws_arg_7 = self.safe_string_k(signed.clone(), "hash", &[]);
         let __ws_arg_8 = self.safe_string_k(signed, "signature", &[]);
         let mut orderPayload: Value = self.extend(contractOrder, &[Value::Map({
@@ -2934,9 +2934,9 @@ impl PredictfunCore {
         let mut payout: Value = Value::Null;
         if settled {
             won = (Value::Bool(outcomeStatus.as_deref() == Some("WON")));
-            settleFraction = (if won.as_bool() == Some(true) { Value::Str("1".into()) } else { Value::Str("0".into()) });
+            settleFraction = (if (won).as_bool() == Some(true) { Value::Str("1".into()) } else { Value::Str("0".into()) });
             // a winning share redeems for one unit of collateral, a losing one for nothing
-            payout = (if won.as_bool() == Some(true) { contracts.clone() } else { Value::Str("0".into()) });
+            payout = (if (won).as_bool() == Some(true) { contracts.clone() } else { Value::Str("0".into()) });
         }
         // pnl is realized once the market has resolved, unrealized while it is still trading
         let mut realizedPnl: Value = Value::Null;
@@ -3499,7 +3499,7 @@ impl PredictfunCore {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {string} the contract address on the active chain
  */
-    pub fn exchange_address(&self, mut isNegRisk: Value, mut isYieldBearing: Value) -> Option<String> {
+    pub fn exchange_address(&self, isNegRisk: bool, isYieldBearing: bool) -> Option<String> {
         let mut chainIdValue: Value = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]);
         let mut exchanges: Value = self.safe_dict_k(self.options.clone(), "exchanges", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3510,11 +3510,11 @@ impl PredictfunCore {
     m
 })]);
         let mut identifier: Value = Value::Str("CTF_EXCHANGE".into());
-        if is_true(&isNegRisk) && is_true(&isYieldBearing) {
+        if isNegRisk && isYieldBearing {
             identifier = Value::Str("YIELD_BEARING_NEG_RISK_CTF_EXCHANGE".into());
-        }  else if is_true(&isNegRisk) {
+        }  else if isNegRisk {
             identifier = Value::Str("NEG_RISK_CTF_EXCHANGE".into());
-        }  else if is_true(&isYieldBearing) {
+        }  else if isYieldBearing {
             identifier = Value::Str("YIELD_BEARING_CTF_EXCHANGE".into());
         }
         return self.safe_string(byChain, identifier, &[]).as_str().map(str::to_owned);
@@ -3529,7 +3529,7 @@ impl PredictfunCore {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {string} the contract address on the active chain
  */
-    pub fn conditional_tokens_address(&self, mut isNegRisk: Value, mut isYieldBearing: Value) -> Option<String> {
+    pub fn conditional_tokens_address(&self, isNegRisk: bool, isYieldBearing: bool) -> Option<String> {
         let mut chainIdValue: Value = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]);
         let mut tokens: Value = self.safe_dict_k(self.options.clone(), "conditionalTokens", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3540,11 +3540,11 @@ impl PredictfunCore {
     m
 })]);
         let mut identifier: Value = Value::Str("CONDITIONAL_TOKENS".into());
-        if is_true(&isNegRisk) && is_true(&isYieldBearing) {
+        if isNegRisk && isYieldBearing {
             identifier = Value::Str("YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS".into());
-        }  else if is_true(&isNegRisk) {
+        }  else if isNegRisk {
             identifier = Value::Str("NEG_RISK_CONDITIONAL_TOKENS".into());
-        }  else if is_true(&isYieldBearing) {
+        }  else if isYieldBearing {
             identifier = Value::Str("YIELD_BEARING_CONDITIONAL_TOKENS".into());
         }
         return self.safe_string(byChain, identifier, &[]).as_str().map(str::to_owned);
@@ -3558,7 +3558,7 @@ impl PredictfunCore {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {string} the contract address on the active chain
  */
-    pub fn adapter_address(&self, mut isYieldBearing: Value) -> Option<String> {
+    pub fn adapter_address(&self, isYieldBearing: bool) -> Option<String> {
         let mut chainIdValue: Value = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]);
         let mut adapters: Value = self.safe_dict_k(self.options.clone(), "adapters", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3569,7 +3569,7 @@ impl PredictfunCore {
     m
 })]);
         let mut identifier: Value = Value::Str("NEG_RISK_ADAPTER".into());
-        if is_true(&isYieldBearing) {
+        if isYieldBearing {
             identifier = Value::Str("YIELD_BEARING_NEG_RISK_ADAPTER".into());
         }
         return self.safe_string(byChain, identifier, &[]).as_str().map(str::to_owned);
@@ -3670,7 +3670,7 @@ impl PredictfunCore {
             isYieldBearing = self.safe_bool_k(marketRow, "isYieldBearing", &[Value::Bool(false)]);
         }
         if (side.as_deref() == Some("sell")) {
-            let mut ctfToken: Value = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk.clone(), isYieldBearing.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)]);
+            let mut ctfToken: Value = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk.is_truthy(), isYieldBearing.is_truthy()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)]);
             let mut operators: Vec<Value> = Vec::new();
             let mut explicitOperator: Value = self.safe_string_k(params.clone(), "spender", &[]);
             if (explicitOperator != Value::Null) {
@@ -3678,11 +3678,11 @@ impl PredictfunCore {
             }  else if (outcome == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter".into()))));
             }  else {
-                operators.push(self.exchange_address(isNegRisk.clone(), isYieldBearing.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                operators.push(self.exchange_address(isNegRisk.is_truthy(), isYieldBearing.is_truthy()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
                 // a neg risk match mints and merges through the adapter, which moves the seller's
                 // shares itself, so approving the exchange alone leaves the sell side half open
                 if isNegRisk.as_bool() == Some(true) {
-                    operators.push(self.adapter_address(isYieldBearing.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                    operators.push(self.adapter_address(isYieldBearing.is_truthy()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
                 }
             }
             if (rpcUrl == Value::Null) || (ctfToken == Value::Null) {
@@ -3724,7 +3724,7 @@ impl PredictfunCore {
             if (outcome == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires an \"outcome\" to resolve the exchange to approve, or an explicit \"spender\" parameter".into()))));
             }
-            spender = self.exchange_address(isNegRisk, isYieldBearing).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            spender = self.exchange_address(isNegRisk.is_truthy(), isYieldBearing.is_truthy()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         if (rpcUrl == Value::Null) || (token == Value::Null) || (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain ".into())).into()), chainKey)));
@@ -4207,7 +4207,7 @@ impl PredictfunCore {
         // caller the venue's refusal never reaches - watchOrders (outcome) would sit forever on a
         // topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
         // whatever is already live on this connection plus the hash watch () is about to register
-        let mut hashes: Value = Value::from(vec![Value::Str("orders".into()), Value::Str("myTrades".into())]);
+        let mut hashes: Vec<Value> = vec![Value::Str("orders".into()), Value::Str("myTrades".into())];
         let mut futures: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut futuresLength: f64 = ((futures.len() as i64) as f64);
         {
@@ -4216,14 +4216,14 @@ impl PredictfunCore {
             while { if !__for_first_1473 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1473 = false; i.as_f64().unwrap_or(f64::NAN) < futuresLength } {
             let mut future: Value = futures.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (Value::Int(future.as_str().and_then(|__s| __s.find("orders::")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) || (Value::Int(future.as_str().and_then(|__s| __s.find("myTrades::")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                if let Value::Arr(__a) = &mut hashes { std::sync::Arc::make_mut(__a).push(future); }
+                hashes.push(future);
             }
         }
         }
-        if (messageHash != Value::Null) && !(self.in_array(messageHash.clone(), hashes.clone()).as_bool() == Some(true)) {
-            if let Value::Arr(__a) = &mut hashes { std::sync::Arc::make_mut(__a).push(messageHash); }
+        if (messageHash != Value::Null) && !(self.in_array(messageHash.clone(), Value::from(hashes.clone())).as_bool() == Some(true)) {
+            hashes.push(messageHash);
         }
-        return hashes;
+        return Value::from(hashes);
 
     Value::Null
 }

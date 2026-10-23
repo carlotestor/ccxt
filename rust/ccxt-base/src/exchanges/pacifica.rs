@@ -1672,13 +1672,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn load_account_settings(&mut self, optional_args: &[Value]) -> Value {
-        let mut refresh = get_arg(optional_args, 0, Value::Bool(false));
+        let refresh: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut settings: Value = self.handle_option(Value::Str("loadAccountSettings".into()), Value::Str("settings".into()), &[]);
-        if (settings == Value::Null) || is_true(&(refresh)) {
+        if (settings == Value::Null) || refresh {
             { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("settings".into(), __be_tmp); } }
             settings = self.fetch_account_settings(&[params]).await;
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("settings".into(), settings); }

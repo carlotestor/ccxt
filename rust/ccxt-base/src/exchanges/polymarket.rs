@@ -1435,7 +1435,7 @@ impl PolymarketCore {
         let mut paginate: Value = Value::Bool(false);
         let mut paramsOmitted: Value = params;
         { let __destr_tmp = self.handle_option_and_params(paramsOmitted.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsOmitted.clone(), Value::Int(1000)]).await;
         }
         let mut market: Value = self.market(symbol);
@@ -1613,7 +1613,7 @@ impl PolymarketCore {
         let mut paginate: Value = Value::Bool(false);
         let mut paramsOmitted: Value = params;
         { let __destr_tmp = self.handle_option_and_params(paramsOmitted.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("1h".into()), paramsOmitted.clone(), Value::Int(100)]).await;
         }
         let mut market: Value = self.market(symbol);

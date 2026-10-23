@@ -336,7 +336,7 @@ impl DeriveCore {
         })]);
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue, Value::Int(1)]);
-        if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); }
+        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
         return newValue;
 
     Value::Null
@@ -1739,7 +1739,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
             }
-            if !matched {
+            if !(matched) {
                 let mut loginResult: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
                 if (loginResult != Value::Null) {
                     // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)

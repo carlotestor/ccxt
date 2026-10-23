@@ -465,11 +465,11 @@ impl CoinbaseinternationalCore {
 }
 
     pub fn get_ws_url(&self, optional_args: &[Value]) -> Value {
-        let mut isPrivate = get_arg(optional_args, 0, Value::Bool(false));
+        let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         if is_true(&self.parent.is_native_deribit_credentials()) {
             return Value::Str("wss://www.deribit.com/ws/api/v2".into());
         }
-        if is_true(&isPrivate) {
+        if isPrivate {
             return self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("wsPrivate")).cloned().unwrap_or(Value::Null);
         }
         return self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -540,7 +540,7 @@ impl CoinbaseinternationalCore {
  * @returns {object} the subscription result
  */
     pub async fn subscribe(&mut self, mut channels: Value, mut messageHashes: Value, optional_args: &[Value]) -> Value {
-        let mut isPrivate = get_arg(optional_args, 0, Value::Bool(false));
+        let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -548,7 +548,7 @@ impl CoinbaseinternationalCore {
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("subscribe".into()), &[params]);
         let mut url: Value = self.get_ws_url(&[Value::Bool(false)]);
         let mut method: Value = Value::Str("public/subscribe".into());
-        if is_true(&isPrivate) {
+        if isPrivate {
             url = self.get_ws_url(&[Value::Bool(true)]);
             method = Value::Str("private/subscribe".into());
             self.authenticate(&[]).await;
@@ -592,7 +592,7 @@ impl CoinbaseinternationalCore {
  * @returns {boolean} true when unsubscription has been requested
  */
     pub async fn un_subscribe(&mut self, mut channels: Value, optional_args: &[Value]) -> Value {
-        let mut isPrivate = get_arg(optional_args, 0, Value::Bool(false));
+        let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -600,7 +600,7 @@ impl CoinbaseinternationalCore {
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("unSubscribe".into()), &[params]);
         let mut url: Value = self.get_ws_url(&[Value::Bool(false)]);
         let mut method: Value = Value::Str("public/unsubscribe".into());
-        if is_true(&isPrivate) {
+        if isPrivate {
             url = self.get_ws_url(&[Value::Bool(true)]);
             method = Value::Str("private/unsubscribe".into());
             self.authenticate(&[]).await;
@@ -1990,7 +1990,7 @@ impl CoinbaseinternationalCore {
         let mut paramsDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = paramsDepthEndpoint.clone();
         let mut descriptor: Value = interval.clone();
-        if is_true(&useDepthEndpoint) {
+        if useDepthEndpoint.as_bool() == Some(true) {
             let mut depthparamsDepthVariable = self.handle_option_and_params(paramsDepthEndpoint, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]);
             let mut depth: Value = depthparamsDepthVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsDepth: Value = depthparamsDepthVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -2066,7 +2066,7 @@ impl CoinbaseinternationalCore {
         let mut paramsDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = paramsDepthEndpoint.clone();
         let mut descriptor: Value = interval.clone();
-        if is_true(&useDepthEndpoint) {
+        if useDepthEndpoint.as_bool() == Some(true) {
             let mut depthparamsDepthVariable = self.handle_option_and_params(paramsDepthEndpoint, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]);
             let mut depth: Value = depthparamsDepthVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsDepth: Value = depthparamsDepthVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -2424,10 +2424,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isPrivate = get_arg(optional_args, 1, Value::Bool(false));
+        let isPrivate: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("requestWs".into()), &[params]);
         let mut url: Value = self.get_ws_url(&[Value::Bool(true)]);
-        if isPrivate.as_bool() == Some(true) {
+        if isPrivate {
             self.authenticate(&[]).await;
         }
         let mut requestId: Value = self.request_id();

@@ -196,7 +196,7 @@ impl crate::exchange_generated::ExchangeBase for PoloniexCore {
                 "parse_ws_order_trade" => self.parse_ws_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).map(|v| v.is_truthy()).unwrap_or(false), &args[3.min(args.len())..]).await,
                 "trade_request" => self.trade_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_my_trades" => self.watch_my_trades(&args[..]).await,
@@ -439,14 +439,14 @@ impl PoloniexCore {
  * @param {object} [params] extra parameters specific to the poloniex api
  * @returns {object} data from the websocket stream
  */
-    pub async fn subscribe(&mut self, mut name: Value, mut messageHash: Value, mut isPrivate: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe(&mut self, mut name: Value, mut messageHash: Value, isPrivate: bool, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut publicOrPrivate: Value = Value::Str("public".into());
-        if is_true(&isPrivate) {
+        if isPrivate {
             publicOrPrivate = Value::Str("private".into());
         }
         let mut url: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), publicOrPrivate, &[]);
@@ -743,7 +743,7 @@ impl PoloniexCore {
         if (channel == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
-        let mut ohlcv: Value = self.subscribe(channel.clone(), channel.clone(), Value::Bool(false), &[Value::from(vec![symbol.clone()]), params]).await;
+        let mut ohlcv: Value = self.subscribe(channel.clone(), channel.clone(), false.clone(), &[Value::from(vec![symbol.clone()]), params]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol, limit);
@@ -797,7 +797,7 @@ impl PoloniexCore {
         }
         let mut name: Value = Value::Str("ticker".into());
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut newTickers: Value = self.subscribe(name.clone(), name.clone(), Value::Bool(false), &[symbolsNormalized.clone(), params]).await;
+        let mut newTickers: Value = self.subscribe(name.clone(), name.clone(), false.clone(), &[symbolsNormalized.clone(), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
@@ -908,7 +908,7 @@ impl PoloniexCore {
         let mut nameOptionparamsNameVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("name".into()), &[name]);
         let mut nameOption: Value = nameOptionparamsNameVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsName: Value = nameOptionparamsNameVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut orderbook: Value = self.subscribe(nameOption.clone(), nameOption.clone(), Value::Bool(false), &[Value::from(vec![symbol]), paramsName]).await;
+        let mut orderbook: Value = self.subscribe(nameOption.clone(), nameOption.clone(), false.clone(), &[Value::from(vec![symbol]), paramsName]).await;
         return orderbook.limit();
 
     Value::Null
@@ -940,7 +940,7 @@ impl PoloniexCore {
         self.authenticate(&[]).await;
         let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Null } else { self.symbol(symbol.clone()) });
         let mut symbols: Value = (if (symbolResolved == Value::Null) { Value::Null } else { Value::from(vec![symbolResolved.clone()]) });
-        let mut orders: Value = self.subscribe(name.clone(), name.clone(), Value::Bool(true), &[symbols, params]).await;
+        let mut orders: Value = self.subscribe(name.clone(), name.clone(), true.clone(), &[symbols, params]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved, limit);
@@ -977,7 +977,7 @@ impl PoloniexCore {
         self.authenticate(&[]).await;
         let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Null } else { self.symbol(symbol.clone()) });
         let mut symbols: Value = (if (symbolResolved == Value::Null) { Value::Null } else { Value::from(vec![symbolResolved.clone()]) });
-        let mut trades: Value = self.subscribe(name, messageHash, Value::Bool(true), &[symbols, params]).await;
+        let mut trades: Value = self.subscribe(name, messageHash, true.clone(), &[symbols, params]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved, limit);
@@ -1018,7 +1018,7 @@ impl PoloniexCore {
         if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", name, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
-        return self.subscribe(name.clone(), name.clone(), Value::Bool(true), &[Value::Null, params]).await;
+        return self.subscribe(name.clone(), name.clone(), true.clone(), &[Value::Null, params]).await;
 
     Value::Null
 }

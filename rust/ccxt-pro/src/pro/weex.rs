@@ -416,7 +416,7 @@ impl WeexCore {
 }
 
     pub async fn subscribe_public(&mut self, mut messageHashes: Value, mut channels: Value, optional_args: &[Value]) -> Value {
-        let mut isContract = get_arg(optional_args, 0, Value::Bool(false));
+        let isContract: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -444,7 +444,7 @@ impl WeexCore {
             m
         })]);
         let mut type_var: Value = Value::Str("spot".into());
-        if is_true(&isContract) {
+        if isContract {
             type_var = Value::Str("contract".into());
         }
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]), Value::Str("/public".into())).into());
@@ -455,7 +455,7 @@ impl WeexCore {
 }
 
     pub async fn subscribe_private(&mut self, mut messageHash: Value, mut subscribeHash: Value, mut channel: Value, optional_args: &[Value]) -> Value {
-        let mut isContract = get_arg(optional_args, 0, Value::Bool(false));
+        let isContract: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -465,7 +465,7 @@ impl WeexCore {
     m
 }));
         let mut type_var: Value = Value::Str("spot".into());
-        if is_true(&isContract) {
+        if isContract {
             type_var = Value::Str("contract".into());
         }
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]), Value::Str("/private".into())).into());

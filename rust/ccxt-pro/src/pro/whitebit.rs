@@ -1347,7 +1347,7 @@ impl WhitebitCore {
 }
 
     pub async fn watch_multiple_subscription(&mut self, mut messageHash: Value, mut method: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut isNested = get_arg(optional_args, 0, Value::Bool(false));
+        let isNested: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1375,7 +1375,7 @@ impl WhitebitCore {
                 if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Bool(true)); }
             }
             marketIds = Value::from(vec![marketId.clone()]);
-            if isNested.as_bool() == Some(true) {
+            if isNested {
                 marketIds = Value::from(vec![marketIds.clone()]);
             }
             request = Value::Map({
@@ -1408,7 +1408,7 @@ impl WhitebitCore {
                 // resubscribe
                 let mut marketIdsNew: Value = Value::from(vec![]);
                 marketIdsNew = object_keys(&subscription);
-                if isNested.as_bool() == Some(true) {
+                if isNested {
                     marketIdsNew = Value::from(vec![marketIdsNew.clone()]);
                 }
                 let mut resubRequest: Value = Value::Map({

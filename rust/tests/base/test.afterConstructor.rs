@@ -32,7 +32,7 @@ fn helperTestSandboxState(mut exchange: ccxt::exchange::Exchange, mut expectEnab
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("urls".into())) != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&exchange.prop(&&Value::Str("urls".into())), &Value::Str("test".into()))))));
     let mut isSandboxModeEnabled: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("isSandboxModeEnabled".into()));
-    if is_true(&expectEnabled) {
+    if expectEnabled.as_bool() == Some(true) {
         assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&isSandboxModeEnabled, &Value::Bool(true))))));
         assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&exchange.prop(&&Value::Str("urls".into())), &Value::Str("api".into())), &Value::Str("public".into())).as_str() == Some("https://testnet.org")))));
         assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&exchange.prop(&&Value::Str("urls".into())), &Value::Str("apiBackup".into())), &Value::Str("public".into())).as_str() == Some("https://example.com")))));

@@ -1425,7 +1425,7 @@ impl ExtendedCore {
                 self.handle_mark_price(client.clone(), message.clone());
             }  else if (matches!(&data, Value::Dict(__d) if __d.contains_key("f"))) {
                 self.handle_funding_rate(client.clone(), message.clone());
-            }  else if !isAccountUpdate {
+            }  else if !(isAccountUpdate) {
                 self.handle_order_book(client, message);
             }
         }

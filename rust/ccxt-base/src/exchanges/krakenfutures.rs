@@ -3185,7 +3185,7 @@ impl KrakenfuturesCore {
                     if (details != Value::Null) {
                         isPrior = false;
                         fixed = true;
-                    }  else if !fixed {
+                    }  else if !(fixed) {
                         let mut executedPrice: Value = self.safe_string_k(item.clone(), "price", &[]);
                         let mut orderPriorExecution: Value = self.safe_dict_k(item.clone(), "orderPriorExecution", &[]);
                         details = self.safe_value2(item, Value::Str("orderPriorExecution".into()), Value::Str("orderPriorEdit".into()), &[]);
@@ -3260,7 +3260,7 @@ impl KrakenfuturesCore {
             }
         }
         // if fetchOpenOrders are parsed
-        if (amount == Value::Null) && (!isPrior) && (remaining != Value::Null) {
+        if (amount == Value::Null) && (!(isPrior)) && (remaining != Value::Null) {
             amount = crate::precise::Precise::stringAdd(&filled, &remaining);
         }
         let mut cost: Value = Value::Null;

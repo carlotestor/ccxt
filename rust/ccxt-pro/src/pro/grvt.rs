@@ -382,7 +382,7 @@ impl GrvtCore {
 }
 
     pub async fn subscribe_multiple(&mut self, mut messageHashes: Value, mut request: Value, mut rawHashes: Value, optional_args: &[Value]) -> Value {
-        let mut publicOrPrivate = get_arg(optional_args, 0, Value::Bool(true));
+        let publicOrPrivate: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -392,7 +392,7 @@ impl GrvtCore {
             m
         });
         let mut apiPart: Value = Value::Str("privateTrading".into());
-        if is_true(&publicOrPrivate) {
+        if publicOrPrivate {
             apiPart = Value::Str("publicMarket".into());
         }
         let __ws_arg_0 = crate::value::get_value_k(&self.urls, "api");

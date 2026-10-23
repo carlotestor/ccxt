@@ -749,10 +749,24 @@ impl BitoproCore {
                 m.insert("X-BITOPRO-SIGNATURE".to_string(), signature);
             m
         });
-        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())) { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), headers); }
+        if let Value::Dict(__bf03d0) = &mut self.options {
+            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
+            if let Value::Dict(__bf03d1) = __bf03e1 {
+                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), headers);
+                }
+            }
+        }
         // instantiate client
         self.client(&[url]);
-        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())) { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), originalHeaders); }
+        if let Value::Dict(__bf03d0) = &mut self.options {
+            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
+            if let Value::Dict(__bf03d1) = __bf03e1 {
+                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), originalHeaders);
+                }
+            }
+        }
 }
 
 /*

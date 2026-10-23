@@ -667,7 +667,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if Value::Int(allowed.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 s = Value::Str(format!("{}{}", s, ch).into());
                 lastDash = false;
-            }  else if !lastDash {
+            }  else if !(lastDash) {
                 s = Value::Str(format!("{}{}", s, Value::Str("-".into())).into());
                 lastDash = true;
             }
@@ -934,7 +934,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_205: bool = true;
                 while { if !__for_first_205 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_205 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
-                if is_true(&reload) || !(self.has_outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                if reload.as_bool() == Some(true) || !(self.has_outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                     if let Value::Arr(__a) = &mut missing { std::sync::Arc::make_mut(__a).push(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); }
                 }
             }
@@ -942,7 +942,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut missingLength: i64 = missing.len() as i64;
             let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
             let mut loadAll: Value = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]);
-            if ((missingLength as f64) > ((0i64) as f64)) && loadAll.as_bool() == Some(true) && !wasWarm && !is_true(&reload) {
+            if ((missingLength as f64) > ((0i64) as f64)) && loadAll.as_bool() == Some(true) && !wasWarm && !(reload.as_bool() == Some(true)) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 self.load_outcomes(&[]).await;
@@ -964,7 +964,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             return self.pred().outcomes.clone();
         }
-        if !is_true(&reload) && (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true)) {
+        if !(reload.as_bool() == Some(true)) && (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true)) {
             return self.pred().outcomes.clone();
         }
         self.load_markets(&[reload, params]).await;
@@ -1088,7 +1088,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             // tokens (slug timestamps, strikes, years) are venue artifacts that title searches don't
             // reliably index — and since the result is re-checked against the EXACT handle,
             // a broader query only adds recall, never a wrong match
-            if !wordHasLetters {
+            if !(wordHasLetters) {
                 continue;
             }
             words.push(word);
@@ -1096,7 +1096,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         }
         let mut wordsLength: f64 = ((words.len() as i64) as f64);
-        if (wordsLength == 0.0) || !hasLetters {
+        if (wordsLength == 0.0) || !(hasLetters) {
             return Value::Null;
         }
         return Value::Str(words.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(" ").into());

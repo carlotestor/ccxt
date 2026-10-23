@@ -2605,7 +2605,7 @@ impl BlofinCore {
         if (takeProfitPrice != Value::Null) && (type_var.as_str() != Some("market")) {
             consumedKeys.push(Value::Str("takeProfitLimitPrice".into()));
         }
-        let __ws_arg_9 = self.omit(params, Value::Array(consumedKeys), &[]);
+        let __ws_arg_9 = self.omit(params, Value::from(consumedKeys), &[]);
         return self.extend(request, &[__ws_arg_9]);
 
     Value::Null

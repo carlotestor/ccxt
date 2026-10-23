@@ -648,7 +648,7 @@ impl BinanceCore {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "requestId", &[self.create_safe_dictionary(&[])]);
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue, Value::Int(1)]);
-        if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); }
+        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
         return newValue;
 
     Value::Null
@@ -1156,7 +1156,7 @@ impl BinanceCore {
         let mut listenKey: Value = crate::value::get_value_k(&self.options.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "listenKey");
         let mut url: Value = self.get_private_ws_url(type_var.clone(), listenKey).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut message: Value = Value::Null;
-        let mut newLiquidations: Value = self.watch_multiple(url, Value::Array(messageHashes), &[message, Value::from(vec![type_var])]).await;
+        let mut newLiquidations: Value = self.watch_multiple(url, Value::from(messageHashes), &[message, Value::from(vec![type_var])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
@@ -3275,7 +3275,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isUnsubscribe = get_arg(optional_args, 2, Value::Bool(false));
+        let isUnsubscribe: bool = get_arg(optional_args, 2, Value::Bool(false)).is_truthy();
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -3348,7 +3348,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str(":".into())).into()), channelName).into()), Value::Str("@".into())).into()), symbol).into())); };
-                if isUnsubscribe.as_bool() == Some(true) {
+                if isUnsubscribe {
                     append_to_array(&mut unsubscribeMessageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), unifiedPrefix).into()), Value::Str(":".into())).into()), channelName).into()), Value::Str("@".into())).into()), symbol).into()));
                 }
                 if isOptionMarkPrice {
@@ -3424,7 +3424,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut requestId: Value = self.request_id(url.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), (if isUnsubscribe.as_bool() == Some(true) { Value::Str("UNSUBSCRIBE".into()) } else { Value::Str("SUBSCRIBE".into()) }));
+                m.insert("method".to_string(), (if isUnsubscribe { Value::Str("UNSUBSCRIBE".into()) } else { Value::Str("SUBSCRIBE".into()) }));
                 m.insert("params".to_string(), Value::from(subscriptionArgs));
                 m.insert("id".to_string(), requestId.clone());
             m
@@ -3435,7 +3435,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("id".to_string(), requestId.clone());
             m
         });
-        if isUnsubscribe.as_bool() == Some(true) {
+        if isUnsubscribe {
             subscription = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("unsubscribe".to_string(), Value::Bool(true));
@@ -3451,12 +3451,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // for option mark prices, the underlying stream delivers all contracts in one array message
         // wait on the batch hash so the resolved value is the full dict of new tickers
         let mut waitHashes: Value = hashes.clone();
-        if isOptionMarkPrice && !(isUnsubscribe.as_bool() == Some(true)) {
+        if isOptionMarkPrice && !isUnsubscribe {
             waitHashes = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".into())).into()), channelName).into())]);
         }
         let __ws_arg_13 = self.deep_extend(request, &[paramsSubType]);
         let mut result: Value = self.watch_multiple(url, waitHashes, &[__ws_arg_13, hashes, subscription]).await;
-        if isUnsubscribe.as_bool() == Some(true) {
+        if isUnsubscribe {
             return result;
         }
         // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
@@ -4398,7 +4398,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        if is_true(&isPortfolioMargin) {
+        if isPortfolioMargin.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("portfolioMargin".into(), Value::Bool(true)); }
         }
         let mut response: Value = self.fetch_balance(&[params]).await;
@@ -5006,7 +5006,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut sor: Value = self.safe_bool2(params.clone(), Value::Str("sor".into()), Value::Str("SOR".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("sor".into()), &[Value::Str("SOR".into())]);
         let mut isConditional: Value = self.parent.is_conditional_order(&[paramsOmitted.clone()]);
-        if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && is_true(&isConditional) {
+        if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && isConditional.as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead".into()))));
         }
         let mut isAlgoOrder: bool = (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && ((market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&isConditional);
@@ -6586,7 +6586,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        if is_true(&isPortfolioMargin) {
+        if isPortfolioMargin.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("portfolioMargin".into(), Value::Bool(true)); }
         }
         let mut positions: Value = self.fetch_positions(&[Value::Null, params]).await;
@@ -7380,7 +7380,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        if !rejected {
+        if !(rejected) {
             let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[feedback, id.clone()]);
         }

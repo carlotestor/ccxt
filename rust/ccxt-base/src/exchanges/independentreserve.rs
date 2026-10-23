@@ -1708,7 +1708,7 @@ impl IndependentreserveCore {
             self.check_required_credentials(&[]);
             // independentreserve requires an increasing nonce
             let mut nonce: Value = self.incrementing_nonce();
-            let mut auth: Value = Value::from(vec![url.clone(), Value::Str(format!("{}{}", Value::Str("apiKey=".into()), self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::Str(format!("{}", nonce).into())).into())]);
+            let mut auth: Vec<Value> = vec![url.clone(), Value::Str(format!("{}{}", Value::Str("apiKey=".into()), self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::Str(format!("{}", nonce).into())).into())];
             let mut keys: Value = Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
@@ -1716,10 +1716,10 @@ impl IndependentreserveCore {
                 while { if !__for_first_832 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_832 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut value: Value = to_string_val(&get_value(&params, &key));
-                if let Value::Arr(__a) = &mut auth { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".into())).into()), value).into())); }
+                auth.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".into())).into()), value).into()));
             }
             }
-            let mut message: Value = Value::Str(auth.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
+            let mut message: Value = Value::Str(auth.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
             let mut signature: Value = self.hmac(self.encode(message), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut query: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

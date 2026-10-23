@@ -875,7 +875,7 @@ impl ExtendedCore {
 }));
         let mut markets: Value = self.super_load_markets(reload.clone(), params).await;
         let mut currenciesByNumericId: Value = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]);
-        if (currenciesByNumericId == Value::Null) || is_true(&reload) {
+        if (currenciesByNumericId == Value::Null) || reload.as_bool() == Some(true) {
             { let __be_tmp = self.index_by_stringified_numeric_id(self.currencies.clone()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("currenciesByNumericId".into(), __be_tmp); } }
         }
         return markets;
@@ -3559,11 +3559,11 @@ impl ExtendedCore {
 }
 
     pub fn get_extended_stark_amount(&self, mut amount: Value, mut resolution: Value, optional_args: &[Value]) -> Option<String> {
-        let mut roundUp = get_arg(optional_args, 0, Value::Bool(false));
+        let roundUp: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut resolutionString: Value = self.number_to_string(resolution);
         let mut precise: Value = crate::precise::Precise::stringMul(&amount, &resolutionString);
         let mut result: Value = self.decimal_to_precision(precise.clone(), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::NO_PADDING)]);
-        if is_true(&roundUp) && crate::precise::Precise::stringGt(&precise, &result).as_bool() == Some(true) {
+        if roundUp && crate::precise::Precise::stringGt(&precise, &result).as_bool() == Some(true) {
             result = crate::precise::Precise::stringAdd(&result, &Value::Str("1".into()));
         }
         return result.as_str().map(str::to_owned);
@@ -3610,7 +3610,7 @@ impl ExtendedCore {
         let mut quoteRoundUp: Value = isBuy.clone();
         let mut baseAmount: Value = self.get_extended_stark_amount(amountString, syntheticResolution, &[baseRoundUp]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut collateralAmount: Value = self.get_extended_stark_amount(quoteAmount.clone(), collateralResolution.clone(), &[quoteRoundUp]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        if is_true(&isBuy) {
+        if isBuy.as_bool() == Some(true) {
             collateralAmount = crate::precise::Precise::stringNeg(&collateralAmount);
         }  else {
             baseAmount = crate::precise::Precise::stringNeg(&baseAmount);

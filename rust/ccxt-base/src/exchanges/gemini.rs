@@ -1608,7 +1608,7 @@ impl GeminiCore {
         let mut inverse: Value = Value::Null;
         let mut isString: bool = matches!(&response, Value::Str(_));
         let mut isArray: bool = matches!(&response, Value::Arr(_));
-        if !isString && !isArray {
+        if !isString && !(isArray) {
             marketId = self.safe_string_lower_k(response.clone(), "symbol", &[]);
             amountPrecision = self.safe_number_k(response.clone(), "tick_size", &[]); // right, exchange has an imperfect naming and this turns out to be an amount-precision
             tickSize = self.safe_number_k(response.clone(), "quote_increment", &[]); // this is tick-size actually

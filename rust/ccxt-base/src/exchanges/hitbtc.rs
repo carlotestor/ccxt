@@ -4968,18 +4968,18 @@ impl HitbtcCore {
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
-            let mut payload: Value = Value::from(vec![method.clone(), Value::Str(format!("{}{}", Value::Str("/api/3/".into()), implodedPath).into())]);
+            let mut payload: Vec<Value> = vec![method.clone(), Value::Str(format!("{}{}", Value::Str("/api/3/".into()), implodedPath).into())];
             if (method.as_str() == Some("GET")) {
                 if (getRequest != Value::Null) {
-                    if let Value::Arr(__a) = &mut payload { std::sync::Arc::make_mut(__a).push(getRequest); }
+                    payload.push(getRequest);
                 }
             }  else {
                 if (bodyResolved != Value::Null) {
-                    if let Value::Arr(__a) = &mut payload { std::sync::Arc::make_mut(__a).push(bodyResolved.clone()); }
+                    payload.push(bodyResolved.clone());
                 }
             }
-            if let Value::Arr(__a) = &mut payload { std::sync::Arc::make_mut(__a).push(timestamp.clone()); }
-            let mut payloadString: Value = Value::Str(payload.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("")).unwrap_or_default().into());
+            payload.push(timestamp.clone());
+            let mut payloadString: Value = Value::Str(payload.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("").into());
             let mut signature: Value = self.hmac(self.encode(payloadString), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             let mut secondPayload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), signature).into()), Value::Str(":".into())).into()), timestamp).into());
             let mut encoded: Value = self.string_to_base64(secondPayload, &[]);

@@ -1183,11 +1183,11 @@ impl DeltaCore {
 }));
         let mut markets: Value = self.super_load_markets(reload.clone(), params).await;
         let mut currenciesByNumericId: Value = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]);
-        if (currenciesByNumericId == Value::Null) || is_true(&reload) {
+        if (currenciesByNumericId == Value::Null) || reload.as_bool() == Some(true) {
             { let __be_tmp = self.index_by_stringified_numeric_id(self.currencies.clone()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("currenciesByNumericId".into(), __be_tmp); } }
         }
         let mut marketsByNumericId: Value = self.safe_dict_k(self.options.clone(), "marketsByNumericId", &[]);
-        if (marketsByNumericId == Value::Null) || is_true(&reload) {
+        if (marketsByNumericId == Value::Null) || reload.as_bool() == Some(true) {
             { let __be_tmp = self.index_by_stringified_numeric_id(self.markets.clone()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("marketsByNumericId".into(), __be_tmp); } }
         }
         return markets;

@@ -197,7 +197,7 @@ impl crate::exchange_generated::ExchangeBase for BitgetCore {
                 "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_private" => self.un_watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
-                "un_watch_public" => self.un_watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "un_watch_public" => self.un_watch_public(args.get(0).map(|v| v.is_truthy()).unwrap_or(false), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "un_watch_ticker" => self.un_watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_balance" => self.watch_balance(&args[..]).await,
@@ -208,9 +208,9 @@ impl crate::exchange_generated::ExchangeBase for BitgetCore {
                 "watch_order_book_for_symbols" => self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_orders" => self.watch_orders(&args[..]).await,
                 "watch_positions" => self.watch_positions(&args[..]).await,
-                "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
-                "watch_public_multiple" => self.watch_public_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "watch_private" => self.watch_private(args.get(0).map(|v| v.is_truthy()).unwrap_or(false), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "watch_public" => self.watch_public(args.get(0).map(|v| v.is_truthy()).unwrap_or(false), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "watch_public_multiple" => self.watch_public_multiple(args.get(0).map(|v| v.is_truthy()).unwrap_or(false), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_tickers" => self.watch_tickers(&args[..]).await,
                 "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -415,7 +415,7 @@ impl BitgetCore {
 }
 
     pub fn get_inst_type(&self, mut methodName: Value, mut market: Value, optional_args: &[Value]) -> Value {
-        let mut uta = get_arg(optional_args, 0, Value::Bool(false));
+        let uta: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -436,7 +436,7 @@ impl BitgetCore {
         let mut instTypeOption: Value = instTypeOptionparamsInstTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsInstType: Value = instTypeOptionparamsInstTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut instType: Value = instTypeOption.clone();
-        if is_true(&uta) && (instTypeOption != Value::Null) {
+        if uta && (instTypeOption != Value::Null) {
             instType = instTypeOption.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         }
         return Value::from(vec![instType, paramsInstType]);
@@ -488,7 +488,7 @@ impl BitgetCore {
         }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("ticker".into())); }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolOrInstId), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-        return self.watch_public(uta, messageHash, args, &[paramsValue]).await;
+        return self.watch_public(uta.is_truthy(), messageHash, args, &[paramsValue]).await;
 
     Value::Null
 }
@@ -570,7 +570,7 @@ impl BitgetCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into()));
         }
         }
-        let mut tickers: Value = self.watch_public_multiple(uta, Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
+        let mut tickers: Value = self.watch_public_multiple(uta.is_truthy(), Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -857,7 +857,7 @@ impl BitgetCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into()));
         }
         }
-        let mut tickers: Value = self.watch_public_multiple(uta, Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
+        let mut tickers: Value = self.watch_public_multiple(uta.is_truthy(), Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -989,7 +989,7 @@ impl BitgetCore {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into());
         }
-        let mut ohlcv: Value = self.watch_public(isStockOrUta, messageHash, args, &[paramsRequest]).await;
+        let mut ohlcv: Value = self.watch_public(isStockOrUta.is_truthy(), messageHash, args, &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -1346,7 +1346,7 @@ impl BitgetCore {
         if privateChannel.as_bool() == Some(true) {
             return self.un_watch_private(uta.clone(), messageHash.clone(), args.clone(), &[paramsRequest.clone()]).await;
         }
-        return self.un_watch_public(uta, messageHash, args, &[paramsRequest]).await;
+        return self.un_watch_public(uta.is_truthy(), messageHash, args, &[paramsRequest]).await;
 
     Value::Null
 }
@@ -1429,7 +1429,7 @@ impl BitgetCore {
         if matches!(&isStockOrUta, Value::Bool(true)) {
             add_element_to_object(&mut paramsCursor, &Value::Str("uta".into()), Value::Bool(true));
         }
-        let mut orderbook: Value = self.watch_public_multiple(isStockOrUta, Value::from(messageHashes), Value::from(topics), &[paramsCursor]).await;
+        let mut orderbook: Value = self.watch_public_multiple(isStockOrUta.is_truthy(), Value::from(messageHashes), Value::from(topics), &[paramsCursor]).await;
         if incrementalFeed {
             return orderbook.limit();
         }  else {
@@ -1709,7 +1709,7 @@ impl BitgetCore {
                 m
             })]);
         }
-        let mut trades: Value = self.watch_public_multiple(uta, Value::from(messageHashes), Value::from(topics), &[paramsRequest]).await;
+        let mut trades: Value = self.watch_public_multiple(uta.is_truthy(), Value::from(messageHashes), Value::from(topics), &[paramsRequest]).await;
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
@@ -2038,7 +2038,7 @@ impl BitgetCore {
         if !(uta.as_bool() == Some(true)) {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), Value::Str("default".into())); }
         }
-        let mut newPositions: Value = self.watch_private(uta, messageHash, subscriptionHash, args, &[paramsRequest]).await;
+        let mut newPositions: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, args, &[paramsRequest]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2412,7 +2412,7 @@ impl BitgetCore {
         if !(uta.as_bool() == Some(true)) {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), instId); }
         }
-        let mut orders: Value = self.watch_private(uta, messageHash, subscriptionHash, args, &[paramsRequest]).await;
+        let mut orders: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, args, &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -2945,7 +2945,7 @@ impl BitgetCore {
         if !(uta.as_bool() == Some(true)) {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), Value::Str("default".into())); }
         }
-        let mut trades: Value = self.watch_private(uta, messageHash, subscriptionHash, args, &[paramsRequest]).await;
+        let mut trades: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, args, &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -3189,7 +3189,7 @@ impl BitgetCore {
         }
         let mut instTypeLower: Value = self.safe_string_lower_k(args.clone(), "instType", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), instTypeLower).into());
-        return self.watch_private(isStockOrUta, messageHash.clone(), messageHash.clone(), args, &[paramsRequest]).await;
+        return self.watch_private(isStockOrUta.is_truthy(), messageHash.clone(), messageHash.clone(), args, &[paramsRequest]).await;
 
     Value::Null
 }
@@ -3355,17 +3355,17 @@ impl BitgetCore {
         client.resolve(&[self.balance.clone(), messageHash]);
 }
 
-    pub async fn watch_public(&mut self, mut uta: Value, mut messageHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_public(&mut self, uta: bool, mut messageHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = (if is_true(&(uta)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
+        let mut url: Value = (if uta { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
         let mut sandboxMode: Value = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]);
         if sandboxMode.as_bool() == Some(true) {
             let mut instType: Option<String> = self.safe_string_k(args.clone(), "instType", &[]).as_str().map(str::to_owned);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
-                if is_true(&uta) {
+                if uta {
                     url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "utaPublic");
                 }  else {
                     url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "public");
@@ -3384,17 +3384,17 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub async fn un_watch_public(&mut self, mut uta: Value, mut messageHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_public(&mut self, uta: bool, mut messageHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = (if is_true(&(uta)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
+        let mut url: Value = (if uta { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
         let mut sandboxMode: Value = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]);
         if sandboxMode.as_bool() == Some(true) {
             let mut instType: Option<String> = self.safe_string_k(args.clone(), "instType", &[]).as_str().map(str::to_owned);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
-                if is_true(&uta) {
+                if uta {
                     url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "utaPublic");
                 }  else {
                     url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "public");
@@ -3448,12 +3448,12 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub async fn watch_public_multiple(&mut self, mut uta: Value, mut messageHashes: Value, mut argsArray: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_public_multiple(&mut self, uta: bool, mut messageHashes: Value, mut argsArray: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = (if is_true(&(uta)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
+        let mut url: Value = (if uta { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
         let mut sandboxMode: Value = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]);
         if sandboxMode.as_bool() == Some(true) {
             let mut argsArrayFirst: Value = self.safe_dict(argsArray.clone(), Value::Int(0), &[Value::Map({
@@ -3462,7 +3462,7 @@ impl BitgetCore {
             })]);
             let mut instType: Option<String> = self.safe_string_k(argsArrayFirst, "instType", &[]).as_str().map(str::to_owned);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
-                url = (if is_true(&(uta)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "public") });
+                url = (if uta { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "public") });
             }
         }
         let mut request: Value = Value::Map({
@@ -3514,17 +3514,17 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, mut uta: Value, mut messageHash: Value, mut subscriptionHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, uta: bool, mut messageHash: Value, mut subscriptionHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = (if is_true(&(uta)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "utaPrivate") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private") });
+        let mut url: Value = (if uta { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "utaPrivate") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private") });
         let mut sandboxMode: Value = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]);
         if sandboxMode.as_bool() == Some(true) {
             let mut instType: Option<String> = self.safe_string_k(args.clone(), "instType", &[]).as_str().map(str::to_owned);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
-                if is_true(&uta) {
+                if uta {
                     url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "utaPrivate");
                 }  else {
                     url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "private");

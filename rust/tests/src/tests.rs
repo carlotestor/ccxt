@@ -340,7 +340,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub async fn test_method(&mut self, mut methodName: Value, mut exchange: Value, mut args: Value, mut isPublic: Value) -> Value {
+    pub async fn test_method(&mut self, mut methodName: Value, mut exchange: Value, mut args: Value, isPublic: bool) -> Value {
         // todo: temporary skip for c#
         if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("cs")) {
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("checksum".into()), Value::Bool(false));
@@ -356,7 +356,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isConstructorTest: bool = methodName.as_str() == Some("afterConstruct");
         let mut isFeatureTest: bool = methodName.as_str() == Some("features");
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if !is_true(&isPublic) && (in_op(&self.checkedPublicTests, &methodName)) && !isFetchCurrencies {
+        if !isPublic && (in_op(&self.checkedPublicTests, &methodName)) && !isFetchCurrencies {
             return Value::Bool(true);
         }
         let mut skipMessage: Value = Value::Null;
@@ -395,7 +395,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         dump(&[self.add_padding(Value::Str("[INFO] TESTING DONE".into()), Value::Int(25)), name.clone(), methodName.clone()]);
         // add to the list of successed tests
-        if is_true(&isPublic) {
+        if isPublic {
             add_element_to_object(&mut self.checkedPublicTests, &methodName, Value::Bool(true));
         }
         return Value::Bool(true);
@@ -476,7 +476,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_safe(&mut self, mut methodName: Value, mut exchange: Value, optional_args: &[Value]) -> Value {
         let mut args = get_arg(optional_args, 0, Value::from(vec![]));
-        let mut isPublic = get_arg(optional_args, 1, Value::Bool(false));
+        let isPublic: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
         // tests queue if any single test-method fails. Instead, they are echoed with
@@ -531,7 +531,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                             }
                         }
                         // output the message
-                        let mut failType: Value = (if is_true(&shouldFail) { Value::Str("[TEST_FAILURE]".into()) } else { Value::Str("[TEST_WARNING]".into()) });
+                        let mut failType: Value = (if shouldFail.as_bool() == Some(true) { Value::Str("[TEST_FAILURE]".into()) } else { Value::Str("[TEST_WARNING]".into()) });
                         dump(&[failType.clone(), get_value(&exchange, &Value::Str("id".into())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Method could not be tested due to a repeated Network/Availability issues".into()), Value::Str(" | ".into()), exceptionMessage(e.clone())]);
                         return retSuccess;
                     }  else {
@@ -554,7 +554,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         return Value::Bool(true);
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                    if is_true(&isPublic) && isAuthError {
+                    if isPublic && isAuthError {
                         if is_true(&self.info) {
                             // todo - turn into warning
                             dump(&[Value::Str("[INFO]".into()), get_value(&exchange, &Value::Str("id".into())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Authentication problem for public method".into()), exceptionMessage(e.clone())]);
@@ -669,7 +669,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        let mut testPrefixString: Value = (if is_true(&isPublicTest) { Value::Str("PUBLIC_TESTS".into()) } else { Value::Str("PRIVATE_TESTS".into()) });
+        let mut testPrefixString: Value = (if isPublicTest.as_bool() == Some(true) { Value::Str("PUBLIC_TESTS".into()) } else { Value::Str("PRIVATE_TESTS".into()) });
         if Value::Int(failedMethods.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut errorsString: Value = Value::Str(failedMethods.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into());
             dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), testPrefixString.clone(), Value::Str(format!("{}{}", Value::Str("Failed methods : ".into()), errorsString).into())]);
@@ -744,7 +744,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn get_markets_from_exchange(&self, mut exchange: Value, optional_args: &[Value]) -> Value {
-        let mut spot = get_arg(optional_args, 0, Value::Bool(true));
+        let spot: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut res: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -757,9 +757,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_1611 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1611 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = get_value(&markets, &key);
-            if is_true(&spot) && (is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
+            if spot && (is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
                 add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".into())), market.clone());
-            }  else if !is_true(&spot) && (!is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
+            }  else if !spot && (!is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
                 add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".into())), market.clone());
             }
         }
@@ -775,7 +775,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut codes: Value = Value::from(vec![Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("XRP".into()), Value::Str("LTC".into()), Value::Str("BNB".into()), Value::Str("DASH".into()), Value::Str("DOGE".into()), Value::Str("ETC".into()), Value::Str("TRX".into()), Value::Str("USDT".into()), Value::Str("USDC".into()), Value::Str("USD".into()), Value::Str("GUSD".into()), Value::Str("EUR".into()), Value::Str("TUSD".into()), Value::Str("CNY".into()), Value::Str("JPY".into()), Value::Str("BRL".into())]);
         let mut spotSymbols: Value = Value::from(vec![Value::Str("BTC/USDT".into()), Value::Str("BTC/USDC".into()), Value::Str("BTC/USD".into()), Value::Str("BTC/CNY".into()), Value::Str("BTC/EUR".into()), Value::Str("BTC/AUD".into()), Value::Str("BTC/BRL".into()), Value::Str("BTC/JPY".into()), Value::Str("ETH/USDT".into()), Value::Str("ETH/USDC".into()), Value::Str("ETH/USD".into()), Value::Str("ETH/CNY".into()), Value::Str("ETH/EUR".into()), Value::Str("ETH/AUD".into()), Value::Str("ETH/BRL".into()), Value::Str("ETH/JPY".into()), Value::Str("EUR/USDT".into()), Value::Str("EUR/USD".into()), Value::Str("EUR/USDC".into()), Value::Str("USDT/EUR".into()), Value::Str("USD/EUR".into()), Value::Str("USDC/EUR".into()), Value::Str("BTC/ETH".into()), Value::Str("ETH/BTC".into())]);
         let mut swapSymbols: Value = Value::from(vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("BTC/USD:USDT".into()), Value::Str("BTC/USDC:USDC".into()), Value::Str("BTC/USD:USDC".into()), Value::Str("BTC/USD:USD".into()), Value::Str("ETH/USDT:USDT".into()), Value::Str("ETH/USD:USDT".into()), Value::Str("ETH/USDC:USDC".into()), Value::Str("ETH/USD:USDC".into()), Value::Str("ETH/USD:USD".into()), Value::Str("BTC/USD:BTC".into()), Value::Str("ETH/USD:ETH".into())]);
-        let mut targetSymbols: Value = (if is_true(&spot) { spotSymbols.clone() } else { swapSymbols.clone() });
+        let mut targetSymbols: Value = (if spot.as_bool() == Some(true) { spotSymbols.clone() } else { swapSymbols.clone() });
         let mut symbol: Value = self.get_test_symbol(exchange.clone(), spot.clone(), targetSymbols.clone());
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if (symbol == Value::Null) {
@@ -1053,12 +1053,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                 }
                 }
-                if is_true(&pinFound) {
+                if pinFound.as_bool() == Some(true) {
                     break;
                 }
             }
             }
-            if !is_true(&pinFound) {
+            if !(pinFound.as_bool() == Some(true)) {
                 dump(&[Value::Str("[INFO:MAIN] preferredPredictionOutcome".into()), outcomeSymbol.clone(), Value::Str("not in the live listing (stale pin?) - falling back to market scan".into())]);
                 outcomeSymbol = Value::Null;
             }
@@ -1531,7 +1531,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1623: bool = true;
             while { if !__for_first_1623 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1623 = false; j.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                self.test_method(proxyTestName.clone(), exchange.clone(), Value::from(vec![]), Value::Bool(true)).await;
+                self.test_method(proxyTestName.clone(), exchange.clone(), Value::from(vec![]), true.clone()).await;
                 return Value::Bool(true);
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
@@ -1645,7 +1645,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        if is_true(&cond) {
+        if cond.as_bool() == Some(true) {
             return;
         }
         let mut calculatedString: Value = jsonStringify(calculatedOutput.clone());
@@ -1978,7 +1978,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut newOutputString: Value = (if (sanitizedNewOutput != Value::Null) { to_string_val(&sanitizedNewOutput) } else { Value::Str("undefined".into()) });
             let mut storedOutputString: Value = (if (sanitizedStoredOutput != Value::Null) { to_string_val(&sanitizedStoredOutput) } else { Value::Str("undefined".into()) });
             let mut messageError: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("output value mismatch:".into()), newOutputString).into()), Value::Str(" != ".into())).into()), storedOutputString).into());
-            if is_true(&strictTypeCheck) && (self.lang.as_str() != Some("C#")) {
+            if strictTypeCheck.as_bool() == Some(true) && (self.lang.as_str() != Some("C#")) {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 self.assert_static_error(Value::Bool(is_equal(&sanitizedNewOutput, &sanitizedStoredOutput)), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
@@ -1990,7 +1990,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut isComputedUndefined: Value = (Value::Bool(sanitizedNewOutput == Value::Null));
                 let mut isStoredUndefined: Value = (Value::Bool(sanitizedStoredOutput == Value::Null));
                 let mut shouldBeSame: Value = Value::Bool((isComputedBool.as_bool() == isStoredBool.as_bool()) && (isComputedString.as_bool() == isStoredString.as_bool()) && (isComputedUndefined.as_bool() == isStoredUndefined.as_bool()));
-                if !is_true(&shouldBeSame) && ((self.lang.as_str() == Some("PY")) || (self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO"))) && !is_true(&isComputedBool) && !is_true(&isStoredBool) && !is_true(&isComputedUndefined) && !is_true(&isStoredUndefined) {
+                if !(shouldBeSame.as_bool() == Some(true)) && ((self.lang.as_str() == Some("PY")) || (self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO"))) && !(isComputedBool.as_bool() == Some(true)) && !(isStoredBool.as_bool() == Some(true)) && !(isComputedUndefined.as_bool() == Some(true)) && !(isStoredUndefined.as_bool() == Some(true)) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
@@ -2005,10 +2005,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut computedNumeric: Value = sanitizedNewOutput.clone();
                     let mut storedNumeric: Value = sanitizedStoredOutput.clone();
                     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                        if is_true(&isComputedString) {
+                        if isComputedString.as_bool() == Some(true) {
                             computedNumeric = exchange.parse_to_numeric(sanitizedNewOutput.clone());
                         }
-                        if is_true(&isStoredString) {
+                        if isStoredString.as_bool() == Some(true) {
                             storedNumeric = exchange.parse_to_numeric(sanitizedStoredOutput.clone());
                         }
                         isNumber = Value::Bool(true);
@@ -2016,7 +2016,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         isNumber = Value::Bool(false);
                     }
-                    if is_true(&isNumber) {
+                    if isNumber.as_bool() == Some(true) {
                         self.assert_static_error(Value::Bool(is_equal(&computedNumeric, &storedNumeric)), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                         return Value::Bool(true);
                     }
@@ -2037,7 +2037,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             // if we can't parse it to number, then it's not a number
                             isNumber = Value::Bool(false);
                         }
-                        if is_true(&isNumber) {
+                        if isNumber.as_bool() == Some(true) {
                             self.assert_static_error(Value::Bool(exchange.parse_to_numeric(sanitizedNewOutput.clone()).as_f64() == exchange.parse_to_numeric(sanitizedStoredOutput.clone()).as_f64()), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                             return Value::Bool(true);
                         }  else {
@@ -2366,7 +2366,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn inject_ws_messages(&mut self, mut exchange: Value, mut url: Value, mut messages: Value, optional_args: &[Value]) -> Value {
-        let mut sequential = get_arg(optional_args, 0, Value::Bool(false));
+        let sequential: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1637: bool = true;
@@ -2403,7 +2403,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         exchange.sleep(Value::Int(50)).await;
-        if is_true(&sequential) {
+        if sequential {
             // a watch call of a sequence can register its future after every
             // frame was already consumed — keep rejecting until the watch side
             // reports completion (the rejections force it to finish). the time

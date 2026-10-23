@@ -3516,10 +3516,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn get_url_by_market_type(&self, mut type_var: Value, optional_args: &[Value]) -> Option<String> {
-        let mut isLinear = get_arg(optional_args, 0, Value::Bool(true));
-        let mut isPrivate = get_arg(optional_args, 1, Value::Bool(false));
-        let mut isFeed = get_arg(optional_args, 2, Value::Bool(false));
-        let mut isV5 = get_arg(optional_args, 3, Value::Bool(false));
+        let isLinear: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
+        let isPrivate: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
+        let isFeed: bool = get_arg(optional_args, 2, Value::Bool(false)).is_truthy();
+        let isV5: bool = get_arg(optional_args, 3, Value::Bool(false)).is_truthy();
         let mut api: Value = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]);
         let mut hostname: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3529,10 +3529,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hostnameURL: Value = Value::Null;
         let mut url: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
-            if is_true(&isPrivate) {
+            if isPrivate {
                 hostnameURL = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "spot"), "private");
             }  else {
-                if is_true(&isFeed) {
+                if isFeed {
                     hostnameURL = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "spot"), "feed");
                 }  else {
                     hostnameURL = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "spot"), "public");
@@ -3541,9 +3541,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             url = self.implode_params(hostnameURL, hostname);
         }  else {
             let mut baseUrl: Value = get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), &type_var);
-            let mut subTypeUrl: Value = (if is_true(&isLinear) { crate::value::get_value_k(&baseUrl, "linear") } else { crate::value::get_value_k(&baseUrl, "inverse") });
-            if is_true(&isPrivate) {
-                if is_true(&isV5) && is_true(&isLinear) {
+            let mut subTypeUrl: Value = (if isLinear { crate::value::get_value_k(&baseUrl, "linear") } else { crate::value::get_value_k(&baseUrl, "inverse") });
+            if isPrivate {
+                if isV5 && isLinear {
                     url = self.safe_string_k(subTypeUrl.clone(), "privateV5", &[crate::value::get_value_k(&subTypeUrl, "private")]);
                 }  else {
                     url = crate::value::get_value_k(&subTypeUrl, "private");

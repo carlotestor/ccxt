@@ -383,7 +383,7 @@ impl PolymarketCore {
             }
         }
         }
-        if !willSend {
+        if !(willSend) {
             let mut emptyRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

@@ -1582,7 +1582,7 @@ impl BackpackCore {
         let mut amountPrecision: Value = self.safe_number_k(quantityFilter, "stepSize", &[]);
         let mut type_var: Value = Value::Null;
         let mut rawType: Value = self.safe_string_k(market.clone(), "marketType", &[]);
-        let mut rfq: bool = rawType.as_str() == Some("RFQ");
+        let mut rfq: Value = Value::Bool(rawType.as_str() == Some("RFQ"));
         let mut security: Value = self.safe_dict_k(market.clone(), "security", &[]);
         let mut baseSymbol: Value = self.safe_string_k(market.clone(), "baseSymbol", &[Value::Str("".into())]);
         let mut stock: Value = Value::Bool((self.safe_string_k(market.clone(), "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security != Value::Null) || (baseSymbol.as_str().is_some_and(|__s| __s.ends_with(".US"))) || (baseSymbol.as_str().is_some_and(|__s| __s.ends_with(".HK"))));
@@ -1592,15 +1592,15 @@ impl BackpackCore {
         let mut settle: Value = Value::Null;
         let mut settleId: Value = Value::Null;
         let mut contractSize: Value = Value::Null;
-        if (typeOfMarket.as_deref() == Some("spot")) || rfq {
+        if (typeOfMarket.as_deref() == Some("spot")) || matches!(&rfq, Value::Bool(true)) {
             type_var = Value::Str("spot".into());
-            if rfq {
+            if matches!(&rfq, Value::Bool(true)) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str(".RFQ/".into())).into()), quote).into());
                 let mut sessions: Value = self.safe_list_k(security.clone(), "sessions", &[Value::from(vec![])]);
                 let mut stepSize: Value = Value::Null;
                 let mut minimum: Value = Value::Null;
                 let mut maximum: Value = Value::Null;
-                let mut unbounded: bool = false;
+                let mut unbounded: Value = Value::Bool(false);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_243: bool = true;
@@ -1615,7 +1615,7 @@ impl BackpackCore {
                         minimum = sessionMin.clone();
                     }
                     if (sessionMax == Value::Null) {
-                        unbounded = true;
+                        unbounded = Value::Bool(true);
                     }  else if (maximum == Value::Null) || crate::precise::Precise::stringGt(&sessionMax, &maximum).as_bool() == Some(true) {
                         maximum = sessionMax.clone();
                     }
@@ -1625,7 +1625,7 @@ impl BackpackCore {
                 if sessionsLength > ((0i64) as f64) {
                     amountPrecision = self.parse_number(stepSize, &[]);
                     minQuantity = self.parse_number(minimum, &[]);
-                    maxQuantity = (if (unbounded) { Value::Null } else { self.parse_number(maximum, &[]) });
+                    maxQuantity = (if (unbounded).as_bool() == Some(true) { Value::Null } else { self.parse_number(maximum, &[]) });
                 }
             }
         }  else if (typeOfMarket.as_deref() == Some("swap")) {
@@ -1641,7 +1641,7 @@ impl BackpackCore {
         }
         let mut orderBookState: Option<String> = self.safe_string_k(market.clone(), "orderBookState", &[]).as_str().map(str::to_owned);
         // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
-        let mut active: Value = (if (rfq && (orderBookState.is_none())) { (Value::Bool((id != Value::Null) || (self.safe_string_k(security, "asset", &[]) != Value::Null))) } else { (Value::Bool(orderBookState.as_deref() == Some("Open"))) });
+        let mut active: Value = (if (matches!(&rfq, Value::Bool(true)) && (orderBookState.is_none())) { (Value::Bool((id != Value::Null) || (self.safe_string_k(security, "asset", &[]) != Value::Null))) } else { (Value::Bool(orderBookState.as_deref() == Some("Open"))) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -1654,9 +1654,9 @@ impl BackpackCore {
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), type_var.clone());
         m.insert("spot".to_string(), Value::Bool(type_var.as_str() == Some("spot")));
-        m.insert("margin".to_string(), Value::Bool((type_var.as_str() == Some("spot")) && !(matches!(&stock, Value::Bool(true))) && !rfq));
+        m.insert("margin".to_string(), Value::Bool((type_var.as_str() == Some("spot")) && !(matches!(&stock, Value::Bool(true))) && !(matches!(&rfq, Value::Bool(true)))));
         m.insert("stock".to_string(), stock);
-        m.insert("executionModel".to_string(), (if (rfq) { Value::Str("rfq".into()) } else { Value::Null }));
+        m.insert("executionModel".to_string(), (if (rfq).as_bool() == Some(true) { Value::Str("rfq".into()) } else { Value::Null }));
         m.insert("swap".to_string(), Value::Bool(type_var.as_str() == Some("swap")));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
@@ -1821,8 +1821,8 @@ impl BackpackCore {
         if (fromIsStock.as_bool() == toIsStock.as_bool()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" conversion requires exactly one stock currency".into()))));
         }
-        let mut stockCode: Value = (if matches!(&fromIsStock, Value::Bool(true)) { fromCode.clone() } else { toCode.clone() });
-        let mut quoteCode: Value = (if matches!(&fromIsStock, Value::Bool(true)) { toCode } else { fromCode });
+        let mut stockCode: Value = (if (fromIsStock).as_bool() == Some(true) { fromCode.clone() } else { toCode.clone() });
+        let mut quoteCode: Value = (if (fromIsStock).as_bool() == Some(true) { toCode } else { fromCode });
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", stockCode, Value::Str(".RFQ/".into())).into()), quoteCode).into());
         let mut market: Value = self.safe_dict(self.markets.clone(), symbol.clone(), &[]);
         if (market == Value::Null) || (self.safe_string_k(market.clone(), "executionModel", &[]).as_str() != Some("rfq")) || !matches!(self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -2275,7 +2275,7 @@ impl BackpackCore {
         let mut stockExplicitlyDisabled: bool = (match &(self.safe_value2(params, Value::Str("stock".into()), Value::Str("defaultStock".into()), &[])) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) });
         let mut needsExternalRfqTickers: bool = (source.as_deref() == Some("Venue")) && (self.safe_string_k(query.clone(), "source", &[]) == Value::Null) && hasRfqSymbol && !stockExplicitlyDisabled;
         let mut requestParams: Value = query.clone();
-        if (source.as_deref() == Some("External")) && (stockOnly.as_bool() == Some(true) || hasStockSymbol) && !stockExplicitlyDisabled {
+        if (source.as_deref() == Some("External")) && (stockOnly.as_bool() == Some(true) || hasStockSymbol) && !(stockExplicitlyDisabled) {
             requestParams = self.extend(query.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("stock".to_string(), Value::Bool(true));

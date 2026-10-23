@@ -1892,9 +1892,9 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promises: Value = Value::from(vec![self.sapi_public_get_v3_exchange_info(&[params.clone()]).await, self.fapi_public_get_v3_exchange_info(&[params]).await]);
-        if let Value::Arr(__a) = &mut promises { std::sync::Arc::make_mut(__a).push(self.sign_in(&[]).await); }
-        let mut results: Value = promise_all(&promises).await;
+        let mut promises: Vec<Value> = vec![self.sapi_public_get_v3_exchange_info(&[params.clone()]).await, self.fapi_public_get_v3_exchange_info(&[params]).await];
+        promises.push(self.sign_in(&[]).await);
+        let mut results: Value = promise_all(&Value::from(promises)).await;
         let mut sapiResult: Value = self.safe_dict(results.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4839,7 +4839,7 @@ impl AsterCore {
 }
 
     pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
-        let mut filterClosed = get_arg(optional_args, 0, Value::Bool(false));
+        let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
         let mut positions: Value = (match account.get("positions") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -4879,7 +4879,7 @@ impl AsterCore {
             let mut maintenanceMargin: Option<String> = self.safe_string_k(position.clone(), "maintMargin", &[]).as_str().map(str::to_owned);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
-            if !is_true(&filterClosed) || isPositionOpen {
+            if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
                 if (matches!((&balances, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     let mut balance: Value = self.safe_dict(balances.clone(), code.clone(), &[]);
@@ -5118,7 +5118,7 @@ impl AsterCore {
 }
 
     pub async fn load_leverage_brackets(&mut self, optional_args: &[Value]) -> Value {
-        let mut reload = get_arg(optional_args, 0, Value::Bool(false));
+        let reload: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5127,7 +5127,7 @@ impl AsterCore {
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]);
-        if (leverageBrackets == Value::Null) || is_true(&(reload)) {
+        if (leverageBrackets == Value::Null) || reload {
             let mut response: Value = self.fapi_private_get_v3_leverage_bracket(&[params]).await;
             //
             //    [
@@ -5721,7 +5721,7 @@ impl AsterCore {
             }
         }
         }
-        if !found {
+        if !(found) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut request: Value = Value::Map({

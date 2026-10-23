@@ -2480,7 +2480,7 @@ impl WooCore {
             clientOrderIdKey = Value::Str("clientAlgoOrderId".into());
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), orderType); }; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if !isConditional {
+        if !(isConditional) {
             if postOnly.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("POST_ONLY".into())); }
             }  else if (timeInForce.as_deref() == Some("fok")) {

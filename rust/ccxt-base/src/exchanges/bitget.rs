@@ -9067,7 +9067,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType); }
             let mut extended: Value = self.extend(request, &[paramsProductType]);
-            if !historicalEndpointNeeded && ((priceType.as_str() == Some("mark")) || (priceType.as_str() == Some("index"))) {
+            if !(historicalEndpointNeeded) && ((priceType.as_str() == Some("mark")) || (priceType.as_str() == Some("index"))) {
                 if !limitDefined {
                     if let Value::Dict(__rda) = &mut extended { std::sync::Arc::make_mut(__rda).insert("limit".to_string(), Value::Int(1000)); }
                     limitResolved = Value::Int(1000);

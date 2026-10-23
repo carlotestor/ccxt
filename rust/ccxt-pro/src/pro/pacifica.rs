@@ -377,7 +377,14 @@ impl PacificaCore {
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PF-API-KEY".into(), self.options.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        if let Value::Dict(__r05d) = get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("ws".into())), &Value::Str("options".into())) { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), headers); }
+        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } {
+            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
+            if let Value::Dict(__bf03d1) = __bf03e1 {
+                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), headers);
+                }
+            }
+        }
 }
 
 /*
@@ -465,7 +472,7 @@ impl PacificaCore {
             success = true;
         }
         let mut status: Value = Value::Null;
-        if !success {
+        if !(success) {
             status = Value::Str("rejected".into());
         }  else {
             status = Value::Str("open".into());
@@ -549,7 +556,7 @@ impl PacificaCore {
             success = true;
         }
         let mut status: Value = Value::Null;
-        if !success {
+        if !(success) {
             status = Value::Str("rejected".into());
         }  else {
             status = Value::Str("open".into());
@@ -736,7 +743,7 @@ impl PacificaCore {
             success = true;
         }
         let mut status: Value = Value::Null;
-        if !success {
+        if !(success) {
             status = Value::Str("rejected".into());
         }  else {
             status = Value::Str("open".into());

@@ -724,7 +724,7 @@ impl BinanceCore {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let mut postParams: Value = self.omit(paramsOmitted, Value::Array(postOmitKeys), &[]);
+        let mut postParams: Value = self.omit(paramsOmitted, Value::from(postOmitKeys), &[]);
         return self.apply_event_fetch_params(Value::from(result), &[postParams, Value::from(vec![])]);
 
     Value::Null
@@ -997,7 +997,7 @@ impl BinanceCore {
             let mut settleFractionRaw: Value = Value::Null;
             if resolved && (price != Value::Null) {
                 winnerRaw = crate::precise::Precise::stringEq(&price, &Value::Str("1".into()));
-                settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
+                settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcomeRaw = outcomeHandle.clone();
                 }

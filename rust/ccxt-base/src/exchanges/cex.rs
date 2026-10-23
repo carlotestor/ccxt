@@ -1358,7 +1358,7 @@ impl CexCore {
             while { if !__for_first_525 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_525 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = Value::Null;
-            if is_true(&useKeyAsId) {
+            if useKeyAsId.as_bool() == Some(true) {
                 market = self.safe_market(&[key.clone()]);
             }
             let mut parsed: Value = self.parse_trading_fee(response.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market.clone()]);

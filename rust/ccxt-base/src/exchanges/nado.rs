@@ -909,7 +909,7 @@ impl NadoCore {
         let mut rawAppendix: Value = self.safe_string_k(paramsRecvWindow.clone(), "appendix", &[]);
         let mut appendix: Value = rawAppendix.clone();
         if (rawAppendix == Value::Null) {
-            appendix = self.create_order_appendix(isTriggerOrder, &[paramsRecvWindow.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            appendix = self.create_order_appendix(isTriggerOrder.is_truthy(), &[paramsRecvWindow.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("appendix".into(), appendix); }
         let mut contracts: Value = self.query_contracts(&[]).await;
@@ -1053,7 +1053,7 @@ impl NadoCore {
         let mut rawAppendix: Value = self.safe_string_k(paramsRecvWindow.clone(), "appendix", &[]);
         let mut appendix: Value = rawAppendix.clone();
         if (rawAppendix == Value::Null) {
-            appendix = self.create_order_appendix(Value::Bool(false), &[paramsRecvWindow.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            appendix = self.create_order_appendix(false.clone(), &[paramsRecvWindow.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         let mut requestId: Value = self.safe_integer_k(paramsRecvWindow.clone(), "id", &[]);
         let mut spotLeverage: Value = self.safe_bool2(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]);
@@ -3928,7 +3928,7 @@ impl NadoCore {
         return crate::precise::Precise::stringAdd(&highBits, &self.number_to_string(entropy)).as_str().map(str::to_owned);
 }
 
-    pub fn create_order_appendix(&self, mut isTriggerOrder: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn create_order_appendix(&self, isTriggerOrder: bool, optional_args: &[Value]) -> Option<String> {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3963,7 +3963,7 @@ impl NadoCore {
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&builder, &Value::Str("281474976710656".into()))); // 1<<48
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&builderFeeRate, &Value::Str("274877906944".into()))); // 1<<32
         }
-        if is_true(&isTriggerOrder) {
+        if isTriggerOrder {
             appendix = crate::precise::Precise::stringAdd(&appendix, &Value::Str("4096".into()));
         }
         return appendix.as_str().map(str::to_owned);
@@ -4017,12 +4017,12 @@ impl NadoCore {
 }
 
     pub fn pad_hex(&self, mut value: Value, mut length: Value, optional_args: &[Value]) -> Option<String> {
-        let mut left = get_arg(optional_args, 0, Value::Bool(true));
+        let left: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         if (length == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" padHex() requires length".into()))));
         }
         let mut zeros: Value = Value::Str("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".into());
-        if left.as_bool() == Some(true) {
+        if left {
             let mut paddedLeft: Value = Value::Str(format!("{}{}", zeros, value).into());
             let mut start: Value = (match (&(Value::Int(paddedLeft.len() as i64)), &(self.parse_to_int(length.clone()))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             return (match (&(paddedLeft), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Int(paddedLeft.len() as i64)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str().map(str::to_owned);

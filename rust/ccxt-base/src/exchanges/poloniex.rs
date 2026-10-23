@@ -1478,7 +1478,7 @@ impl PoloniexCore {
 }));
         let mut markets: Value = self.super_load_markets(reload.clone(), params).await;
         let mut currenciesByNumericId: Value = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]);
-        if (currenciesByNumericId == Value::Null) || is_true(&reload) {
+        if (currenciesByNumericId == Value::Null) || reload.as_bool() == Some(true) {
             { let __be_tmp = self.index_by(self.currencies.clone(), Value::Str("numericId".into())); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("currenciesByNumericId".into(), __be_tmp); } }
         }
         return markets;

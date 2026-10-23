@@ -882,10 +882,14 @@ impl LighterCore {
 })); }
         }
         if !(in_op(&self.options.as_map().and_then(|__m| __m.get("auths")).cloned().unwrap_or(Value::Null), &strAccountIndex)) {
-            if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&strAccountIndex), Value::Map({
+            if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } {
+                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("auths".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&strAccountIndex), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})); }
+}));
+                }
+            }
         }
         if !(in_op(&get_value(&self.options.as_map().and_then(|__m| __m.get("auths")).cloned().unwrap_or(Value::Null), &strAccountIndex), &strApiKeyIndex)) {
             add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".into())), &strAccountIndex), &strApiKeyIndex, Value::Map({
@@ -1324,7 +1328,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable.clone()); }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".into(), (if is_true(&enable) { Value::Int(300) } else { Value::Int(304) })); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".into(), (if enable.as_bool() == Some(true) { Value::Int(300) } else { Value::Int(304) })); }
 }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {

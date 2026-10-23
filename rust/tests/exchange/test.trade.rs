@@ -53,7 +53,7 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
     //
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()).clone(), Value::from(vec![Value::Str("buy".into()), Value::Str("sell".into())]).clone()]);
-    if is_true(&isPublicTrade) {
+    if isPublicTrade.as_bool() == Some(true) {
         // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".into()).clone(), Value::from(vec![Value::Str("taker".into()), Value::Null]).clone()]);
     }  else {

@@ -2800,7 +2800,7 @@ impl DigifinexCore {
                 orderType = (if matches!(&isMarketOrder, Value::Bool(true)) { Value::Int(15) } else { Value::Int(9) });
             }  else if (timeInForce.as_deref() == Some("IOC")) {
                 orderType = (if matches!(&isMarketOrder, Value::Bool(true)) { Value::Int(13) } else { Value::Int(4) });
-            }  else if (timeInForce.as_deref() == Some("GTC")) || matches!(&isMarketOrder, Value::Bool(true)) {
+            }  else if (timeInForce.as_deref() == Some("GTC")) || (isMarketOrder).as_bool() == Some(true) {
                 orderType = Value::Int(14);
             }  else if (timeInForce.as_deref() == Some("PO")) {
                 postOnly = Value::Bool(true);
@@ -2812,7 +2812,7 @@ impl DigifinexCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), amount.clone()); }; // swap orders require the amount to be the number of contracts
             paramsRequest = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         }  else {
-            postOnlyParsed = (if postOnly.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(2) });
+            postOnlyParsed = (if (postOnly).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(2) });
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), marketType); }
             let mut suffix: Value = Value::Str("".into());
             if (type_var.as_str() == Some("market")) {

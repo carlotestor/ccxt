@@ -4187,7 +4187,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if !is_true(&trigger) {
+        if !(trigger.as_bool() == Some(true)) {
             if (market == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" spotOrderPrepareRequest() requires a market argument for non-trigger orders".into()))));
             }
@@ -4225,7 +4225,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (market != Value::Null) {
-            if is_true(&trigger) {
+            if trigger.as_bool() == Some(true) {
                 // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             }  else {
@@ -8440,15 +8440,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("settle".to_string(), settle);
             m
         });
-        let mut finalList: Value = Value::from(vec![request]); // hacky but needs to be done here
+        let mut finalList: Vec<Value> = vec![request]; // hacky but needs to be done here
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_701: bool = true;
             while { if !__for_first_701 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_701 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            if let Value::Arr(__a) = &mut finalList { std::sync::Arc::make_mut(__a).push(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); }
+            finalList.push(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut response: Value = self.private_futures_post_settle_batch_cancel_orders(&[finalList]).await;
+        let mut response: Value = self.private_futures_post_settle_batch_cancel_orders(&[Value::from(finalList)]).await;
         return self.parse_orders(response, &[]);
 
     Value::Null

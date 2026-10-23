@@ -4323,7 +4323,7 @@ impl CoinbaseinternationalCore {
     pub fn create_auth_token(&self, mut seconds: Value, optional_args: &[Value]) -> Value {
         let mut method = get_arg(optional_args, 0, Value::Null);
         let mut url = get_arg(optional_args, 1, Value::Null);
-        let mut useEddsa = get_arg(optional_args, 2, Value::Bool(false));
+        let useEddsa: bool = get_arg(optional_args, 2, Value::Bool(false)).is_truthy();
         let mut uri: Value = Value::Null;
         if (url != Value::Null) {
             uri = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(" ".into())).into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())).into());
@@ -4334,11 +4334,11 @@ impl CoinbaseinternationalCore {
         }
         let mut nonce: Value = self.random_bytes(Value::Int(16));
         let mut aud: Value = Value::Str("retail_rest_api_proxy".into());
-        if is_true(&useEddsa) {
+        if useEddsa {
             aud = Value::Str("cdp_service".into());
         }
         let mut iss: Value = Value::Str("coinbase-cloud".into());
-        if is_true(&useEddsa) {
+        if useEddsa {
             iss = Value::Str("cdp".into());
         }
         let mut request: Value = Value::Map({
@@ -4352,13 +4352,13 @@ impl CoinbaseinternationalCore {
             m
         });
         if (uri != Value::Null) {
-            if !is_true(&useEddsa) {
+            if !useEddsa {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("uri".into(), uri.clone()); }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("uris".into(), Value::from(vec![uri])); }
             }
         }
-        if is_true(&useEddsa) {
+        if useEddsa {
             let mut byteArray: Value = self.base64_to_binary(self.secret.clone(), &[]);
             let mut seed: Value = self.array_slice(byteArray, Value::Int(0), &[Value::Int(32)]);
             return jwt(request.clone(), seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({

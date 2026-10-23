@@ -552,7 +552,7 @@ impl BybitCore {
     m
 }));
         let mut accessibility: Value = Value::Str("public".into());
-        if is_true(&isPrivate) {
+        if isPrivate.as_bool() == Some(true) {
             accessibility = Value::Str("private".into());
         }
         let mut methodValue: Value = (if (method == Value::Null) { Value::Str("".into()) } else { method });
@@ -575,7 +575,7 @@ impl BybitCore {
             isUsdcSettled = (Value::Bool(defaultSettle.as_str() == Some("USDC")));
         }
         isSpot = (Value::Bool(type_var.as_str() == Some("spot")));
-        if is_true(&isPrivate) {
+        if isPrivate.as_bool() == Some(true) {
             let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
             let mut isUnifiedMargin: Value = self.safe_bool(unified.clone(), Value::Int(0), &[Value::Bool(false)]);
             let mut isUnifiedAccount: Value = self.safe_bool(unified, Value::Int(1), &[Value::Bool(false)]);
@@ -3449,7 +3449,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 }
             }
-            if !foundSubscription {
+            if !(foundSubscription) {
                 if (reqId != Value::Null) {
                     client.reject(&[Value::from(error.clone()), reqId.clone()]);
                 }  else if is_instance(&error, &Value::Str("AuthenticationError".into())) {

@@ -405,7 +405,7 @@ impl WooCore {
         })]);
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue, Value::Int(1)]);
-        if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); }
+        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
         return newValue;
 
     Value::Null
@@ -1416,9 +1416,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 }
 
     pub fn check_required_uid(&self, optional_args: &[Value]) -> Value {
-        let mut error = get_arg(optional_args, 0, Value::Bool(true));
+        let error: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         if (self.uid.clone() == Value::Null) || (self.uid.as_str() == Some("")) {
-            if error.as_bool() == Some(true) {
+            if error {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" requires `uid` credential (woox calls it `application_id`)".into()))));
             }  else {
                 return Value::Bool(false);

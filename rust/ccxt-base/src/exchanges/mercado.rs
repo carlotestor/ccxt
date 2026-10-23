@@ -1224,7 +1224,7 @@ impl MercadoCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("quantity".to_string(), to_fixed(&amount, &Value::Int(10)));
+                m.insert("quantity".to_string(), Value::str(format!("{:.*}", 10, amount.as_f64().unwrap_or(0.0))));
                 m.insert("address".to_string(), address);
             m
         });

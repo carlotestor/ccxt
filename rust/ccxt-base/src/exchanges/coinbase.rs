@@ -2770,7 +2770,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fundingInterval: Option<String> = self.safe_string_k(futureProductDetails.clone(), "funding_interval", &[]).as_str().map(str::to_owned);
         let mut displayName: Value = self.safe_string_k(market.clone(), "display_name", &[]);
         let mut isPerpetualDisplayName: bool = (displayName != Value::Null) && (displayName.as_str().is_some_and(|__s| __s.ends_with("PERP")));
-        let mut isSwap: bool = (contractExpiryType.as_deref() == Some("PERPETUAL")) || (fundingInterval.is_some()) || isPerpetualDisplayName;
+        let mut isSwap: Value = Value::Bool((contractExpiryType.as_deref() == Some("PERPETUAL")) || (fundingInterval.is_some()) || isPerpetualDisplayName);
         let mut baseId: Value = self.safe_string_k(futureProductDetails, "contract_root_unit", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_currency_id", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -2782,7 +2782,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tradingDisabled: bool = (isDisabled.as_bool() == Some(true)) || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut type_var: Value = Value::Null;
-        if isSwap {
+        if matches!(&isSwap, Value::Bool(true)) {
             type_var = Value::Str("swap".into());
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote).into());
         }  else {
@@ -2806,8 +2806,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), type_var);
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
-        m.insert("future".to_string(), Value::Bool(!(isSwap)));
+        m.insert("swap".to_string(), isSwap.clone());
+        m.insert("future".to_string(), Value::Bool(!(matches!(&isSwap, Value::Bool(true)))));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(!tradingDisabled));
         m.insert("contract".to_string(), Value::Bool(true));
@@ -2816,8 +2816,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("taker".to_string(), taker);
         m.insert("maker".to_string(), maker);
         m.insert("contractSize".to_string(), contractSize);
-        m.insert("expiry".to_string(), (if isSwap { Value::Null } else { expireTimestamp }));
-        m.insert("expiryDatetime".to_string(), (if isSwap { Value::Null } else { expireDateTime }));
+        m.insert("expiry".to_string(), (if (isSwap).as_bool() == Some(true) { Value::Null } else { expireTimestamp }));
+        m.insert("expiryDatetime".to_string(), (if (isSwap).as_bool() == Some(true) { Value::Null } else { expireDateTime }));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -6919,7 +6919,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn create_auth_token(&self, mut seconds: Value, optional_args: &[Value]) -> Value {
         let mut method = get_arg(optional_args, 0, Value::Null);
         let mut url = get_arg(optional_args, 1, Value::Null);
-        let mut useEddsa = get_arg(optional_args, 2, Value::Bool(false));
+        let useEddsa: bool = get_arg(optional_args, 2, Value::Bool(false)).is_truthy();
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let mut uri: Value = Value::Null;
@@ -6935,11 +6935,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         let mut nonce: Value = self.random_bytes(Value::Int(16));
         let mut aud: Value = Value::Str("retail_rest_api_proxy".into());
-        if is_true(&useEddsa) {
+        if useEddsa {
             aud = Value::Str("cdp_service".into());
         }
         let mut iss: Value = Value::Str("coinbase-cloud".into());
-        if is_true(&useEddsa) {
+        if useEddsa {
             iss = Value::Str("cdp".into());
         }
         let mut request: Value = Value::Map({
@@ -6953,13 +6953,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (uri != Value::Null) {
-            if !is_true(&useEddsa) {
+            if !useEddsa {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("uri".into(), uri.clone()); }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("uris".into(), Value::from(vec![uri])); }
             }
         }
-        if is_true(&useEddsa) {
+        if useEddsa {
             let mut byteArray: Value = self.base64_to_binary(self.secret.clone(), &[]);
             let mut seed: Value = self.array_slice(byteArray, Value::Int(0), &[Value::Int(32)]);
             return jwt(request.clone(), seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({

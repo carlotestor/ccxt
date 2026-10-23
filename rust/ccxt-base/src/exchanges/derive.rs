@@ -1643,7 +1643,7 @@ impl DeriveCore {
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut type_var: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut marketType: Value = Value::Null;
-        let mut spot: bool = false;
+        let mut spot: Value = Value::Bool(false);
         let mut margin: Value = Value::Bool(true);
         let mut swap: bool = false;
         let mut option: bool = false;
@@ -1665,7 +1665,7 @@ impl DeriveCore {
         let mut optionType: Value = Value::Null;
         let mut optionLetter: Value = Value::Null;
         if (type_var.as_deref() == Some("erc20")) {
-            spot = true;
+            spot = Value::Bool(true);
             marketType = Value::Str("spot".into());
         }  else if (type_var.as_deref() == Some("perp")) {
             margin = Value::Bool(false);
@@ -1695,7 +1695,7 @@ impl DeriveCore {
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
         }
-        let mut contractSize: Value = (if spot { Value::Null } else { Value::Int(1) });
+        let mut contractSize: Value = (if (spot).as_bool() == Some(true) { Value::Null } else { Value::Int(1) });
         let mut isContract: Value = Value::Bool(swap || option);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1708,7 +1708,7 @@ impl DeriveCore {
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), marketType);
-        m.insert("spot".to_string(), Value::Bool(spot));
+        m.insert("spot".to_string(), spot);
         m.insert("margin".to_string(), margin);
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));

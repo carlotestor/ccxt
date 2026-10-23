@@ -5744,7 +5744,7 @@ impl OkxCore {
         let mut defaultMarginMode: Value = self.safe_string2(self.options.clone(), Value::Str("defaultMarginMode".into()), Value::Str("marginMode".into()), &[Value::Str("cross".into())]);
         let mut marginMode: Value = self.safe_string2(params.clone(), Value::Str("marginMode".into()), Value::Str("tdMode".into()), &[]); // cross or isolated, tdMode not omitted so as to be extended into the request
         let mut marginModeIsExplicit: bool = (marginMode != Value::Null) && (marginMode.as_str() != Some("cash"));
-        if !marginModeIsExplicit {
+        if !(marginModeIsExplicit) {
             marginMode = defaultMarginMode;
         }
         let mut marginParam: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
@@ -5846,7 +5846,7 @@ impl OkxCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("optimal_limit_ioc".into())); }
             }
         }  else {
-            if (!trigger) && (!conditional) {
+            if (!trigger) && (!(conditional)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("px".into(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
         }
@@ -8507,7 +8507,7 @@ impl OkxCore {
         if (fee != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fee".into(), self.number_to_string(fee)); }
         }
-        let mut query: Value = self.omit(paramsWithdrawTag, Value::Array(omitKeys), &[]);
+        let mut query: Value = self.omit(paramsWithdrawTag, Value::from(omitKeys), &[]);
         let __ws_arg_53 = self.extend(request, &[query]);
         let mut response: Value = self.private_post_asset_withdrawal(&[__ws_arg_53]).await;
         //
@@ -11616,7 +11616,7 @@ impl OkxCore {
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable.clone()); }
-        if is_true(&enable) {
+        if enable.as_bool() == Some(true) {
             if let Value::Dict(__rda) = &mut self.headers { std::sync::Arc::make_mut(__rda).insert("x-simulated-trading".to_string(), Value::Str("1".into())); }
         }  else if (matches!(&self.headers, Value::Dict(__d) if __d.contains_key("x-simulated-trading"))) {
             { let __t = self.omit(self.headers.clone(), Value::Str("x-simulated-trading".into()), &[]); self.headers = __t; }

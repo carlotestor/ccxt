@@ -179,7 +179,7 @@ impl crate::exchange_generated::ExchangeBase for XtCore {
         Box::pin(async move {
             match method {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "get_listen_key" => self.get_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
+                "get_listen_key" => self.get_listen_key(args.get(0).map(|v| v.is_truthy()).unwrap_or(false)).await,
                 "handle_error_message" => { self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "handle_funding_rate" => self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -364,10 +364,10 @@ impl XtCore {
  * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
  * @returns {string} listen key / access token
  */
-    pub async fn get_listen_key(&mut self, mut isContract: Value) -> Value {
+    pub async fn get_listen_key(&mut self, isContract: bool) -> Value {
         self.check_required_credentials(&[]);
         let mut tradeType: Value = Value::Str("spot".into());
-        if is_true(&isContract) {
+        if isContract {
             tradeType = Value::Str("contract".into());
         }
         let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
@@ -375,7 +375,7 @@ impl XtCore {
             m
         })]);
         let mut url: Value = self.safe_string(apiUrls, tradeType.clone(), &[]);
-        if !is_true(&isContract) {
+        if !isContract {
             url = Value::Str(format!("{}{}", url, Value::Str("/private".into())).into());
         }
         let mut client: Value = self.client(&[url]);
@@ -396,7 +396,7 @@ impl XtCore {
             let mut future: Value = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut listenKey: Value = Value::Null;
-                if is_true(&isContract) {
+                if isContract {
                     let mut response: Value = self.parent.private_linear_get_future_user_v1_user_listen_key(&[]).await;
                     //
                     //    {
@@ -530,9 +530,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if privateAccess {
             if !(matches!(&isContract, Value::Bool(true))) {
                 if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
-                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.clone()).await); }
+                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.is_truthy()).await); }
             }  else {
-                let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
+                let mut listenKey: Value = self.get_listen_key(isContract.is_truthy()).await;
                 let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
                 if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
             }
@@ -610,9 +610,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if privateAccess {
             if !(matches!(&isContract, Value::Bool(true))) {
                 if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
-                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.clone()).await); }
+                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.is_truthy()).await); }
             }  else {
-                let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
+                let mut listenKey: Value = self.get_listen_key(isContract.is_truthy()).await;
                 let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
                 if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
             }
@@ -2262,7 +2262,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("token"))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str("token".into()));
             }
-            self.get_listen_key(Value::Bool(true)).await;
+            self.get_listen_key(true.clone()).await;
             return;
         }
         let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));

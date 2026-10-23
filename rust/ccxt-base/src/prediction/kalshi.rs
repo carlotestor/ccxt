@@ -1177,7 +1177,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut settleFractionRaw: Value = Value::Null;
             if resolved && (result != Value::Null) && (result.as_str() != Some("")) {
                 winnerRaw = (Value::Bool(label.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == result.as_str()));
-                settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
+                settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
@@ -2502,13 +2502,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         let mut yesCount: Value = self.safe_number2(settlement.clone(), Value::Str("yes_count_fp".into()), Value::Str("yes_count".into()), &[Value::Int(0)]);
         let mut noCount: Value = self.safe_number2(settlement.clone(), Value::Str("no_count_fp".into()), Value::Str("no_count".into()), &[Value::Int(0)]);
-        let mut heldYes: bool = !(noCount.as_f64().unwrap_or(f64::NAN) > yesCount.as_f64().unwrap_or(f64::NAN));
+        let mut heldYes: Value = Value::Bool(!(noCount.as_f64().unwrap_or(f64::NAN) > yesCount.as_f64().unwrap_or(f64::NAN)));
         let mut heldLabel: Value = Value::Str("NO".into());
-        if heldYes {
+        if matches!(&heldYes, Value::Bool(true)) {
             heldLabel = Value::Str("YES".into());
         }
         let mut tickerMissing: bool = ticker == Value::Null;
-        let mut useHeldYesTicker: bool = heldYes || tickerMissing;
+        let mut useHeldYesTicker: bool = matches!(&heldYes, Value::Bool(true)) || tickerMissing;
         let mut heldTicker: Value = Value::Null;
         if useHeldYesTicker {
             heldTicker = ticker.clone();
@@ -2527,11 +2527,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut payout: Value = self.safe_number_k(settlement.clone(), "revenue_dollars", &[centsPayout]);
         let mut costKey: Value = Value::Str("no_total_cost".into());
-        if heldYes {
+        if matches!(&heldYes, Value::Bool(true)) {
             costKey = Value::Str("yes_total_cost".into());
         }
         let mut costDollarsKey: Value = Value::Str("no_total_cost_dollars".into());
-        if heldYes {
+        if matches!(&heldYes, Value::Bool(true)) {
             costDollarsKey = Value::Str("yes_total_cost_dollars".into());
         }
         let mut costCents: Value = self.safe_number(settlement.clone(), costKey, &[]);
@@ -2557,8 +2557,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("event".to_string(), Value::Null);
         m.insert("result".to_string(), marketResult);
         m.insert("won".to_string(), won.clone());
-        m.insert("amount".to_string(), (if (heldYes) { yesCount } else { noCount }));
-        m.insert("price".to_string(), (if matches!(&won, Value::Bool(true)) { Value::Int(1) } else { Value::Int(0) }));
+        m.insert("amount".to_string(), (if (heldYes).as_bool() == Some(true) { yesCount } else { noCount }));
+        m.insert("price".to_string(), (if (won).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) }));
         m.insert("cost".to_string(), cost);
         m.insert("payout".to_string(), payout);
         m.insert("pnl".to_string(), pnl);

@@ -6897,7 +6897,7 @@ impl BinanceCore {
         if self.isSandboxModeEnabled.as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences".into()))));
         }
-        if is_true(&enable) {
+        if enable.as_bool() == Some(true) {
             { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("apiBackupDemoTrading".to_string(), __be_tmp); } };
             { let __be_tmp = crate::value::get_value_k(&self.urls, "demo"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
         }  else if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("apiBackupDemoTrading"))) {
@@ -6987,12 +6987,12 @@ impl BinanceCore {
     m
 });
         }
-        let mut promises: Value = Value::from(vec![self.sapi_get_capital_config_getall(&[params.clone()]).await]);
+        let mut promises: Vec<Value> = vec![self.sapi_get_capital_config_getall(&[params.clone()]).await];
         let mut fetchMargins: Value = self.safe_bool_k(self.options.clone(), "fetchMargins", &[Value::Bool(false)]);
         if fetchMargins.as_bool() == Some(true) {
-            if let Value::Arr(__a) = &mut promises { std::sync::Arc::make_mut(__a).push(self.sapi_get_margin_all_pairs(&[params]).await); }
+            promises.push(self.sapi_get_margin_all_pairs(&[params]).await);
         }
-        let mut results: Value = promise_all(&promises).await;
+        let mut results: Value = promise_all(&Value::from(promises)).await;
         let mut responseCurrencies: Value = results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut marginablesById: Value = Value::Null;
         if fetchMargins.as_bool() == Some(true) {
@@ -7884,7 +7884,7 @@ impl BinanceCore {
     pub fn parse_balance_custom(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut type_var = get_arg(optional_args, 0, Value::Null);
         let mut marginMode = get_arg(optional_args, 1, Value::Null);
-        let mut isPortfolioMargin = get_arg(optional_args, 2, Value::Bool(false));
+        let isPortfolioMargin: bool = get_arg(optional_args, 2, Value::Bool(false)).is_truthy();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -7893,7 +7893,7 @@ impl BinanceCore {
         let mut timestamp: Value = Value::Null;
         let mut isolated: bool = marginMode.as_str() == Some("isolated");
         let mut cross: bool = (type_var.as_str() == Some("margin")) || (marginMode.as_str() == Some("cross"));
-        if is_true(&isPortfolioMargin) {
+        if isPortfolioMargin {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_272: bool = true;
@@ -11621,7 +11621,7 @@ impl BinanceCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("icebergQty".into(), self.amount_to_precision(symbol, icebergAmount)); }
             }
         }
-        let mut requestParams: Value = self.omit(paramsStp, Value::Array(omitKeys), &[]);
+        let mut requestParams: Value = self.omit(paramsStp, Value::from(omitKeys), &[]);
         return self.extend(request, &[requestParams]);
 
     Value::Null
@@ -15455,7 +15455,7 @@ impl BinanceCore {
 }
 
     pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
-        let mut filterClosed = get_arg(optional_args, 0, Value::Bool(false));
+        let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
         let mut positions: Value = (match account.get("positions") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -15495,7 +15495,7 @@ impl BinanceCore {
             let mut maintenanceMargin: Option<String> = self.safe_string_k(position.clone(), "maintMargin", &[]).as_str().map(str::to_owned);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
-            if !is_true(&filterClosed) || isPositionOpen {
+            if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
                 if (matches!((&balances, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     let __ws_arg_159 = self.extend(position, &[Value::Map({
@@ -16037,7 +16037,7 @@ impl BinanceCore {
 }
 
     pub async fn load_leverage_brackets(&mut self, optional_args: &[Value]) -> Value {
-        let mut reload = get_arg(optional_args, 0, Value::Bool(false));
+        let reload: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -16048,7 +16048,7 @@ impl BinanceCore {
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]);
-        if (leverageBrackets == Value::Null) || is_true(&(reload)) {
+        if (leverageBrackets == Value::Null) || reload {
             let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("swap".into())]);
             let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
             let mut query: Value = self.omit(params.clone(), Value::Str("type".into()), &[]);

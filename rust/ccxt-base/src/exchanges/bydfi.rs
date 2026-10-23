@@ -3014,7 +3014,7 @@ impl BydfiCore {
         }
         let mut contractSize: Value = self.safe_string_k(marketResolved.clone(), "contractSize", &[]);
         let mut contracts: Value = self.safe_string2(position.clone(), Value::Str("volume".into()), Value::Str("openPositionVolume".into()), &[]);
-        if !isFetchPositionsHistory {
+        if !(isFetchPositionsHistory) {
             // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
             contracts = crate::precise::Precise::stringDiv(&contracts, &contractSize);
         }

@@ -2021,7 +2021,7 @@ impl KrakenfuturesCore {
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), key.clone(), &[])); }
                 if (code != Value::Null) {
                     if let Value::Dict(__d) = &mut holdingCodes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Bool(true)); }
-                    if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &Value::Str("cash".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount.clone()); }
+                    if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount.clone()); } }
                 }
             }
             }
@@ -2055,10 +2055,14 @@ impl KrakenfuturesCore {
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(future.clone(), "available", &[])); }
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(future.clone(), "initial_margin", &[])); }
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(future, "balance", &[])); }
-                if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &Value::Str("margin".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                if let Value::Dict(__bf03d0) = &mut self.balance {
+                    let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("margin".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})); }
+}));
+                    }
+                }
                 if (symbol != Value::Null) && (code != Value::Null) {
                     if let Value::Dict(__d) = &mut futuresSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
                     if let Value::Dict(__r05d) = get_value_mut(get_value_mut(&mut self.balance, &Value::Str("margin".into())), &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount.clone()); }
@@ -2102,7 +2106,7 @@ impl KrakenfuturesCore {
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(flexFuture, "quantity", &[])); }
                 if (code != Value::Null) {
                     if let Value::Dict(__d) = &mut flexCodes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Bool(true)); }
-                    if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &Value::Str("flex".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount); }
+                    if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount); } }
                 }
             }
             }

@@ -1338,7 +1338,7 @@ impl KrakenCore {
 }));
         let mut markets: Value = self.parent.load_markets(&[reload.clone(), params]).await;
         let mut marketsByWsName: Value = self.safe_dict_k(self.options.clone(), "marketsByWsName", &[]);
-        if (marketsByWsName == Value::Null) || is_true(&reload) {
+        if (marketsByWsName == Value::Null) || reload.as_bool() == Some(true) {
             marketsByWsName = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

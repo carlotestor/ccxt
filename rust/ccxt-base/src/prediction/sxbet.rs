@@ -108,7 +108,7 @@ impl crate::exchange_generated::ExchangeBase for SxbetCore {
                 "parse_sxbet_market" => self.parse_sxbet_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_snapshot_best_odds" => self.parse_sxbet_snapshot_best_odds(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_tickers_by_hash" => self.parse_sxbet_tickers_by_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sxbet_v3_book_sides" => self.parse_sxbet_v3_book_sides(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sxbet_v3_book_sides" => self.parse_sxbet_v3_book_sides(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).map(|v| v.is_truthy()).unwrap_or(false)),
                 "parse_sxbet_v3_fill" => self.parse_sxbet_v3_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_sxbet_v3_position" => self.parse_sxbet_v3_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_v3_public_trade" => self.parse_sxbet_v3_public_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2976,7 +2976,7 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot, isOutcomeOne);
+        let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot, isOutcomeOne.is_truthy());
         let mut sortedBids: Value = self.safe_list_k(sides.clone(), "bids", &[Value::from(vec![])]);
         let mut sortedAsks: Value = self.safe_list_k(sides, "asks", &[Value::from(vec![])]);
         if (limit != Value::Null) {
@@ -3013,13 +3013,13 @@ impl SxbetCore {
  * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
  * @returns {object} a dict with sorted 'bids' and 'asks' lists
  */
-    pub fn parse_sxbet_v3_book_sides(&self, mut snapshot: Value, mut isOutcomeOne: Value) -> Value {
+    pub fn parse_sxbet_v3_book_sides(&self, mut snapshot: Value, isOutcomeOne: bool) -> Value {
         let __snapshot_empty = indexmap::IndexMap::new();
         let snapshot = snapshot.as_map().unwrap_or(&__snapshot_empty);
         let mut oneDenom: Value = Value::Str("100000000000000000000".into());
         let mut usdcDecimals: Value = Value::Str("1000000".into());
-        let mut ownLevels: Value = (if is_true(&(isOutcomeOne)) { (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) } else { (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) });
-        let mut oppositeLevels: Value = (if is_true(&(isOutcomeOne)) { (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) } else { (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) });
+        let mut ownLevels: Value = (if isOutcomeOne { (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) } else { (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) });
+        let mut oppositeLevels: Value = (if isOutcomeOne { (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) } else { (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) });
         let mut bids: Vec<Value> = Vec::new();
         let mut ownLevelsLength: f64 = ((ownLevels.len() as i64) as f64);
         {
@@ -3071,7 +3071,7 @@ impl SxbetCore {
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue, Value::Int(1)]);
         if (url != Value::Null) {
-            if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("requestId".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); }
+            if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
         }
         return newValue;
 
@@ -3387,7 +3387,7 @@ impl SxbetCore {
         if (held.as_str() != Some("")) && ((match (version.as_str(), held.as_str()) { (Some(__x), Some(__y)) => (match (__x.parse::<f64>(), __y.parse::<f64>()) { (Ok(__p), Ok(__q)) => __p < __q, _ => __x < __y }) || __x == __y, (None, None) => true, _ => false })) {
             return Value::from(refreshed);
         }
-        if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("wsBookVersions".into())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&marketHash), version); }
+        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("wsBookVersions".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&marketHash), version); } }
         let mut watchedBooks: Value = self.safe_dict_k(self.options.clone(), "wsWatchedBooks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3406,7 +3406,7 @@ impl SxbetCore {
             let mut outcomeObj: Value = self.outcome(sym.clone());
             let mut outcomeId: Value = self.safe_string_k(outcomeObj, "outcomeId", &[]);
             let mut isOutcomeOne: Value = (Value::Bool(outcomeId == marketHash));
-            let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne);
+            let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne.is_truthy());
             let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), sym.clone(), &[]);
             if (orderbook == Value::Null) {
                 orderbook = self.order_book(&[Value::Map({

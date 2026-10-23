@@ -1472,11 +1472,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //            },
         //            ...
         //
-        let mut promises: Value = Value::from(vec![marketsPromise]);
+        let mut promises: Vec<Value> = vec![marketsPromise];
         if !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true)) || !(self.is_empty_string(self.privateKey.clone()).as_bool() == Some(true)) {
-            if let Value::Arr(__a) = &mut promises { std::sync::Arc::make_mut(__a).push(self.sign_in(&[]).await); }
+            promises.push(self.sign_in(&[]).await);
         }
-        let mut results: Value = promise_all(&promises).await;
+        let mut results: Value = promise_all(&Value::from(promises)).await;
         let mut response: Value = self.safe_dict(results, Value::Int(0), &[]);
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         return self.parse_markets(result);
@@ -2748,7 +2748,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn filter_transfers_by_type(&self, mut transfers: Value, mut transferType: Value, optional_args: &[Value]) -> Value {
-        let mut onlyMainAccount = get_arg(optional_args, 0, Value::Bool(true));
+        let onlyMainAccount: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut matchedResults: Vec<Value> = vec![];
         let mut nonMatchedResults: Vec<Value> = vec![];
         {
@@ -2756,7 +2756,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_720: bool = true;
             while { if !__for_first_720 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_720 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
             let mut transfer: Value = transfers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (onlyMainAccount.as_bool() == Some(true) && (self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str() == Some("0")) && (self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str() == Some("0"))) || (!(onlyMainAccount.as_bool() == Some(true)) && ((self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str() != Some("0")) || (self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str() != Some("0")))) {
+            if (onlyMainAccount && (self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str() == Some("0")) && (self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str() == Some("0"))) || (!onlyMainAccount && ((self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str() != Some("0")) || (self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str() != Some("0")))) {
                 let mut metadata: Value = self.safe_string(transfer.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("transfer_metadata".into()), &[]);
                 let mut parsedMetadata: Value = self.parse_json_value(metadata);
                 let mut direction: Value = self.safe_string_k(parsedMetadata, "direction", &[]);

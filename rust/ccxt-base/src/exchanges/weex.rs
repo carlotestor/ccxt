@@ -5611,7 +5611,7 @@ impl WeexCore {
         let mut endpoint: Value = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut isBatch: bool = Value::Int(path.as_str().and_then(|__s| __s.find("batch")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        if !isBatch && ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) {
+        if !(isBatch) && ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
