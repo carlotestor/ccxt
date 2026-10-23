@@ -383,14 +383,14 @@ func (this *BaseExchange) CleanRestData() {
 }
 func (this *BaseExchange) CleanWsData() {
 	this.Balance = this.CreateSafeDictionary(true)
-	this.Orderbooks = map[string]any{}
+	this.WsCacheReset("Orderbooks")
 	this.Tickers = &TickerCache{}
 	this.Liquidations = nil
 	this.MyLiquidations = nil
 	this.Orders = nil
-	this.Trades = map[string]any{}
+	this.WsCacheReset("Trades")
 	this.Transactions = this.CreateSafeDictionary()
-	this.Ohlcvs = map[string]any{}
+	this.WsCacheReset("Ohlcvs")
 	this.MyTrades = nil
 	this.Positions = nil
 }
@@ -3278,7 +3278,7 @@ func (this *BaseExchange) InvertFlatStringDictionary(dict any) any {
 func (this *BaseExchange) StringToBase16(str any) any {
 	return "0x" + this.BinaryToBase16(this.Base64ToBinary(this.StringToBase64(str)))
 }
-func (this *BaseExchange) ReduceFeesByCurrency(fees any) any {
+func (this *BaseExchange) ReduceFeesByCurrency(fees any) []any {
 	//
 	// this function takes a list of fee structures having the following format
 	//
@@ -5513,7 +5513,7 @@ func (this *BaseExchange) fetchLedgerEntryBody(ch chan AsyncResult[LedgerEntry],
 	_ = params
 	panic(NotSupported(this.Id + " fetchLedgerEntry() is not supported yet"))
 }
-func (this *BaseExchange) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) []any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)
@@ -9404,23 +9404,23 @@ func (this *BaseExchange) unWatchBidsAsksBody(ch chan AsyncResult[bool], optiona
 func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsubHash any, optionalArgs ...any) {
 	var subHashIsPrefix bool = GetArgBool(optionalArgs, 0, false)
 	_ = subHashIsPrefix
-	if (!IsEqual(unsubHash, nil)) && (InOp(client.Subscriptions, unsubHash)) {
-		Remove(client.Subscriptions, unsubHash)
+	if (!IsEqual(unsubHash, nil)) && (client.SubscriptionHas(unsubHash)) {
+		client.SubscriptionDel(unsubHash)
 	}
 	if !(subHashIsPrefix == true) {
-		if (!IsEqual(subHash, nil)) && (InOp(client.Subscriptions, subHash)) {
-			Remove(client.Subscriptions, subHash)
+		if (!IsEqual(subHash, nil)) && (client.SubscriptionHas(subHash)) {
+			client.SubscriptionDel(subHash)
 		}
 		if (!IsEqual(subHash, nil)) && (InOp(client.Futures, subHash)) {
 			error := UnsubscribeError(Add(this.Id+" ", subHash))
 			client.Reject(error, subHash)
 		}
 	} else {
-		var clientSubscriptions []string = ObjectKeys(client.Subscriptions)
+		var clientSubscriptions []string = client.SubscriptionKeys()
 		for i := 0; i < len(clientSubscriptions); i++ {
 			var sub string = clientSubscriptions[i]
 			if (!IsEqual(sub, nil)) && (!IsEqual(subHash, nil)) && StartsWith(sub, subHash) {
-				Remove(client.Subscriptions, sub)
+				client.SubscriptionDel(sub)
 			}
 		}
 		var clientFutures []string = ObjectKeys(client.Futures)

@@ -201,7 +201,7 @@ type BaseExchange struct {
 	// ws
 	WsClients   map[string]any // one websocket client per URL
 	WsClientsMu sync.Mutex
-	// the ws dispatch loop: owner of the four ws cache maps (see exchange_ws_cache.go)
+	// the ws dispatch loop: owner of the ws cache maps and of Balance (see exchange_ws_cache.go)
 	wsStore   *wsCacheStore
 	wsStoreMu sync.Mutex
 	Balance     any
@@ -276,8 +276,8 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}
 	this.Clients = make(map[string]any)
-	// this.Balance = make(map[string]any)
-	this.Balance = &sync.Map{}
+	// the balance map is owned by the ws dispatch loop like the caches above
+	this.Balance = map[string]any{}
 
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)

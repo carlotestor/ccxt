@@ -1,21 +1,26 @@
 package ccxt
 
-// The four ws caches on BaseExchange (Orderbooks / Ohlcvs / Trades / FundingRates) are plain
-// map[string]any, so exactly one goroutine may touch them: the exchange's ws dispatch loop.
-// Client read loops hand every frame to that loop, and user-path code (watch/fetch/seed bodies,
-// CleanWsData, loadOrderBook) hands it a map operation and waits for the answer. Handler code
-// (Handle*) runs on the loop and indexes the maps directly - no lock, no sync.Map at either end.
+// The ws caches on BaseExchange (Orderbooks / Ohlcvs / Trades / FundingRates, and the balance map
+// boxed in Balance) are plain map[string]any, so exactly one goroutine may touch them: the
+// exchange's ws dispatch loop. Client read loops hand every frame to that loop, and user-path code
+// (watch/fetch/seed bodies, CleanWsData, loadOrderBook, SetBalanceCache) hands it a map operation
+// and waits for the answer. Handler code (Handle*) runs on the loop and indexes the maps directly -
+// no lock, no sync.Map at either end.
 //
-// Ownership argument: the loop is the only goroutine that reads or writes the four maps. Frames
+// Ownership argument: the loop is the only goroutine that reads or writes those maps. Frames
 // arrive on store.frames, map operations on store.ops, and the loop serves one at a time, so a
-// handler and an operation can never overlap. Not verified with -race (no -race gate on the farm).
+// handler and an operation can never overlap. The Balance field itself is written only before the
+// loop exists (InitParent) and on the loop, so the box is owner-held too. Not verified with -race
+// (no -race gate on the farm).
 
 const (
 	wsOpGet = iota
 	wsOpHas
 	wsOpSet
+	wsOpGetScalar
 	wsOpSnapshot
 	wsOpReset
+	wsOpReplace
 	wsOpApplySnapshot
 )
 
@@ -110,8 +115,26 @@ func (this *BaseExchange) wsCacheField(name string) map[string]any {
 		return this.Trades
 	case "FundingRates":
 		return this.FundingRates
+	case "Balance":
+		return this.wsBalanceMap()
 	}
 	return nil
+}
+
+// wsBalanceMap answers the balance map the owner works on. Balance is boxed in `any` because
+// exchanges assign helper results to it; a box that is not a plain map is replaced by one here, so
+// every later operation writes the map handler code reads. Runs on the dispatch goroutine, or on the
+// caller once the loop is gone (wsCacheDo's fallback), never concurrently with it.
+func (this *BaseExchange) wsBalanceMap() map[string]any {
+	if asMap, ok := this.Balance.(map[string]any); ok {
+		return asMap
+	}
+	asMap := MapTyped(this.Balance)
+	if asMap == nil {
+		asMap = map[string]any{}
+	}
+	this.Balance = asMap
+	return asMap
 }
 
 // wsCacheApply runs one map operation on the dispatch goroutine. Keys are pointer-carried in
@@ -137,6 +160,24 @@ func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 	case wsOpSet:
 		if keyIsString {
 			cache[key] = req.value
+		}
+		return nil
+	case wsOpGetScalar:
+		// GetValue answered derefScalar's value, so a boxed pointer reads back unboxed
+		if keyIsString {
+			return wsCacheRead{value: derefScalar(cache[key]), exists: true}
+		}
+		return wsCacheRead{}
+	case wsOpReplace:
+		// the whole map is replaced: keep the map handler code and earlier snapshots point at, so
+		// only the entries move. An unprovable source (non-map, nil) empties the cache like the
+		// assignment of an empty map would.
+		source := MapTyped(req.value)
+		for k := range cache {
+			delete(cache, k)
+		}
+		for k, v := range source {
+			cache[k] = v
 		}
 		return nil
 	case wsOpSnapshot:
@@ -219,6 +260,25 @@ func (this *BaseExchange) WsCacheSnapshot(field string) map[string]any {
 
 func (this *BaseExchange) WsCacheReset(field string) {
 	this.wsCacheDo(wsOpReset, field, nil, nil)
+}
+
+// WsCacheSetScalar is WsCacheSet with the helper's own derefScalar on the value, so a boxed pointer
+// stores the way AddElementToObject stored it.
+func (this *BaseExchange) WsCacheSetScalar(field string, key any, value any) {
+	this.wsCacheDo(wsOpSet, field, key, derefScalar(value))
+}
+
+// WsCacheGetScalar is WsCacheGet with the helper's derefScalar on the answer: GetValue and SafeValue
+// unbox a stored pointer, so the plain read would not match them.
+func (this *BaseExchange) WsCacheGetScalar(field string, key any) any {
+	read, _ := this.wsCacheDo(wsOpGetScalar, field, key, nil).(wsCacheRead)
+	return read.value
+}
+
+// WsCacheReplace moves the entries of a freshly built map into the cache on the owner, which is what
+// a whole-map assignment (this.Balance = this.Extend(...)) means for a map nobody else may write.
+func (this *BaseExchange) WsCacheReplace(field string, value any) {
+	this.wsCacheDo(wsOpReplace, field, nil, value)
 }
 
 // WsCacheApplyOrderBookSnapshot applies a fetched snapshot to the cached book on the owner and
