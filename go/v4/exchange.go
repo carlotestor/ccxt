@@ -168,13 +168,13 @@ type BaseExchange struct {
 	// WS - plain string-keyed caches, one per exchange instance (cache objects stay boxed)
 	Ohlcvs         map[string]any
 	Trades         map[string]any
-	Tickers        *TickerCache
+	Tickers        TickerCache
 	Orders         any // *ArrayCache  // cache object, not a map
 	MyTrades       any // *ArrayCache  // cache object, not a map
 	Orderbooks     map[string]any
 	Liquidations   any // *ArrayCacheBySymbolBySide
 	FundingRates   map[string]any
-	Bidsasks       *TickerCache
+	Bidsasks       TickerCache
 	TriggerOrders  any // *ArrayCache
 	Transactions   *sync.Map
 	MyLiquidations any // *ArrayCacheBySymbolBySide
@@ -265,7 +265,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	limit := 10000
 	// Initialize WebSocket data structures: plain maps, mutated by the exchange's own ws loop
 	this.Trades = map[string]any{}
-	this.Tickers = &TickerCache{}
+	this.Tickers = TickerCache{}
 	this.Orderbooks = map[string]any{}
 	this.Ohlcvs = map[string]any{}
 	this.Orders = NewArrayCache(limit)
@@ -285,7 +285,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 	this.PublishCurrencies(map[string]any{})
 	this.FundingRates = map[string]any{}
-	this.Bidsasks = &TickerCache{}
+	this.Bidsasks = TickerCache{}
 	this.ProxyDictionaries = make(map[string]any)
 	this.AccountsById = make(map[string]any)
 	this.Accounts = make([]any, 0)

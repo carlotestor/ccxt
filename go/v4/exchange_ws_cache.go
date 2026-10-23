@@ -1,17 +1,13 @@
 package ccxt
 
-// The ws caches on BaseExchange (Orderbooks / Ohlcvs / Trades / FundingRates, and the balance map
-// boxed in Balance) are plain map[string]any, so exactly one goroutine may touch them: the
-// exchange's ws dispatch loop. Client read loops hand every frame to that loop, and user-path code
-// (watch/fetch/seed bodies, CleanWsData, loadOrderBook, SetBalanceCache) hands it a map operation
-// and waits for the answer. Handler code (Handle*) runs on the loop and indexes the maps directly -
-// no lock, no sync.Map at either end.
+// The ws caches on BaseExchange (Orderbooks / Ohlcvs / Trades / FundingRates / Tickers / Bidsasks),
+// the markets book and the boxed Balance / Positions fields are touched by exactly one goroutine:
+// the exchange's ws dispatch loop. Handlers run there and touch them directly; user-path code hands
+// the loop an operation, so a use site needs no lock and no sync.Map.
 //
-// Ownership argument: the loop is the only goroutine that reads or writes those maps. Frames
-// arrive on store.frames, map operations on store.ops, and the loop serves one at a time, so a
-// handler and an operation can never overlap. The Balance field itself is written only before the
-// loop exists (InitParent) and on the loop, so the box is owner-held too. Not verified with -race
-// (no -race gate on the farm).
+// Ownership argument: the loop is the only reader and writer, frames and operations arrive on one
+// select, and a Positions cache's own mutex still guards its rows. Not verified with -race.
+//
 
 const (
 	wsOpGet = iota
@@ -22,6 +18,10 @@ const (
 	wsOpReset
 	wsOpReplace
 	wsOpApplySnapshot
+	wsOpDelete
+	wsOpKeys
+	wsOpObjGet
+	wsOpObjSet
 )
 
 type wsFrame struct {
@@ -117,6 +117,20 @@ func (this *BaseExchange) wsCacheField(name string) map[string]any {
 		return this.FundingRates
 	case "Balance":
 		return this.wsBalanceMap()
+	case "Tickers":
+		return map[string]any(this.Tickers)
+	case "Bidsasks":
+		return map[string]any(this.Bidsasks)
+	}
+	return nil
+}
+
+// wsCacheObjectField names a ws cache that is a cache object rather than a map: the owner reads
+// and writes the field, the object it holds guards its own rows.
+func (this *BaseExchange) wsCacheObjectField(name string) *any {
+	switch name {
+	case "Positions":
+		return &this.Positions
 	}
 	return nil
 }
@@ -140,6 +154,18 @@ func (this *BaseExchange) wsBalanceMap() map[string]any {
 // wsCacheApply runs one map operation on the dispatch goroutine. Keys are pointer-carried in
 // generated code, so every key is dereferenced first; a non-string key finds nothing.
 func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
+	switch req.op {
+	case wsOpObjGet:
+		if field := this.wsCacheObjectField(req.field); field != nil {
+			return *field
+		}
+		return nil
+	case wsOpObjSet:
+		if field := this.wsCacheObjectField(req.field); field != nil {
+			*field = req.value
+		}
+		return nil
+	}
 	cache := this.wsCacheField(req.field)
 	if cache == nil {
 		return nil
@@ -180,6 +206,17 @@ func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 			cache[k] = v
 		}
 		return nil
+	case wsOpDelete:
+		if keyIsString {
+			delete(cache, key)
+		}
+		return nil
+	case wsOpKeys:
+		keys := make([]string, 0, len(cache))
+		for k := range cache {
+			keys = append(keys, k)
+		}
+		return keys
 	case wsOpSnapshot:
 		out := make(map[string]any, len(cache))
 		for k, v := range cache {
@@ -187,6 +224,15 @@ func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 		}
 		return out
 	case wsOpReset:
+		// a fresh empty map for the typed caches, so a handler can store into it again
+		switch req.field {
+		case "Tickers":
+			this.Tickers = TickerCache{}
+			return nil
+		case "Bidsasks":
+			this.Bidsasks = TickerCache{}
+			return nil
+		}
 		for k := range cache {
 			delete(cache, k)
 		}
@@ -249,6 +295,31 @@ func (this *BaseExchange) WsCacheHas(field string, key any) bool {
 
 func (this *BaseExchange) WsCacheSet(field string, key any, value any) {
 	this.wsCacheDo(wsOpSet, field, key, value)
+}
+
+// WsCacheDelete removes one entry on the owner (the ticker caches unsubscribe by symbol).
+func (this *BaseExchange) WsCacheDelete(field string, key any) {
+	this.wsCacheDo(wsOpDelete, field, key, nil)
+}
+
+// WsCacheKeys lists the symbols of a cache, taken on the owner.
+func (this *BaseExchange) WsCacheKeys(field string) []string {
+	keys, _ := this.wsCacheDo(wsOpKeys, field, nil, nil).([]string)
+	if keys == nil {
+		return []string{}
+	}
+	return keys
+}
+
+// WsCacheObjGet reads a cache-object field on the owner: user-path code gets the object, whose
+// own mutex guards its rows, but never touches the field itself.
+func (this *BaseExchange) WsCacheObjGet(field string) any {
+	return this.wsCacheDo(wsOpObjGet, field, nil, nil)
+}
+
+// WsCacheObjSet replaces a cache-object field on the owner.
+func (this *BaseExchange) WsCacheObjSet(field string, value any) {
+	this.wsCacheDo(wsOpObjSet, field, nil, value)
 }
 
 // WsCacheSnapshot copies the cache on the dispatch goroutine, for callers that walk the whole map
