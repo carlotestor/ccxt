@@ -100,12 +100,12 @@ func (this *BaseExchange) GetApi() map[string]any {
 	return this.Api
 }
 
-func (this *BaseExchange) GetCurrencies() *sync.Map {
-	return this.Currencies
+func (this *BaseExchange) GetCurrencies() map[string]any {
+	return this.Currencies()
 }
 
-func (this *BaseExchange) GetMarkets() *sync.Map {
-	return this.Markets
+func (this *BaseExchange) GetMarkets() map[string]any {
+	return this.Markets()
 }
 
 func (this *BaseExchange) GetNetworkAliases() map[string]any {
@@ -141,7 +141,7 @@ func (this *BaseExchange) SetCurrencies(currencies any) {
 	if currencies == nil {
 		return
 	}
-	this.Currencies = this.MapToSafeMap(currencies.(map[string]any))
+	this.PublishCurrencies(this.Extend(currencies))
 }
 
 func (this *BaseExchange) SetPassword(password any) {

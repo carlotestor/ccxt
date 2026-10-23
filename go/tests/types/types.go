@@ -126,7 +126,7 @@ func testTrade(exchange *ccxt.Binance) {
 	Blue("Testing Trade type")
 	file := GetRootDir() + BASE_DIR + "trades.json"
 	content := IoFileRead(file, true)
-	market, _ := exchange.Markets.Load("BTC/USDT")
+	market, _ := exchange.Markets()["BTC/USDT"]
 	parsed := exchange.ParseTrades(content, market)
 	typed := ccxt.NewTradeArray(parsed)
 	Assert(len(typed) > 0)
@@ -231,7 +231,7 @@ func initExchangeOffline() *ccxt.Binance {
 	exchange := ccxt.NewBinance(nil)
 	marketsFile := GetRootDir() + "ts/src/test/static/markets/binance.json"
 	marketsContent := IoFileRead(marketsFile, true)
-	exchange.Markets = MapToSafeMap(marketsContent.(map[string]any))
+	exchange.PublishMarkets(marketsContent.(map[string]any))
 	exchange.LoadMarkets()
 	return exchange
 }

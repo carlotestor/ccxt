@@ -194,8 +194,8 @@ type IBaseExchange interface {
 	GetUrls() any
 	GetApi() map[string]any
 	GetOptions() map[string]any
-	GetCurrencies() *sync.Map
-	GetMarkets() *sync.Map
+	GetCurrencies() map[string]any
+	GetMarkets() map[string]any
 	GetNetworkAliases() map[string]any
 	SetSandboxMode(enable any)
 	EnableDemoTrading(enable any)
@@ -254,8 +254,8 @@ type ICoreExchange interface {
 	GetUrls() any
 	GetApi() map[string]any
 	GetOptions() map[string]any
-	GetCurrencies() *sync.Map
-	GetMarkets() *sync.Map
+	GetCurrencies() map[string]any
+	GetMarkets() map[string]any
 	GetNetworkAliases() map[string]any
 	CheckRequiredCredentials(optionalArgs ...any) bool
 	Sleep(milliseconds any) <-chan bool
@@ -266,7 +266,7 @@ type ICoreExchange interface {
 	NumberToString(num any) *string
 	Base16ToBinary(str any) []byte
 	ParseToNumeric(value any) any
-	LoadMarketsAsync(params ...any) <-chan AsyncResult[*sync.Map]
+	LoadMarketsAsync(params ...any) <-chan AsyncResult[map[string]any]
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
 	SafeDictMap(dictionaryOrList any, key any, optionalArgs ...any) map[string]any

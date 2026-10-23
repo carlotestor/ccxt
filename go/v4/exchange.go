@@ -18,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	starkfelt "github.com/NethermindEth/juno/core/felt"
@@ -34,7 +35,7 @@ type BaseExchange struct {
 	loadMu                 sync.Mutex
 	marketsLoading         bool
 	marketsLoaded          bool
-	loadMarketsSubscribers []chan AsyncResult[*sync.Map]
+	loadMarketsSubscribers []chan AsyncResult[map[string]any]
 	Itf                    any
 	DerivedExchange        IDerivedExchange
 	methodCache            sync.Map
@@ -46,10 +47,8 @@ type BaseExchange struct {
 	Has                    map[string]any
 	Api                    map[string]any
 	TransformedApi         map[string]any
-	Markets                *sync.Map
-	Markets_by_id          *sync.Map
-	Currencies_by_id       *sync.Map
-	Currencies             *sync.Map
+	marketsWriteMu         sync.Mutex
+	marketsBook            atomic.Pointer[marketsBook]
 	RequiredCredentials    map[string]any
 	HttpExceptions         map[string]any
 	MarketsById            *sync.Map
@@ -284,7 +283,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// afterNs := time.Now().UnixNano()
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
-	this.Currencies = &sync.Map{}
+	this.PublishCurrencies(map[string]any{})
 	this.FundingRates = map[string]any{}
 	this.Bidsasks = &TickerCache{}
 	this.ProxyDictionaries = make(map[string]any)
@@ -411,25 +410,25 @@ func (this *BaseExchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[*sync.Map] {
+func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[map[string]any] {
 	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
 
 	if this.marketsLoaded && !reload {
-		out := make(chan AsyncResult[*sync.Map], 1)
-		out <- AsyncResult[*sync.Map]{Value: this.Markets}
+		out := make(chan AsyncResult[map[string]any], 1)
+		out <- AsyncResult[map[string]any]{Value: this.Markets()}
 		close(out)
 		this.loadMu.Unlock()
 		return out
 	}
 
-	ch := make(chan AsyncResult[*sync.Map], 1)
+	ch := make(chan AsyncResult[map[string]any], 1)
 	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
 
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
 		loaded := <-this.LoadMarketsHelperAsync(params...)
-		markets := AsyncResult[*sync.Map]{Err: loaded.Err}
+		markets := AsyncResult[map[string]any]{Err: loaded.Err}
 		if loaded.Err == nil && loaded.Value != nil {
 			markets.Value = loaded.Value
 		}
@@ -446,29 +445,29 @@ func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[*sy
 	return ch
 }
 
-func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[*sync.Map] {
-	ch := make(chan AsyncResult[*sync.Map])
+func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any])
 
 	go func() {
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- AsyncResult[*sync.Map]{Err: RecoveredError(r)}
+				ch <- AsyncResult[map[string]any]{Err: RecoveredError(r)}
 			}
 		}()
 		reload := GetArg(params, 0, false).(bool)
 		params := GetArg(params, 1, map[string]any{})
 		if !reload {
-			if this.Markets != nil {
-				if this.Markets_by_id == nil {
+			if this.Markets() != nil {
+				if this.Markets_by_id() == nil {
 					// Only lock when writing
 					this.MarketsMutex.Lock()
-					this.SetMarkets(this.Markets, nil) // returns this.Markets
+					this.SetMarkets(this.Markets(), nil) // returns this.Markets()
 					this.MarketsMutex.Unlock()
-					ch <- AsyncResult[*sync.Map]{Value: this.Markets}
+					ch <- AsyncResult[map[string]any]{Value: this.Markets()}
 					return
 				}
-				ch <- AsyncResult[*sync.Map]{Value: this.Markets}
+				ch <- AsyncResult[map[string]any]{Value: this.Markets()}
 				return
 			}
 		}
@@ -497,7 +496,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 
 		// Lock only for writing
 		this.MarketsMutex.Lock()
-		this.SetMarkets(markets, currencies) // returns this.Markets (panics when unset)
+		this.SetMarkets(markets, currencies) // returns this.Markets() (panics when unset)
 		// prediction exchanges build an outcome lookup from the loaded markets via the
 		// PredictionExchange.SetMarkets override. Go has no virtual dispatch, so the base
 		// SetMarkets above bypasses it — invoke setOutcomesFromMarkets on the concrete
@@ -508,7 +507,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		}
 		this.MarketsMutex.Unlock()
 
-		ch <- AsyncResult[*sync.Map]{Value: this.Markets}
+		ch <- AsyncResult[map[string]any]{Value: this.Markets()}
 	}()
 	return ch
 }
@@ -530,11 +529,11 @@ func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncRes
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		if this.Markets == nil {
+		if this.Markets() == nil {
 			ch <- AsyncResult[[]MarketInterface]{Value: []MarketInterface{}}
 			return
 		}
-		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ToArray(this.Markets))}
+		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ToArray(this.Markets()))}
 	}()
 	return ch
 }
@@ -1250,11 +1249,11 @@ func (this *BaseExchange) StringToCharsArray(value any) []string {
 }
 
 func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
-	if this.Markets == nil {
+	markets := this.Markets()
+	if markets == nil {
 		panic("Markets not loaded, please call LoadMarkets() first")
 	}
-	// market := this.Markets[symbol]
-	market, ok := this.Markets.Load(symbol)
+	market, ok := markets[symbol]
 	if !ok {
 		return NewMarketInterface(nil)
 	}
@@ -1263,20 +1262,14 @@ func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
 
 func (this *BaseExchange) GetMarketsList() []MarketInterface {
 	var markets []MarketInterface
-	// for _, market := range this.Markets {
-	// 	markets = append(markets, NewMarketInterface(market))
-	// }
-	this.Markets.Range(func(key, value any) bool {
-		markets = append(markets, NewMarketInterface(value))
-		return true
-
-	})
+	for _, market := range this.Markets() {
+		markets = append(markets, NewMarketInterface(market))
+	}
 	return markets
 }
 
 func (this *BaseExchange) GetCurrency(currencyId string) Currency {
-	// market := this.Currencies[currency]
-	currency, ok := this.Currencies.Load(currencyId)
+	currency, ok := this.Currencies()[currencyId]
 	if !ok {
 		return NewCurrency(nil)
 	}
@@ -1285,14 +1278,9 @@ func (this *BaseExchange) GetCurrency(currencyId string) Currency {
 
 func (this *BaseExchange) GetCurrenciesList() []Currency {
 	var currencies []Currency
-	// for _, currency := range this.Currencies {
-	// 	currencies = append(currencies, NewCurrency(currency))
-	// }
-	// }
-	this.Currencies.Range(func(key, value any) bool {
-		currencies = append(currencies, NewCurrency(value))
-		return true
-	})
+	for _, currency := range this.Currencies() {
+		currencies = append(currencies, NewCurrency(currency))
+	}
 	return currencies
 }
 
