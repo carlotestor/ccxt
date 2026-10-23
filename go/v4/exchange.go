@@ -201,6 +201,9 @@ type BaseExchange struct {
 	// ws
 	WsClients   map[string]any // one websocket client per URL
 	WsClientsMu sync.Mutex
+	// the ws dispatch loop: owner of the four ws cache maps (see exchange_ws_cache.go)
+	wsStore   *wsCacheStore
+	wsStoreMu sync.Mutex
 	Balance     any
 	Positions   any
 	Clients     map[string]any
@@ -1932,7 +1935,7 @@ func (this *BaseExchange) Client(url any) *WSClient {
 		wsOptions,
 	)
 	var proxyUrl string = this.getWsProxy()
-	client := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, proxyUrl, options)
+	client := NewWSClient(url.(string), this.WsDispatch, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, proxyUrl, options)
 
 	this.Clients[url.(string)] = client
 	return client
@@ -2185,22 +2188,16 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
-	if stored, exists := this.Orderbooks[symbol.(string)]; exists {
-		orderBookInterface := stored.(OrderBookInterface)
+	// this runs on a spawned goroutine, so the cache read and the snapshot apply are handed to
+	// the ws dispatch loop that owns the caches
+	if stored, exists := this.WsCacheGetOk("Orderbooks", symbol); exists {
 		for tries < maxRetries.(int) {
 			fetched := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
 			if fetched.Err != nil {
 				panic(fetched.Err)
 			}
 			orderBook := StructBox(fetched.Value, OrderBookToMap)
-			cache := (*orderBookInterface.GetCache()).([]any)
-			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
-			if index >= 0 {
-				// Call Reset method on stored orderbook
-				orderBookInterface.Reset(orderBook)
-				this.DerivedExchange.HandleBookDeltas(stored, cache[int(index):])
-				orderBookInterface.SetCache(map[string]any{})
-				// this.SetProperty(cache, "length", 0)
+			if this.WsCacheApplyOrderBookSnapshot(stored, orderBook) {
 				client.(ClientInterface).Resolve(stored, messageHash)
 				return nil
 			}
@@ -2222,7 +2219,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 		}
 		this.WsClientsMu.Unlock()
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
-		this.Orderbooks[symbol.(string)] = this.OrderBook()
+		this.WsCacheSet("Orderbooks", symbol, this.OrderBook())
 	} else {
 		client.(ClientInterface).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
@@ -2265,6 +2262,8 @@ func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
 	if shouldClean {
 		this.CleanRestData()
 	}
+	// the dispatch loop outlives no exchange: stop it after the last ws use
+	this.wsCacheStop()
 	return errs
 }
 
