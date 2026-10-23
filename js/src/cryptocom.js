@@ -1531,8 +1531,8 @@ export default class cryptocom extends Exchange {
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
@@ -3569,7 +3569,7 @@ export default class cryptocom extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market(symbol);
-            const isSwap = market['swap'];
+            const isSwap = this.safeBool(market, 'swap');
             let takerFeeKey = 'effective_spot_taker_rate_bps';
             if (isSwap === true) {
                 takerFeeKey = 'effective_deriv_taker_rate_bps';

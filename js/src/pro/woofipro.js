@@ -1260,7 +1260,10 @@ export default class woofipro extends woofiproRest {
             const code = this.safeCurrencyCode(key);
             let account = this.account();
             if ((code !== undefined) && (code in this.balance)) {
-                account = this.balance[code];
+                const cachedAccount = this.safeDict(this.balance, code);
+                if (cachedAccount !== undefined) {
+                    account = cachedAccount;
+                }
             }
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');

@@ -860,8 +860,8 @@ class bitrue extends bitrue$1["default"] {
         }
         const promises = await Promise.all(promisesRaw);
         const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue(promises, 1);
-        const deliveryMarkets = this.safeValue(promises, 2);
+        const futureMarkets = this.safeList(promises, 1, []);
+        const deliveryMarkets = this.safeList(promises, 2, []);
         let markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
@@ -2143,7 +2143,7 @@ class bitrue extends bitrue$1["default"] {
         else if (market['spot'] === true) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision(symbol, amount);
-            const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+            const validOrderTypes = this.safeList(market['info'], 'orderTypes', []);
             if (!this.inArray(uppercaseType, validOrderTypes)) {
                 throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
             }

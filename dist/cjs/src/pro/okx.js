@@ -1435,7 +1435,7 @@ class okx extends okx$1["default"] {
         const symbol = this.safeSymbol(marketId, market);
         const seqId = this.safeInteger(message, 'seqId');
         const prevSeqId = this.safeInteger(message, 'prevSeqId');
-        const nonce = orderbook['nonce'];
+        const nonce = this.safeInteger(orderbook, 'nonce');
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
             const error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];

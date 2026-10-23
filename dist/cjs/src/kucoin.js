@@ -1753,7 +1753,10 @@ class kucoin extends kucoin$1["default"] {
             promises.push(this.loadMigrationStatus());
         }
         const responses = await Promise.all(promises);
-        const symbolsData = fetchSpotMarkets ? this.safeList(responses[0], 'data', []) : [];
+        let symbolsData = [];
+        if (fetchSpotMarkets) {
+            symbolsData = this.safeList(responses[0], 'data', []);
+        }
         let crossIndex = 0;
         let isolatedIndex = 0;
         let tickersIndex = 0;
@@ -4267,7 +4270,7 @@ class kucoin extends kucoin$1["default"] {
         const market = this.market(symbol);
         const testOrder = this.safeBool(params, 'test', false);
         const paramsOmitted = this.omit(params, 'test');
-        const hasTpOrSlOrder = (this.safeValue(paramsOmitted, 'stopLoss') !== undefined) || (this.safeValue(paramsOmitted, 'takeProfit') !== undefined);
+        const hasTpOrSlOrder = (this.safeDict(paramsOmitted, 'stopLoss') !== undefined) || (this.safeDict(paramsOmitted, 'takeProfit') !== undefined);
         const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         let response;
         if (testOrder) {

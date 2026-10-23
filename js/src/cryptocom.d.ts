@@ -307,7 +307,7 @@ export default class cryptocom extends Exchange {
     parseDepositStatus(status: Str): Str;
     parseWithdrawalStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    customHandleMarginModeAndParams(methodName: any, params?: Dict): [Str, Dict];
+    customHandleMarginModeAndParams(methodName: string, params?: Dict): [Str, Dict];
     parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method

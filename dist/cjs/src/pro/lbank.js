@@ -213,12 +213,13 @@ class lbank extends lbank$1["default"] {
             ];
             const timeframeId = this.safeString(message, 'kbar');
             const timeframe = this.findTimeframe(timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            const ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = ohlcvsForSymbol;
+            let stored = this.safeValue(ohlcvsForSymbol, timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                ohlcvsForSymbol[timeframe] = stored;
             }
             stored.append(parsed);
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
@@ -237,12 +238,13 @@ class lbank extends lbank$1["default"] {
                 this.safeNumber(rawOHLCV, 'v'),
             ];
             const timeframe = this.findTimeframe(timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            const ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = ohlcvsForSymbol;
+            let stored = this.safeValue(ohlcvsForSymbol, timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                ohlcvsForSymbol[timeframe] = stored;
             }
             stored.append(parsed);
             const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;

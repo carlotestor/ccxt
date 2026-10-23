@@ -2040,13 +2040,19 @@ class kraken extends kraken$1["default"] {
                 price = this.safeString(parts, 5);
             }
         }
-        side = this.safeString(description, 'type', side);
+        const descriptionSide = this.safeString(description, 'type');
+        if (descriptionSide !== undefined) {
+            side = descriptionSide;
+        }
         rawType = this.safeString(description, 'ordertype', rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, 'pair', marketId);
         const marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         let symbol = undefined;
         const timestamp = this.safeTimestamp(orderOmitted, 'opentm');
-        amount = this.safeString(orderOmitted, 'vol', amount);
+        const orderAmount = this.safeString(orderOmitted, 'vol');
+        if (orderAmount !== undefined) {
+            amount = orderAmount;
+        }
         const filled = this.safeString(orderOmitted, 'vol_exec');
         let fee = undefined;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -3728,11 +3734,12 @@ class kraken extends kraken$1["default"] {
         if (body[0] === '{') {
             if (typeof response !== 'string') {
                 const message = this.id + ' ' + body;
-                if ('error' in response) {
-                    const numErrors = response['error'].length;
+                const errors$1 = this.safeList(response, 'error');
+                if (errors$1 !== undefined) {
+                    const numErrors = errors$1.length;
                     if (numErrors > 0) {
-                        for (let i = 0; i < response['error'].length; i++) {
-                            const error = response['error'][i];
+                        for (let i = 0; i < numErrors; i++) {
+                            const error = errors$1[i];
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
                         }

@@ -3225,8 +3225,8 @@ class okx extends okx$1["default"] {
         if (!shouldOmitSize) {
             request['sz'] = this.amountToPrecision(symbol, amount);
         }
-        const spot = market['spot'];
-        const contract = market['contract'];
+        const spot = this.safeBool(market, 'spot');
+        const contract = this.safeBool(market, 'contract');
         const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');

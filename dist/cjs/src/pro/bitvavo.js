@@ -77,7 +77,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
         const market = this.market(symbol);
         const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -103,7 +103,7 @@ class bitvavo extends bitvavo$1["default"] {
             const market = this.market(symbolsNormalized[i]);
             args.push(market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -309,7 +309,7 @@ class bitvavo extends bitvavo$1["default"] {
             marketIds.push(market['id']);
             messageHashes.push(name + '@' + market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -395,7 +395,7 @@ class bitvavo extends bitvavo$1["default"] {
         const marketId = market['id'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = name + '@' + marketId + '_' + interval;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -512,7 +512,7 @@ class bitvavo extends bitvavo$1["default"] {
                 'markets': marketIdsByInterval[interval],
             });
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': channels,
@@ -601,7 +601,7 @@ class bitvavo extends bitvavo$1["default"] {
         const symbolValue = market['symbol'];
         const name = 'book';
         const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -649,7 +649,7 @@ class bitvavo extends bitvavo$1["default"] {
             marketIds.push(market['id']);
             messageHashes.push(name + '@' + market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -806,7 +806,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
         const name = 'getBook';
         const messageHash = name + '@' + marketId;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': name,
             'market': marketId,
@@ -902,7 +902,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
     }
     async unWatchChannels(topic, channels, subMessageHashes, subscriptionArgs, params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'unsubscribe',
             'channels': channels,
@@ -972,7 +972,7 @@ class bitvavo extends bitvavo$1["default"] {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
         const messageHash = 'order:' + symbolValue;
         const request = {
@@ -1012,7 +1012,7 @@ class bitvavo extends bitvavo$1["default"] {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
         const messageHash = 'myTrades:' + symbolValue;
         const request = {
@@ -1211,7 +1211,7 @@ class bitvavo extends bitvavo$1["default"] {
         const messageHashStr = messageHash.toString();
         request['action'] = action;
         request['requestId'] = messageHash;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         return await this.watch(url, messageHashStr, request, messageHashStr);
     }
     /**
@@ -1728,7 +1728,7 @@ class bitvavo extends bitvavo$1["default"] {
         return message;
     }
     async authenticate(params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const client = this.client(url);
         const messageHash = 'authenticated';
         let future = this.safeValue(client.subscriptions, messageHash);

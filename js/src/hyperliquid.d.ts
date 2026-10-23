@@ -187,7 +187,7 @@ export default class hyperliquid extends Exchange {
     signMessage(message: any, privateKey: string): Dict;
     constructPhantomAgent(hash: any, isTestnet?: boolean): Dict;
     actionHash(action: any, vaultAddress: Str, nonce: any, expiresAfter?: Int): Uint8Array<ArrayBufferLike>;
-    signL1Action(action: any, nonce: any, vaultAdress?: Str, expiresAfter?: Int): object;
+    signL1Action(action: any, nonce: any, vaultAdress?: Str, expiresAfter?: Int): Dict;
     signUserSignedAction(messageTypes: Dict, message: Dict): Dict;
     buildUsdSendSig(message: Dict): Dict;
     buildUsdClassSendSig(message: Dict): Dict;
@@ -610,7 +610,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: Num, type: string, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method

@@ -72,7 +72,7 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'crypto');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -155,7 +155,7 @@ class alpaca extends alpaca$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'crypto');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -213,7 +213,7 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'crypto');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -296,7 +296,7 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'crypto');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -353,7 +353,7 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['trading'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'trading');
         await this.authenticate(url);
         let messageHash = 'myTrades';
         if (this.markets === undefined) {
@@ -387,7 +387,7 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['trading'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'trading');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -619,7 +619,7 @@ class alpaca extends alpaca$1["default"] {
                 'key': this.apiKey,
                 'secret': this.secret,
             };
-            if (url === this.safeString(this.urls['api']['ws'], 'trading')) {
+            if (url === this.safeString(this.safeDict(this.urls['api'], 'ws'), 'trading')) {
                 // this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',

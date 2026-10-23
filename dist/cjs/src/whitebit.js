@@ -1224,14 +1224,16 @@ class whitebit extends whitebit$1["default"] {
             }
             // Build comprehensive funding limits
             const currencyLimits = this.safeDict(currency, 'limits', {});
+            const depositLimits = this.safeDict(currencyLimits, 'deposit', {});
+            const withdrawLimits = this.safeDict(currencyLimits, 'withdraw', {});
             const limits = {
                 'deposit': {
-                    'min': currencyLimits['deposit']['min'],
-                    'max': currencyLimits['deposit']['max'],
+                    'min': depositLimits['min'],
+                    'max': depositLimits['max'],
                 },
                 'withdraw': {
-                    'min': currencyLimits['withdraw']['min'],
-                    'max': currencyLimits['withdraw']['max'],
+                    'min': withdrawLimits['min'],
+                    'max': withdrawLimits['max'],
                 },
             };
             // Add fee information if available

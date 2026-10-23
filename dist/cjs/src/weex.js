@@ -4362,7 +4362,7 @@ class weex extends weex$1["default"] {
         if (hasJsonBody) {
             requestBody = this.json(query);
         }
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         if (isPrivate) {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
             if ((sandboxMode) && (path.indexOf('capi/v3/sim/') !== 0)) {

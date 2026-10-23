@@ -133,8 +133,8 @@ class mudrex extends mudrex$1["default"] {
         if (priceType === 'mark') {
             prefix = 'markKline';
         }
-        const streamBaseId = (market['baseId'] !== undefined) ? market['baseId'] : '';
-        const streamQuoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+        const streamBaseId = this.safeString(market, 'baseId', '');
+        const streamQuoteId = this.safeString(market, 'quoteId', '');
         const stream = prefix + '@' + interval + '@' + streamBaseId.toLowerCase() + streamQuoteId.toLowerCase();
         const messageHash = stream;
         const url = this.urls['api']['ws'];

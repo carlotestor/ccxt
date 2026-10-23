@@ -4482,12 +4482,13 @@ class digifinex extends digifinex$1["default"] {
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
-                const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
-                if (depositWithdrawFee === undefined) {
-                    depositWithdrawFees[code] = this.depositWithdrawFee({});
-                    depositWithdrawFees[code]['info'] = [];
+                if (this.safeDict(depositWithdrawFees, code) === undefined) {
+                    const feeStructure = this.depositWithdrawFee({});
+                    feeStructure['info'] = [];
+                    depositWithdrawFees[code] = feeStructure;
                 }
-                const depositWithdrawInfo = depositWithdrawFees[code]['info'];
+                const depositWithdrawFee = depositWithdrawFees[code];
+                const depositWithdrawInfo = depositWithdrawFee['info'];
                 depositWithdrawInfo.push(entry);
                 const networkId = this.safeString(entry, 'chain');
                 const withdrawFee = this.safeValue(entry, 'min_withdraw_fee');
@@ -4502,15 +4503,15 @@ class digifinex extends digifinex$1["default"] {
                 if (networkId !== undefined) {
                     const networkCode = this.networkIdToCode(networkId, code);
                     if (networkCode !== undefined) {
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        depositWithdrawFee['networks'][networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult,
                         };
                     }
                 }
                 else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
+                    depositWithdrawFee['withdraw'] = withdrawResult;
+                    depositWithdrawFee['deposit'] = depositResult;
                 }
             }
         }

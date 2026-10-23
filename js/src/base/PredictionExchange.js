@@ -1289,17 +1289,19 @@ export default class PredictionExchange extends BaseExchange {
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         const orderType = this.safeString(outcomeOrder, 'type');
         let timeInForce = this.safeString(outcomeOrder, 'timeInForce');
-        let postOnly = this.safeBool(outcomeOrder, 'postOnly');
+        // the venue flag and the derived one are each written once, so neither local widens
+        const postOnlyValue = this.safeBool(outcomeOrder, 'postOnly');
+        let derivedPostOnly = undefined;
         if (timeInForce === undefined) {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly === true) {
+            if (postOnlyValue === true) {
                 timeInForce = 'PO';
             }
         }
-        else if (postOnly === undefined) {
-            postOnly = (timeInForce === 'PO');
+        else if (postOnlyValue === undefined) {
+            derivedPostOnly = (timeInForce === 'PO');
         }
         const timestamp = this.safeInteger(outcomeOrder, 'timestamp');
         let datetime = this.safeString(outcomeOrder, 'datetime');
@@ -1325,7 +1327,7 @@ export default class PredictionExchange extends BaseExchange {
             'cost': this.parseNumber(cost),
             'fee': fee,
             'reduceOnly': this.safeBool(outcomeOrder, 'reduceOnly'),
-            'postOnly': postOnly,
+            'postOnly': (postOnlyValue !== undefined) ? postOnlyValue : derivedPostOnly,
             'trades': trades,
             'outcome': this.safeString(outcomeOrder, 'outcome'),
             'outcomeId': this.safeString(outcomeOrder, 'outcomeId'),

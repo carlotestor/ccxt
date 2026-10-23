@@ -1781,10 +1781,11 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const ticker = this.safeValue(response, 'result');
         if (market['spot'] === true) {
-            return this.parseTicker(ticker[0], market);
+            const tickers = this.safeList(response, 'result', []);
+            return this.parseTicker(tickers[0], market);
         }
+        const ticker = this.safeDict(response, 'result', {});
         return this.parseTicker(ticker, market);
     }
     /**

@@ -88,7 +88,7 @@ export default class hitbtc extends hitbtcRest {
      */
     async authenticate() {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'private');
         const messageHash = 'authenticated';
         const client = this.client(url);
         const future = client.reusableFuture(messageHash);
@@ -146,7 +146,7 @@ export default class hitbtc extends hitbtcRest {
         const symbolsNormalized = this.marketSymbols(symbols);
         const isBatch = name.indexOf('batch') >= 0;
         const resolvedPerSymbol = !isBatch || (messageHashPrefix === 'orderbooks'); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        const url = this.urls['api']['ws']['public'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'public');
         const messageHashes = [];
         if (symbolsNormalized !== undefined && resolvedPerSymbol) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -180,7 +180,7 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets();
         }
         await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'private');
         const splitName = name.split('_subscribe');
         let messageHash = this.safeString(splitName, 0, '');
         if (symbol !== undefined) {
@@ -208,7 +208,7 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets();
         }
         await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'private');
         const messageHash = this.incrementingNonce().toString();
         const subscribe = {
             'method': name,

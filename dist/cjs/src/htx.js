@@ -3943,7 +3943,7 @@ class htx extends htx$1["default"] {
     parseMarginBalanceHelper(balance, code, result) {
         let account = undefined;
         if (code in result) {
-            account = result[code];
+            account = this.safeDict(result, code);
         }
         else {
             account = this.account();

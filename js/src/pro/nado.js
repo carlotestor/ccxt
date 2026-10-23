@@ -968,12 +968,12 @@ export default class nado extends nadoRest {
         if (requestIdString === undefined) {
             throw new ArgumentsRequired(this.id + ' watchExecuteRequest() requires requestIdString');
         }
-        const url = this.urls['api']['ws']['gateway'];
+        const url = this.safeString(this.urls['api']['ws'], 'gateway');
         const messageHash = 'execute:' + requestIdString;
         return await this.watch(url, messageHash, request, messageHash);
     }
     async watchPublic(streamType, market, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const stream = {
             'type': streamType,
         };
@@ -1002,7 +1002,7 @@ export default class nado extends nadoRest {
         return await this.watch(url, messageHash);
     }
     async watchPrivate(streamType, stream, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const client = this.client(url);
         const clientSubscription = this.safeValue(client.subscriptions, messageHash);
         if (clientSubscription !== undefined) {
@@ -1025,7 +1025,7 @@ export default class nado extends nadoRest {
         return await this.watch(url, messageHash);
     }
     async unWatchPrivate(stream, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const id = this.requestId();
         const unsubscribeHash = 'unsubscribe:' + messageHash;
         const request = {
@@ -1046,7 +1046,7 @@ export default class nado extends nadoRest {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const client = this.client(url);
         const messageHash = 'authenticated';
         const authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -1113,7 +1113,7 @@ export default class nado extends nadoRest {
         };
     }
     async watchPublicMultiple(streamType, markets, messageHashes, params = {}, subscriptionParams = undefined) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const client = this.client(url);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -1140,7 +1140,7 @@ export default class nado extends nadoRest {
         return await this.watchMultiple(url, messageHashes, undefined, messageHashes);
     }
     async unWatchPublic(streamType, market, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const id = this.requestId();
         const request = this.createPublicSubscriptionRequest('unsubscribe', streamType, market, id, params);
         const subscription = {
@@ -1156,7 +1156,7 @@ export default class nado extends nadoRest {
         return await this.watch(url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
     async unWatchPublicMultiple(streamType, markets, messageHashes, params = {}, subscriptionParams = undefined) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const client = this.client(url);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -1794,7 +1794,7 @@ export default class nado extends nadoRest {
         }
     }
     ping(client) {
-        const gatewayUrl = this.urls['api']['ws']['gateway'];
+        const gatewayUrl = this.safeString(this.urls['api']['ws'], 'gateway');
         if (client.url === gatewayUrl) {
             // the v2 gateway is kept alive with protocol-level ping frames,
             // returning undefined makes the client send one instead of a message

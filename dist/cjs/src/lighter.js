@@ -762,7 +762,7 @@ class lighter extends lighter$1["default"] {
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */
         if (price === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price argument');
@@ -874,10 +874,11 @@ class lighter extends lighter$1["default"] {
             request['integrator_maker_fee'] = this.options['integratorMakerFee'];
         }
         const orders = [];
-        orders.push(this.extend(request, paramsRequest));
+        const firstOrder = this.extend(request, paramsRequest);
+        orders.push(firstOrder);
         if (hasStopLoss || hasTakeProfit) {
             // group order
-            orders[0]['client_order_index'] = 0; // client order index should be 0
+            firstOrder['client_order_index'] = 0; // client order index should be 0
             let triggerOrderSide = '';
             if (orderSide === 'BUY') {
                 triggerOrderSide = 'sell';

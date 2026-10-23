@@ -2720,7 +2720,7 @@ class myriad extends myriad$1["default"] {
         }
         else {
             const chartsDict = this.safeDict(selectedOutcome, 'price_charts', {});
-            chart = this.safeValue(chartsDict, bucketKey);
+            chart = this.safeDict(chartsDict, bucketKey);
         }
         const pointsList = this.safeList(chart, 'prices', this.safeList(chart, 'data', chart));
         let points = (pointsList !== undefined) ? pointsList : [];

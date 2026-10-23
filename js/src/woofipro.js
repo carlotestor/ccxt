@@ -1827,7 +1827,8 @@ export default class woofipro extends Exchange {
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString(params, 'algoType');
-        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1934,7 +1935,8 @@ export default class woofipro extends Exchange {
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeList(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (paramsChildOrders !== undefined);
         let response = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder(request);
@@ -2000,7 +2002,8 @@ export default class woofipro extends Exchange {
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
             const takeProfit = this.safeDict(orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(orderParams, 'childOrders') !== undefined);
+            const paramsChildOrders = this.safeList(orderParams, 'childOrders');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (paramsChildOrders !== undefined);
             if (isConditional) {
                 throw new NotSupported(this.id + ' createOrders() only support non-stop order');
             }
@@ -2062,7 +2065,8 @@ export default class woofipro extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        const isConditional = (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = (triggerPrice !== undefined) || (paramsChildOrders !== undefined);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
         if (price !== undefined) {

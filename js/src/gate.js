@@ -3540,9 +3540,10 @@ export default class gate extends Exchange {
         const paramsOmitted = this.omit(paramsRequest, 'until');
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
-            request['from'] = this.parseToInt(since / 1000);
+            const fromTimestamp = this.parseToInt(since / 1000);
+            request['from'] = fromTimestamp;
             const distance = (limitValue - 1) * duration;
-            const toTimestamp = this.sum(request['from'], distance);
+            const toTimestamp = this.sum(fromTimestamp, distance);
             const currentTimestamp = this.seconds();
             const to = Math.min(toTimestamp, currentTimestamp);
             if (until !== undefined) {
@@ -4724,7 +4725,7 @@ export default class gate extends Exchange {
         if (useGateFuturesDecimalSize) {
             sizeRequest = signedAmount;
         }
-        let request = undefined;
+        let request = {};
         const nonTriggerOrder = !isTpsl && (trigger === undefined);
         if (nonTriggerOrder) {
             if (contract === true) {

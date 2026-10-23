@@ -1,6 +1,6 @@
 (() => {
 var __webpack_modules__ = ({
-8045(module) {
+9442(module) {
 "use strict";
 
 module.exports = asPromise;
@@ -57,7 +57,7 @@ function asPromise(fn, ctx/*, varargs */) {
 
 
 },
-8839(__unused_rspack_module, exports) {
+1506(__unused_rspack_module, exports) {
 "use strict";
 
 
@@ -201,7 +201,7 @@ base64.test = function test(string) {
 
 
 },
-4358(module) {
+3356(module) {
 "use strict";
 
 module.exports = EventEmitter;
@@ -292,7 +292,7 @@ EventEmitter.prototype.emit = function emit(evt) {
 
 
 },
-9410(module) {
+7249(module) {
 "use strict";
 
 
@@ -632,7 +632,7 @@ function readUintBE(buf, pos) {
 
 
 },
-9390(module) {
+5003(module) {
 "use strict";
 
 module.exports = pool;
@@ -685,7 +685,7 @@ function pool(alloc, slice, size) {
 
 
 },
-1447(__unused_rspack_module, exports) {
+7002(__unused_rspack_module, exports) {
 "use strict";
 
 
@@ -794,7 +794,7 @@ utf8.write = function utf8_write(string, buffer, offset) {
 
 
 },
-9861(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+80(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
 // DEFLATE is a complex format; to read this code, you should probably check the RFC first:
 // https://tools.ietf.org/html/rfc1951
@@ -3496,16 +3496,16 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6946(module, __unused_rspack_exports, __webpack_require__) {
+7635(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 // minimal library entry point.
 
 
-module.exports = __webpack_require__(4394);
+module.exports = __webpack_require__(7375);
 
 
 },
-4394(__unused_rspack_module, exports, __webpack_require__) {
+7375(__unused_rspack_module, exports, __webpack_require__) {
 "use strict";
 
 var protobuf = exports;
@@ -3519,15 +3519,15 @@ var protobuf = exports;
 protobuf.build = "minimal";
 
 // Serialization
-protobuf.Writer       = __webpack_require__(3449);
-protobuf.BufferWriter = __webpack_require__(818);
-protobuf.Reader       = __webpack_require__(6237);
-protobuf.BufferReader = __webpack_require__(3158);
+protobuf.Writer       = __webpack_require__(3618);
+protobuf.BufferWriter = __webpack_require__(6163);
+protobuf.Reader       = __webpack_require__(3762);
+protobuf.BufferReader = __webpack_require__(8851);
 
 // Utility
-protobuf.util         = __webpack_require__(3610);
-protobuf.rpc          = __webpack_require__(5047);
-protobuf.roots        = __webpack_require__(4529);
+protobuf.util         = __webpack_require__(989);
+protobuf.rpc          = __webpack_require__(5622);
+protobuf.roots        = __webpack_require__(1296);
 protobuf.configure    = configure;
 
 /* istanbul ignore next */
@@ -3546,12 +3546,12 @@ configure();
 
 
 },
-6237(module, __unused_rspack_exports, __webpack_require__) {
+3762(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = Reader;
 
-var util      = __webpack_require__(3610);
+var util      = __webpack_require__(989);
 
 var BufferReader; // cyclic
 
@@ -3977,16 +3977,16 @@ Reader._configure = function(BufferReader_) {
 
 
 },
-3158(module, __unused_rspack_exports, __webpack_require__) {
+8851(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = BufferReader;
 
 // extends Reader
-var Reader = __webpack_require__(6237);
+var Reader = __webpack_require__(3762);
 (BufferReader.prototype = Object.create(Reader.prototype)).constructor = BufferReader;
 
-var util = __webpack_require__(3610);
+var util = __webpack_require__(989);
 
 /**
  * Constructs a new buffer reader instance.
@@ -4033,7 +4033,7 @@ BufferReader._configure();
 
 
 },
-4529(module) {
+1296(module) {
 "use strict";
 
 module.exports = Object.create(null);
@@ -4056,7 +4056,7 @@ module.exports = Object.create(null);
 
 
 },
-5047(__unused_rspack_module, exports, __webpack_require__) {
+5622(__unused_rspack_module, exports, __webpack_require__) {
 "use strict";
 
 
@@ -4093,16 +4093,16 @@ var rpc = exports;
  * @returns {undefined}
  */
 
-rpc.Service = __webpack_require__(7595);
+rpc.Service = __webpack_require__(8854);
 
 
 },
-7595(module, __unused_rspack_exports, __webpack_require__) {
+8854(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = Service;
 
-var util = __webpack_require__(3610);
+var util = __webpack_require__(989);
 
 // Extends EventEmitter
 (Service.prototype = Object.create(util.EventEmitter.prototype)).constructor = Service;
@@ -4244,12 +4244,12 @@ Service.prototype.end = function end(endedByRPC) {
 
 
 },
-2239(module, __unused_rspack_exports, __webpack_require__) {
+2550(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = LongBits;
 
-var util = __webpack_require__(3610);
+var util = __webpack_require__(989);
 
 /**
  * Constructs new long bits.
@@ -4449,31 +4449,31 @@ LongBits.prototype.length = function length() {
 
 
 },
-3610(__unused_rspack_module, exports, __webpack_require__) {
+989(__unused_rspack_module, exports, __webpack_require__) {
 "use strict";
 
 var util = exports;
 
 // used to return a Promise where callback is omitted
-util.asPromise = __webpack_require__(8045);
+util.asPromise = __webpack_require__(9442);
 
 // converts to / from base64 encoded strings
-util.base64 = __webpack_require__(8839);
+util.base64 = __webpack_require__(1506);
 
 // base class of rpc.Service
-util.EventEmitter = __webpack_require__(4358);
+util.EventEmitter = __webpack_require__(3356);
 
 // float handling accross browsers
-util.float = __webpack_require__(9410);
+util.float = __webpack_require__(7249);
 
 // converts to / from utf8 encoded strings
-util.utf8 = __webpack_require__(1447);
+util.utf8 = __webpack_require__(7002);
 
 // provides a node-like buffer pool in the browser
-util.pool = __webpack_require__(9390);
+util.pool = __webpack_require__(5003);
 
 // utility to work with the low and high bits of a 64 bit value
-util.LongBits = __webpack_require__(2239);
+util.LongBits = __webpack_require__(2550);
 
 /**
  * Tests if the specified key can affect object prototypes.
@@ -4643,7 +4643,7 @@ util.Long = /* istanbul ignore next */ util.global.dcodeIO && /* istanbul ignore
          || /* istanbul ignore next */ util.global.Long
          || (function() {
                 try {
-                    var Long = __webpack_require__(5017);
+                    var Long = __webpack_require__(4982);
                     return Long && Long.isLong ? Long : null;
                 } catch (e) {
                     /* istanbul ignore next */
@@ -4945,12 +4945,12 @@ util._configure = function() {
 
 
 },
-3449(module, __unused_rspack_exports, __webpack_require__) {
+3618(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = Writer;
 
-var util      = __webpack_require__(3610);
+var util      = __webpack_require__(989);
 
 var BufferWriter; // cyclic
 
@@ -5417,16 +5417,16 @@ Writer._configure = function(BufferWriter_) {
 
 
 },
-818(module, __unused_rspack_exports, __webpack_require__) {
+6163(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = BufferWriter;
 
 // extends Writer
-var Writer = __webpack_require__(3449);
+var Writer = __webpack_require__(3618);
 (BufferWriter.prototype = Object.create(Writer.prototype)).constructor = BufferWriter;
 
-var util = __webpack_require__(3610);
+var util = __webpack_require__(989);
 
 /**
  * Constructs a new buffer writer instance.
@@ -5507,7 +5507,7 @@ BufferWriter._configure();
 
 
 },
-1591(module) {
+6486(module) {
 "use strict";
 
 
@@ -165807,7 +165807,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8818(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _abstract_apex_js__rspack_import_0 = __webpack_require__(9619);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -167953,8 +167953,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8695(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_aster_js__rspack_import_0 = __webpack_require__(3268);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -172867,7 +172867,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9264(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 /* import */ var _abstract_backpack_js__rspack_import_0 = __webpack_require__(4953);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -176546,11 +176546,11 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6039(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_secp256k1_js__rspack_import_7 = __webpack_require__(6885);
-/* import */ var _noble_hashes_sha3_js__rspack_import_8 = __webpack_require__(6834);
-/* import */ var _scure_starknet__rspack_import_9 = __webpack_require__(789);
-/* import */ var _noble_hashes_sha2_js__rspack_import_11 = __webpack_require__(4721);
-/* import */ var _noble_hashes_legacy_js__rspack_import_1 = __webpack_require__(8858);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_7 = __webpack_require__(4608);
+/* import */ var _noble_hashes_sha3_js__rspack_import_8 = __webpack_require__(4725);
+/* import */ var _scure_starknet__rspack_import_9 = __webpack_require__(9636);
+/* import */ var _noble_hashes_sha2_js__rspack_import_11 = __webpack_require__(4006);
+/* import */ var _noble_hashes_legacy_js__rspack_import_1 = __webpack_require__(1337);
 /* import */ var _functions_js__rspack_import_0 = __webpack_require__(1805);
 /* import */ var _functions_js__rspack_import_15 = __webpack_require__(420);
 /* import */ var _errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -180119,7 +180119,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         if (length !== 0) {
             for(let i = 0; i < length; i++){
                 const key = keys[i];
-                const network = networks[key];
+                const network = this.safeDict(networks, key, {});
                 const deposit = this.safeBool(network, 'deposit');
                 const currencyDeposit = this.safeBool(currency, 'deposit');
                 if (currencyDeposit === undefined || deposit === true) {
@@ -180306,7 +180306,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         // we insert spot markets first
         const marketValues = this.sortBy(this.toArray(markets), 'spot', true, true);
         for(let i = 0; i < marketValues.length; i++){
-            const value = marketValues[i];
+            const value = this.safeDict(marketValues, i, {});
             if (value['id'] in marketsById) {
                 const marketsByIdArray = marketsById[value['id']];
                 marketsByIdArray.push(value);
@@ -180595,7 +180595,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                         }
                     }
                     if (shouldParseFees) {
-                        const tradeFees = this.safeValue(trade, 'fees');
+                        const tradeFees = this.safeList(trade, 'fees');
                         if (tradeFees !== undefined) {
                             for(let j = 0; j < tradeFees.length; j++){
                                 const tradeFee = tradeFees[j];
@@ -180834,7 +180834,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         if (markets === undefined) {
             throw new _errors_js__rspack_import_2.ExchangeError(this.id + ' markets not loaded');
         }
-        const market = markets[symbol];
+        const market = this.safeDict(markets, symbol, {});
         const feeSide = this.safeString(market, 'feeSide', 'quote');
         let useQuote = undefined;
         if (feeSide === 'get') {
@@ -182206,10 +182206,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         if (code === undefined) {
             return code;
         }
-        let currency = this.safeDict(this.currencies, code);
-        if (currency === undefined) {
-            currency = this.safeCurrency(code);
+        const currencyById = this.safeDict(this.currencies, code);
+        if (currencyById !== undefined) {
+            return currencyById['id'];
         }
+        const currency = this.safeCurrency(code);
         if (currency !== undefined) {
             return currency['id'];
         }
@@ -182293,10 +182294,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         ];
     }
     getListFromObjectValues(objects, key) {
-        let newArray = objects;
-        if (!Array.isArray(objects)) {
-            newArray = this.toArray(objects);
-        }
+        const newArray = this.toArray(objects);
         const results = [];
         for(let i = 0; i < newArray.length; i++){
             results.push(newArray[i][key]);
@@ -182469,7 +182467,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const options = this.safeDict(this.options, 'buildOHLCVC', {});
         const skipZeroPrices = this.safeBool(options, 'skipZeroPrices', true);
         for(let i = 0; i < oldest; i++){
-            const trade = trades[i];
+            const trade = this.safeDict(trades, i, {});
             const ts = this.safeInteger(trade, 'timestamp');
             const price = trade['price'];
             if (ts === undefined || price === undefined) {
@@ -182586,7 +182584,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         if (marketId !== undefined) {
             if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
-                const markets = this.markets_by_id[marketId];
+                const markets = this.safeList(this.markets_by_id, marketId, []);
                 const numMarkets = markets.length;
                 if (numMarkets === 1) {
                     return markets[0];
@@ -183832,7 +183830,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             } else if (isMarketOrder) {
                 throw new _errors_js__rspack_import_2.InvalidOrder(this.id + ' market orders cannot be postOnly');
             } else {
-                let keysToOmit = undefined;
+                let keysToOmit = [];
                 if (po) {
                     keysToOmit = [
                         'timeInForce',
@@ -184282,7 +184280,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     }
                     errors = 0;
                     result = this.arrayConcat(result, response);
-                    const firstElement = this.safeValue(response, 0);
+                    const firstElement = this.safeDict(response, 0);
                     paginationTimestamp = this.safeInteger2(firstElement, 'timestamp', 0);
                     if (paginationTimestamp === undefined) {
                         shouldBreak = true;
@@ -184309,7 +184307,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     }
                     errors = 0;
                     result = this.arrayConcat(result, response);
-                    const last = this.safeValue(response, responseLength - 1);
+                    const last = this.safeDict(response, responseLength - 1);
                     const lastTimestamp = this.safeInteger(last, 'timestamp', 0);
                     if (lastTimestamp === undefined) {
                         shouldBreak = true;
@@ -187618,7 +187616,7 @@ const ROUTE_QUERY_KEYS = [
         //  nor Node's own global one can set request headers. Imported dynamically so a browser
         //  bundle that never calls watchRoute does not pull it in.
         try {
-            const loaded = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 1591, 23));
+            const loaded = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 6486, 23));
             this.webSocketImpl = loaded['default'] !== undefined ? loaded['default'] : loaded;
             return this.webSocketImpl;
         } catch (e) {
@@ -191905,16 +191903,18 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         const orderType = this.safeString(outcomeOrder, 'type');
         let timeInForce = this.safeString(outcomeOrder, 'timeInForce');
-        let postOnly = this.safeBool(outcomeOrder, 'postOnly');
+        // the venue flag and the derived one are each written once, so neither local widens
+        const postOnlyValue = this.safeBool(outcomeOrder, 'postOnly');
+        let derivedPostOnly = undefined;
         if (timeInForce === undefined) {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly === true) {
+            if (postOnlyValue === true) {
                 timeInForce = 'PO';
             }
-        } else if (postOnly === undefined) {
-            postOnly = timeInForce === 'PO';
+        } else if (postOnlyValue === undefined) {
+            derivedPostOnly = timeInForce === 'PO';
         }
         const timestamp = this.safeInteger(outcomeOrder, 'timestamp');
         let datetime = this.safeString(outcomeOrder, 'datetime');
@@ -191940,7 +191940,7 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
             'cost': this.parseNumber(cost),
             'fee': fee,
             'reduceOnly': this.safeBool(outcomeOrder, 'reduceOnly'),
-            'postOnly': postOnly,
+            'postOnly': postOnlyValue !== undefined ? postOnlyValue : derivedPostOnly,
             'trades': trades,
             'outcome': this.safeString(outcomeOrder, 'outcome'),
             'outcomeId': this.safeString(outcomeOrder, 'outcomeId'),
@@ -192889,12 +192889,12 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1093(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_hmac_js__rspack_import_5 = __webpack_require__(7474);
-/* import */ var _scure_base__rspack_import_2 = __webpack_require__(7116);
-/* import */ var _noble_hashes_utils_js__rspack_import_0 = __webpack_require__(508);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_3 = __webpack_require__(6885);
-/* import */ var _noble_curves_nist_js__rspack_import_4 = __webpack_require__(2431);
-/* import */ var _noble_curves_utils_js__rspack_import_1 = __webpack_require__(6724);
+/* import */ var _noble_hashes_hmac_js__rspack_import_5 = __webpack_require__(6909);
+/* import */ var _scure_base__rspack_import_2 = __webpack_require__(9581);
+/* import */ var _noble_hashes_utils_js__rspack_import_0 = __webpack_require__(1313);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_3 = __webpack_require__(4608);
+/* import */ var _noble_curves_nist_js__rspack_import_4 = __webpack_require__(7888);
+/* import */ var _noble_curves_utils_js__rspack_import_1 = __webpack_require__(173);
 /*  ------------------------------------------------------------------------ */ 
 
 
@@ -193087,8 +193087,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7770(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _scure_base__rspack_import_0 = __webpack_require__(7116);
-/* import */ var _noble_curves_utils_js__rspack_import_1 = __webpack_require__(6724);
+/* import */ var _scure_base__rspack_import_0 = __webpack_require__(9581);
+/* import */ var _noble_curves_utils_js__rspack_import_1 = __webpack_require__(173);
 /* import */ var _msgpack_js__rspack_import_2 = __webpack_require__(8942);
 /* eslint-disable */ /*  ------------------------------------------------------------------------ */ 
 
@@ -193193,7 +193193,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9759(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_0 = __webpack_require__(6834);
+/* import */ var _noble_hashes_sha3_js__rspack_import_0 = __webpack_require__(4725);
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -194854,11 +194854,11 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var crypto__rspack_import_0 = __webpack_require__(178);
 /* import */ var crypto__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(crypto__rspack_import_0);
-/* import */ var _scure_base__rspack_import_3 = __webpack_require__(7116);
+/* import */ var _scure_base__rspack_import_3 = __webpack_require__(9581);
 /* import */ var _encode_js__rspack_import_1 = __webpack_require__(7770);
 /* import */ var _crypto_js__rspack_import_2 = __webpack_require__(1093);
-/* import */ var _noble_curves_nist_js__rspack_import_4 = __webpack_require__(2431);
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_nist_js__rspack_import_4 = __webpack_require__(7888);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 
 
 
@@ -194952,7 +194952,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 300(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _scure_starknet__rspack_import_0 = __webpack_require__(789);
+/* import */ var _scure_starknet__rspack_import_0 = __webpack_require__(9636);
 /* eslint-disable */ /*  ------------------------------------------------------------------------ */ // Minimal Starknet helpers built on @scure/starknet (already a runtime dependency),
 // covering exactly what Exchange.ts uses: compileCalldata (flat felt-only objects),
 // getSelectorFromName, calculateContractAddressFromHash, computePoseidonHashOnElements
@@ -195611,8 +195611,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6637(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _scure_base__rspack_import_1 = __webpack_require__(7116);
-/* import */ var _noble_hashes_legacy_js__rspack_import_2 = __webpack_require__(8858);
+/* import */ var _scure_base__rspack_import_1 = __webpack_require__(9581);
+/* import */ var _noble_hashes_legacy_js__rspack_import_2 = __webpack_require__(1337);
 /* import */ var _crypto_js__rspack_import_0 = __webpack_require__(1093);
 
 
@@ -196330,7 +196330,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _base_functions_js__rspack_import_3 = __webpack_require__(6785);
 /* import */ var _base_functions_js__rspack_import_5 = __webpack_require__(7770);
 /* import */ var _base_functions_js__rspack_import_6 = __webpack_require__(2879);
-/* import */ var _scure_base__rspack_import_4 = __webpack_require__(7116);
+/* import */ var _scure_base__rspack_import_4 = __webpack_require__(9581);
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -196359,7 +196359,7 @@ if (_base_functions_js__rspack_import_0/* .isNode */.Ll) {
         inflateRawSync = mod.inflateRawSync;
     }).catch(()=>{});
 } else {
-    Promise.resolve(/* import() eager */).then(__webpack_require__.bind(__webpack_require__, 9861)).then((mod)=>{
+    Promise.resolve(/* import() eager */).then(__webpack_require__.bind(__webpack_require__, 80)).then((mod)=>{
         gunzipSync = mod.gunzipSync;
         inflateRawSync = mod.inflateSync;
     }).catch(()=>{});
@@ -196679,6 +196679,7 @@ class Client {
         _define_property(this, "onErrorCallback", void 0);
         _define_property(this, "onCloseCallback", void 0);
         _define_property(this, "ping", void 0);
+        // values are booleans, message hashes, channel ids, subscription dicts and Futures
         // @ts-ignore: 2564
         _define_property(this, "subscriptions", void 0);
         _define_property(this, "throttle", void 0);
@@ -197377,7 +197378,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8794(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var ws__rspack_import_0 = __webpack_require__(1591);
+/* import */ var ws__rspack_import_0 = __webpack_require__(6486);
 /* import */ var ws__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(ws__rspack_import_0);
 /* import */ var _Client_js__rspack_import_3 = __webpack_require__(3208);
 /* import */ var _base_functions_js__rspack_import_1 = __webpack_require__(6519);
@@ -197610,7 +197611,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3484(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _abstract_bigone_js__rspack_import_0 = __webpack_require__(3893);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_functions_rsa_js__rspack_import_4 = __webpack_require__(8748);
@@ -200078,8 +200079,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2222(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
-/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(7468);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
+/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(5573);
 /* import */ var _abstract_binance_js__rspack_import_0 = __webpack_require__(5077);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -218679,7 +218680,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5938(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bingx_js__rspack_import_0 = __webpack_require__(130);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -226436,7 +226437,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4984(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bit2c_js__rspack_import_0 = __webpack_require__(927);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -227697,7 +227698,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4749(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _abstract_bitbank_js__rspack_import_0 = __webpack_require__(2330);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 //  ---------------------------------------------------------------------------
@@ -228966,7 +228967,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7658(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitbns_js__rspack_import_0 = __webpack_require__(5987);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -230398,7 +230399,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7967(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _abstract_bitfinex_js__rspack_import_0 = __webpack_require__(4986);
@@ -234855,7 +234856,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8993(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitflyer_js__rspack_import_0 = __webpack_require__(2240);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -236213,7 +236214,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8271(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitget_js__rspack_import_0 = __webpack_require__(5458);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -248493,17 +248494,19 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         //
         const chains = this.safeList(fee, 'chains', []);
         const chainsLength = chains.length;
+        const networks = {};
+        const withdraw = {
+            'fee': undefined,
+            'percentage': undefined
+        };
         const result = {
             'info': fee,
-            'withdraw': {
-                'fee': undefined,
-                'percentage': undefined
-            },
+            'withdraw': withdraw,
             'deposit': {
                 'fee': undefined,
                 'percentage': undefined
             },
-            'networks': {}
+            'networks': networks
         };
         for(let i = 0; i < chainsLength; i++){
             const chain = this.safeDict(chains, i);
@@ -248511,7 +248514,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             const currencyCode = this.safeString(currency, 'code');
             const networkCode = this.networkIdToCode(networkId, currencyCode);
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined
@@ -248523,8 +248526,8 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
                 };
             }
             if (chainsLength === 1) {
-                result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
-                result['withdraw']['percentage'] = false;
+                withdraw['fee'] = this.safeNumber(chain, 'withdrawFee');
+                withdraw['percentage'] = false;
             }
         }
         return result;
@@ -250171,7 +250174,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3267(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bithumb_js__rspack_import_0 = __webpack_require__(6148);
 /* import */ var _base_functions_rsa_js__rspack_import_5 = __webpack_require__(8748);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -253716,7 +253719,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2847(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitopro_js__rspack_import_0 = __webpack_require__(7488);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -255742,7 +255745,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7551(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitrue_js__rspack_import_0 = __webpack_require__(8418);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -256865,8 +256868,8 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         }
         const promises = await Promise.all(promisesRaw);
         const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue(promises, 1);
-        const deliveryMarkets = this.safeValue(promises, 2);
+        const futureMarkets = this.safeList(promises, 1, []);
+        const deliveryMarkets = this.safeList(promises, 2, []);
         let markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
@@ -258108,7 +258111,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         } else if (market['spot'] === true) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision(symbol, amount);
-            const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+            const validOrderTypes = this.safeList(market['info'], 'orderTypes', []);
             if (!this.inArray(uppercaseType, validOrderTypes)) {
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
             }
@@ -259395,7 +259398,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5181(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitso_js__rspack_import_0 = __webpack_require__(138);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -261483,7 +261486,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2056(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitstamp_js__rspack_import_0 = __webpack_require__(4705);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -267455,7 +267458,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7081(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bittrade_js__rspack_import_0 = __webpack_require__(3076);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -269815,7 +269818,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1117(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitvavo_js__rspack_import_0 = __webpack_require__(8498);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -274070,7 +274073,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2114(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_blofin_js__rspack_import_0 = __webpack_require__(5331);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -277852,8 +277855,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6514(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
-/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(8858);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
+/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(1337);
 /* import */ var _abstract_btcbox_js__rspack_import_0 = __webpack_require__(7567);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -278753,7 +278756,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6222(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_btcmarkets_js__rspack_import_0 = __webpack_require__(227);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -280284,7 +280287,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1679(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_btcturk_js__rspack_import_0 = __webpack_require__(9980);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -281467,7 +281470,7 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var _abstract_btse_js__rspack_import_0 = __webpack_require__(2517);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 //  ---------------------------------------------------------------------------
 
@@ -285342,7 +285345,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3935(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _abstract_bullish_js__rspack_import_0 = __webpack_require__(9156);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 //  ---------------------------------------------------------------------------
@@ -286331,6 +286334,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
+        const tradingFees = this.safeDict(this.fees, 'trading', {});
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -286349,8 +286353,8 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': this.parse8601(expiryDatetime),
             'expiryDatetime': expiryDatetime,
@@ -288608,7 +288612,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1484(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bybit_js__rspack_import_0 = __webpack_require__(1355);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -292515,10 +292519,11 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const symbolMarket = this.market(symbolsNormalized[0]);
+            market = symbolMarket;
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                request['symbol'] = market['id'];
+                request['symbol'] = symbolMarket['id'];
             }
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchFundingRates', market, params);
@@ -294688,8 +294693,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('cancelAllOrders', market, params);
         request['category'] = type;
@@ -294913,8 +294919,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchOrdersClassic', market, paramsPaginate);
         if (type === 'spot') {
@@ -295096,8 +295103,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchCanceledAndClosedOrders', market, paramsPaginate);
         request['category'] = type;
@@ -295273,8 +295281,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchOpenOrders', market, paramsPaginate);
         if (type === 'linear' || type === 'inverse') {
@@ -295416,8 +295425,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchMyTrades', market, paramsPaginate);
         request['category'] = type;
@@ -296246,9 +296256,10 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            symbol = market['symbol'];
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            symbol = symbolMarket['symbol'];
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchPositions', market, paramsPaginate);
         if (type === 'linear' || type === 'inverse') {
@@ -297531,8 +297542,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const request = {};
-        let market = undefined;
-        market = this.market(symbol);
+        const market = this.market(symbol);
         if (market['spot'] === true || market['option'] === true) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
@@ -297777,8 +297787,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchSettlementHistory', market, params);
         if (type === 'spot') {
@@ -297833,8 +297844,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchMySettlementHistory', market, params);
         if (type === 'spot') {
@@ -298084,12 +298096,11 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             'category': 'option',
             'baseCoin': baseCoin
         };
-        let market = undefined;
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                market = this.market(symbolsNormalized[0]);
-                request['symbol'] = market['id'];
+                const symbolMarket = this.market(symbolsNormalized[0]);
+                request['symbol'] = symbolMarket['id'];
             }
         }
         const response = await this.publicGetV5MarketTickers(this.extend(request, params));
@@ -298217,8 +298228,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchMyLiquidations', market, paramsPaginate);
         request['category'] = type;
@@ -298364,10 +298376,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
         let symbol = undefined;
         if (symbols !== undefined) {
-            market = this.market(symbols[0]);
+            const market = this.market(symbols[0]);
             if (market['spot'] === true) {
                 throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
@@ -298473,8 +298484,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchFundingHistory', market, paramsPaginate);
         request['category'] = type;
@@ -299733,7 +299745,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6094(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bydfi_js__rspack_import_0 = __webpack_require__(6141);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -302837,7 +302849,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5704(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_cex_js__rspack_import_0 = __webpack_require__(6131);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -304756,7 +304768,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4038(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _abstract_coinbase_js__rspack_import_0 = __webpack_require__(1251);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -310468,7 +310480,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7455(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinbaseexchange_js__rspack_import_0 = __webpack_require__(5266);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -312907,7 +312919,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5700(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _base_functions_rsa_js__rspack_import_4 = __webpack_require__(8748);
 /* import */ var _abstract_coinbaseinternational_js__rspack_import_0 = __webpack_require__(9487);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -316666,7 +316678,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2603(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _abstract_coincheck_js__rspack_import_0 = __webpack_require__(5936);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 //  ---------------------------------------------------------------------------
@@ -317817,7 +317829,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5990(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinmate_js__rspack_import_0 = __webpack_require__(3075);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -319314,7 +319326,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6899(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinone_js__rspack_import_0 = __webpack_require__(7436);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -320814,7 +320826,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4410(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinsph_js__rspack_import_0 = __webpack_require__(2597);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -323361,7 +323373,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3051(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinspot_js__rspack_import_0 = __webpack_require__(8118);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -324451,7 +324463,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6214(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_cryptocom_js__rspack_import_0 = __webpack_require__(5561);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -326309,8 +326321,8 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
@@ -328355,7 +328367,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
         for(let i = 0; i < this.symbols.length; i++){
             const symbol = this.symbols[i];
             const market = this.market(symbol);
-            const isSwap = market['swap'];
+            const isSwap = this.safeBool(market, 'swap');
             let takerFeeKey = 'effective_spot_taker_rate_bps';
             if (isSwap === true) {
                 takerFeeKey = 'effective_deriv_taker_rate_bps';
@@ -328473,7 +328485,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9100(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(8858);
+/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(1337);
 /* import */ var _abstract_cryptomus_js__rspack_import_0 = __webpack_require__(7835);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -329774,7 +329786,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7929(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_deepcoin_js__rspack_import_0 = __webpack_require__(5496);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -333044,7 +333056,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2638(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_delta_js__rspack_import_0 = __webpack_require__(1065);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -337343,7 +337355,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3045(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _abstract_deribit_js__rspack_import_0 = __webpack_require__(9458);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -341620,8 +341632,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8025(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_derive_js__rspack_import_0 = __webpack_require__(7196);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -346224,7 +346236,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3645(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_digifinex_js__rspack_import_0 = __webpack_require__(7854);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -350928,12 +350940,13 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             if (code !== undefined && (codesValue === undefined || this.inArray(code, codesValue))) {
-                const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
-                if (depositWithdrawFee === undefined) {
-                    depositWithdrawFees[code] = this.depositWithdrawFee({});
-                    depositWithdrawFees[code]['info'] = [];
+                if (this.safeDict(depositWithdrawFees, code) === undefined) {
+                    const feeStructure = this.depositWithdrawFee({});
+                    feeStructure['info'] = [];
+                    depositWithdrawFees[code] = feeStructure;
                 }
-                const depositWithdrawInfo = depositWithdrawFees[code]['info'];
+                const depositWithdrawFee = depositWithdrawFees[code];
+                const depositWithdrawInfo = depositWithdrawFee['info'];
                 depositWithdrawInfo.push(entry);
                 const networkId = this.safeString(entry, 'chain');
                 const withdrawFee = this.safeValue(entry, 'min_withdraw_fee');
@@ -350948,14 +350961,14 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
                 if (networkId !== undefined) {
                     const networkCode = this.networkIdToCode(networkId, code);
                     if (networkCode !== undefined) {
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        depositWithdrawFee['networks'][networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult
                         };
                     }
                 } else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
+                    depositWithdrawFee['withdraw'] = withdrawResult;
+                    depositWithdrawFee['deposit'] = depositResult;
                 }
             }
         }
@@ -351259,8 +351272,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3397(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_dydx_js__rspack_import_0 = __webpack_require__(6760);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -357783,7 +357796,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6110(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _abstract_foxbit_js__rspack_import_0 = __webpack_require__(4139);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -359923,7 +359936,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1305(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_gate_js__rspack_import_0 = __webpack_require__(3032);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -364452,9 +364465,10 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         const paramsOmitted = this.omit(paramsRequest, 'until');
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
-            request['from'] = this.parseToInt(since / 1000);
+            const fromTimestamp = this.parseToInt(since / 1000);
+            request['from'] = fromTimestamp;
             const distance = (limitValue - 1) * duration;
-            const toTimestamp = this.sum(request['from'], distance);
+            const toTimestamp = this.sum(fromTimestamp, distance);
             const currentTimestamp = this.seconds();
             const to = Math.min(toTimestamp, currentTimestamp);
             if (until !== undefined) {
@@ -365625,7 +365639,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         if (useGateFuturesDecimalSize) {
             sizeRequest = signedAmount;
         }
-        let request = undefined;
+        let request = {};
         const nonTriggerOrder = !isTpsl && trigger === undefined;
         if (nonTriggerOrder) {
             if (contract === true) {
@@ -369707,7 +369721,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 841(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_gemini_js__rspack_import_0 = __webpack_require__(2412);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -372193,8 +372207,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5781(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_grvt_js__rspack_import_0 = __webpack_require__(8512);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -375871,7 +375885,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6671(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_hashkey_js__rspack_import_0 = __webpack_require__(1264);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -380658,8 +380672,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4440(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_hibachi_js__rspack_import_0 = __webpack_require__(2495);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -383104,7 +383118,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3030(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_hitbtc_js__rspack_import_0 = __webpack_require__(9447);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -387292,7 +387306,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 33(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_hollaex_js__rspack_import_0 = __webpack_require__(526);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -389433,7 +389447,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8552(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_htx_js__rspack_import_0 = __webpack_require__(4135);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -394199,7 +394213,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
     parseMarginBalanceHelper(balance, code, result) {
         let account = undefined;
         if (code in result) {
-            account = result[code];
+            account = this.safeDict(result, code);
         } else {
             account = this.account();
         }
@@ -400388,8 +400402,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7450(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_hyperliquid_js__rspack_import_0 = __webpack_require__(6641);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -405813,7 +405827,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7392(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_independentreserve_js__rspack_import_0 = __webpack_require__(4885);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
@@ -407102,7 +407116,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4987(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_indodax_js__rspack_import_0 = __webpack_require__(8740);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -408716,7 +408730,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4436(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_kraken_js__rspack_import_0 = __webpack_require__(6253);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -410922,13 +410936,19 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
                 price = this.safeString(parts, 5);
             }
         }
-        side = this.safeString(description, 'type', side);
+        const descriptionSide = this.safeString(description, 'type');
+        if (descriptionSide !== undefined) {
+            side = descriptionSide;
+        }
         rawType = this.safeString(description, 'ordertype', rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, 'pair', marketId);
         const marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         let symbol = undefined;
         const timestamp = this.safeTimestamp(orderOmitted, 'opentm');
-        amount = this.safeString(orderOmitted, 'vol', amount);
+        const orderAmount = this.safeString(orderOmitted, 'vol');
+        if (orderAmount !== undefined) {
+            amount = orderAmount;
+        }
         const filled = this.safeString(orderOmitted, 'vol_exec');
         let fee = undefined;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -412646,11 +412666,12 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
         if (body[0] === '{') {
             if (typeof response !== 'string') {
                 const message = this.id + ' ' + body;
-                if ('error' in response) {
-                    const numErrors = response['error'].length;
+                const errors = this.safeList(response, 'error');
+                if (errors !== undefined) {
+                    const numErrors = errors.length;
                     if (numErrors > 0) {
-                        for(let i = 0; i < response['error'].length; i++){
-                            const error = response['error'][i];
+                        for(let i = 0; i < numErrors; i++){
+                            const error = errors[i];
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
                         }
@@ -412693,7 +412714,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5262(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_krakenfutures_js__rspack_import_0 = __webpack_require__(3217);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -416718,7 +416739,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 455(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_kucoin_js__rspack_import_0 = __webpack_require__(7790);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -419363,7 +419384,10 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             promises.push(this.loadMigrationStatus());
         }
         const responses = await Promise.all(promises);
-        const symbolsData = fetchSpotMarkets ? this.safeList(responses[0], 'data', []) : [];
+        let symbolsData = [];
+        if (fetchSpotMarkets) {
+            symbolsData = this.safeList(responses[0], 'data', []);
+        }
         let crossIndex = 0;
         let isolatedIndex = 0;
         let tickersIndex = 0;
@@ -421852,7 +421876,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const testOrder = this.safeBool(params, 'test', false);
         const paramsOmitted = this.omit(params, 'test');
-        const hasTpOrSlOrder = this.safeValue(paramsOmitted, 'stopLoss') !== undefined || this.safeValue(paramsOmitted, 'takeProfit') !== undefined;
+        const hasTpOrSlOrder = this.safeDict(paramsOmitted, 'stopLoss') !== undefined || this.safeDict(paramsOmitted, 'takeProfit') !== undefined;
         const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         let response;
         if (testOrder) {
@@ -429800,7 +429824,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9252(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_latoken_js__rspack_import_0 = __webpack_require__(3851);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -431826,8 +431850,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7162(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(8858);
-/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4721);
+/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(1337);
+/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4006);
 /* import */ var _abstract_lbank_js__rspack_import_0 = __webpack_require__(1713);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -435165,8 +435189,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1723(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_lighter_js__rspack_import_0 = __webpack_require__(4748);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -436059,7 +436083,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */ if (price === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' createOrder() requires a price argument');
         }
@@ -436179,10 +436203,11 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
             request['integrator_maker_fee'] = this.options['integratorMakerFee'];
         }
         const orders = [];
-        orders.push(this.extend(request, paramsRequest));
+        const firstOrder = this.extend(request, paramsRequest);
+        orders.push(firstOrder);
         if (hasStopLoss || hasTakeProfit) {
             // group order
-            orders[0]['client_order_index'] = 0; // client order index should be 0
+            firstOrder['client_order_index'] = 0; // client order index should be 0
             let triggerOrderSide = '';
             if (orderSide === 'BUY') {
                 triggerOrderSide = 'sell';
@@ -440670,7 +440695,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6981(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_mercado_js__rspack_import_0 = __webpack_require__(4930);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -441801,7 +441826,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2641(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_mexc_js__rspack_import_0 = __webpack_require__(1852);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -448538,9 +448563,9 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6479(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(7468);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(5573);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_modetrade_js__rspack_import_0 = __webpack_require__(4496);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -453797,8 +453822,8 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _abstract_nado_js__rspack_import_0 = __webpack_require__(5287);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 // ---------------------------------------------------------------------------
 
@@ -457140,7 +457165,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8573(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _abstract_ndax_js__rspack_import_0 = __webpack_require__(2356);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_4 = __webpack_require__(7749);
@@ -460121,7 +460146,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5058(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_okx_js__rspack_import_0 = __webpack_require__(2481);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -464250,8 +464275,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (!shouldOmitSize) {
             request['sz'] = this.amountToPrecision(symbol, amount);
         }
-        const spot = market['spot'];
-        const contract = market['contract'];
+        const spot = this.safeBool(market, 'spot');
+        const contract = this.safeBool(market, 'contract');
         const triggerPrice = this.safeValueN(params, [
             'triggerPrice',
             'stopPrice',
@@ -472849,7 +472874,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 356(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _abstract_p2b_js__rspack_import_0 = __webpack_require__(3703);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 // ---------------------------------------------------------------------------
@@ -474365,7 +474390,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5016(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 /* import */ var _abstract_pacifica_js__rspack_import_0 = __webpack_require__(7313);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -478320,8 +478345,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3651(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _abstract_paradex_js__rspack_import_0 = __webpack_require__(3496);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -482112,7 +482137,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8686(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_paymium_js__rspack_import_0 = __webpack_require__(7113);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -482858,7 +482883,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5653(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_phemex_js__rspack_import_0 = __webpack_require__(2400);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -488969,7 +488994,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2406(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_poloniex_js__rspack_import_0 = __webpack_require__(2819);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -493236,8 +493261,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9896(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_polymarket_js__rspack_import_0 = __webpack_require__(8905);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
@@ -496267,7 +496292,7 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var _abstract_prediction_binance_js__rspack_import_0 = __webpack_require__(4015);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 
 
@@ -498257,8 +498282,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6470(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_hyperliquid_js__rspack_import_0 = __webpack_require__(5087);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 /* import */ var _base_functions_crypto_js__rspack_import_4 = __webpack_require__(1093);
@@ -500634,7 +500659,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7788(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_prediction_kalshi_js__rspack_import_0 = __webpack_require__(1695);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 /* import */ var _base_functions_rsa_js__rspack_import_3 = __webpack_require__(8748);
@@ -503511,9 +503536,9 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3454(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4721);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(6885);
-/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(6834);
+/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4006);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(4608);
+/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(4725);
 /* import */ var _abstract_prediction_limitless_js__rspack_import_0 = __webpack_require__(4531);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -506984,8 +507009,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2244(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_myriad_js__rspack_import_0 = __webpack_require__(5843);
 /* import */ var _base_functions_crypto_js__rspack_import_4 = __webpack_require__(1093);
 /* import */ var _base_ws_Cache_js__rspack_import_6 = __webpack_require__(1697);
@@ -509932,7 +509957,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
             }
         } else {
             const chartsDict = this.safeDict(selectedOutcome, 'price_charts', {});
-            chart = this.safeValue(chartsDict, bucketKey);
+            chart = this.safeDict(chartsDict, bucketKey);
         }
         const pointsList = this.safeList(chart, 'prices', this.safeList(chart, 'data', chart));
         let points = pointsList !== undefined ? pointsList : [];
@@ -511121,8 +511146,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2478(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_opinion_js__rspack_import_0 = __webpack_require__(3647);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -513460,9 +513485,9 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7348(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_7 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_7 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_polymarket_js__rspack_import_0 = __webpack_require__(9715);
 /* import */ var _base_functions_crypto_js__rspack_import_6 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -517341,8 +517366,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4884(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_predictfun_js__rspack_import_0 = __webpack_require__(883);
 /* import */ var _base_functions_crypto_js__rspack_import_4 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -521414,8 +521439,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2214(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_sxbet_js__rspack_import_0 = __webpack_require__(7559);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -524441,7 +524466,7 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async watchTicker(symbol, params = {}) {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'crypto');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -524525,7 +524550,7 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'crypto');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -524584,7 +524609,7 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */ async watchOrderBook(symbol, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'crypto');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -524667,7 +524692,7 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */ async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'crypto');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -524725,7 +524750,7 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */ async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['trading'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'trading');
         await this.authenticate(url);
         let messageHash = 'myTrades';
         if (this.markets === undefined) {
@@ -524760,7 +524785,7 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws']['trading'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'trading');
         await this.authenticate(url);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -524994,7 +525019,7 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
                 'key': this.apiKey,
                 'secret': this.secret
             };
-            if (url === this.safeString(this.urls['api']['ws'], 'trading')) {
+            if (url === this.safeString(this.safeDict(this.urls['api'], 'ws'), 'trading')) {
                 // this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',
@@ -525152,7 +525177,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9222(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _apex_js__rspack_import_0 = __webpack_require__(8818);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -526491,15 +526516,14 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
-        const symbolsList = symbolsNormalized === undefined ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
-        const type = this.safeString(firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
         const [methodName, paramsCallerMethodName] = this.handleParamString(params, 'callerMethodName', 'watchTickers');
-        const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
-        if (symbolsLength === 0) {
+        if (symbolsNormalized === undefined || symbolsNormalized.length === 0) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
+        const symbolsList = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const type = this.safeString(firstMarket, 'type', 'swap');
+        const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' has no websocket url for this endpoint');
@@ -526543,15 +526567,14 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
-        const symbolsList = symbolsNormalized === undefined ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
-        const type = this.safeString(firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
         const [methodName, paramsCallerMethodName] = this.handleParamString(params, 'callerMethodName', 'unWatchTickers');
-        const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
-        if (symbolsLength === 0) {
+        if (symbolsNormalized === undefined || symbolsNormalized.length === 0) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
+        const symbolsList = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const type = this.safeString(firstMarket, 'type', 'swap');
+        const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' has no websocket url for this endpoint');
@@ -526622,15 +526645,14 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
-        const symbolsList = symbolsNormalized === undefined ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
-        const type = this.safeString(firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
         const [methodName, paramsCallerMethodName] = this.handleParamString(params, 'callerMethodName', 'watchMarkPrices');
-        const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
-        if (symbolsLength === 0) {
+        if (symbolsNormalized === undefined || symbolsNormalized.length === 0) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
+        const symbolsList = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const type = this.safeString(firstMarket, 'type', 'swap');
+        const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' has no websocket url for this endpoint');
@@ -526678,15 +526700,14 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
-        const symbolsList = symbolsNormalized === undefined ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
-        const type = this.safeString(firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
         const [methodName, paramsCallerMethodName] = this.handleParamString(params, 'callerMethodName', 'unWatchMarkPrices');
-        const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
-        if (symbolsLength === 0) {
+        if (symbolsNormalized === undefined || symbolsNormalized.length === 0) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
+        const symbolsList = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const type = this.safeString(firstMarket, 'type', 'swap');
+        const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' has no websocket url for this endpoint');
@@ -526808,13 +526829,12 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
-        const symbolsList = symbolsNormalized === undefined ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
-        const type = this.safeString(firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
-        if (symbolsLength === 0) {
+        if (symbolsNormalized === undefined || symbolsNormalized.length === 0) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
+        const symbolsList = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const type = this.safeString(firstMarket, 'type', 'swap');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' has no websocket url for this endpoint');
@@ -526858,13 +526878,12 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
-        const symbolsList = symbolsNormalized === undefined ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
-        const type = this.safeString(firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
-        if (symbolsLength === 0) {
+        if (symbolsNormalized === undefined || symbolsNormalized.length === 0) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
+        const symbolsList = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const type = this.safeString(firstMarket, 'type', 'swap');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' has no websocket url for this endpoint');
@@ -528449,7 +528468,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6476(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_3 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_3 = __webpack_require__(5573);
 /* import */ var _backpack_js__rspack_import_0 = __webpack_require__(9264);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_4 = __webpack_require__(1697);
@@ -530354,8 +530373,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7802(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
-/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(7468);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
+/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(5573);
 /* import */ var _binance_js__rspack_import_0 = __webpack_require__(2222);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -538437,7 +538456,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5019(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _bitfinex_js__rspack_import_0 = __webpack_require__(7967);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
@@ -539808,7 +539827,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1179(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _bitget_js__rspack_import_0 = __webpack_require__(8271);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -540490,7 +540509,8 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = symbolOhlcvs;
         const channel = this.safeString2(arg, 'channel', 'topic', '');
         let interval = this.safeString(arg, 'interval');
         let isUta = undefined;
@@ -540505,11 +540525,11 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue(symbolOhlcvs, timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new _base_ws_Cache_js__rspack_import_3/* .ArrayCacheByTimestamp */.TG(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            symbolOhlcvs[timeframe] = stored;
         }
         const data = this.safeList(message, 'data', []);
         for(let i = 0; i < data.length; i++){
@@ -542963,7 +542983,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 479(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _bithumb_js__rspack_import_0 = __webpack_require__(3267);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -544098,7 +544118,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5707(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _bitopro_js__rspack_import_0 = __webpack_require__(2847);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -547296,7 +547316,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6385(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _bitvavo_js__rspack_import_0 = __webpack_require__(1117);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
@@ -547373,7 +547393,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -547401,7 +547421,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
             const market = this.market(symbolsNormalized[i]);
             args.push(market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -547602,7 +547622,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
             marketIds.push(market['id']);
             messageHashes.push(name + '@' + market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -547687,7 +547707,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         const marketId = market['id'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = name + '@' + marketId + '_' + interval;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -547813,7 +547833,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
                 'markets': marketIdsByInterval[interval]
             });
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': channels
@@ -547906,7 +547926,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         const symbolValue = market['symbol'];
         const name = 'book';
         const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -547953,7 +547973,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
             marketIds.push(market['id']);
             messageHashes.push(name + '@' + market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -548109,7 +548129,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         }
         const name = 'getBook';
         const messageHash = name + '@' + marketId;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': name,
             'market': marketId
@@ -548204,7 +548224,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         }
     }
     async unWatchChannels(topic, channels, subMessageHashes, subscriptionArgs, params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'unsubscribe',
             'channels': channels
@@ -548273,7 +548293,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
         const messageHash = 'order:' + symbolValue;
         const request = {
@@ -548314,7 +548334,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
         const messageHash = 'myTrades:' + symbolValue;
         const request = {
@@ -548508,7 +548528,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         const messageHashStr = messageHash.toString();
         request['action'] = action;
         request['requestId'] = messageHash;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         return await this.watch(url, messageHashStr, request, messageHashStr);
     }
     /**
@@ -549018,7 +549038,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         return message;
     }
     async authenticate(params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const client = this.client(url);
         const messageHash = 'authenticated';
         let future = this.safeValue(client.subscriptions, messageHash);
@@ -549988,7 +550008,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 270(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _blofin_js__rspack_import_0 = __webpack_require__(2114);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
@@ -551664,7 +551684,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7832(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _bybit_js__rspack_import_0 = __webpack_require__(1484);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -554709,7 +554729,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 338(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _bydfi_js__rspack_import_0 = __webpack_require__(6094);
 /* import */ var _base_Precise_js__rspack_import_4 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -555805,7 +555825,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6340(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _cex_js__rspack_import_0 = __webpack_require__(5704);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -557419,7 +557439,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3434(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4006);
 /* import */ var _coinbase_js__rspack_import_0 = __webpack_require__(4038);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
@@ -558456,7 +558476,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4867(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _coinbaseexchange_js__rspack_import_0 = __webpack_require__(7455);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
@@ -562120,7 +562140,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8202(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _cryptocom_js__rspack_import_0 = __webpack_require__(6214);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -562403,7 +562423,7 @@ class cryptocom extends _cryptocom_js__rspack_import_0/* ["default"] */.A {
         } else {
             books = this.safeDict(data, 'update', {});
             const previousNonce = this.safeInteger(data, 'pu');
-            const currentNonce = orderbook['nonce'];
+            const currentNonce = this.safeInteger(orderbook, 'nonce');
             if (currentNonce !== previousNonce) {
                 const checksum = this.handleOption('watchOrderBook', 'checksum', true);
                 if (checksum === true) {
@@ -564939,7 +564959,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 673(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _deribit_js__rspack_import_0 = __webpack_require__(3045);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
@@ -568547,7 +568567,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2541(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _gate_js__rspack_import_0 = __webpack_require__(1305);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -569305,8 +569325,8 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             if (Array.isArray(bidAsk)) {
                 bookSide.storeArray(this.parseOrderBookBidAsk(bidAsk));
             } else {
-                const price = this.safeFloat(bidAsk, 'p');
-                const amount = this.safeFloat(bidAsk, 's');
+                const price = this.safeNumber(bidAsk, 'p');
+                const amount = this.safeNumber(bidAsk, 's');
                 bookSide.store(price, amount);
             }
         }
@@ -571054,7 +571074,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4453(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _gemini_js__rspack_import_0 = __webpack_require__(841);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -573947,7 +573967,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3906(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _hitbtc_js__rspack_import_0 = __webpack_require__(3030);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
@@ -574033,7 +574053,7 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} response from exchange
      */ async authenticate() {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'private');
         const messageHash = 'authenticated';
         const client = this.client(url);
         const future = client.reusableFuture(messageHash);
@@ -574090,7 +574110,7 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
         const symbolsNormalized = this.marketSymbols(symbols);
         const isBatch = name.indexOf('batch') >= 0;
         const resolvedPerSymbol = !isBatch || messageHashPrefix === 'orderbooks'; // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        const url = this.urls['api']['ws']['public'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'public');
         const messageHashes = [];
         if (symbolsNormalized !== undefined && resolvedPerSymbol) {
             for(let i = 0; i < symbolsNormalized.length; i++){
@@ -574122,7 +574142,7 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'private');
         const splitName = name.split('_subscribe');
         let messageHash = this.safeString(splitName, 0, '');
         if (symbol !== undefined) {
@@ -574149,7 +574169,7 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.safeDict(this.urls['api'], 'ws'), 'private');
         const messageHash = this.incrementingNonce().toString();
         const subscribe = {
             'method': name,
@@ -575446,7 +575466,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 293(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _hollaex_js__rspack_import_0 = __webpack_require__(33);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -576096,7 +576116,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2404(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _htx_js__rspack_import_0 = __webpack_require__(8552);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -583142,7 +583162,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3690(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _krakenfutures_js__rspack_import_0 = __webpack_require__(5262);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
@@ -588897,12 +588917,13 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
             ];
             const timeframeId = this.safeString(message, 'kbar');
             const timeframe = this.findTimeframe(timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            const ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = ohlcvsForSymbol;
+            let stored = this.safeValue(ohlcvsForSymbol, timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                ohlcvsForSymbol[timeframe] = stored;
             }
             stored.append(parsed);
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
@@ -588920,12 +588941,13 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
                 this.safeNumber(rawOHLCV, 'v')
             ];
             const timeframe = this.findTimeframe(timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            const ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = ohlcvsForSymbol;
+            let stored = this.safeValue(ohlcvsForSymbol, timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                ohlcvsForSymbol[timeframe] = stored;
             }
             stored.append(parsed);
             const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
@@ -591772,7 +591794,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 941(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4006);
 /* import */ var _mexc_js__rspack_import_0 = __webpack_require__(2641);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
@@ -594006,7 +594028,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5931(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 /* import */ var _modetrade_js__rspack_import_0 = __webpack_require__(6479);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -595275,7 +595297,10 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
             const code = this.safeCurrencyCode(key);
             let account = this.account();
             if (code !== undefined && code in this.balance) {
-                account = this.balance[code];
+                const cachedAccount = this.safeDict(this.balance, code);
+                if (cachedAccount !== undefined) {
+                    account = cachedAccount;
+                }
             }
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');
@@ -595557,8 +595582,8 @@ class mudrex extends _mudrex_js__rspack_import_0/* ["default"] */.A {
         if (priceType === 'mark') {
             prefix = 'markKline';
         }
-        const streamBaseId = market['baseId'] !== undefined ? market['baseId'] : '';
-        const streamQuoteId = market['quoteId'] !== undefined ? market['quoteId'] : '';
+        const streamBaseId = this.safeString(market, 'baseId', '');
+        const streamQuoteId = this.safeString(market, 'quoteId', '');
         const stream = prefix + '@' + interval + '@' + streamBaseId.toLowerCase() + streamQuoteId.toLowerCase();
         const messageHash = stream;
         const url = this.urls['api']['ws'];
@@ -595728,7 +595753,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
 /* import */ var _base_Precise_js__rspack_import_4 = __webpack_require__(7749);
-/* import */ var _noble_hashes_sha3_js__rspack_import_2 = __webpack_require__(6834);
+/* import */ var _noble_hashes_sha3_js__rspack_import_2 = __webpack_require__(4725);
 //  ---------------------------------------------------------------------------
 
 
@@ -596694,12 +596719,12 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         if (requestIdString === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchExecuteRequest() requires requestIdString');
         }
-        const url = this.urls['api']['ws']['gateway'];
+        const url = this.safeString(this.urls['api']['ws'], 'gateway');
         const messageHash = 'execute:' + requestIdString;
         return await this.watch(url, messageHash, request, messageHash);
     }
     async watchPublic(streamType, market, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const stream = {
             'type': streamType
         };
@@ -596732,7 +596757,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         return await this.watch(url, messageHash);
     }
     async watchPrivate(streamType, stream, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const client = this.client(url);
         const clientSubscription = this.safeValue(client.subscriptions, messageHash);
         if (clientSubscription !== undefined) {
@@ -596759,7 +596784,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         return await this.watch(url, messageHash);
     }
     async unWatchPrivate(stream, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const id = this.requestId();
         const unsubscribeHash = 'unsubscribe:' + messageHash;
         const request = {
@@ -596780,7 +596805,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const client = this.client(url);
         const messageHash = 'authenticated';
         const authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -596853,7 +596878,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         };
     }
     async watchPublicMultiple(streamType, markets, messageHashes, params = {}, subscriptionParams = undefined) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const client = this.client(url);
         for(let i = 0; i < messageHashes.length; i++){
             const messageHash = messageHashes[i];
@@ -596884,7 +596909,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         return await this.watchMultiple(url, messageHashes, undefined, messageHashes);
     }
     async unWatchPublic(streamType, market, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const id = this.requestId();
         const request = this.createPublicSubscriptionRequest('unsubscribe', streamType, market, id, params);
         const subscription = {
@@ -596900,7 +596925,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         return await this.watch(url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
     async unWatchPublicMultiple(streamType, markets, messageHashes, params = {}, subscriptionParams = undefined) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString(this.urls['api']['ws'], 'subscriptions');
         const client = this.client(url);
         for(let i = 0; i < messageHashes.length; i++){
             const messageHash = messageHashes[i];
@@ -597533,7 +597558,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         }
     }
     ping(client) {
-        const gatewayUrl = this.urls['api']['ws']['gateway'];
+        const gatewayUrl = this.safeString(this.urls['api']['ws'], 'gateway');
         if (client.url === gatewayUrl) {
             // the v2 gateway is kept alive with protocol-level ping frames,
             // returning undefined makes the client send one instead of a message
@@ -598241,7 +598266,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4302(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _okx_js__rspack_import_0 = __webpack_require__(5058);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -599688,7 +599713,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         const symbol = this.safeSymbol(marketId, market);
         const seqId = this.safeInteger(message, 'seqId');
         const prevSeqId = this.safeInteger(message, 'prevSeqId');
-        const nonce = orderbook['nonce'];
+        const nonce = this.safeInteger(orderbook, 'nonce');
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
             const error = new _base_errors_js__rspack_import_1.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];
@@ -601296,11 +601321,12 @@ class onetrading extends _onetrading_js__rspack_import_0/* ["default"] */.A {
             const ticker = tickers[i];
             const marketId = this.safeString(ticker, 'instrument');
             const symbol = this.safeSymbol(marketId);
-            this.tickers[symbol] = this.parseWSTicker(ticker);
+            const parsedTicker = this.parseWSTicker(ticker);
+            this.tickers[symbol] = parsedTicker;
             const timestamp = this.parse8601(datetime);
-            this.tickers[symbol]['timestamp'] = timestamp;
-            this.tickers[symbol]['datetime'] = this.iso8601(timestamp);
-            client.resolve(this.tickers[symbol], 'ticker.' + symbol);
+            parsedTicker['timestamp'] = timestamp;
+            parsedTicker['datetime'] = this.iso8601(timestamp);
+            client.resolve(parsedTicker, 'ticker.' + symbol);
         }
         client.resolve(this.tickers, 'tickers');
     }
@@ -602259,15 +602285,16 @@ class onetrading extends _onetrading_js__rspack_import_0/* ["default"] */.A {
             this.safeNumber(message, 'close'),
             this.safeNumber(message, 'volume')
         ];
-        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = symbolOhlcvs;
+        let stored = this.safeValue(symbolOhlcvs, timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
         }
         stored.append(parsed);
         if (symbol !== undefined && timeframe !== undefined) {
-            this.ohlcvs[symbol][timeframe] = stored;
+            symbolOhlcvs[timeframe] = stored;
         }
         client.resolve(stored, channel);
     }
@@ -606100,7 +606127,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8009(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _phemex_js__rspack_import_0 = __webpack_require__(5653);
 /* import */ var _base_Precise_js__rspack_import_1 = __webpack_require__(7749);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -607726,7 +607753,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1818(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _poloniex_js__rspack_import_0 = __webpack_require__(2406);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_4 = __webpack_require__(1697);
@@ -611687,7 +611714,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3296(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _upbit_js__rspack_import_0 = __webpack_require__(1692);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_functions_rsa_js__rspack_import_3 = __webpack_require__(8748);
@@ -611736,7 +611763,7 @@ class upbit extends _upbit_js__rspack_import_0/* ["default"] */.A {
         const symbolsMarket = this.marketSymbols(symbolsRequested);
         const symbolsNormalized = symbolsMarket === undefined ? [] : symbolsMarket;
         const marketIds = this.marketIds(symbolsNormalized);
-        const url = this.implodeParams(this.urls['api']['ws'], {
+        const url = this.implodeParams(this.safeString(this.urls['api'], 'ws'), {
             'hostname': this.hostname
         });
         const client = this.client(url);
@@ -612075,7 +612102,7 @@ class upbit extends _upbit_js__rspack_import_0/* ["default"] */.A {
         if (symbolResolved !== undefined) {
             messageHashResolved = messageHash + ':' + symbolResolved;
         }
-        let url = this.implodeParams(this.urls['api']['ws'], {
+        let url = this.implodeParams(this.safeString(this.urls['api'], 'ws'), {
             'hostname': this.hostname
         });
         url += '/private';
@@ -612457,7 +612484,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7095(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _weex_js__rspack_import_0 = __webpack_require__(4691);
 /* import */ var _base_errors_js__rspack_import_4 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
@@ -614614,11 +614641,9 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
             const symbol = market['symbol'];
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV(data, market);
-            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!(symbol in this.ohlcvs)) {
                 this.ohlcvs[symbol] = {};
             }
-            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!('unknown' in this.ohlcvs[symbol])) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 const stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
@@ -614767,7 +614792,8 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const method = 'market_subscribe';
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const id = this.incrementingNonce();
         const messageHashes = [];
         const args = [];
@@ -615236,7 +615262,8 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
             method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
         const [fetchBalanceSnapshot, paramsFetchBalanceSnapshot] = this.handleOptionBoolAndParams(paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', true);
@@ -615354,7 +615381,8 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
         client.resolve(this.balance, messageHash);
     }
     async watchPublic(messageHash, method, reqParams = [], params = {}) {
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const id = this.incrementingNonce();
         const request = {
             'id': id,
@@ -615368,7 +615396,8 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const id = this.incrementingNonce();
         const client = this.safeValue(this.clients, url);
         let request = undefined;
@@ -615434,7 +615463,8 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
     async watchPrivate(messageHash, method, reqParams = [], params = {}) {
         this.checkRequiredCredentials();
         await this.authenticate();
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const id = this.incrementingNonce();
         const request = {
             'id': id,
@@ -615446,7 +615476,8 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const client = this.client(url);
         const subscribeHash = 'authenticated';
         // handleAuthenticate () resolves the handshake future with 1, so 1 is
@@ -615645,7 +615676,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3363(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _woo_js__rspack_import_0 = __webpack_require__(4615);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -617344,7 +617375,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5959(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 /* import */ var _woofipro_js__rspack_import_0 = __webpack_require__(6499);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -618599,7 +618630,10 @@ class woofipro extends _woofipro_js__rspack_import_0/* ["default"] */.A {
             const code = this.safeCurrencyCode(key);
             let account = this.account();
             if (code !== undefined && code in this.balance) {
-                account = this.balance[code];
+                const cachedAccount = this.safeDict(this.balance, code);
+                if (cachedAccount !== undefined) {
+                    account = cachedAccount;
+                }
             }
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');
@@ -618818,7 +618852,8 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
         if (isContract) {
             tradeType = 'contract';
         }
-        let url = this.safeString(this.urls['api']['ws'], tradeType);
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        let url = this.safeString(apiUrls, tradeType);
         if (!isContract) {
             url = url + '/private';
         }
@@ -618979,7 +619014,8 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
         const subscription = {
             'id': id
         };
-        const url = this.safeString(this.urls['api']['ws'], tradeType) + '/' + tail;
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, tradeType) + '/' + tail;
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
     /**
@@ -619035,7 +619071,8 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const url = this.safeString(this.urls['api']['ws'], tradeType) + '/' + tail;
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, tradeType) + '/' + tail;
         const subscription = {
             'unsubscribe': true,
             'id': id,
@@ -619384,7 +619421,8 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.safeString(this.urls['api']['ws'], 'contract') + '/' + 'user';
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'contract') + '/' + 'user';
         const client = this.client(url);
         this.setPositionsCache(client);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
@@ -620399,7 +620437,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6711(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_4 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_4 = __webpack_require__(5573);
 /* import */ var _abstract_revolutx_js__rspack_import_0 = __webpack_require__(7838);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_5 = __webpack_require__(7749);
@@ -621929,7 +621967,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7735(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 function createBaseCoin() {
@@ -622098,7 +622136,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7251(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 function createBaseMultiSignature() {
@@ -622189,7 +622227,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7076(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 function createBasePubKey() {
@@ -622275,7 +622313,7 @@ __webpack_require__.d(__webpack_exports__, {
 __webpack_require__.r(__webpack_exports__);
 /* import */ var _crypto_multisig_v1beta1_multisig_js__rspack_import_3 = __webpack_require__(7251);
 /* import */ var _google_protobuf_any_js__rspack_import_2 = __webpack_require__(7440);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 /* import */ var _helpers_js__rspack_import_1 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_1_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_1);
@@ -622617,7 +622655,7 @@ __webpack_require__.r(__webpack_exports__);
 /* import */ var _google_protobuf_any_js__rspack_import_2 = __webpack_require__(7440);
 /* import */ var _crypto_multisig_v1beta1_multisig_js__rspack_import_3 = __webpack_require__(7251);
 /* import */ var _base_v1beta1_coin_js__rspack_import_4 = __webpack_require__(7735);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 /* import */ var _helpers_js__rspack_import_1 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_1_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_1);
@@ -623335,7 +623373,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7378(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 /* import */ var _helpers_js__rspack_import_1 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_1_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_1);
@@ -623629,7 +623667,7 @@ __webpack_require__.d(__webpack_exports__, {
 7072(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
 /* import */ var _subaccounts_subaccount_js__rspack_import_1 = __webpack_require__(4784);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 /* import */ var _helpers_js__rspack_import_2 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_2_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_2);
@@ -624500,7 +624538,7 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var _order_js__rspack_import_1 = __webpack_require__(7072);
 /* import */ var _subaccounts_subaccount_js__rspack_import_2 = __webpack_require__(4784);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 
@@ -625267,7 +625305,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _subaccounts_subaccount_js__rspack_import_2 = __webpack_require__(4784);
 /* import */ var _helpers_js__rspack_import_1 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_1_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_1);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 
@@ -625522,7 +625560,7 @@ __webpack_require__.d(__webpack_exports__, {
 5489(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
 /* import */ var _transfer_js__rspack_import_1 = __webpack_require__(9670);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 
@@ -625675,7 +625713,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4784(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 
@@ -625792,7 +625830,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7440(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 function createBaseAny() {
@@ -625896,7 +625934,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9660(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_tokocrypto_js__rspack_import_0 = __webpack_require__(273);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -628818,7 +628856,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7939(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_toobit_js__rspack_import_0 = __webpack_require__(726);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -632342,7 +632380,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1692(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_upbit_js__rspack_import_0 = __webpack_require__(2199);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -634957,7 +634995,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4691(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_weex_js__rspack_import_0 = __webpack_require__(950);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -639616,7 +639654,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
         if (hasJsonBody) {
             requestBody = this.json(query);
         }
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         if (isPrivate) {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
             if (sandboxMode && path.indexOf('capi/v3/sim/') !== 0) {
@@ -639693,7 +639731,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 410(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_whitebit_js__rspack_import_0 = __webpack_require__(6415);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -641183,14 +641221,16 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
             }
             // Build comprehensive funding limits
             const currencyLimits = this.safeDict(currency, 'limits', {});
+            const depositLimits = this.safeDict(currencyLimits, 'deposit', {});
+            const withdrawLimits = this.safeDict(currencyLimits, 'withdraw', {});
             const limits = {
                 'deposit': {
-                    'min': currencyLimits['deposit']['min'],
-                    'max': currencyLimits['deposit']['max']
+                    'min': depositLimits['min'],
+                    'max': depositLimits['max']
                 },
                 'withdraw': {
-                    'min': currencyLimits['withdraw']['min'],
-                    'max': currencyLimits['withdraw']['max']
+                    'min': withdrawLimits['min'],
+                    'max': withdrawLimits['max']
                 }
             };
             // Add fee information if available
@@ -644285,7 +644325,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4615(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_woo_js__rspack_import_0 = __webpack_require__(8208);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -649376,9 +649416,9 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6499(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(7468);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(5573);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_woofipro_js__rspack_import_0 = __webpack_require__(7758);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -651509,7 +651549,8 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const algoType = this.safeString(params, 'algoType');
-        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || this.safeValue(params, 'childOrders') !== undefined;
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || paramsChildOrders !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -651629,7 +651670,8 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || this.safeList(params, 'childOrders') !== undefined;
+        const paramsChildOrders = this.safeList(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || paramsChildOrders !== undefined;
         let response = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder(request);
@@ -651693,7 +651735,8 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
             const takeProfit = this.safeDict(orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || this.safeList(orderParams, 'childOrders') !== undefined;
+            const paramsChildOrders = this.safeList(orderParams, 'childOrders');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || paramsChildOrders !== undefined;
             if (isConditional) {
                 throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrders() only support non-stop order');
             }
@@ -651759,7 +651802,8 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        const isConditional = triggerPrice !== undefined || this.safeValue(params, 'childOrders') !== undefined;
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || paramsChildOrders !== undefined;
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
         if (price !== undefined) {
@@ -653291,7 +653335,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1434(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_xt_js__rspack_import_0 = __webpack_require__(6459);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -655606,10 +655650,11 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        const ticker = this.safeValue(response, 'result');
         if (market['spot'] === true) {
-            return this.parseTicker(ticker[0], market);
+            const tickers = this.safeList(response, 'result', []);
+            return this.parseTicker(tickers[0], market);
         }
+        const ticker = this.safeDict(response, 'result', {});
         return this.parseTicker(ticker, market);
     }
     /**
@@ -659743,7 +659788,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 100(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_zaif_js__rspack_import_0 = __webpack_require__(9109);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -660707,7 +660752,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 307(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_zebpay_js__rspack_import_0 = __webpack_require__(2610);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -661834,20 +661879,20 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
         const upperCaseType = type.toUpperCase();
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
-        let query = this.omit(params, [
+        const query = this.omit(params, [
             'marginAsset',
             'takeProfitPrice',
             'takeProfitPrice'
         ]);
         this.checkRequiredArgument('createOrder', side, 'side');
-        let request = {
+        const request = {
             'symbol': market['id'],
             'side': side.toUpperCase()
         };
         let response = undefined;
         if (market['spot'] === true) {
-            [request, query] = this.orderRequest(symbol, type, amount, request, price, query);
-            response = await this.privateSpotPostV2ExOrders(this.extend(request, query));
+            const orderRequestResult = this.orderRequest(symbol, type, amount, request, price, query);
+            response = await this.privateSpotPostV2ExOrders(this.extend(orderRequestResult[0], orderRequestResult[1]));
         } else {
             const marginAsset = this.safeString(query, 'marginAsset', 'INR');
             const formType = this.safeStringUpper(query, 'formType', 'ORDER_FORM');
@@ -662819,7 +662864,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* (ignored) */
 
 },
-5017(module, exports) {
+4982(module, exports) {
 // GENERATED FILE. DO NOT EDIT.
 (function (global, factory) {
   function preferDefault(exports) {
@@ -664444,7 +664489,7 @@ __webpack_require__.d(__webpack_exports__, {
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
 
 
-var $protobuf = __webpack_require__(6946);
+var $protobuf = __webpack_require__(7635);
 
 // Common aliases
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
@@ -673683,10 +673728,10 @@ module.exports = $root;
 
 
 },
-7315(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+5376(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(6724);
-/* import */ var _modular_js__rspack_import_0 = __webpack_require__(2186);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(173);
+/* import */ var _modular_js__rspack_import_0 = __webpack_require__(9925);
 /**
  * Methods for elliptic curve multiplication by scalars.
  * Contains wNAF, pippenger.
@@ -674309,10 +674354,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-9228(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+3811(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(6724);
-/* import */ var _curve_js__rspack_import_0 = __webpack_require__(7315);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(173);
+/* import */ var _curve_js__rspack_import_0 = __webpack_require__(5376);
 /**
  * Twisted Edwards curve. The formula is: ax² + y² = 1 + dx²y².
  * For design rationale of types / exports, see weierstrass module documentation.
@@ -675014,9 +675059,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-2280(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+3459(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(6724);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(173);
 
 
 // Octet Stream to Integer. "spec" implementation of os2ip is 2.5x slower vs bytesToNumberBE.
@@ -675371,9 +675416,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-2186(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+9925(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(6724);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(173);
 /**
  * Utils for modular division and fields.
  * Field over 11 is a finite (Galois) field is integer number operations `mod 11`.
@@ -676240,10 +676285,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-5275(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+4946(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(6724);
-/* import */ var _modular_js__rspack_import_0 = __webpack_require__(2186);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(173);
+/* import */ var _modular_js__rspack_import_0 = __webpack_require__(9925);
 /**
  * Implements [Poseidon](https://www.poseidon-hash.info) ZK-friendly hash.
  *
@@ -676713,13 +676758,13 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-4032(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+103(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_hmac_js__rspack_import_4 = __webpack_require__(7474);
-/* import */ var _noble_hashes_utils_js__rspack_import_3 = __webpack_require__(508);
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(6724);
-/* import */ var _curve_js__rspack_import_1 = __webpack_require__(7315);
-/* import */ var _modular_js__rspack_import_2 = __webpack_require__(2186);
+/* import */ var _noble_hashes_hmac_js__rspack_import_4 = __webpack_require__(6909);
+/* import */ var _noble_hashes_utils_js__rspack_import_3 = __webpack_require__(1313);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(173);
+/* import */ var _curve_js__rspack_import_1 = __webpack_require__(5376);
+/* import */ var _modular_js__rspack_import_2 = __webpack_require__(9925);
 /**
  * Short Weierstrass curve methods. The formula is: y² = x³ + ax + b.
  *
@@ -678139,14 +678184,14 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-7468(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+5573(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4721);
-/* import */ var _noble_hashes_utils_js__rspack_import_4 = __webpack_require__(508);
-/* import */ var _abstract_edwards_js__rspack_import_1 = __webpack_require__(9228);
-/* import */ var _abstract_hash_to_curve_js__rspack_import_5 = __webpack_require__(2280);
-/* import */ var _abstract_modular_js__rspack_import_0 = __webpack_require__(2186);
-/* import */ var _utils_js__rspack_import_3 = __webpack_require__(6724);
+/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4006);
+/* import */ var _noble_hashes_utils_js__rspack_import_4 = __webpack_require__(1313);
+/* import */ var _abstract_edwards_js__rspack_import_1 = __webpack_require__(3811);
+/* import */ var _abstract_hash_to_curve_js__rspack_import_5 = __webpack_require__(3459);
+/* import */ var _abstract_modular_js__rspack_import_0 = __webpack_require__(9925);
+/* import */ var _utils_js__rspack_import_3 = __webpack_require__(173);
 /**
  * ed25519 Twisted Edwards curve with following addons:
  * - X25519 ECDH
@@ -678778,10 +678823,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-2431(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+7888(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
-/* import */ var _abstract_weierstrass_js__rspack_import_0 = __webpack_require__(4032);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
+/* import */ var _abstract_weierstrass_js__rspack_import_0 = __webpack_require__(103);
 /**
  * Internal module for NIST P256, P384, P521 curves.
  * Do not use for now.
@@ -679057,11 +679102,11 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6885(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+4608(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4721);
-/* import */ var _abstract_modular_js__rspack_import_0 = __webpack_require__(2186);
-/* import */ var _abstract_weierstrass_js__rspack_import_1 = __webpack_require__(4032);
+/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4006);
+/* import */ var _abstract_modular_js__rspack_import_0 = __webpack_require__(9925);
+/* import */ var _abstract_weierstrass_js__rspack_import_1 = __webpack_require__(103);
 /**
  * SECG secp256k1. See [pdf](https://www.secg.org/sec2-v2.pdf).
  *
@@ -679535,9 +679580,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6724(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+173(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_utils_js__rspack_import_0 = __webpack_require__(508);
+/* import */ var _noble_hashes_utils_js__rspack_import_0 = __webpack_require__(1313);
 /**
  * Hex, bytes and number utilities.
  * @module
@@ -680167,9 +680212,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6793(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+8076(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(508);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(1313);
 /**
  * Internal Merkle-Damgard hash utils.
  * @module
@@ -680385,7 +680430,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6211(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+816(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
 const U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
 const _32n = /* @__PURE__ */ BigInt(32);
@@ -680495,9 +680540,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-7474(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+6909(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(508);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(1313);
 /**
  * HMAC: RFC2104 message authentication code.
  * @module
@@ -680598,10 +680643,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-8858(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+1337(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _md_js__rspack_import_0 = __webpack_require__(6793);
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(508);
+/* import */ var _md_js__rspack_import_0 = __webpack_require__(8076);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(1313);
 /**
 
 SHA1 (RFC 3174), MD5 (RFC 1321), and RIPEMD160 legacy, weak hash functions.
@@ -680937,11 +680982,11 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-4721(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+4006(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _md_js__rspack_import_0 = __webpack_require__(6793);
-/* import */ var _u64_js__rspack_import_2 = __webpack_require__(6211);
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(508);
+/* import */ var _md_js__rspack_import_0 = __webpack_require__(8076);
+/* import */ var _u64_js__rspack_import_2 = __webpack_require__(816);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(1313);
 /**
  * SHA2 hash function. A.k.a. sha256, sha384, sha512, sha512_224, sha512_256.
  * SHA256 is the fastest hash implementable in JS, even faster than Blake3.
@@ -681409,10 +681454,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6834(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+4725(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _u64_js__rspack_import_0 = __webpack_require__(6211);
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(508);
+/* import */ var _u64_js__rspack_import_0 = __webpack_require__(816);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(1313);
 /**
  * SHA3 (keccak) hash function, based on a new "Sponge function" design.
  * Different from older hashes, the internal state is bigger than output size.
@@ -681851,7 +681896,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-508(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+1313(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
 /**
  * Checks if something is Uint8Array. Be careful: nodejs Buffer will return true.
@@ -682456,7 +682501,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-7116(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+9581(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
 /*! scure-base - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 function isBytes(a) {
@@ -683526,15 +683571,15 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-789(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+9636(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_abstract_modular_js__rspack_import_1 = __webpack_require__(2186);
-/* import */ var _noble_curves_abstract_poseidon_js__rspack_import_6 = __webpack_require__(5275);
-/* import */ var _noble_curves_abstract_weierstrass_js__rspack_import_2 = __webpack_require__(4032);
-/* import */ var _noble_curves_utils_js__rspack_import_0 = __webpack_require__(6724);
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_hashes_utils_js__rspack_import_5 = __webpack_require__(508);
+/* import */ var _noble_curves_abstract_modular_js__rspack_import_1 = __webpack_require__(9925);
+/* import */ var _noble_curves_abstract_poseidon_js__rspack_import_6 = __webpack_require__(4946);
+/* import */ var _noble_curves_abstract_weierstrass_js__rspack_import_2 = __webpack_require__(103);
+/* import */ var _noble_curves_utils_js__rspack_import_0 = __webpack_require__(173);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_hashes_utils_js__rspack_import_5 = __webpack_require__(1313);
 /*! scure-starknet - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 
 

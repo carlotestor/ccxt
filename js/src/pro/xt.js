@@ -78,7 +78,8 @@ export default class xt extends xtRest {
         if (isContract) {
             tradeType = 'contract';
         }
-        let url = this.safeString(this.urls['api']['ws'], tradeType);
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        let url = this.safeString(apiUrls, tradeType);
         if (!isContract) {
             url = url + '/private';
         }
@@ -238,7 +239,8 @@ export default class xt extends xtRest {
         const subscription = {
             'id': id,
         };
-        const url = this.safeString(this.urls['api']['ws'], tradeType) + '/' + tail;
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, tradeType) + '/' + tail;
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
     /**
@@ -291,7 +293,8 @@ export default class xt extends xtRest {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const url = this.safeString(this.urls['api']['ws'], tradeType) + '/' + tail;
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, tradeType) + '/' + tail;
         const subscription = {
             'unsubscribe': true,
             'id': id,
@@ -637,7 +640,8 @@ export default class xt extends xtRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.safeString(this.urls['api']['ws'], 'contract') + '/' + 'user';
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'contract') + '/' + 'user';
         const client = this.client(url);
         this.setPositionsCache(client);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);

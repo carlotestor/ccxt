@@ -745,8 +745,8 @@ class gate extends gate$1["default"] {
                 bookSide.storeArray(this.parseOrderBookBidAsk(bidAsk));
             }
             else {
-                const price = this.safeFloat(bidAsk, 'p');
-                const amount = this.safeFloat(bidAsk, 's');
+                const price = this.safeNumber(bidAsk, 'p');
+                const amount = this.safeNumber(bidAsk, 's');
                 bookSide.store(price, amount);
             }
         }

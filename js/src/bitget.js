@@ -10754,17 +10754,19 @@ export default class bitget extends Exchange {
         //
         const chains = this.safeList(fee, 'chains', []);
         const chainsLength = chains.length;
+        const networks = {};
+        const withdraw = {
+            'fee': undefined,
+            'percentage': undefined,
+        };
         const result = {
             'info': fee,
-            'withdraw': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
+            'withdraw': withdraw,
             'deposit': {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
+            'networks': networks,
         };
         for (let i = 0; i < chainsLength; i++) {
             const chain = this.safeDict(chains, i);
@@ -10772,14 +10774,14 @@ export default class bitget extends Exchange {
             const currencyCode = this.safeString(currency, 'code');
             const networkCode = this.networkIdToCode(networkId, currencyCode);
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
                     'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
                 };
             }
             if (chainsLength === 1) {
-                result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
-                result['withdraw']['percentage'] = false;
+                withdraw['fee'] = this.safeNumber(chain, 'withdrawFee');
+                withdraw['percentage'] = false;
             }
         }
         return result;

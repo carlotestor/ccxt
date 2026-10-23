@@ -122,11 +122,9 @@ class whitebit extends whitebit$1["default"] {
             const symbol = market['symbol'];
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV(data, market);
-            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!(symbol in this.ohlcvs)) {
                 this.ohlcvs[symbol] = {};
             }
-            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!('unknown' in this.ohlcvs[symbol])) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 const stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -279,7 +277,8 @@ class whitebit extends whitebit$1["default"] {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const method = 'market_subscribe';
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const id = this.incrementingNonce();
         const messageHashes = [];
         const args = [];
@@ -757,7 +756,8 @@ class whitebit extends whitebit$1["default"] {
             method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
         const [fetchBalanceSnapshot, paramsFetchBalanceSnapshot] = this.handleOptionBoolAndParams(paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', true);
@@ -875,7 +875,8 @@ class whitebit extends whitebit$1["default"] {
         client.resolve(this.balance, messageHash);
     }
     async watchPublic(messageHash, method, reqParams = [], params = {}) {
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const id = this.incrementingNonce();
         const request = {
             'id': id,
@@ -889,7 +890,8 @@ class whitebit extends whitebit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const id = this.incrementingNonce();
         const client = this.safeValue(this.clients, url);
         let request = undefined;
@@ -951,7 +953,8 @@ class whitebit extends whitebit$1["default"] {
     async watchPrivate(messageHash, method, reqParams = [], params = {}) {
         this.checkRequiredCredentials();
         await this.authenticate();
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const id = this.incrementingNonce();
         const request = {
             'id': id,
@@ -963,7 +966,8 @@ class whitebit extends whitebit$1["default"] {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'ws');
         const client = this.client(url);
         const subscribeHash = 'authenticated';
         // handleAuthenticate () resolves the handshake future with 1, so 1 is
