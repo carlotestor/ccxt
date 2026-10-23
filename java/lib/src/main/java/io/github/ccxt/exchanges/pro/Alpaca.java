@@ -749,7 +749,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 }
                 this.watch(url, messageHash, request, messageHash, future);
             }
-            return future.getFuture().join();
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
     }
@@ -878,8 +878,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         String status = this.safeString(data, "status");
         if (java.util.Objects.equals(T, "success") || java.util.Objects.equals(status, "authorized"))
         {
-            io.github.ccxt.ws.Future promise = client.futures.get("authenticated");
-            promise.resolve(message);
+            Object promise = ((Map)client.futures).get("authenticated");
+            ((io.github.ccxt.ws.Future)promise).resolve(message);
             return;
         }
         throw new AuthenticationError((this.id + " failed to authenticate.")) ;

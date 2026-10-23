@@ -1270,7 +1270,7 @@ impl BtcboxCore {
         if matches!(&response, Value::Str(_)) {
             // sometimes the exchange returns whitespace prepended to json
             response = self.strip(response.clone(), &[]);
-            if self.is_json_encoded_object(&[response.clone()]).as_bool() == Some(false) {
+            if !is_true(&self.is_json_encoded_object(&[response.clone()])) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), response)));
             }
             response = json_parse(&response);

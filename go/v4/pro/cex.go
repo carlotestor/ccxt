@@ -1335,7 +1335,7 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Cex) PairToSymbol(pair *string) any {
+func (this *Cex) PairToSymbol(pair any) any {
 	var parts []string = ccxt.Split(pair, ":")
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)

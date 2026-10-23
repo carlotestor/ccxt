@@ -1974,7 +1974,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     public void setBalanceCache(Client client, Object type)
     {
-        if ((client.subscriptions.containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
+        if ((((Map<?, ?>)client.subscriptions).containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
         {
             return;
         }
@@ -1983,7 +1983,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -2003,9 +2003,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Balances response = (this.fetchBalance(parameters)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
             }
@@ -2163,7 +2163,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = "fetchPositionsSnapshot";
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (Map<String, Object>) (parameters)); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -2188,8 +2188,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 cache.append(position);
             }
             // don't remove the future from the .futures cache
-            io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-            future.resolve(cache);
+            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+            ((io.github.ccxt.ws.Future)future).resolve(cache);
             client.resolve(cache, "positions");
             return null;
         });

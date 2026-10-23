@@ -504,7 +504,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
         String bidAskHash = ("bidask:" + symbol);
-        if (client.futures.containsKey(bidAskHash))
+        if (((Map<?, ?>)client.futures).containsKey(bidAskHash))
         {
             var error = new UnsubscribeError(((this.id + " ") + bidAskHash));
             client.reject(error, bidAskHash);
@@ -672,7 +672,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, message);
             }
-            return future.getFuture().join();
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
     }
@@ -1286,9 +1286,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (client.subscriptions.containsKey(messageHash))
+                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
                 {
-                    client.subscriptions.remove(messageHash);
+                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -1393,15 +1393,15 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             // client.resolve (message, messageHash);
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
-            future.resolve(true);
+            ((io.github.ccxt.ws.Future)future).resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (client.subscriptions.containsKey(messageHash))
+            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
             {
-                client.subscriptions.remove("authenticated");
+                ((Map<String,Object>)client.subscriptions).remove("authenticated");
             }
         }
     }

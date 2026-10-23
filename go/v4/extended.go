@@ -3556,7 +3556,7 @@ func (this *Extended) fetchExtendedAccountBody(ch chan AsyncResult[map[string]an
 	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "account", map[string]any{})}
 	return nil
 }
-func (this *Extended) CreateOrderSettlementData(isBuy any, amountString *string, priceString *string, optionalArgs ...any) map[string]any {
+func (this *Extended) CreateOrderSettlementData(isBuy any, amountString any, priceString any, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var totalFee *string = this.SafeString(params, "totalFee")

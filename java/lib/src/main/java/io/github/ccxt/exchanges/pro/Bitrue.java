@@ -1028,7 +1028,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 // lock rather than through an unsynchronized map write
                 String messageHash = "authenticateFlight";
                 Client client = this.client("authenticationFlights");
-                if (client.futures.containsKey(messageHash))
+                if (((Map<?, ?>)client.futures).containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey url is then in the options
@@ -1072,7 +1072,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 }
                 // rethrows to the leader on failure and attaches the handler that
                 // keeps an alone leader's rejection from crashing the process
-                future.getFuture().join();
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
                 // only the leader schedules the keepalive, so a burst of watchers
                 // no longer stacks one refresh timer per racing caller. waiters
                 // early-return above, so this runs once per successful flight.

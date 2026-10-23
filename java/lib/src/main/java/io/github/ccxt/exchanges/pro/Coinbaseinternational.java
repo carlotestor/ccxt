@@ -1746,9 +1746,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 // drop the stale book and reject only this channels future
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
-                if (client.subscriptions.containsKey(channel))
+                if (((Map<?, ?>)client.subscriptions).containsKey(channel))
                 {
-                    client.subscriptions.remove((String)((String)channel));
+                    ((Map<String,Object>)client.subscriptions).remove((String)((String)channel));
                 }
                 client.reject(new ExchangeError((this.id + " order book update has a nonce mismatch")), channel);
                 this.spawn(() -> { try { this.resubscribeOrderBook(channel); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1790,9 +1790,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             request.put("id", this.requestId());
             Client client = this.client(url);
             (client.send(request)).join();
-            if (client.subscriptions.containsKey(channel))
+            if (((Map<?, ?>)client.subscriptions).containsKey(channel))
             {
-                client.subscriptions.remove((String)channel);
+                ((Map<String,Object>)client.subscriptions).remove((String)channel);
             }
             (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), isPrivate, new HashMap<String, Object>() {{}})).join();
             return null;
@@ -1843,10 +1843,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String requestId = this.safeString(message, "id");
             String authRequestId = this.safeString(this.options, "wsAuthRequestId");
             String messageHash = (((java.util.Objects.equals(requestId, authRequestId)))) ? "authenticated" : requestId;
-            if ((java.util.Objects.equals(messageHash, "authenticated")) && (client.subscriptions.containsKey(messageHash)))
+            if ((java.util.Objects.equals(messageHash, "authenticated")) && (((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
                 // allow the next authenticate () call to retry
-                client.subscriptions.remove((String)messageHash);
+                ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
             }
             client.reject(e, messageHash);
         }
@@ -1982,9 +1982,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (!java.util.Objects.equals(future, null))
             {
                 Long refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
-                if ((!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)) && !(client.futures.containsKey(messageHash)))
+                if ((!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)) && !(((Map<?, ?>)client.futures).containsKey(messageHash)))
                 {
-                    client.subscriptions.remove(messageHash);
+                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
                     future = null;
                 }
             }

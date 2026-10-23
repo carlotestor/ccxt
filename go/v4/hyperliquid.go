@@ -2981,7 +2981,7 @@ func (this *Hyperliquid) createOrdersBody(ch chan AsyncResult[[]Order], orders a
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(ordersToBeParsed))}
 	return nil
 }
-func (this *Hyperliquid) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount *string, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

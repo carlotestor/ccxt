@@ -1237,7 +1237,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 client.resolve(orderbook, messageHash);
             } catch(Exception e)
             {
-                client.subscriptions.remove(messageHash);
+                ((Map<String,Object>)client.subscriptions).remove(messageHash);
                 client.reject(e, messageHash);
             }
             return null;
@@ -1406,9 +1406,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     ((Map<String,Object>)this.orderbooks).remove(symbol);
                 }
-                if (client.subscriptions.containsKey(messageHash))
+                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
                 {
-                    client.subscriptions.remove(messageHash);
+                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
                 client.reject(e, messageHash);
             }
@@ -3473,8 +3473,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
             Client client = this.client(url);
-            Map<String, Object> subscriptions = client.subscriptions;
-            List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
+            Object subscriptions = client.subscriptions;
+            List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
             Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
             if (java.util.Objects.equals(accountType, java.util.Objects.requireNonNullElse(marketType, "spot")))
             {
@@ -3483,7 +3483,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // the subscriptions flag is raised before the subscribe request is confirmed,
             // so a concurrent caller would otherwise return onto an unauthenticated stream
             String messageHash = ("authenticate:signature:" + java.util.Objects.requireNonNullElse(marketType, "spot"));
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 // another caller is already subscribing, wait for it instead of subscribing again
                 client.future(messageHash).getFuture().join();
@@ -3504,14 +3504,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // created right before the request, after the signing above: concurrent callers find it, and in
             // the threaded ports the ack can not arrive between this future and the request one watch () adds
             client.future(messageHash);
-            client.subscriptions.put((String)java.util.Objects.requireNonNullElse(marketType, "spot"), true);
+            ((Map)client.subscriptions).put((String)java.util.Objects.requireNonNullElse(marketType, "spot"), true);
             try
             {
                 (this.watch(url, requestHash, message, requestHash, subscription)).join();
                 client.resolve(java.util.Objects.requireNonNullElse(marketType, "spot"), messageHash);
             } catch(Exception e)
             {
-                client.subscriptions.remove((String)java.util.Objects.requireNonNullElse(marketType, "spot"));
+                ((Map<String,Object>)client.subscriptions).remove((String)java.util.Objects.requireNonNullElse(marketType, "spot"));
                 client.reject(e, messageHash);
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
@@ -3532,14 +3532,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //   }
         //
         String messageHash = this.safeString(message, "id");
-        Map<String, Object> subscriptions = client.subscriptions;
-        List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
+        Object subscriptions = client.subscriptions;
+        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Long subscriptionId = this.safeInteger(result, "subscriptionId");
         if (java.util.Objects.equals(subscriptionId, null))
         {
-            client.subscriptions.remove((String)accountType);
+            ((Map<String,Object>)client.subscriptions).remove((String)accountType);
             var error = new ExchangeError(((this.id + " user data stream subscribe failed ") + this.json(message)));
             client.reject(error, accountType);
             client.reject(error, messageHash);
@@ -3582,7 +3582,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // waits for the leader rather than minting a second listenToken
                 Client client = this.client(url);
                 String messageHash = (("authenticate:" + java.util.Objects.requireNonNullElse(marketType, "margin")) + ":listenToken");
-                if (client.futures.containsKey(messageHash))
+                if (((Map<?, ?>)client.futures).containsKey(messageHash))
                 {
                     // another caller is already fetching, wait for it instead of fetching again
                     client.future(messageHash).getFuture().join();
@@ -3756,7 +3756,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // and remove the entry under the same lock in every port
                 String messageHash = ("authenticate:" + type);
                 Client client = this.client("authenticationFlights");
-                if (client.futures.containsKey(messageHash))
+                if (((Map<?, ?>)client.futures).containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey is then in the bucket
@@ -3825,7 +3825,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     // caller AND attaches the handler an alone leader needs
                     client.reject(e, messageHash);
                 }
-                future.getFuture().join();
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });
@@ -3987,7 +3987,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public void setBalanceCache(Client client, Object type, Object isPortfolioMargin)
     {
-        if ((client.subscriptions.containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
+        if ((((Map<?, ?>)client.subscriptions).containsKey(type)) && (((Map<?, ?>)this.balance).containsKey(type)))
         {
             return;
         }
@@ -3996,7 +3996,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -4020,9 +4020,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Balances response = (this.fetchBalance(parameters)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
             }
@@ -4436,8 +4436,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String wallet = this.safeString(this.options, "wallet", "wb"); // cw for cross wallet
         // each account is connected to a different endpoint
-        Map<String, Object> subscriptions = client.subscriptions;
-        List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
+        Object subscriptions = client.subscriptions;
+        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         String messageHash = (accountType + ":balance");
         if (java.util.Objects.equals((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), null))
@@ -6118,7 +6118,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = (type + ":fetchPositionsSnapshot");
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type, java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -6152,10 +6152,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             }
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                future.resolve(cache);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, (type + ":position"));
             }
             return null;
@@ -6194,8 +6194,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        Map<String, Object> subscriptions = client.subscriptions;
-        List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
+        Object subscriptions = client.subscriptions;
+        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -6888,7 +6888,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     client.reject(e, subscriptionHash);
                     if (!java.util.Objects.equals(subscription, null))
                     {
-                        client.subscriptions.remove((String)subscription);
+                        ((Map<String,Object>)client.subscriptions).remove((String)subscription);
                     }
                 }
             }
@@ -6916,12 +6916,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String eventVar = this.safeString(message, "e");
-        Map<String, Object> subscriptions = client.subscriptions;
-        List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
+        Object subscriptions = client.subscriptions;
+        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (java.util.Objects.equals(eventVar, "eventStreamTerminated"))
         {
-            client.subscriptions.remove((String)accountType);
+            ((Map<String,Object>)client.subscriptions).remove((String)accountType);
             var error = new ExchangeError(((this.id + " user data event stream terminated ") + this.json(message)));
             client.reject(error, accountType);
         }

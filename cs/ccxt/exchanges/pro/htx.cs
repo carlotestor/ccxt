@@ -1968,11 +1968,11 @@ public partial class htx : ccxt.htx
             {
                 marginMode = defaultMarginMode;
             }
-            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue((((IDictionary<string,object>)this.positions) != null && url != null && ((IDictionary<string,object>)this.positions).ContainsKey(url) ? ((IDictionary<string,object>)this.positions)[url] : null), marginMode));
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(getValue(this.positions, url), marginMode));
             if ((cache == null))
             {
                 cache = new ArrayCacheBySymbolBySide();
-                ((IDictionary<string,object>)(((IDictionary<string,object>)this.positions) != null && url != null && ((IDictionary<string,object>)this.positions).ContainsKey(url) ? ((IDictionary<string,object>)this.positions)[url] : null))[(string)marginMode] = cache;
+                ((IDictionary<string,object>)getValue(this.positions, url))[(string)marginMode] = cache;
             }
             newPositions.Add(position);
             positionsByMarginMode[(string)marginMode] = this.safeList(positionsByMarginMode, marginMode, new List<object>() {});

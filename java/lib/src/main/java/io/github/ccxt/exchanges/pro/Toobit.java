@@ -868,7 +868,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public void setBalanceCache(Client client, String marketType, String subscriptionHash, Map<String, Object> parameters)
     {
-        if ((java.util.Objects.equals(subscriptionHash, null)) || (client.subscriptions.containsKey(subscriptionHash)))
+        if ((java.util.Objects.equals(subscriptionHash, null)) || (((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
         {
             return;
         }
@@ -878,7 +878,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             type = "spot";
         }
         String messageHash = (type + ":fetchBalanceSnapshot");
-        if (!(client.futures.containsKey(messageHash)))
+        if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
         {
             client.future(messageHash);
             this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (marketType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -968,9 +968,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":fetchBalanceSnapshot"));
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance")); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
@@ -1289,7 +1289,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = (type + ":fetchPositionsSnapshot");
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1315,10 +1315,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((io.github.ccxt.ws.ArrayCache) cache).append(position);
             }
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                future.resolve(cache);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, (type + ":positions"));
             }
             return null;
@@ -1449,7 +1449,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
                 String messageHash = "authenticate";
                 Client client = this.client("authenticationFlights");
-                if (client.futures.containsKey(messageHash))
+                if (((Map<?, ?>)client.futures).containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey is then in the bucket
@@ -1482,7 +1482,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                     var err = new AuthenticationError(((this.id + " ") + this.exceptionMessage(e, true)));
                     client.reject(err, messageHash);
                 }
-                future.getFuture().join();
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });

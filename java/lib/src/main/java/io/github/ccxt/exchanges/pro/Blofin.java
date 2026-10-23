@@ -1021,7 +1021,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             } else if (java.util.Objects.equals(eventVar, "login"))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticate_hash");
-                future.resolve(true);
+                ((io.github.ccxt.ws.Future)future).resolve(true);
                 return;
             } else if (java.util.Objects.equals(eventVar, "error"))
             {

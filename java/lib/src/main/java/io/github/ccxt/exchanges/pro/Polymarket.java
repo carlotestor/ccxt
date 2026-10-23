@@ -121,7 +121,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         Boolean willSend = false;
         for (var i = 0; i < ((List<?>)hashesToCheck).size(); i++)
         {
-            if (!(client.subscriptions.containsKey((hashesToCheck == null || i < 0 || i >= ((List<?>)hashesToCheck).size() ? null : ((List<?>)hashesToCheck).get(i)))))
+            if (!(((Map<?, ?>)client.subscriptions).containsKey((hashesToCheck == null || i < 0 || i >= ((List<?>)hashesToCheck).size() ? null : ((List<?>)hashesToCheck).get(i)))))
             {
                 willSend = true;
             }
@@ -143,7 +143,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             put( "subMessageHashes", subMessageHashes );
         }};
         Map<String, Object> pending = this.extend(basePending, context);
-        client.subscriptions.put((String)("req:" + String.valueOf(id)), pending);
+        ((Map)client.subscriptions).put((String)("req:" + String.valueOf(id)), pending);
         return this.extend(request, parameters);
     }
 
@@ -776,7 +776,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                     put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
                     put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
                 }};
-                client.subscriptions.put((String)("req:" + String.valueOf(id)), pending);
+                ((Map)client.subscriptions).put((String)("req:" + String.valueOf(id)), pending);
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "req", "post" );
@@ -790,7 +790,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 }};
                 this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
             }
-            return future.getFuture().join();
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
     }
@@ -1063,7 +1063,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = "fetchPositionsSnapshot";
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1087,10 +1087,10 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 ((io.github.ccxt.ws.ArrayCache) cache).append((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)));
             }
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                future.resolve(cache);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                ((io.github.ccxt.ws.Future)future).resolve(cache);
             }
             client.resolve(cache, "positions");
             return null;
@@ -1144,7 +1144,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
             String messageHash = "fetchBalanceSnapshot";
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1160,10 +1160,10 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             Balances balance = (this.fetchBalance(new HashMap<String, Object>() {{}})).join();
             this.balance = this.extend(this.balance, balance);
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                future.resolve(this.balance);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                ((io.github.ccxt.ws.Future)future).resolve(this.balance);
             }
             client.resolve(this.balance, "balance");
             return null;
@@ -1270,7 +1270,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 Map<String, Object> postPending = (Map<String, Object>) this.safeDict(client.subscriptions, postKey, (Object) null);
                 if (!java.util.Objects.equals(postPending, null))
                 {
-                    client.subscriptions.remove(postKey);
+                    ((Map<String,Object>)client.subscriptions).remove(postKey);
                     String postAction = this.safeString(postPending, "method");
                     if (java.util.Objects.equals(postAction, "auth"))
                     {
@@ -1282,15 +1282,15 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
                             if (!java.util.Objects.equals(future, null))
                             {
-                                future.resolve(true);
+                                ((io.github.ccxt.ws.Future)future).resolve(true);
                             }
                         } else
                         {
                             var authError = new AuthenticationError(((this.id + " authentication failed ") + this.json(data)));
                             client.reject(authError, "authenticated");
-                            if (client.subscriptions.containsKey("authenticated"))
+                            if (((Map<?, ?>)client.subscriptions).containsKey("authenticated"))
                             {
-                                client.subscriptions.remove("authenticated");
+                                ((Map<String,Object>)client.subscriptions).remove("authenticated");
                             }
                         }
                         return;
@@ -1310,7 +1310,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             return;
         }
-        client.subscriptions.remove(key);
+        ((Map<String,Object>)client.subscriptions).remove(key);
         List<Object> messageHashes = (List<Object>) this.safeList(pending, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(pending, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         String action = this.safeString(pending, "method");
@@ -1335,16 +1335,16 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
                 Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-                if ((messageHash != null && client.subscriptions.containsKey(messageHash)))
+                if ((messageHash != null && ((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
-                    client.subscriptions.remove((String)messageHash);
+                    ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
                 }
                 if (java.util.Objects.equals(action, "sub"))
                 {
                     Object subMessageHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-                    if ((subMessageHash != null && client.subscriptions.containsKey(subMessageHash)))
+                    if ((subMessageHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subMessageHash)))
                     {
-                        client.subscriptions.remove((String)subMessageHash);
+                        ((Map<String,Object>)client.subscriptions).remove((String)subMessageHash);
                     }
                 }
             }

@@ -2554,7 +2554,7 @@ func (this *Bybit) SafeMarket(optionalArgs ...any) map[string]any {
 	}
 	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
 }
-func (this *Bybit) GetBybitType(method string, market any, optionalArgs ...any) []any {
+func (this *Bybit) GetBybitType(method any, market any, optionalArgs ...any) []any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(method, market, params)

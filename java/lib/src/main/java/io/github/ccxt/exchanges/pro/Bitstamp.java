@@ -1183,7 +1183,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 // goes through the client's own accessors in the ported languages
                 String messageHash = "authenticateFlight";
                 Client client = this.client("authenticationFlights");
-                if (client.futures.containsKey(messageHash))
+                if (((Map<?, ?>)client.futures).containsKey(messageHash))
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the token is then in this.options
@@ -1222,7 +1222,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 }
                 // rethrows to the leader and marks the promise handled, so an
                 // alone leader's rejection is never unhandled
-                future.getFuture().join();
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });

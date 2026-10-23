@@ -116,7 +116,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return future.getFuture().join();
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
     }
@@ -1950,7 +1950,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
     public Boolean subscriptionExistsForHash(String url, String hash)
     {
         Client client = this.client(url);
-        return (client.subscriptions.containsKey(hash));
+        return (((Map<?, ?>)client.subscriptions).containsKey(hash));
     }
 
     public String getMessageHash(Object unifiedElementName, String subChannelName, String symbol)
@@ -2069,14 +2069,14 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.addElementToObject(this.options, "challenge", challenge);
             Helpers.addElementToObject(this.options, "signedChallenge", signature);
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            future.resolve(true);
+            ((io.github.ccxt.ws.Future)future).resolve(true);
         } else
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (client.subscriptions.containsKey(messageHash))
+            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
             {
-                client.subscriptions.remove(messageHash);
+                ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;

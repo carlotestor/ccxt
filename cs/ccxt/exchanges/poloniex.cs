@@ -3347,7 +3347,7 @@ public partial class poloniex : Exchange
     public virtual List<object> prepareRequestForDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!((((IDictionary<string,object>)this.currencies) != null && code != null && ((IDictionary<string,object>)this.currencies).ContainsKey(code))))
+        if (!(inOp(this.currencies, code)))
         {
             throw new BadSymbol ((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }

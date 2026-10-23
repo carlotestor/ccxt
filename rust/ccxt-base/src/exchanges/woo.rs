@@ -1674,7 +1674,7 @@ impl WooCore {
         let mut inverse: Value = Value::Null;
         let mut margin: Value = Value::Bool(true);
         let mut contract: Value = swap.clone();
-        if contract.as_bool() == Some(true) {
+        if is_true(&contract) {
             margin = Value::Bool(false);
             settleId = self.safe_string(parts, Value::Int(2), &[]);
             settle = self.safe_currency_code(settleId.clone(), &[]);

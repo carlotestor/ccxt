@@ -1187,7 +1187,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = "fetchPositionsSnapshot";
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1216,10 +1216,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 }
             }
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                future.resolve(cache);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, "positions");
             }
             return null;
@@ -1683,9 +1683,9 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 String messageHash = "authenticated";
                 client.reject(e, messageHash);
-                if (client.subscriptions.containsKey(messageHash))
+                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
                 {
-                    client.subscriptions.remove(messageHash);
+                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -1812,7 +1812,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return future.getFuture().join();
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
     }
@@ -1828,7 +1828,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
         io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
-        future.resolve(true);
+        ((io.github.ccxt.ws.Future)future).resolve(true);
     }
 
     public void handleUnsubscribe(Client client, Map<String, Object> message)
@@ -1838,7 +1838,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (!(client.subscriptions.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
                 continue;
             }

@@ -4525,7 +4525,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut ethEncodedMessage: Value = self.eth_encode_structured_data(domainData, definitions.as_map().and_then(|__m| structureType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageData);
         let mut ethEncodedMessageHashed: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(ethEncodedMessage, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
         let mut usesPrivKey: Value = self.uses_private_key(); // py transpiler needs this line separated
-        let mut secretOrPrivkey: Value = (if usesPrivKey.as_bool() == Some(true) { self.privateKey.clone() } else { self.secret.clone() });
+        let mut secretOrPrivkey: Value = (if is_true(&usesPrivKey) { self.privateKey.clone() } else { self.secret.clone() });
         let mut privateKeyWithoutZero: Value = self.remove0x_prefix(secretOrPrivkey);
         let mut signature: Value = ecdsa(self.remove0x_prefix(ethEncodedMessageHashed), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);
         add_element_to_object(get_value_mut(&mut request, &Value::Str("signature".into())), &Value::Str("r".into()), self.format_signature_rs(signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null)));

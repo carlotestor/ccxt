@@ -2554,7 +2554,7 @@ func (this *Krakenfutures) ParseOrderType(orderType any) *string {
 	}
 	return this.SafeString(typesMap, orderType, orderType)
 }
-func (this *Krakenfutures) VerifyOrderActionSuccess(status *string, method string, optionalArgs ...any) {
+func (this *Krakenfutures) VerifyOrderActionSuccess(status any, method string, optionalArgs ...any) {
 	omit := GetArg(optionalArgs, 0, []any{})
 	_ = omit
 	var errors map[string]any = map[string]any{
@@ -2579,19 +2579,8 @@ func (this *Krakenfutures) VerifyOrderActionSuccess(status *string, method strin
 		"filled":                     OrderNotFound,
 		"notFound":                   OrderNotFound,
 	}
-	if (func() bool {
-		if status == nil {
-			return false
-		}
-		_, ok := errors[*status]
-		return ok
-	}()) && !this.InArray(status, omit) {
-		ThrowDynamicException(func() any {
-			if status == nil {
-				return nil
-			}
-			return errors[*status]
-		}(), Add(this.Id+": "+method+" failed due to ", status))
+	if (InOp(errors, status)) && !this.InArray(status, omit) {
+		ThrowDynamicException(GetValue(errors, status), Add(this.Id+": "+method+" failed due to ", status))
 	}
 }
 func (this *Krakenfutures) ParseOrderStatus(status any) *string {

@@ -1199,7 +1199,7 @@ public partial class toobit : ccxt.toobit
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if ((((IDictionary<string,object>)this.positions) != null && type is string hx10w3Key0 && ((IDictionary<string,object>)this.positions).ContainsKey(hx10w3Key0)))
+        if (inOp(this.positions, type))
         {
             return;
         }
@@ -1225,7 +1225,7 @@ public partial class toobit : ccxt.toobit
         };
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)type) ? ((IDictionary<string,object>)this.positions)[(string)type] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, type));
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
@@ -1271,11 +1271,11 @@ public partial class toobit : ccxt.toobit
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if (!((((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType))))
+        if (!(inOp(this.positions, accountType)))
         {
             ((IDictionary<string,object>)this.positions)[accountType] = new ArrayCacheBySymbolBySide();
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType) ? ((IDictionary<string,object>)this.positions)[accountType] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, accountType));
         // handleMessage's fallback dispatches one item at a time
         object rawPositions = message;
         if (!((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))

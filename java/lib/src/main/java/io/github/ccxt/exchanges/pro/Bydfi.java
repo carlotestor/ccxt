@@ -345,9 +345,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     {
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
         Client client = this.client(url);
-        Map<String, Object> subscriptions = client.subscriptions;
+        Object subscriptions = client.subscriptions;
         List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-        List<String> keys = new ArrayList<String>(subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1128,7 +1128,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = "fetchBalanceSnapshot";
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1147,7 +1147,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Balances response = (this.fetchBalance(parameters)).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
-            io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
             future.resolve();
             client.resolve(this.balance, "balance");
             return null;
@@ -1198,7 +1198,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String messageHash = "balance";
-        if (client.futures.containsKey(messageHash))
+        if (((Map<?, ?>)client.futures).containsKey(messageHash))
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
             List<Object> balances = (List<Object>) this.safeList(data, "B", new ArrayList<Object>(Arrays.asList()));

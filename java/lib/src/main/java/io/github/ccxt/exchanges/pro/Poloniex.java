@@ -758,7 +758,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     public void setBalanceCache(Client client, Object type)
     {
-        if (client.subscriptions.containsKey(type))
+        if (((Map<?, ?>)client.subscriptions).containsKey(type))
         {
             return;
         }
@@ -767,7 +767,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -807,9 +807,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             this.balance = this.safeBalance(this.balance);
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve(this.balance, type);
             }
@@ -1653,9 +1653,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 {
                     String messageHash = "authenticated";
                     client.reject(e, messageHash);
-                    if (client.subscriptions.containsKey(messageHash))
+                    if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
                     {
-                        client.subscriptions.remove(messageHash);
+                        ((Map<String,Object>)client.subscriptions).remove(messageHash);
                     }
                 } else
                 {
@@ -1687,9 +1687,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (client.subscriptions.containsKey(messageHash))
+            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
             {
-                client.subscriptions.remove(messageHash);
+                ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;

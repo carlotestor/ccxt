@@ -254,7 +254,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     }});
                     ((List<Object>)messageHashes).add(messageHash);
                 }
-                client.subscriptions.put(subscriptionKey, subscriptions);
+                ((Map)client.subscriptions).put(subscriptionKey, subscriptions);
                 List<String> subscriptionHashes = new ArrayList<String>(subscriptions.keySet());
                 Integer subscriptionsLength = ((List<?>)subscriptionHashes).size();
                 if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(unwatch, false)) || (java.util.Objects.equals(subscriptionsLength, 0)))

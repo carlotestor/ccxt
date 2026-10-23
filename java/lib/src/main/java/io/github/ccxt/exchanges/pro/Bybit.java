@@ -1893,7 +1893,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = "fetchPositionsSnapshot";
-            if (!(client.futures.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1930,10 +1930,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }
             }
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                future.resolve(cache);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, "position");
             }
             return null;
@@ -2809,7 +2809,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, topicsLength); i++)
                 {
                     Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
-                    if (!(client.subscriptions.containsKey(messageHash)))
+                    if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                     {
                         ((List<Object>)newTopics).add(Helpers.GetValue(topics, i));
                     }
@@ -2910,7 +2910,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return future.getFuture().join();
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
     }
@@ -2996,7 +2996,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                    if (!(client.subscriptions.containsKey(messageHash)))
+                    if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                     {
                         continue;
                     }
@@ -3005,7 +3005,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     if (java.util.Objects.equals(reqId, subId))
                     {
                         foundSubscription = true;
-                        client.subscriptions.remove((String)messageHash);
+                        ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
                         client.reject(error, messageHash);
                     }
                 }
@@ -3019,9 +3019,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 {
                     String authenticatedHash = "authenticated";
                     client.reject(error, authenticatedHash);
-                    if (client.subscriptions.containsKey(authenticatedHash))
+                    if (((Map<?, ?>)client.subscriptions).containsKey(authenticatedHash))
                     {
-                        client.subscriptions.remove((String)authenticatedHash);
+                        ((Map<String,Object>)client.subscriptions).remove((String)authenticatedHash);
                     }
                     String op = this.safeString(message, "op");
                     if ((!java.util.Objects.equals(op, null)) && (!java.util.Objects.equals(op, "auth")))
@@ -3193,14 +3193,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         if ((java.util.Objects.equals(success, true)) || ((code != null && code == 0)))
         {
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            future.resolve(true);
+            ((io.github.ccxt.ws.Future)future).resolve(true);
         } else
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (client.subscriptions.containsKey(messageHash))
+            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
             {
-                client.subscriptions.remove(messageHash);
+                ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;
@@ -3244,7 +3244,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (!(client.subscriptions.containsKey(messageHash)))
+            if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
                 continue;
             }

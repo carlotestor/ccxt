@@ -1995,7 +1995,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 Client client = this.client(url);
                 String unsubHash = ("unsubscribe:" + subHash);
-                if (client.subscriptions.containsKey(unsubHash))
+                if (((Map<?, ?>)client.subscriptions).containsKey(unsubHash))
                 {
                     // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
                     Long timeout = this.safeInteger(this.options, "unsubscribeTimeout", 10000);
@@ -2022,7 +2022,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (client.subscriptions.containsKey(unsubHash))
+            if (((Map<?, ?>)client.subscriptions).containsKey(unsubHash))
             {
                 var error = new RequestTimeout((((this.id + " unsubscribe ") + subHash) + " was not acknowledged"));
                 client.reject(error, unsubHash);
@@ -2128,9 +2128,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (!java.util.Objects.equals(user, null))
         {
             String subscribeHash = ("subscribe:orderUpdates::" + user);
-            if (client.subscriptions.containsKey(subscribeHash))
+            if (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash))
             {
-                client.subscriptions.remove(subscribeHash);
+                ((Map<String,Object>)client.subscriptions).remove(subscribeHash);
             }
         }
         Map<String, Object> topicStructure = new HashMap<String, Object>() {{
@@ -2153,9 +2153,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (!java.util.Objects.equals(user, null))
         {
             String subscribeHash = ("subscribe:userFills::" + user);
-            if (client.subscriptions.containsKey(subscribeHash))
+            if (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash))
             {
-                client.subscriptions.remove(subscribeHash);
+                ((Map<String,Object>)client.subscriptions).remove(subscribeHash);
             }
         }
         Map<String, Object> topicStructure = new HashMap<String, Object>() {{

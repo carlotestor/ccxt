@@ -3970,7 +3970,7 @@ func (this *Woo) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Woo) GetCurrencyFromChaincode(networkizedCode *string, currency any) any {
+func (this *Woo) GetCurrencyFromChaincode(networkizedCode any, currency any) any {
 	if !IsEqual(currency, nil) {
 		return currency
 	} else {

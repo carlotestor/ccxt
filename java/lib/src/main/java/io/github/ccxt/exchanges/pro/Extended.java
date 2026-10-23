@@ -153,7 +153,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Long previousNonce = this.safeInteger(orderbook, "nonce");
         if ((!java.util.Objects.equals(previousNonce, null)) && (!java.util.Objects.equals(nonce, (previousNonce + 1L))))
         {
-            client.subscriptions.remove(messageHash);
+            ((Map<String,Object>)client.subscriptions).remove(messageHash);
             ((Map<String,Object>)this.orderbooks).remove(symbol);
             var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);

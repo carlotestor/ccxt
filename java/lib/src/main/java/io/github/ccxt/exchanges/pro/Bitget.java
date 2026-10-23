@@ -3196,7 +3196,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return future.getFuture().join();
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
     }
@@ -3242,7 +3242,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //
         String messageHash = "authenticated";
         io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-        future.resolve(true);
+        ((io.github.ccxt.ws.Future)future).resolve(true);
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
@@ -3269,9 +3269,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 String messageHash = "authenticated";
                 client.reject(e, messageHash);
-                if (client.subscriptions.containsKey(messageHash))
+                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
                 {
-                    client.subscriptions.remove(messageHash);
+                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -3480,16 +3480,16 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             ((Map<String,Object>)this.orderbooks).remove(symbol);
         }
-        if (client.subscriptions.containsKey(subMessageHash))
+        if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
         {
-            client.subscriptions.remove(subMessageHash);
+            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
         }
-        if (client.subscriptions.containsKey(messageHash))
+        if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
         {
-            client.subscriptions.remove(messageHash);
+            ((Map<String,Object>)client.subscriptions).remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
-        if (client.futures.containsKey(subMessageHash))
+        if (((Map<?, ?>)client.futures).containsKey(subMessageHash))
         {
             client.reject(error, subMessageHash);
         }
@@ -3517,16 +3517,16 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             ((Map<String,Object>)this.trades).remove(symbol);
         }
-        if (client.subscriptions.containsKey(subMessageHash))
+        if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
         {
-            client.subscriptions.remove(subMessageHash);
+            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
         }
-        if (client.subscriptions.containsKey(messageHash))
+        if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
         {
-            client.subscriptions.remove(messageHash);
+            ((Map<String,Object>)client.subscriptions).remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " trades ") + symbol));
-        if (client.futures.containsKey(subMessageHash))
+        if (((Map<?, ?>)client.futures).containsKey(subMessageHash))
         {
             client.reject(error, subMessageHash);
         }
@@ -3554,16 +3554,16 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             ((Map<String,Object>)this.tickers).remove(symbol);
         }
-        if (client.subscriptions.containsKey(subMessageHash))
+        if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
         {
-            client.subscriptions.remove(subMessageHash);
+            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
         }
-        if (client.subscriptions.containsKey(messageHash))
+        if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
         {
-            client.subscriptions.remove(messageHash);
+            ((Map<String,Object>)client.subscriptions).remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " ticker ") + symbol));
-        if (client.futures.containsKey(subMessageHash))
+        if (((Map<?, ?>)client.futures).containsKey(subMessageHash))
         {
             client.reject(error, subMessageHash);
         }

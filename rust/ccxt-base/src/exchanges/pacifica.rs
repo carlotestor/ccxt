@@ -3898,7 +3898,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (rawIsolated != Value::Null) {
             isIsolated = rawIsolated;
         }
-        let mut marginMode: Value = (if isIsolated.as_bool() == Some(true) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
+        let mut marginMode: Value = (if is_true(&isIsolated) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
         let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
         if (side != Value::Null) {
             side = (if (side.as_str() == Some("bid")) { Value::Str("long".into()) } else { Value::Str("short".into()) });

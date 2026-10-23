@@ -132,7 +132,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "chanId", channelId );
             }};
             String unSubChanMsg = ("unsubscribe:" + channelId);
-            client.subscriptions.put(unSubChanMsg, subMessageHash);
+            ((Map)client.subscriptions).put(unSubChanMsg, subMessageHash);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)) );
@@ -237,7 +237,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "chanId", channelId );
             }};
             String unSubChanMsg = ("unsubscribe:" + channelId);
-            client.subscriptions.put(unSubChanMsg, subMessageHash);
+            ((Map)client.subscriptions).put(unSubChanMsg, subMessageHash);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)) );
@@ -979,7 +979,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Long responseChecksum = this.safeInteger(message, 2);
         if (!Helpers.isEqual(responseChecksum, localChecksum))
         {
-            client.subscriptions.remove((String)messageHash);
+            ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (java.util.Objects.equals(checksum, true))
@@ -1163,7 +1163,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String unSubChannel = ("unsubscribe:" + channelId);
         String subMessageHash = this.safeString(client.subscriptions, unSubChannel);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, ("unsubscribe:" + subMessageHash), (Object) null);
-        client.subscriptions.remove((String)unSubChannel);
+        ((Map<String,Object>)client.subscriptions).remove((String)unSubChannel);
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1198,7 +1198,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //  }
         //
         String channelId = this.safeString(message, "chanId");
-        client.subscriptions.put((String)channelId, message);
+        ((Map)client.subscriptions).put((String)channelId, message);
         // store the opposite direction too for unWatch
         Map<String, Object> mappings = new HashMap<String, Object>() {{
             put( "book", "orderbook" );
@@ -1253,7 +1253,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return future.getFuture().join();
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
     }
@@ -1266,15 +1266,15 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             // we resolve the future here permanently so authentication only happens once
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            future.resolve(true);
+            ((io.github.ccxt.ws.Future)future).resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (client.subscriptions.containsKey(messageHash))
+            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
             {
-                client.subscriptions.remove(messageHash);
+                ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
     }
