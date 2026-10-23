@@ -257,6 +257,7 @@ pub struct Exchange {
     pub ws_socks_proxy:      Value,
 
     // market data caches
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub markets:           Value,
     pub markets_by_id:     Value,
     pub currencies:        Value,
@@ -276,6 +277,7 @@ pub struct Exchange {
     pub exceptions:        Value,
     pub urls:              Value,
     pub api:               Value,
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub options:           Value,
     pub headers:           Value,
     pub accounts:          Value,
@@ -296,6 +298,7 @@ pub struct Exchange {
     pub bidsasks:          Value,
     pub ohlcvs:            Value,
     pub clients:           Value,
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub balance:           Value,
     pub liquidations:      Value,
     pub myLiquidations:    Value,
@@ -352,6 +355,72 @@ pub struct Exchange {
 
     // private runtime state (typed)
     pub internals: Internals,
+}
+
+/// Base fields holding a plain, single-owner dict container.
+///
+/// Each one is a dict or `Null` for the whole life of the exchange and the
+/// runtime never tags it (`__cacheKind` / `__book_id` / `__ws_subs_url` /
+/// `__live_id`), so reading and writing them is the stdlib map op and nothing
+/// else. `build/hx10w4-BF03.ts` emits those ops natively for the generated
+/// tiers; the test below holds the invariant they are proven from.
+pub const PLAIN_DICT_FIELDS: [&str; 3] = ["options", "markets", "balance"];
+
+/// The container invariant above, checked against the real constructor and
+/// against the runtime's own write-through helper.
+#[cfg(test)]
+mod plain_dict_container_proof {
+    use super::*;
+
+    fn slot<'a>(ex: &'a mut Exchange, name: &str) -> &'a mut Value {
+        match name {
+            "options" => &mut ex.options,
+            "markets" => &mut ex.markets,
+            "balance" => &mut ex.balance,
+            other => panic!("not a plain-dict field: {other}"),
+        }
+    }
+
+    #[test]
+    fn fields_hold_a_dict_or_null() {
+        let mut ex = Exchange::new(None);
+        for name in PLAIN_DICT_FIELDS {
+            let v = slot(&mut ex, name).clone();
+            assert!(v.as_map().is_some() || v.is_null(), "{name} is neither a dict nor null");
+        }
+    }
+
+    #[test]
+    fn literal_key_entry_matches_get_value_mut() {
+        // `if let Value::Dict(bind) = get_value_mut(&mut f, &Value::Str("k"..))`
+        // against the emitted `entry("k").or_insert(Null)` and the same head test.
+        let seeds: [Option<Value>; 3] = [None, Some(Value::Int(7)), Some(Value::Map(HashMap::new()))];
+        for start in [Value::Null, Value::Map(HashMap::new())] {
+            for seed in &seeds {
+                let mut base = start.clone();
+                if let (Some(v), Value::Dict(m)) = (seed.clone(), &mut base) {
+                    std::sync::Arc::make_mut(m).insert("k".to_string(), v);
+                }
+
+                let mut helper = base.clone();
+                let from_helper = crate::runtime::get_value_mut(&mut helper, &Value::Str("k".into())).clone();
+                // What the emitted `if let Value::Dict(bind)` lets the body see.
+                let seen_helper = if from_helper.as_map().is_some() { from_helper } else { Value::Null };
+
+                let mut native = base;
+                let mut seen_native = Value::Null;
+                if let Value::Dict(m) = &mut native {
+                    let entry = std::sync::Arc::make_mut(m).entry("k".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(inner) = entry {
+                        seen_native = Value::Dict(inner.clone());
+                    }
+                }
+
+                assert_eq!(seen_helper, seen_native, "head binding diverged (seed {seed:?})");
+                assert_eq!(helper, native, "slot state diverged (seed {seed:?})");
+            }
+        }
+    }
 }
 
 impl Default for Exchange {
