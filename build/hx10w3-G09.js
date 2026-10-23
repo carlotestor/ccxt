@@ -135,6 +135,10 @@ function g09w3NilCompares (content) {
         }
         let line = lines[k].replace (new RegExp ('(\\()?!\\s*(?:ccxt\\.)?IsEqual\\(this\\.(' + G09W3_FIELD_RX + '), nil\\)', 'g'), (all, paren, field) => ((paren ? '(' : '') + 'this.' + field + ' != nil'));
         line = line.replace (new RegExp ('(?:ccxt\\.)?IsEqual\\(this\\.(' + G09W3_FIELD_RX + '), nil\\)', 'g'), (all, field) => ('this.' + field + ' == nil'));
+        // a source `!x && !x` names the same nil test twice, which the vet checklist rejects
+        const dupNil = new RegExp ('\\(?this\\.(' + G09W3_FIELD_RX + ') != nil\\)? && \\(?this\\.\\1 != nil\\)?', 'g');
+        line = line.replace (dupNil, (all, field) => ('this.' + field + ' != nil'));
+        line = line.replace (dupNil, (all, field) => ('this.' + field + ' != nil'));
         return line;
     });
 }
@@ -244,11 +248,13 @@ function g09w3Body (body) {
 export function g09w3Check (formatGoSource) {
     const problems = [];
     const ok = (condition, message) => { if (!condition) { problems.push ('hx10w3-G09: ' + message); } };
-    const base = G09W3_HEAD + 'func (this *PredictionExchange) SetEvents(events any) map[string]any {\n\tvar event any = GetValue(events, 0)\n\tvar id *string = this.SafeString(event, "id")\n\tif id != nil {\n\t\tAddElementToObject(this.Events, id, event)\n\t}\n\tif IsEqual(this.Events, nil) {\n\t\tthis.Events = map[string]any{}\n\t}\n\tvar keys []string = ObjectKeys(this.Events)\n\tfor i := 0; i < len(keys); i++ {\n\t\tvar one any = GetValue(this.Events, keys[i])\n\t\t_ = one\n\t}\n\treturn nil\n}\n';
+    const base = G09W3_HEAD + 'func (this *PredictionExchange) SetEvents(events any) map[string]any {\n\tvar event any = GetValue(events, 0)\n\tvar id *string = this.SafeString(event, "id")\n\tif id != nil {\n\t\tAddElementToObject(this.Events, id, event)\n\t}\n\tif IsEqual(this.Events, nil) {\n\t\tthis.Events = map[string]any{}\n\t}\n\tif !(reload == true) && (!IsEqual(this.Events, nil) && !IsEqual(this.Events, nil)) {\n\t}\n\tvar keys []string = ObjectKeys(this.Events)\n\tfor i := 0; i < len(keys); i++ {\n\t\tvar one any = GetValue(this.Events, keys[i])\n\t\t_ = one\n\t}\n\treturn nil\n}\n';
     const emitted = formatGoSource ('selftest.go', base);
     ok (emitted.includes ('this.Events[*id] = event'), 'guarded pointer-key write goes native');
     ok (!emitted.includes ('AddElementToObject(this.Events'), 'no AddElementToObject left on the field');
     ok (emitted.includes ('if this.Events == nil {'), 'nil compare goes native');
+    ok (!emitted.includes ('Events != nil && this.Events != nil'), 'duplicate nil test collapses');
+    ok (emitted.includes ('if !(reload == true) && this.Events != nil {'), 'duplicate nil test keeps one arm');
     ok (emitted.includes ('var one any = this.Events[keys[i]]'), 'string-key read goes native');
     ok (emitted.includes ('keys = append(keys, objectKey)'), 'ObjectKeys goes native');
     ok (!emitted.includes ('ObjectKeys(this.Events)'), 'no ObjectKeys left on the field');
