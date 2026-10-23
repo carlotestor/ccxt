@@ -999,7 +999,7 @@ public partial class derive : ccxt.derive
         }
         // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         string subaccountIdKey = this.numberToString(subaccountId);
-        if (!(inOp(this.positions, subaccountIdKey)))
+        if (!((((IDictionary<string,object>)this.positions) != null && subaccountIdKey != null && ((IDictionary<string,object>)this.positions).ContainsKey(subaccountIdKey))))
         {
             ((IDictionary<string,object>)this.positions)[subaccountIdKey] = new ArrayCacheBySymbolBySide();
         }
@@ -1011,7 +1011,7 @@ public partial class derive : ccxt.derive
             };
             Dictionary<string, object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
             List<object> positionsSnapshot = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, snapshotParams));
-            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, subaccountIdKey));
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && subaccountIdKey != null && ((IDictionary<string,object>)this.positions).ContainsKey(subaccountIdKey) ? ((IDictionary<string,object>)this.positions)[subaccountIdKey] : null));
             for (int i = 0; i < (positionsSnapshot?.Count ?? 0); i++)
             {
                 cache.append(positionsSnapshot[i]);
@@ -1037,7 +1037,7 @@ public partial class derive : ccxt.derive
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(getValue(this.positions, subaccountIdKey), symbolsResolved, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit((((IDictionary<string,object>)this.positions) != null && subaccountIdKey != null && ((IDictionary<string,object>)this.positions).ContainsKey(subaccountIdKey) ? ((IDictionary<string,object>)this.positions)[subaccountIdKey] : null), symbolsResolved, since, limit, true));
     }
 
     public virtual object handlePositionDelta(object subaccountIdKey, object entry)
@@ -1049,7 +1049,7 @@ public partial class derive : ccxt.derive
         bool isShort = Precise.stringLt(newSize, "0");
         string side = isShort ? "short" : "long";
         string? contracts = Precise.stringAbs(newSize);
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, subaccountIdKey));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && subaccountIdKey != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)subaccountIdKey) ? ((IDictionary<string,object>)this.positions)[(string)subaccountIdKey] : null));
         IDictionary<string, object> symbolPositions = this.safeDict((cache as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         // a fill through zero flattens the opposite side first
         string oppositeSide = isShort ? "long" : "short";
@@ -1122,7 +1122,7 @@ public partial class derive : ccxt.derive
             if ((name?.IndexOf("-", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if (((this.positions != null)) && (inOp(this.positions, subaccountIdKey)))
+                if (((this.positions != null)) && ((((IDictionary<string,object>)this.positions) != null && subaccountIdKey != null && ((IDictionary<string,object>)this.positions).ContainsKey(subaccountIdKey))))
                 {
                     object position = this.handlePositionDelta(subaccountIdKey, entry);
                     positionUpdates.Add(position);
