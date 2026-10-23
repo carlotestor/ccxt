@@ -83,7 +83,7 @@ public partial class BaseExchange
     public Dictionary<string, object> timeframes { get; set; } = null;
     public double rateLimit { get; set; } = 2000;
     public IDictionary<string, object> exceptions { get; set; } = new dict();
-    public object urls { get; set; } = new dict();
+    public IDictionary<string, object> urls { get; set; } = new dict();
     public Dictionary<string, object> precision { get; set; } = null;
 
     public string apiKey { get; set; }
@@ -143,7 +143,7 @@ public partial class BaseExchange
 
     public object name { get; set; }
 
-    public object headers { get; set; } = new dict();
+    public IDictionary<string, object> headers { get; set; } = new dict();
     public bool returnResponseHeaders { get; set; } = false;
 
     public Dictionary<string, object> httpExceptions { get; set; } = new dict();

@@ -14172,6 +14172,8 @@ const CSHARP_DICT_WRITE_MEMBER_TYPES = {
     'bidsasks': 'IDictionary<string, object>',              // ws cache, cs/ccxt/base/Exchange.Options.cs
     'trades': 'IDictionary<string, object>',                // ws cache, cs/ccxt/base/Exchange.Options.cs
     'ohlcvs': 'IDictionary<string, object>',                // ws cache, cs/ccxt/base/Exchange.Options.cs
+    'urls': 'IDictionary<string, object>',                // hx10w3 C04, cs/ccxt/base/Exchange.Options.cs
+    'headers': 'IDictionary<string, object>',             // hx10w3 C04, cs/ccxt/base/Exchange.Options.cs
 };
 const CSHARP_DICT_WRITE_LOCAL_TYPES = [
     'ccxt.pro.IOrderBook', 'ccxt.pro.OrderBook', 'ccxt.pro.IndexedOrderBook', 'ccxt.pro.CountedOrderBook',
