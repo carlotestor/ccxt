@@ -626,10 +626,10 @@ export default class lighter extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: string): string {
+    signL1AndPrepareTxInfo (txInfo: string, message: string, privateKey: string): string {
         const hashMessage = this.hashMessage (message);
         const signature = this.signHash (hashMessage, privateKey);
-        const decTxInfo = this.parseJson (txInfo);
+        const decTxInfo: Dict = this.parseJson (txInfo);
         decTxInfo['L1Sig'] = signature;
         return this.json (decTxInfo);
     }
@@ -756,7 +756,7 @@ export default class lighter extends Exchange {
         this.options['chainId'] = enable ? 300 : 304;
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): any[] {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict[] {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -778,7 +778,7 @@ export default class lighter extends Exchange {
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
@@ -881,11 +881,12 @@ export default class lighter extends Exchange {
             request['integrator_taker_fee'] = this.options['integratorTakerFee'];
             request['integrator_maker_fee'] = this.options['integratorMakerFee'];
         }
-        const orders: List = [];
-        orders.push (this.extend (request, paramsRequest));
+        const orders: Dict[] = [];
+        const firstOrder: Dict = this.extend (request, paramsRequest);
+        orders.push (firstOrder);
         if (hasStopLoss || hasTakeProfit) {
             // group order
-            orders[0]['client_order_index'] = 0; // client order index should be 0
+            firstOrder['client_order_index'] = 0; // client order index should be 0
             let triggerOrderSide = '';
             if (orderSide === 'BUY') {
                 triggerOrderSide = 'sell';
