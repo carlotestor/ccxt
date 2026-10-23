@@ -19,6 +19,8 @@ import { hxC08NativeRuntimeStateReads, hxC08RuntimeStateSnippetChecks } from './
 import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { c01NativeDictReads, c01SnippetChecks, c01ChainChecks } from './hx10w2-C01.js'
 import { hx10w3C01ArrayParams, hx10w3C01SnippetChecks, hx10w3C01ChainChecks } from './hx10w3-C01.js'
+import { hx10w3C03WsStateReads, hx10w3C03SnippetChecks, hx10w3C03ChainChecks } from './hx10w3-C03.js' // hx10 wave3 C03: ws client futures/subscriptions reads
+import { hx10w3C02CandidateReads, w3checks } from './hx10w3-C02.js'
 import { hx10W2C04NativeHelperCalls, hx10W2C04SelfTest } from './hx10w2-C04.js'
 import { c06_apply, hx10C06SnippetChecks } from './hx10w2-C06.js'
 import { c06w3ParseJson, c06w3Checks } from './hx10w3-C06.js' // hx10w3 C06: parseJson on a string-declared call
