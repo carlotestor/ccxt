@@ -33,6 +33,22 @@ const HX10G06_TUPLE_MAP_SLOTS = {
 
 const HX10G06_JOIN_TYPE = 'map[string]any';
 
+// a value overload only prints its typed pair when the default is a literal; a variable default
+// selects the *Nullable twin (a []any holder, where the map slot needs MapTyped)
+const HX10G06_TUPLE_DEFAULT_SLOT = {
+    'handleOptionBoolAndParams': 3, 'handleOptionBoolAndParams2': 4,
+    'handleOptionIntegerAndParams': 3, 'handleOptionIntegerAndParams2': 4,
+};
+
+function hx10G06DefaultIsValue (arg) {
+    if ((arg?.kind === ts.SyntaxKind.TrueKeyword) || (arg?.kind === ts.SyntaxKind.FalseKeyword)) {
+        return true;
+    }
+    const literal = ((arg?.kind === ts.SyntaxKind.PrefixUnaryExpression) && (arg.operator === ts.SyntaxKind.MinusToken))
+        ? arg.operand : arg;
+    return (literal?.kind === ts.SyntaxKind.NumericLiteral) && /^\d+$/.test (literal.text ?? '');
+}
+
 // a local literally named after a Go type cannot be declared with a type
 const HX10G06_GUARD_NAMES = [ 'string', 'int', 'int64', 'float64', 'bool', 'any', 'byte' ];
 
@@ -104,7 +120,15 @@ function hx10G06TupleWriteType (expression, name) {
         return undefined;
     }
     // the call must be whole on the right-hand side: `[a, x] = this.handleX (..) ?? y` is not a tuple
-    return (expression.right?.kind === ts.SyntaxKind.CallExpression) ? HX10G06_JOIN_TYPE : undefined;
+    if (expression.right?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    // a non-literal default selects the *Nullable twin, whose pair prints as a []any holder
+    const defaultSlot = HX10G06_TUPLE_DEFAULT_SLOT[callee];
+    if ((defaultSlot !== undefined) && !hx10G06DefaultIsValue (expression.right.arguments[defaultSlot])) {
+        return undefined;
+    }
+    return HX10G06_JOIN_TYPE;
 }
 
 // `x = holder[i]` where the holder is a local the printer already declared `[]map[string]any`
@@ -500,7 +524,9 @@ function hx10G06ClassifyUse (node, assigned, readExpression, joinWrite, fail, sc
             && ((above.operatorToken.kind === ts.SyntaxKind.EqualsToken)
                 || ((above.operatorToken.kind >= ts.SyntaxKind.FirstCompoundAssignment)
                     && (above.operatorToken.kind <= ts.SyntaxKind.LastCompoundAssignment)))) {
-            fail ();                                          // AddElementToObject panics on the nil map
+            if (!assigned) {
+                fail ();                                      // the element write needs the map the earlier write built
+            }
             return;
         }
     }
@@ -637,6 +663,8 @@ export function hx10G06Check () {
     joins (method ('let bag = undefined;\n        let count = 0;\n        [ count, bag ] = this.handleOptionIntegerAndParams (a, b, c, 0);\n        return bag;'), 'bag map[string]any');
     // the same slot written twice joins on one type
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        [ c, bag ] = this.handleUntilOption (a, c);\n        return bag;'), 'bag map[string]any');
+    // a variable default selects the *Nullable twin: its holder costs a MapTyped, so it stays `any`
+    joins (method ('let bag = undefined;\n        let flag = false;\n        [ flag, bag ] = this.handleOptionBoolAndParams (a, b, c, a);\n        return bag;'), '');
     // a producer whose pair cannot be absorbed (a *string element) stays `any`
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleMarginModeAndParams (a, b);\n        return bag;'), '');
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handlePostOnly (a, b);\n        return bag;'), '');
@@ -653,7 +681,8 @@ export function hx10G06Check () {
     // element reads before the write are only admitted through a nil-safe callee
     joins (method ('let bag = undefined;\n        const v = bag["x"];\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return v;'), 'bag map[string]any');
     // element writes, push, spread and closures keep the box
-    joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        bag["x"] = 1;\n        return bag;'), '');
+    joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        bag["x"] = 1;\n        return bag;'), 'bag map[string]any');
+    joins (method ('let bag = undefined;\n        bag["x"] = 1;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        return bag;'), '');
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        bag.push (1);\n        return bag;'), '');
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        const f = () => bag;\n        return f ();'), '');
     joins (method ('let bag = undefined;\n        [ a, bag ] = this.handleUntilOption (a, b);\n        [ ...bag ] = c;\n        return bag;'), '');
