@@ -223,6 +223,21 @@ function g09w3KeysRange (content) {
     return out.join ('\n');
 }
 
+// MapTyped(this.<F>) -> this.<F>: MapTyped is the identity on a map (a nil map included), and the
+// field is declared map[string]any, so its conversion arms cannot be reached
+function g09w3MapTyped (content) {
+    const call = new RegExp ('(?<![\\w.])(?:ccxt\\.)?MapTyped\\(this\\.(' + G09W3_FIELD_RX + ')\\)', 'g');
+    if (!call.test (content)) {
+        return content;
+    }
+    return g09w3ForEach (content, (k, lines, masked) => {
+        if (masked[k].indexOf ('MapTyped(') < 0) {
+            return lines[k];
+        }
+        return lines[k].replace (call, (all, field) => ('this.' + field));
+    });
+}
+
 export function g09w3Pass (content) {
     if (!/PredictionExchange/.test (content)) {
         return content;
@@ -230,6 +245,7 @@ export function g09w3Pass (content) {
     content = g09w3NilCompares (content);
     content = g09w3Writes (content);
     content = g09w3Reads (content);
+    content = g09w3MapTyped (content);
     return g09w3KeysRange (content);
 }
 
@@ -269,5 +285,9 @@ export function g09w3Check (formatGoSource) {
     ok (raw ('\tvar event any = GetValue(events, 0)\n\t_ = IsEqual(this.Events, event)\n').includes ('IsEqual(this.Events, event)'), 'value compare keeps IsEqual');
     ok (g09w3Pass ('func (this *X) f() {\n\tif IsEqual(this.Events, nil) {\n\t}\n}\n').includes ('IsEqual(this.Events, nil)'), 'non-prediction file untouched');
     ok (raw ('\tvar one any = GetValue(this.Events, "a")\n\t_ = one\n').includes ('var one any = this.Events["a"]'), 'literal key read goes native');
+    ok (raw ('\t_ = PredictionOutcomeMapFromMap(MapTyped(this.Outcomes))\n').includes ('PredictionOutcomeMapFromMap(this.Outcomes)'), 'MapTyped on the field is the identity');
+    ok (raw ('\t_ = ccxt.MapTyped(this.Events)\n').includes ('_ = this.Events'), 'ccxt.MapTyped drops too');
+    ok (raw ('\t_ = MapTyped(this.Outcomes2)\n').includes ('MapTyped(this.Outcomes2)'), 'other field keeps MapTyped');
+    ok (raw ('\t_ = SafeMapTyped(this.Outcomes, "a")\n').includes ('SafeMapTyped(this.Outcomes, "a")'), 'keyed SafeMapTyped kept');
     return problems;
 }
