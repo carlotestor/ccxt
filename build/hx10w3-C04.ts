@@ -273,8 +273,20 @@ export function c04FieldNativeReads (content: string): string {
     return changed ? out.join ('\n') : content
 }
 
+// `((IDictionary<string,object>)this.urls)` on a member that now IS that interface: an identity
+// cast, so the same member does the work (the printer's core read form spells it out)
+export function c04DropFieldCasts (content: string): string {
+    let out = content
+    for (const field of C04_TYPED_FIELDS) {
+        for (const spelling of [ '((IDictionary<string, object>)this.', '((IDictionary<string,object>)this.' ]) {
+            out = out.split (spelling + field + ')').join ('this.' + field)
+        }
+    }
+    return out
+}
+
 export function c04Apply (content: string): string {
-    return c04FieldNativeReads (c04OmitDictLocals (content))
+    return c04DropFieldCasts (c04FieldNativeReads (c04OmitDictLocals (content)))
 }
 
 // snippet checks (run from `csharpTranspiler.ts --self-test`)
@@ -293,6 +305,12 @@ export function c04SnippetChecks (): string[] {
     check ('inOp on a retyped member tests ContainsKey',
         body ('if (inOp(this.headers, "x-simulated-trading")) { }'),
         '(this.headers != null && this.headers.ContainsKey("x-simulated-trading"))', 'inOp(')
+    check ('the cast on a retyped member is an identity',
+        body ('object a = ((IDictionary<string, object>)this.urls)["api"];'),
+        'object a = this.urls["api"];', 'IDictionary')
+    check ('the cast on an object member stays',
+        body ('object a = ((IDictionary<string,object>)this.currencies)["BTC"];'),
+        '((IDictionary<string,object>)this.currencies)["BTC"]')
     check ('getValue on an object member with dictionary-only writes casts once',
         body ('object a = getValue(this.positions, type);', positions).replace ('(object value)', '(object value, object type)'),
         '(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)type) ? ((IDictionary<string,object>)this.positions)[(string)type] : null)')
