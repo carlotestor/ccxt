@@ -84,6 +84,30 @@ public partial class BaseExchange
     public double rateLimit { get; set; } = 2000;
     public IDictionary<string, object> exceptions { get; set; } = new dict();
     public IDictionary<string, object> urls { get; set; } = new dict();
+
+    // urls['api'] is a Dict in the TS base declaration (`urls: { api: Dict }`), and every write of
+    // it stores a section dictionary, so this view is the dictionary itself.
+    public IDictionary<string, object> urlsApi
+    {
+        get
+        {
+            var sections = this.urls;
+            if (sections == null || !sections.ContainsKey("api"))
+            {
+                return null;
+            }
+            return sections["api"] as IDictionary<string, object>;
+        }
+    }
+    // currencies stays `object` (cs/tests/Generated/TestMethods.cs assigns a boxed local into it),
+    // but every writer stores a string-keyed dictionary: this view is that dictionary.
+    public IDictionary<string, object> currenciesDict
+    {
+        get
+        {
+            return this.currencies as IDictionary<string, object>;
+        }
+    }
     public Dictionary<string, object> precision { get; set; } = null;
 
     public string apiKey { get; set; }
