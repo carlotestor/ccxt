@@ -24,7 +24,7 @@ import os from 'os';
 import path from 'path';
 import { ts } from './csharp-local-types.js';
 
-const G08_WHITELIST = new Set ([ 'string', 'bool', 'map[string]any', '[]any' ]);
+const G08_WHITELIST = new Set ([ 'string', 'bool', 'map[string]any', '[]any', '*string' ]);
 
 function g08UsesNullish (go: any, body: any, param: any): boolean {
     const SK = ts.SyntaxKind;
@@ -49,6 +49,15 @@ function g08UsesNullish (go: any, body: any, param: any): boolean {
 function g08HasDynamicCall (fn: any, name: string): boolean {
     const text = fn.getSourceFile ().getFullText ();
     return new RegExp ('\\[\\s*[\'"]' + name + '[\'"]\\s*\\]\\s*\\(').test (text);
+}
+
+// `x as Trade[]` / `x!` print as bare `x` in Go: the assertion adds no conversion, so the argument's
+// Go type is the inner expression's. Undecided inner types stay undecided (the call site proves nothing).
+function g08UnwrapAssertion (arg: any, SK: any): any {
+    const wrappers = [ SK.AsExpression, SK.TypeAssertionExpression, SK.NonNullExpression, SK.ParenthesizedExpression, SK.SatisfiesExpression ].filter ((k: any) => typeof k === 'number');
+    let node = arg;
+    while ((node !== undefined) && wrappers.includes (node.kind)) { node = node.expression; }
+    return (node === undefined) ? arg : node;
 }
 
 function g08Derived (go: any, param: any): string | undefined {
@@ -77,7 +86,7 @@ function g08Derived (go: any, param: any): string | undefined {
     for (const site of sites) {
         const arg = site.arguments?.[index];
         if ((arg === undefined) || (arg.kind === SK.SpreadElement)) { return undefined; }
-        const printed = go.goPrintedArgType (arg);
+        const printed = go.goPrintedArgType (g08UnwrapAssertion (arg, SK));
         if ((printed === undefined) || !G08_WHITELIST.has (printed)) { return undefined; }
         types.add (printed);
         if (types.size > 1) { return undefined; }
@@ -119,7 +128,23 @@ export function installCcxtGoParamTypes (goTranspiler: any) {
     };
     (native as any)[flag] = true;
     goTranspiler.goNativeParameterType = native;
+    installGoAssertionArgs (goTranspiler, flag);
     return native;
+}
+
+// `(x as Trade[])` / `(x!)` print as bare `x`, so the Go type of such an argument is the inner
+// expression's type. goPrintedArgType feeds both the call-site proof
+// (goParameterCallSitesPassType) and the unified-string StringArg wrap, so seeing through a no-op
+// assertion lets a declared Dict/List/string parameter type at a site the box otherwise hid.
+function installGoAssertionArgs (goTranspiler: any, flag: string) {
+    const original = goTranspiler.goPrintedArgType;
+    if (original?.[flag] === true) { return; }
+    const SK = ts.SyntaxKind;
+    const inner = function (this: any, arg: any) {
+        return original.call (this, g08UnwrapAssertion (arg, SK));
+    };
+    (inner as any)[flag] = true;
+    goTranspiler.goPrintedArgType = inner;
 }
 
 // ---- self-test: the derivation and its four keep-as-`any` gates -------------------------------
@@ -127,13 +152,14 @@ export function installCcxtGoParamTypes (goTranspiler: any) {
 // its members, so `goMethodKeepsBaseSignature` has something to answer true for.
 const G08_TEST_BASE = `export type Dict = { [key: string]: any };
 export type Str = string | undefined;
+export type List = any[];
 export class Exchange {
     safeString (o: any, k: any, d: any = undefined): any { return d; }
     extend (...args: any[]): any { return args[0]; }
     baseHelper (id: string) { return id; }
 }
 `;
-const G08_TEST_EXCHANGE = `import { Exchange, Dict, Str } from './base/Exchange';
+const G08_TEST_EXCHANGE = `import { Exchange, Dict, List, Str } from './base/Exchange';
 export class ex extends Exchange {
     byString (id, options) {
         if (id === 'ETH') { return options['chain']; }
@@ -143,6 +169,8 @@ export class ex extends Exchange {
     mixedTypes (id) { this.mixedTypes ('a'); return this.mixedTypes (1); }
     nilCompare (options) { if (options === undefined) { return 0; } return 1; }
     declaredDict (config: Dict) { return config['a']; }
+    assertedList (entries) { return entries.length; }
+    declaredList (entries: List) { return entries.length; }
     dynamic (id) { return id; }
     baseHelper (id) { return id; }
     run (opts) {
@@ -151,6 +179,9 @@ export class ex extends Exchange {
         this.mixedTypes ('a');
         this.nilCompare (undefined);
         this['dynamic'] ('x');
+        const rows: List = [];
+        this.assertedList (rows as List);
+        this.declaredList (rows as List);
         return this.baseHelper ('x');
     }
 }
@@ -184,6 +215,10 @@ export function g08w3Check (): string[] {
         ok (body (hooked, 'BaseHelper').indexOf ('(id any)') >= 0, 'a base-member override keeps the base signature');
         ok (body (hooked, 'DeclaredDict').indexOf ('(config any)') >= 0, 'a declared type stays the printer\'s own decision: ' + body (hooked, 'DeclaredDict'));
         ok (body (hooked, 'Dynamic').indexOf ('(id any)') >= 0, 'a dynamically named call site keeps the box: ' + body (hooked, 'Dynamic'));
+        ok (body (base, 'AssertedList').indexOf ('(entries any)') >= 0, 'the base prints an as-asserted call site parameter as any');
+        ok (body (hooked, 'AssertedList').indexOf ('(entries []any)') >= 0, 'an as-asserted argument proves its inner type: ' + body (hooked, 'AssertedList'));
+        ok (body (hooked, 'AssertedList').indexOf ('len(entries)') >= 0, 'the length reads natively on the typed parameter');
+        ok (body (hooked, 'DeclaredList').indexOf ('(entries []any)') >= 0, 'the printer types a declared List through an as-asserted site: ' + body (hooked, 'DeclaredList'));
         ok (body (base, 'ByString') !== body (hooked, 'ByString'), 'the rule changes the base generator output');
     } catch (e: any) {
         problems.push ('hx10 G08w3 threw: ' + e.message);
