@@ -3340,7 +3340,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    storeByKey (dict: any, key: NullableIndexType, value: any) {
+    storeByKey (dict: Dict, key: NullableIndexType, value: any) {
         /**
          * @ignore
          * @method
@@ -3372,7 +3372,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' handleBookDelta not supported yet');
     }
 
-    handleDeltasWithKeys (bookSide: any, deltas: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    handleDeltasWithKeys (bookSide: any, deltas: any[], priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         for (let i = 0; i < deltas.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray (bidAsk);
@@ -3535,7 +3535,7 @@ export class BaseExchange {
         return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
-    checkConflictingProxies (proxyAgentSet: any, proxyUrlSet: any) {
+    checkConflictingProxies (proxyAgentSet: Str, proxyUrlSet: Str) {
         const proxyAgentIsSet = (proxyAgentSet !== undefined) && (proxyAgentSet !== null) && (proxyAgentSet !== '');
         const proxyUrlIsSet = (proxyUrlSet !== undefined) && (proxyUrlSet !== null) && (proxyUrlSet !== '');
         if (proxyAgentIsSet && proxyUrlIsSet) {
@@ -3589,7 +3589,7 @@ export class BaseExchange {
                     }
                 }
                 if (fromStart) {
-                    const limitResolved = (limit > arrayLength) ? arrayLength : limit;
+                    const limitResolved: Int = (limit > arrayLength) ? arrayLength : limit;
                     if (ascending) {
                         return this.arraySlice (array, 0, limitResolved);
                     }
@@ -3609,7 +3609,7 @@ export class BaseExchange {
             return [];
         }
         const sinceIsDefined = this.valueIsDefined (since);
-        const parsedArray = this.toArray (array) as any;
+        const parsedArray: any[] = this.toArray (array);
         let result = parsedArray;
         if (sinceIsDefined) {
             result = [ ];
@@ -3633,7 +3633,7 @@ export class BaseExchange {
     filterByValueSinceLimit (array: object[], field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any[] {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = this.valueIsDefined (since);
-        const parsedArray = this.toArray (array) as any;
+        const parsedArray: any[] = this.toArray (array);
         let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
