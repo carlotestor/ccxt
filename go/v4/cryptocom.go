@@ -4828,7 +4828,7 @@ func (this *Cryptocom) ParseTradingFees(response map[string]any) map[string]any 
 	}
 	return result
 }
-func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Cryptocom) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	// {
 	//      "instrument_name": "BTC_USD",

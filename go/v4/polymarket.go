@@ -1743,7 +1743,7 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dict with the signable row and the body entry
  */
-func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar *string, side *string, amount *string, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1754,7 +1754,7 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 		panic(NotSupported(this.Id + " createOrder() does not support trigger or attached stop orders yet"))
 	}
 	var symbol *string = this.SafeSymbol(nil, market)
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var isPostOnlyTimeInForce bool = (timeInForce != nil && *timeInForce == "PO")
 	var postOnly any = false
@@ -1782,7 +1782,7 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 	var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "c")
 	paramsOmitted = this.Omit(paramsOmitted, []any{"timeInForce", "reduceOnly", "clientOrderId"})
 	var instrumentId int64 = this.ParseToInt(market["id"])
-	var isBuy bool = (IsEqual(side, "buy"))
+	var isBuy bool = (side != nil && *side == "buy")
 	var quantity *string = this.AmountToPrecision(symbol, amount)
 	var priceString *string = nil
 	if price != nil {

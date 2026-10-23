@@ -521,7 +521,7 @@ func (this *Bitrue) HandleOrderBook(client any, message any) {
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
+func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote *string) any {
 	var markets any = this.Markets
 	if ccxt.IsEqual(markets, nil) {
 		return nil
@@ -537,7 +537,7 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 		if (baseId == nil) || (quoteId == nil) {
 			panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id+" findSwapMarketByWsBaseQuote() market ", symbols[i]), " has no baseId or quoteId")))
 		}
-		if *baseId+*quoteId == wsBaseQuote {
+		if ccxt.IsEqual(*baseId+*quoteId, wsBaseQuote) {
 			return candidate
 		}
 	}
