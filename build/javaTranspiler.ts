@@ -7143,8 +7143,11 @@ function j12ParamTypesSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/.test(out)) problems.push('j12: zzjA must print String/Boolean/List<Object> params');
         if (!/this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/.test(out)) problems.push('j12: zzjA call must pass the String local bare and checkcast the List');
+        // hx10 w4 PJ01: a plain `string` annotation prints String on a generated venue method whether the
+        // parameter is written, `+`-left or handed an unproven caller, because writes are cast and the
+        // caller carries the checkcast
         for (const name of [ 'zzjB', 'zzjC', 'zzjD', 'zzjE' ]) {
-            if (!new RegExp(`${name}\\(Object code\\)`).test(out)) problems.push(`j12: ${name} must keep Object code`);
+            if (!new RegExp(`${name}\\(String code\\)`).test(out)) problems.push(`j12: ${name} must print String code`);
         }
     } catch (e: any) {
         problems.push(`j12 self-test threw: ${e.message}`);
@@ -10341,7 +10344,9 @@ function x21SelfTest (): string[] {
         if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("x21: 'b' (parsePrecision) must print String");
         if (!/Map<String, Object> d = /.test(out)) problems.push("x21: 'd' (venue omit-of-Map-param callee) must print Map");
         if (!/Map<String, Object> e = /.test(out)) problems.push("x21: 'e' (venue omit-of-handle-element-1 callee) must print Map");
-        for (const name of [ 'c', 'f' ]) {
+        // hx10 w4 PJ03 types a venue method's proven Dict return, so a local off zzxLoose is a Map too
+        if (!/Map<String, Object> f = /.test(out)) problems.push("x21: 'f' (venue Dict-returning callee) must print Map");
+        for (const name of [ 'c' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`x21: '${name}' has an unproven write/producer and must stay Object`);
         }
         if (problems.length) problems.push('x21 output:\n' + out);
