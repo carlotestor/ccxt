@@ -982,12 +982,12 @@ public partial class BaseExchange
             {
                 if (((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null) is string))
                 {
-                    ((IDictionary<string,object>)this.urls)["apiBackup"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
-                    ((IDictionary<string,object>)this.urls)["api"] = ((IDictionary<string,object>)this.urls)["test"];
+                    this.urls["apiBackup"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+                    this.urls["api"] = this.urls["test"];
                 } else
                 {
-                    ((IDictionary<string,object>)this.urls)["apiBackup"] = this.clone((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null));
-                    ((IDictionary<string,object>)this.urls)["api"] = this.clone(((IDictionary<string,object>)this.urls)["test"]);
+                    this.urls["apiBackup"] = this.clone((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null));
+                    this.urls["api"] = this.clone(this.urls["test"]);
                 }
             } else
             {
@@ -999,12 +999,12 @@ public partial class BaseExchange
         {
             if (((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null) is string))
             {
-                ((IDictionary<string,object>)this.urls)["api"] = ((object)((IDictionary<string,object>)this.urls)["apiBackup"]);
+                this.urls["api"] = ((object)this.urls["apiBackup"]);
             } else
             {
-                ((IDictionary<string,object>)this.urls)["api"] = this.clone(((IDictionary<string,object>)this.urls)["apiBackup"]);
+                this.urls["api"] = this.clone(this.urls["apiBackup"]);
             }
-            object newUrls = this.omit(this.urls, "apiBackup");
+            Dictionary<string, object> newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
             // set flag
             this.isSandboxModeEnabled = false;
@@ -1025,12 +1025,12 @@ public partial class BaseExchange
         }
         if (enable)
         {
-            ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
-            ((IDictionary<string,object>)this.urls)["api"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("demo") ? ((IDictionary<string, object>)this.urls)["demo"] : null);
+            this.urls["apiBackupDemoTrading"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+            this.urls["api"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("demo") ? ((IDictionary<string, object>)this.urls)["demo"] : null);
         } else if (((IDictionary<string, object>)this.urls).ContainsKey("apiBackupDemoTrading"))
         {
-            ((IDictionary<string,object>)this.urls)["api"] = ((object)((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"]);
-            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            this.urls["api"] = ((object)this.urls["apiBackupDemoTrading"]);
+            Dictionary<string, object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         this.options["enableDemoTrading"] = enable;
@@ -6134,7 +6134,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " currencyToPrecision() requires a code argument")) ;
         }
-        object currency = getValue(this.currencies, code);
+        object currency = (((IDictionary<string,object>)this.currencies) != null && code != null && ((IDictionary<string,object>)this.currencies).ContainsKey(code) ? ((IDictionary<string,object>)this.currencies)[code] : null);
         object precision = this.safeValue(currency, "precision");
         if ((networkCode != null))
         {

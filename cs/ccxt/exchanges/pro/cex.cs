@@ -1001,7 +1001,7 @@ public partial class cex : ccxt.cex
 
     public virtual string? currencyFromPrecision(object currency, object amount)
     {
-        Int64? scale = this.safeInteger(getValue(this.currencies, currency), "precision", 0);
+        Int64? scale = this.safeInteger((((IDictionary<string,object>)this.currencies) != null && currency != null && ((IDictionary<string,object>)this.currencies).ContainsKey((string)currency) ? ((IDictionary<string,object>)this.currencies)[(string)currency] : null), "precision", 0);
         return this.fromPrecision(amount, scale);
     }
 

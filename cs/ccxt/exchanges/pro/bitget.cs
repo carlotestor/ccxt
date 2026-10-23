@@ -1722,11 +1722,11 @@ public partial class bitget : ccxt.bitget
             this.positions = new Dictionary<string, object>() {};
         }
         string? action = this.safeString(message, "action");
-        if (!(inOp(this.positions, instType)) || (action == "snapshot"))
+        if (!((((IDictionary<string,object>)this.positions) != null && instType != null && ((IDictionary<string,object>)this.positions).ContainsKey(instType))) || (action == "snapshot"))
         {
             ((IDictionary<string,object>)this.positions)[instType] = new ArrayCacheBySymbolBySide();
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, instType));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && instType != null && ((IDictionary<string,object>)this.positions).ContainsKey(instType) ? ((IDictionary<string,object>)this.positions)[instType] : null));
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < rawPositions.Count; i++)
