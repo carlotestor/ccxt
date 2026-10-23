@@ -205,12 +205,6 @@ public partial class BaseExchange
         return list.Contains(elem);
     }
 
-
-    public bool isArray(object a)
-    {
-        return a is IList<object>;
-    }
-
     public Dictionary<string, object> indexBySafe(object a, object key2)
     {
         return indexBy(a, key2); // this is needed for go

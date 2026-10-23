@@ -19,16 +19,6 @@ import io.github.ccxt.base.JsonHelper;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
 
-    /**
-     * Converts a raw List<Object> into a typed List<T>; used by the committed
-     * TypedSurface / PredictionTypedSurface default methods and by the exchange
-     * dumps the pipeline does not regenerate (java STATIC_RESPONSE/request tiers).
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
-        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
-    }
-
     private static final ObjectMapper mapper = new ObjectMapper();
 
     /** Object literal `{ k1: v1, k2: v2 }` as a mutable map; args alternate key, value. */
@@ -424,15 +414,6 @@ public class Helpers {
         return (first < second) ? a : b;
     }
 
-    public static double mathPow(Object base, Object exp) {
-        if (base instanceof Number && exp instanceof Number) {
-            double baseFloat = ((Number) base).doubleValue();
-            double expFloat = ((Number) exp).doubleValue();
-            return Math.pow(baseFloat, expFloat);
-        }
-        return 0;
-    }
-
     public static Object mathMax(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -647,7 +628,7 @@ private static void coerceArgs(Method m, Object[] args) {
                 else args[i] = Double.parseDouble(s);
             } catch (NumberFormatException ignored) {}
         }
-        // a String slot takes the value's string form (the getArgString conversion)
+        // a String slot takes the value's string form (same as toStringArg)
         if (expected == String.class && !(args[i] instanceof String)) {
             args[i] = toStringArg(args[i]);
         }
@@ -884,25 +865,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     // Slot readers for the generated `Object... optionalArgs` fronts: an omitted slot takes the
     // default, an explicit null stays null, and any Number widens to Long.
 
-    /** the `Long` slot reader: omitted -> def, explicit null -> null, Number -> longValue() */
-    public static Long getArgLong(Object[] v, int index, Long def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        Object value = v[index];
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Long) {
-            return (Long) value;
-        }
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
-        }
-        throw new ClassCastException("ccxt: expected a number for optional argument " + index
-                + ", got " + value.getClass().getName());
-    }
-
     /** a write into a typed `Long` parameter: null stays null, any Number widens to Long */
     public static Long toLongOrNull(Object value) {
         if (value == null) {
@@ -917,12 +879,12 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         throw new ClassCastException("ccxt: expected a number, got " + value.getClass().getName());
     }
 
-    /** a value passed to a typed `String` core parameter: the getArgString conversion */
+    /** a value passed to a typed `String` core parameter */
     public static String toStringArg(Object value) {
         return value == null ? null : (value instanceof String ? (String) value : String.valueOf(value));
     }
 
-    /** a value passed to a typed `Map` core parameter: the getArgMap check */
+    /** a value passed to a typed `Map` core parameter */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> toMapArg(Object value) {
         if (value == null || value instanceof Map) {
@@ -931,53 +893,13 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         throw new ClassCastException("ccxt: expected a dictionary, got " + value.getClass().getName());
     }
 
-    /** a value passed to a typed `List<String>` core parameter: the getArgStringList check */
+    /** a value passed to a typed `List<String>` core parameter */
     @SuppressWarnings("unchecked")
     public static List<String> toStringListArg(Object value) {
         if (value == null || value instanceof List) {
             return (List<String>) value;
         }
         throw new ClassCastException("ccxt: expected a list of strings, got " + value.getClass().getName());
-    }
-
-    /** the `List<String>` slot reader: omitted -> def, explicit null -> null */
-    public static List<String> getArgStringList(Object[] v, int index, List<String> def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        return toStringListArg(v[index]);
-    }
-
-    /** the `String` slot reader: omitted -> def, explicit null -> null, non-String -> its string form */
-    public static String getArgString(Object[] v, int index, String def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        Object value = v[index];
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof String) {
-            return (String) value;
-        }
-        return String.valueOf(value);
-    }
-
-    /** the `Map<String, Object>` slot reader: omitted -> def, explicit null -> null */
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> getArgMap(Object[] v, int index, Map<String, Object> def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        Object value = v[index];
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Map) {
-            return (Map<String, Object>) value;
-        }
-        throw new ClassCastException("ccxt: expected a dictionary for optional argument " + index
-                + ", got " + value.getClass().getName());
     }
 
 

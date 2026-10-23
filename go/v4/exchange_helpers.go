@@ -3192,16 +3192,6 @@ func RecoveredError(r any) error {
 	return NewError("Exception", ToString(r), string(debug.Stack()))
 }
 
-// PanicMessage renders a recovered value into the legacy "panic:<msg>\nStack trace:\n<stack>" string.
-func PanicMessage(r any) string {
-	stack := debug.Stack()
-	strErr := ToString(r)
-	if !strings.HasPrefix(strErr, "panic:") {
-		return fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
-	}
-	return fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
-}
-
 // ReturnPanicError is deferred by async cores: a panic becomes {Err}, "break" sends nothing.
 func ReturnPanicError[T any](ch chan AsyncResult[T]) {
 	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
