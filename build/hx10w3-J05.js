@@ -343,6 +343,12 @@ export function nativeJavaJ05DictChains (content) {
             if (!proof.ok) { continue; }
             const key = j05KeyStep (keyText);
             if (key === undefined) { continue; }
+            // a read that feeds an arithmetic helper keeps the helper: the add/compare inliners key
+            // on the operand's printed shape, so retyping one moves the site into another family
+            const lineStart = out.lastIndexOf ('\n', adjust (site.start)) + 1;
+            const lineEnd = out.indexOf ('\n', adjust (site.end));
+            const line = out.slice (lineStart, lineEnd === -1 ? out.length : lineEnd);
+            if (/hx4J4\d|hx4J38|Helpers\.(?:add|subtract|multiply|divide)\(/.test (line)) { continue; }
             const read = j05ReadText (key, recv.trim (), proof.nullable || chain.guarded === true);
             const start = adjust (site.start);
             const end = adjust (site.end);
