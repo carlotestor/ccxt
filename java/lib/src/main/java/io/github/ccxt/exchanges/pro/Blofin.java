@@ -283,7 +283,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         String symbol = (String) market.get("symbol");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(data, "ts");
@@ -302,7 +302,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         if (!java.util.Objects.equals(channelName, null))
         {
             String messageHash = ((channelName + ":") + symbol);
@@ -390,11 +390,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             Object symbol = ticker.get("symbol");
-            Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+            this.tickers.put(((String)symbol), ticker);
             if (!java.util.Objects.equals(channelName, null))
             {
                 String messageHash = ((channelName + ":") + symbol);
-                client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
+                client.resolve((this.tickers == null || ((String)symbol) == null ? null : this.tickers.get(((String)symbol))), messageHash);
             }
         }
     }
@@ -466,7 +466,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
             Object symbol = ticker.get("symbol");
             String messageHash = ("bidask:" + symbol);
-            Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
+            this.bidsasks.put(((String)symbol), ticker);
             client.resolve(ticker, messageHash);
         }
     }
@@ -575,7 +575,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         String symbol = (String) market.get("symbol");
         String interval = (channelName == null ? null : ((String)channelName).replaceFirst("candle", ""));
         Object unifiedTimeframe = this.findTimeframe(interval, (Object) null);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -881,7 +881,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(first, (Map<String, Object>) null);
         Object symbol = fundingRate.get("symbol");
-        Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
+        this.fundingRates.put(((String)symbol), fundingRate);
         String messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
     }
@@ -936,7 +936,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                         Object tfArray = Helpers.GetValue(symbolsArray, i);
                         Object tf = Helpers.GetValue(tfArray, 1);
                         String interval = this.safeString(this.timeframes, tf, tf);
-                        channel = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(channel, interval);
+                        channel = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(channel, interval);
                     } else
                     {
                         market = this.market(current);
@@ -963,7 +963,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             Map<String, Object> request = this.getSubscriptionRequest(rawSubscriptions);
             String privateOrPublic = "private";
-            if (Helpers.isTrue(isPublic))
+            if (Boolean.TRUE.equals(isPublic))
             {
                 privateOrPublic = "public";
             }

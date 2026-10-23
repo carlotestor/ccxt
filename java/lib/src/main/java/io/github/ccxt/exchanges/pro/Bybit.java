@@ -737,7 +737,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Long timestamp = this.safeInteger(message, "ts");
         parsed.put("timestamp", timestamp);
         parsed.put("datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.tickers, symbol, parsed);
+        this.tickers.put(symbol, parsed);
         String messageHash = ("ticker:" + symbol);
         client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
@@ -992,7 +992,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Map<String, Object> ohlcvsByTimeframe = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, (Object) null);
         if (java.util.Objects.equals(ohlcvsByTimeframe, null))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         if (java.util.Objects.equals(this.safeValue(ohlcvsByTimeframe, timeframe), null))
         {
@@ -1242,7 +1242,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Long timestamp = this.safeInteger(message, "ts");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("symbol", symbol);
@@ -1260,14 +1260,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             orderbook.put("datetime", this.iso8601(timestamp));
         }
         String messageHash = (("orderbook" + ":") + symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
         if (java.util.Objects.equals(limit, "1"))
         {
             Map<String, Object> bidask = (Map<String, Object>) this.parseWsBidAsk(((Map<?, ?>)this.orderbooks).get(symbol), market);
             Map<String, Object> newBidsAsks = new HashMap<String, Object>() {{}};
             newBidsAsks.put(symbol, bidask);
-            Helpers.addElementToObject(this.bidsasks, symbol, bidask);
+            this.bidsasks.put(symbol, bidask);
             client.resolve(newBidsAsks, ("bidask:" + symbol));
         }
     }
@@ -1459,7 +1459,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         for (var j = 0; j < ((List<?>)trades).size(); j++)
         {
@@ -1932,7 +1932,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, "position");
             }
@@ -3015,7 +3015,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 if (!java.util.Objects.equals(reqId, null))
                 {
                     client.reject(error, reqId);
-                } else if (Helpers.isInstance(error, AuthenticationError.class))
+                } else if ((error instanceof AuthenticationError))
                 {
                     String authenticatedHash = "authenticated";
                     client.reject(error, authenticatedHash);
@@ -3250,7 +3250,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             if (((String)messageHash).startsWith("unsubscribe"))
             {
-                Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
+                Object subscription = (client.subscriptions == null || messageHash == null ? null : client.subscriptions.get(messageHash));
                 String subId = this.safeString(subscription, "id");
                 if (!java.util.Objects.equals(reqId, subId))
                 {

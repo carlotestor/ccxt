@@ -795,10 +795,10 @@ public class Pacifica extends PacificaApi
                 String builder = this.safeString(this.options, "builderCode", "CCXT"); // case sensitive
                 String maxFeeRate = this.safeString(this.options, "feeRate", "0.01");
                 (this.approveBuilderCode(builder, maxFeeRate, new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+                this.options.put("approvedBuilderFee", true);
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
+                this.options.put("builderFee", false); // disable builder fee if an error occurs
             }
             return true;
         }).thenApply(res -> (Boolean) res);
@@ -1256,7 +1256,7 @@ public class Pacifica extends PacificaApi
             Object settings = this.handleOption("loadAccountSettings", "settings", (Object) null);
             if ((java.util.Objects.equals(settings, null)) || java.util.Objects.requireNonNullElse(refresh, false))
             {
-                Helpers.addElementToObject(this.options, "settings", this.createSafeDictionary());
+                this.options.put("settings", this.createSafeDictionary());
                 settings = (this.fetchAccountSettings(parameters)).join();
                 Helpers.addElementToObject(this.options, "settings", settings);
             }

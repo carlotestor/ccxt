@@ -437,7 +437,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, tradesArray);
+            this.trades.put(symbol, tradesArray);
         }
         tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
@@ -505,7 +505,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String symbol = (String) market.get("symbol");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, market);
-        Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
+        this.fundingRates.put(symbol, fundingRate);
         client.resolve(fundingRate, ("fundingRate:" + symbol));
     }
 
@@ -929,7 +929,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("nonce", null);

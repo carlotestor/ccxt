@@ -1272,7 +1272,7 @@ public class Binance extends BinanceApi
             }
             Long page = (Long) (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((page == null || maxEntriesPerRequest == null) ? null : (page * maxEntriesPerRequest)));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);
@@ -1369,7 +1369,7 @@ public class Binance extends BinanceApi
             }
             Long page = (Long) (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((page == null || maxEntriesPerRequest == null) ? null : (page * maxEntriesPerRequest)));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);
@@ -1674,7 +1674,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((page == null || maxEntriesPerRequest == null) ? null : (page * maxEntriesPerRequest)));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);

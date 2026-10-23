@@ -360,7 +360,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Long limit = this.safeInteger(message, "depth");
-            Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         String channel = this.safeString(message, "channel");
@@ -390,7 +390,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList())));
         this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList())));
         orderbook.put("nonce", nonce);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
@@ -549,7 +549,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer dataLength = ((List<?>)data).size();
@@ -781,7 +781,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             String symbol = (String) parsed.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.tickers, symbol, parsed);
+                this.tickers.put(symbol, parsed);
             }
             client.resolve(parsed, messageHash);
         }
@@ -896,7 +896,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         String symbol = (String) parsedTicker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
+            this.bidsasks.put(symbol, parsedTicker);
         }
         String messageHash = ("bidask." + symbol);
         client.resolve(parsedTicker, messageHash);
@@ -1005,7 +1005,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         String symbol = (String) market.get("symbol");
         String interval = this.safeString(message, "interval");
         String timeframe = this.findTimeframe(interval, (Object) null);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1218,7 +1218,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, "positions");
             }
@@ -1844,7 +1844,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             }
             if (((String)messageHash).startsWith("unsubscribe"))
             {
-                Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
+                Object subscription = (client.subscriptions == null || messageHash == null ? null : client.subscriptions.get(messageHash));
                 String subId = this.safeString(subscription, "id");
                 if (!java.util.Objects.equals(id, subId))
                 {

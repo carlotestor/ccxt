@@ -223,7 +223,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (java.util.Objects.equals(stored, null))
         {
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());
-            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
+            this.trades.put(((String)symbol), stored);
         }
         stored.append(parsedTrade);
         client.resolve(stored, messageHash);
@@ -311,7 +311,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         String symbol = (String) market.get("symbol");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         // levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
@@ -866,7 +866,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         String symbol = (String) market.get("symbol");
         String channel = this.safeString(parameters, "channel");
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         client.resolve(ticker, channel);
         // watchTicker waits on the symbol whichever channel, per-market or all, carried it
         String messageHash = ("markets_summary." + symbol);
@@ -993,7 +993,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = this.parseFundingRateWs((Map<String, Object>) (data), (Map<String, Object>) null);
         Object symbol = fundingRate.get("symbol");
-        Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
+        this.fundingRates.put(((String)symbol), fundingRate);
         String channel = this.safeString(parameters, "channel");
         // watchFundingRates without symbols waits on the bare channel
         client.resolve(fundingRate, channel);
@@ -1237,7 +1237,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 break;
             }
         }
-        return ("0x" + Helpers.slice(raw, start, 64));
+        return ("0x" + (raw == null ? null : raw.substring((int) Math.min(Math.min(Math.max(((Number)start).intValue() < 0 ? raw.length() + ((Number)start).intValue() : ((Number)start).intValue(), 0), raw.length()), Math.min(64, raw.length())), (int) Math.min(64, raw.length()))));
     }
 
     public Object sbeReadVarStrings(Object frameHex, Object offset, Object count, Object frameLength)

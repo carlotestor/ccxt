@@ -128,7 +128,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         if (java.util.Objects.equals(orderbook, null))
         {
             orderbook = this.orderBook(snapshot);
-            Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+            this.orderbooks.put(symbol, orderbook);
         } else
         {
             orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
@@ -201,7 +201,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {

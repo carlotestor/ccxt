@@ -161,7 +161,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
             if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
             {
-                Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+                this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
             }
             if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey("unknown")))
             {
@@ -259,7 +259,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
-            Helpers.addElementToObject(this.orderbooks, symbol, ob);
+            this.orderbooks.put(symbol, ob);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("timestamp", timestamp);
@@ -392,7 +392,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 1, new HashMap<String, Object>() {{}});
         String messageHash = (("ticker" + ":") + symbol);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, market);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         // watchTicker
         client.resolve(ticker, messageHash);
         // watchTickers
@@ -488,7 +488,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         List<Object> data = (List<Object>) this.safeList(parameters, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -948,7 +948,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve(this.balance, subscriptionHash);
             }
@@ -1295,7 +1295,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, AuthenticationError.class))
+            if ((e instanceof AuthenticationError))
             {
                 client.reject(e, "authenticated");
                 if (((Map<?, ?>)client.subscriptions).containsKey("authenticated"))

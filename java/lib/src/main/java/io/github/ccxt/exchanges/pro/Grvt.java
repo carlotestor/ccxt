@@ -343,7 +343,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         client.resolve(ticker, ("ticker::" + symbol));
     }
 
@@ -457,7 +457,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
+            this.trades.put(symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
@@ -584,7 +584,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String timeframeId = secondPart.replaceFirst("-TRADE", "");
         Object timeframe = this.findTimeframe(timeframeId, (Object) null);
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
         {
             Object limit = this.handleOption("watchOHLCV", "limit", 1000);
@@ -736,7 +736,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Long timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long sequenceNumber = this.safeInteger(message, "sequence_number", 0);
@@ -766,7 +766,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         orderbook.put("symbol", symbol);
         orderbook.put("nonce", sequenceNumber);
         String messageHash = ("orderbook::" + symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 

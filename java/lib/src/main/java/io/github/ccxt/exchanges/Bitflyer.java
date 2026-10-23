@@ -442,7 +442,7 @@ public class Bitflyer extends BitflyerApi
                         String currencyIds = this.safeString(splitAlias, 0);
                         baseId = (currencyIds == null ? null : ((String)currencyIds).substring(0, Math.max(((String)currencyIds).length() - 3, 0)));
                         quoteId = (currencyIds == null ? null : ((String)currencyIds).substring(Math.max(((String)currencyIds).length() - 3, 0)));
-                        List<Object> splitId = (List<Object>) Helpers.split(id, currencyIds);
+                        List<Object> splitId = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(currencyIds))));
                         String expiryDate = this.safeString(splitId, 1);
                         if (java.util.Objects.equals(expiryDate, null))
                         {

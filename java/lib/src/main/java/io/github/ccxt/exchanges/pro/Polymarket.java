@@ -234,7 +234,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
-            Helpers.addElementToObject(this.orderbooks, symbol, ob);
+            this.orderbooks.put(symbol, ob);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.reset(snapshot);
@@ -379,7 +379,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             put( "indexPrice", Polymarket.this.safeString(data, "idx") );
             put( "info", data );
         }}, market);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         client.resolve(ticker, ("ticker:" + symbol));
         client.resolve(ticker, "tickers");
     }
@@ -454,7 +454,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             put( "askVolume", Polymarket.this.safeString(data, "aq") );
             put( "info", data );
         }}, market);
-        Helpers.addElementToObject(this.bidsasks, symbol, ticker);
+        this.bidsasks.put(symbol, ticker);
         client.resolve(ticker, ("bidask:" + symbol));
     }
 
@@ -567,7 +567,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         for (var i = 0; i < ((List<?>)rows).size(); i++)
@@ -731,7 +731,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
@@ -1089,7 +1089,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
             }
             client.resolve(cache, "positions");
@@ -1162,7 +1162,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(this.balance);
             }
             client.resolve(this.balance, "balance");

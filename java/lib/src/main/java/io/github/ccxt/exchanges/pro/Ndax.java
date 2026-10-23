@@ -131,7 +131,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Map<String, Object> market = this.market(symbol);
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
+            this.tickers.put(symbol, ticker);
         }
         String name = "SubscribeLevel1";
         String messageHash = ((name + ":") + market.get("id"));
@@ -224,7 +224,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             ((io.github.ccxt.ws.ArrayCache) tradesArray).append(trade);
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.trades, symbol, tradesArray);
+                this.trades.put(symbol, tradesArray);
             }
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -331,7 +331,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             {
                 updates.put(marketId, new HashMap<String, Object>() {{}});
             }
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             List<Object> keys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var j = 0; j < ((List<?>)keys).size(); j++)
             {
@@ -562,7 +562,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         orderbook.put("datetime", this.iso8601(timestamp));
         String name = "SubscribeLevel2";
         String messageHash = ((name + ":") + marketId);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -599,7 +599,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, limit);
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+            this.orderbooks.put(symbol, orderbook);
         }
         String messageHash = this.safeString(subscription, "messageHash");
         client.resolve(orderbook, messageHash);

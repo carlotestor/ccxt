@@ -169,9 +169,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            Object subscription = (((java.util.Objects.equals(topic, null)))) ? null : Helpers.GetValue(client.subscriptions, topic);
+            Object subscription = (((java.util.Objects.equals(topic, null)))) ? null : (client.subscriptions == null || topic == null ? null : client.subscriptions.get(topic));
             Long limit = this.safeInteger(subscription, "limit", defaultLimit);
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
@@ -351,7 +351,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         String tickerSymbol = (String) ticker.get("symbol");
         if (!java.util.Objects.equals(tickerSymbol, null))
         {
-            Helpers.addElementToObject(this.tickers, tickerSymbol, ticker);
+            this.tickers.put(tickerSymbol, ticker);
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("symbol", tickerSymbol);
             mapLiteral1.put("timestamp", this.safeInteger(ticker, "timestamp"));
@@ -362,7 +362,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             mapLiteral1.put("askVolume", this.safeNumber(ticker, "askVolume", (Object) null));
             mapLiteral1.put("info", data);
             Ticker bidAsk = this.safeTicker(mapLiteral1, market);
-            Helpers.addElementToObject(this.bidsasks, tickerSymbol, bidAsk);
+            this.bidsasks.put(tickerSymbol, bidAsk);
             client.resolve(bidAsk, ("bidask:" + tickerSymbol));
         }
         client.resolve(ticker, topic);
@@ -632,7 +632,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i), (Map<String, Object>) null);
             tradesArray.append(trade);
         }
-        Helpers.addElementToObject(this.trades, symbol, tradesArray);
+        this.trades.put(symbol, tradesArray);
         client.resolve(tradesArray, topic);
     }
 
@@ -1091,7 +1091,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> emptyCaches = new HashMap<String, Object>() {{}};
                 this.positions = emptyCaches;
                 Map<String, Object> emptySnapshots = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(this.options, "loadedPositionsSnapshots", emptySnapshots);
+                this.options.put("loadedPositionsSnapshots", emptySnapshots);
             }
             // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
             String subaccountIdKey = this.numberToString(subaccountId);

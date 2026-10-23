@@ -1522,7 +1522,7 @@ public class Apex extends ApexApi
         String symbolChar = this.safeString(symbol, ((((Number) index).longValue()) - 1L));
         if ((((Integer) index) > 0) && !java.util.Objects.equals(symbolChar, "-"))
         {
-            return ((Helpers.slice(symbol, 0, index) + "-") + Helpers.slice(symbol, index, null));
+            return (((symbol == null ? null : ((String)symbol).substring(0, (int) Math.min(((Number)index).intValue() < 0 ? ((String)symbol).length() + ((Number)index).intValue() : ((Number)index).intValue(), ((String)symbol).length()))) + "-") + Helpers.slice(symbol, index, null));
         }
         return symbol;
     }

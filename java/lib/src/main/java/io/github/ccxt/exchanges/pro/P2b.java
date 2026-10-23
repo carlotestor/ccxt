@@ -366,7 +366,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Object timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -417,7 +417,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, tradesArray);
+            this.trades.put(symbol, tradesArray);
         }
         for (var i = 0; i < ((List<?>)(List<Object>)(trades)).size(); i++)
         {
@@ -485,7 +485,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             ticker = this.parseTicker(tickerData, market);
         }
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
-        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+        this.tickers.put(((String)symbol), ticker);
         if (!java.util.Objects.equals(messageHashStart, null))
         {
             String messageHash = ((messageHashStart + "::") + symbol);
@@ -528,7 +528,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         }
         if (Boolean.TRUE.equals(isFullUpdate))
@@ -630,13 +630,13 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
     public void onError(Client client, Object error)
     {
-        Helpers.addElementToObject(this.options, "tickerSubs", this.createSafeDictionary());
+        this.options.put("tickerSubs", this.createSafeDictionary());
         super.onError(client, error);
     }
 
     public void onClose(Client client, Object error)
     {
-        Helpers.addElementToObject(this.options, "tickerSubs", this.createSafeDictionary());
+        this.options.put("tickerSubs", this.createSafeDictionary());
         super.onClose(client, error);
     }
 }

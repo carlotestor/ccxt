@@ -786,8 +786,8 @@ public class Grvt extends GrvtApi
             {
                 throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
             }
-            (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
-            (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+            (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+            (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
             (this.loadAccountInfos()).join();
             return true;
         });
@@ -897,7 +897,7 @@ public class Grvt extends GrvtApi
             }
             if (Boolean.TRUE.equals(found))
             {
-                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+                this.options.put("approvedBuilderFee", true);
             } else
             {
                 try
@@ -926,10 +926,10 @@ public class Grvt extends GrvtApi
                     {
                         throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
                     }
-                    Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+                    this.options.put("approvedBuilderFee", true);
                 } catch(Exception e)
                 {
-                    Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
+                    this.options.put("builderFee", false); // disable builder fee if an error occurs
                 }
             }
             return null;  // just c#
@@ -4002,7 +4002,7 @@ public class Grvt extends GrvtApi
             this.checkRequiredCredentials(true);
             if (!java.util.Objects.equals(queryString, ""))
             {
-                requestPath = (((Object) (switch ((Object) (requestPath)) { case null -> (Object) ("null" + ("?")); case Double hx4J40v0 -> (Object) (hx4J40v0 + 0.0); case Object hx4J40v0 -> (Object) (String.valueOf(hx4J40v0) + ("?")); })) + queryString);
+                requestPath = ((requestPath + "?") + queryString);
             }
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

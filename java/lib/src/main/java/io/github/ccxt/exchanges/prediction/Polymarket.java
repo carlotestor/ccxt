@@ -3887,7 +3887,7 @@ public class Polymarket extends PolymarketApi
         if (!(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
         {
             io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(this.orderbooks, outcome, seededBook);
+            this.orderbooks.put(outcome, seededBook);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcome);
         Long timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
@@ -3994,7 +3994,7 @@ public class Polymarket extends PolymarketApi
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, outcome, stored);
+            this.trades.put(outcome, stored);
         }
         stored.append(trade);
         client.resolve(stored, ("trades::" + outcome));
@@ -4092,7 +4092,7 @@ public class Polymarket extends PolymarketApi
                 io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(outcomeValue, null))
                 {
-                    Helpers.addElementToObject(this.orderbooks, outcomeValue, seededBook);
+                    this.orderbooks.put(outcomeValue, seededBook);
                 }
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");

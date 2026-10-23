@@ -185,7 +185,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return BaseExchange.supplyAsync(() -> {
 
             String publicOrPrivate = "public";
-            if (Helpers.isTrue(isPrivate))
+            if (Boolean.TRUE.equals(isPrivate))
             {
                 publicOrPrivate = "private";
             }
@@ -809,7 +809,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve(this.balance, type);
             }
@@ -869,7 +869,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(channel, timeframes);
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, market);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = (((java.util.Objects.equals(timeframe, null)))) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -929,7 +929,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        Helpers.addElementToObject(this.trades, symbol, tradesArray);
+                        this.trades.put(symbol, tradesArray);
                     }
                 }
                 ((io.github.ccxt.ws.ArrayCache) tradesArray).append(trade);
@@ -1326,7 +1326,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(this.tickers, symbol, ticker);
+                    this.tickers.put(symbol, ticker);
                 }
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1423,7 +1423,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 if (Boolean.TRUE.equals(snapshot) && (java.util.Objects.equals(orderbook, null)))
                 {
                     orderbook = this.orderBook(new HashMap<String, Object>() {{}}, limit);
-                    Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+                    this.orderbooks.put(symbol, orderbook);
                 }
                 if (java.util.Objects.equals(orderbook, null))
                 {

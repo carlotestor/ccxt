@@ -321,7 +321,7 @@ public class TestMain extends BaseTest
             Boolean isConstructorTest = (java.util.Objects.equals(methodName, "afterConstruct"));
             Boolean isFeatureTest = (java.util.Objects.equals(methodName, "features"));
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-            if (!Helpers.isTrue(isPublic) && (Helpers.inOp(this.checkedPublicTests, methodName)) && !Boolean.TRUE.equals(isFetchCurrencies))
+            if (!Boolean.TRUE.equals(isPublic) && (Helpers.inOp(this.checkedPublicTests, methodName)) && !Boolean.TRUE.equals(isFetchCurrencies))
             {
                 return true;
             }
@@ -370,7 +370,7 @@ public class TestMain extends BaseTest
             }
             dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
             // add to the list of successed tests
-            if (Helpers.isTrue(isPublic))
+            if (Boolean.TRUE.equals(isPublic))
             {
                 Helpers.addElementToObject(this.checkedPublicTests, methodName, true);
             }
@@ -537,7 +537,7 @@ public class TestMain extends BaseTest
                             return true;
                         }
                         // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPublic, false)) && Boolean.TRUE.equals(isAuthError))
+                        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPublic, false)) && Boolean.TRUE.equals(isAuthError))
                         {
                             if (Helpers.isTrue(this.info))
                             {
@@ -660,7 +660,7 @@ public class TestMain extends BaseTest
                     ((List<Object>)failedMethods).add(testName);
                 }
             }
-            String testPrefixString = ((Helpers.isTrue(isPublicTest))) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+            String testPrefixString = ((Boolean.TRUE.equals(isPublicTest))) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
             if (((List<?>)failedMethods).size() > 0)
             {
                 String errorsString = String.join(", ", (List<String>)failedMethods);
@@ -747,10 +747,10 @@ public class TestMain extends BaseTest
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object market = Helpers.GetValue(markets, key);
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(spot, true)) && (java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(spot, true)) && (java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(res, Helpers.GetValue(market, "symbol"), market);
-            } else if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(spot, true)) && (!java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
+            } else if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(spot, true)) && (!java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(res, Helpers.GetValue(market, "symbol"), market);
             }
@@ -764,7 +764,7 @@ public class TestMain extends BaseTest
         List<String> codes = new ArrayList<String>(Arrays.asList("BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"));
         List<String> spotSymbols = new ArrayList<String>(Arrays.asList("BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"));
         List<String> swapSymbols = new ArrayList<String>(Arrays.asList("BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"));
-        List<String> targetSymbols = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(spot, true)))) ? spotSymbols : swapSymbols;
+        List<String> targetSymbols = ((Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(spot, true)))) ? spotSymbols : swapSymbols;
         Object symbol = this.getTestSymbol(exchange, java.util.Objects.requireNonNullElse(spot, true), targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if (java.util.Objects.equals(symbol, null))
@@ -1695,7 +1695,7 @@ public class TestMain extends BaseTest
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        if (Helpers.isTrue(cond))
+        if (Boolean.TRUE.equals(cond))
         {
             return;
         }
@@ -2019,7 +2019,7 @@ public class TestMain extends BaseTest
             String newOutputString = (((!java.util.Objects.equals(sanitizedNewOutput, null)))) ? String.valueOf(sanitizedNewOutput) : "undefined";
             String storedOutputString = (((!java.util.Objects.equals(sanitizedStoredOutput, null)))) ? String.valueOf(sanitizedStoredOutput) : "undefined";
             String messageError = ((("output value mismatch:" + newOutputString) + " != ") + storedOutputString);
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(strictTypeCheck, true)) && (!java.util.Objects.equals(this.lang, "C#")))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(strictTypeCheck, true)) && (!java.util.Objects.equals(this.lang, "C#")))
             {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
@@ -2500,7 +2500,7 @@ public class TestMain extends BaseTest
                 }
             }
             (exchange.sleep(50)).join();
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(sequential, false)))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(sequential, false)))
             {
                 // a watch call of a sequence can register its future after every
                 // frame was already consumed — keep rejecting until the watch side
@@ -2892,7 +2892,8 @@ public class TestMain extends BaseTest
             Object accounts = exchange.safeList(exchangeData, "accounts", (Object) null);
             if (!java.util.Objects.equals(accounts, null) && !java.util.Objects.equals(accounts, null))
             {
-                exchange.accounts = accounts;
+                // the field is a List<object>: assign the call, not the untyped local
+                exchange.accounts = exchange.safeList(exchangeData, "accounts", (Object) null);
             }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             exchange.extendExchangeOptions((Map<String, Object>) (globalOptions));

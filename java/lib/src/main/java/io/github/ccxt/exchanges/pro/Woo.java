@@ -329,7 +329,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
                 Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, topic, (Object) null);
                 Long limit = this.safeInteger(subscription, "limit", defaultLimit);
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.safeInteger(message, "ts");
@@ -350,7 +350,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
@@ -776,7 +776,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String symbol = (String) parsedTicker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
+                this.bidsasks.put(symbol, parsedTicker);
             }
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -908,7 +908,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String interval = this.safeString(data, "type");
         String timeframe = this.findTimeframe(interval, (Object) null);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1019,7 +1019,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
         tradesArray.append(trade);
-        Helpers.addElementToObject(this.trades, symbol, tradesArray);
+        this.trades.put(symbol, tradesArray);
         client.resolve(tradesArray, topic);
     }
 
@@ -1654,7 +1654,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, "positions");
             }
@@ -1851,7 +1851,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String symbol = (String) fundingRate.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
+            this.fundingRates.put(symbol, fundingRate);
         }
         String messageHash = this.safeString(message, "topic");
         client.resolve(fundingRate, messageHash);

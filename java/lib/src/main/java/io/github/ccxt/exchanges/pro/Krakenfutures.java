@@ -731,7 +731,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
-                Helpers.addElementToObject(this.trades, symbol, tradesArray);
+                this.trades.put(symbol, tradesArray);
             }
             if (java.util.Objects.equals(channel, "trade_snapshot"))
             {
@@ -1305,7 +1305,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String symbol = (String) ticker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.tickers, symbol, ticker);
+                this.tickers.put(symbol, ticker);
             }
             String messageHash = this.getMessageHash("ticker", (String) null, symbol);
             client.resolve(ticker, messageHash);
@@ -1337,7 +1337,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String symbol = (String) ticker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.bidsasks, symbol, ticker);
+                this.bidsasks.put(symbol, ticker);
             }
             String messageHash = this.getMessageHash("bidask", (String) null, symbol);
             client.resolve(ticker, messageHash);
@@ -1465,7 +1465,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> bids = (List<Object>) this.safeList(message, "bids", (Object) null);

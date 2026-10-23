@@ -137,7 +137,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             orderbook = this.orderBook(snapshot);
-            Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+            this.orderbooks.put(symbol, orderbook);
         } else
         {
             orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
@@ -214,7 +214,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -624,7 +624,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, AuthenticationError.class))
+            if ((e instanceof AuthenticationError))
             {
                 return false;
             }

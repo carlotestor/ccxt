@@ -230,7 +230,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return;
         }
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         String messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
     }
@@ -383,7 +383,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.tickers, symbol, ticker);
+                this.tickers.put(symbol, ticker);
             }
             ((List<Object>)result).add(ticker);
             String messageHash = ("ticker:" + symbol);
@@ -538,7 +538,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return;
         }
-        Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
+        this.bidsasks.put(symbol, parsedTicker);
         String messageHash = ("bidask:" + symbol);
         client.resolve(parsedTicker, messageHash);
     }
@@ -915,7 +915,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("nonce", null);
@@ -1029,7 +1029,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Long limit = this.safeInteger(subscription, "limit");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
@@ -1216,7 +1216,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         Map<String, Object> d = (Map<String, Object>) this.safeDictN(message, new ArrayList<Object>(Arrays.asList("d", "publicAggreDeals")), (Object) null);
         List<Object> trades = (List<Object>) this.safeList2(d, "deals", "dealsList", new ArrayList<Object>(Arrays.asList(d)));
@@ -1952,7 +1952,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String symbol = (String) fundingRate.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
+            this.fundingRates.put(symbol, fundingRate);
         }
         String messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
@@ -2333,7 +2333,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 client.future(messageHash).getFuture().join();
                 return this.safeString(this.options, "listenKey");
             }
-            Helpers.addElementToObject(this.options, "listenKeyFetching", true);
+            this.options.put("listenKeyFetching", true);
             client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             Map<String, Object> response = null;
             try
@@ -2341,11 +2341,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 response = (this.spotPrivatePostUserDataStream(parameters)).join();
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "listenKeyFetching", false);
+                this.options.put("listenKeyFetching", false);
                 client.reject(e, messageHash);
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            Helpers.addElementToObject(this.options, "listenKeyFetching", false);
+            this.options.put("listenKeyFetching", false);
             //
             //    {
             //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"

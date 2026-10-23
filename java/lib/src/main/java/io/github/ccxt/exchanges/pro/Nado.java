@@ -1574,7 +1574,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         // on a string, breaking every ws parser with a TypeError
         if (value.length() > 13)
         {
-            return this.parseToInt(Helpers.slice(value, 0, (((long) value.length()) - 6L)));
+            return this.parseToInt((value == null ? null : value.substring(0, (int) Math.min(((((long) value.length()) - 6L)) < 0 ? value.length() + ((((long) value.length()) - 6L)) : ((((long) value.length()) - 6L)), value.length()))));
         }
         return this.safeInteger(message, key);
     }
@@ -1693,7 +1693,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             trades = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, trades);
+            this.trades.put(symbol, trades);
         }
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), market);
         trades.append(trade);
@@ -1741,7 +1741,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -1975,8 +1975,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             return;
         }
-        Helpers.addElementToObject(this.bidsasks, symbol, ticker);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.bidsasks.put(symbol, ticker);
+        this.tickers.put(symbol, ticker);
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
         tickers.put(symbol, ticker);
         client.resolve(ticker, ("bidask:" + symbol));
@@ -2033,8 +2033,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Object ticker = (tickers == null || symbol == null ? null : tickers.get(symbol));
-            Helpers.addElementToObject(this.bidsasks, symbol, ticker);
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
+            this.bidsasks.put(symbol, ticker);
+            this.tickers.put(symbol, ticker);
             client.resolve(ticker, ("bidask:" + symbol));
             client.resolve(ticker, ("ticker:" + symbol));
         }

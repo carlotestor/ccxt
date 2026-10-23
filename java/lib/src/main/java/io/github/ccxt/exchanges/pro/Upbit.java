@@ -85,7 +85,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 ((Map)client.subscriptions).put(subscriptionsKey, this.createSafeDictionary(true));
             }
-            Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
+            Object subscriptions = (client.subscriptions == null || subscriptionsKey == null ? null : client.subscriptions.get(subscriptionsKey));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
@@ -305,7 +305,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String symbol = (String) ticker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
+            this.tickers.put(symbol, ticker);
         }
         String messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
@@ -339,7 +339,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Long limit = this.safeInteger(options, "limit", 15);
         if ((java.util.Objects.equals(type, "SNAPSHOT")) && !(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         // upbit always returns a snapshot of 15 topmost entries
@@ -402,7 +402,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         stored.append(trade);
         String messageHash = ("trade:" + symbol);
@@ -493,7 +493,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 channelKey = ((channel + ":") + symbolResolved);
             }
-            Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
+            Object subscriptions = (client.subscriptions == null || subscriptionsKey == null ? null : client.subscriptions.get(subscriptionsKey));
             Boolean isNewChannel = !((switch ((Object)(subscriptions)) { case List<?> j39v6 -> ((Object)(channelKey)) != null && j39v6.contains(channelKey); case Map<?, ?> j39v5 -> ((Object)(channelKey)) instanceof String && j39v5.containsKey(channelKey); case null, default -> false; }));
             if (Boolean.TRUE.equals(isNewChannel))
             {

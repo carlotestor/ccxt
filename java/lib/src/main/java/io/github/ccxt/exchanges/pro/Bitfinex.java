@@ -94,11 +94,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Boolean checksum = (Boolean) this.safeBool(this.options, "checksum", true);
             if (Boolean.TRUE.equals(checksum) && (java.util.Objects.equals(channel, "book")))
             {
-                Object sub = Helpers.GetValue(client.subscriptions, messageHash);
+                Object sub = (client.subscriptions == null || messageHash == null ? null : client.subscriptions.get(messageHash));
                 Boolean subChecksum = (Boolean) this.safeBool(sub, "checksum", (Object) null);
                 if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(subChecksum, true)))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(client.subscriptions, messageHash), "checksum", true);
+                    Helpers.addElementToObject((client.subscriptions == null || messageHash == null ? null : client.subscriptions.get(messageHash)), "checksum", true);
                     (client.send(new HashMap<String, Object>() {{
                         put( "event", "conf" );
                         put( "flags", 131072 );
@@ -320,7 +320,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object timeframe = this.findTimeframe(interval, (Object) null);
         String symbol = (String) market.get("symbol");
         String messageHash = ((((channel + ":") + interval) + ":") + marketId);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -548,7 +548,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         if (java.util.Objects.equals(stored, null))
         {
             stored = new ArrayCache(((Number)tradesLimit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         Integer messageLength = ((List<?>)message).size();
         if (java.util.Objects.equals(messageLength, 2))
@@ -734,7 +734,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, market);
         String channel = "ticker";
         String messageHash = ((channel + ":") + marketId);
-        Helpers.addElementToObject(this.tickers, symbol, parsed);
+        this.tickers.put(symbol, parsed);
         client.resolve(parsed, messageHash);
     }
 
@@ -861,11 +861,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             if (Boolean.TRUE.equals(isRaw))
             {
                 // raw order books
-                Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}, limit));
             } else
             {
                 // P0, P1, P2, P3, P4
-                Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             if (Boolean.TRUE.equals(isRaw))

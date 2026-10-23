@@ -298,7 +298,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
+            this.trades.put(symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -441,7 +441,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         String timeframe = this.findTimeframe(timeframeId, (Object) null);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -612,7 +612,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String symbol = (String) parsed.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.tickers, symbol, parsed);
+                this.tickers.put(symbol, parsed);
             }
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -741,7 +741,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
                 Long limit = this.safeInteger(this.options.get("ws"), "orderBookLimit", 1000);
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.safeInteger(entry, "t");
@@ -750,7 +750,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             this.handleDeltas((orderBook == null ? null : orderBook.get("asks")), asks);
             this.handleDeltas((orderBook == null ? null : orderBook.get("bids")), bids);
             orderBook.put("timestamp", timestamp);
-            Helpers.addElementToObject(this.orderbooks, symbol, orderBook);
+            this.orderbooks.put(symbol, orderBook);
             client.resolve(orderBook, messageHash);
         }
     }
@@ -805,7 +805,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
                 Long limit = this.safeInteger(this.options.get("ws"), "orderBookLimit", 1000);
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.safeInteger(entry, "t");
@@ -970,7 +970,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":fetchBalanceSnapshot"));
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance")); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
@@ -1317,7 +1317,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, (type + ":positions"));
             }

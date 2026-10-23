@@ -534,7 +534,7 @@ public class Hyperliquid extends HyperliquidApi
             // const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
             List<Object> tokens = (List<Object>) this.safeList(response, "tokens", new ArrayList<Object>(Arrays.asList()));
             // const meta = this.safeList (response, 'universe', []);
-            Helpers.addElementToObject(this.options, "cachedCurrenciesById", new HashMap<String, Object>() {{}}); // used to map hip3 markets
+            this.options.put("cachedCurrenciesById", new HashMap<String, Object>() {{}}); // used to map hip3 markets
             return this.parseCurrencies(tokens);
         });
 
@@ -725,7 +725,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)rawPromises).add(this.publicPostInfo(this.extend(request, parameters)));
             }
             Object promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Helpers.addElementToObject(this.options, "hip3TokensByName", new HashMap<String, Object>() {{}});
+            this.options.put("hip3TokensByName", new HashMap<String, Object>() {{}});
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
@@ -1034,7 +1034,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 String pricePrecisionStr = this.numberToString(pricePrecision);
                 // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-                String baseId = this.numberToString(((Object) (switch ((Object) (index)) { case null -> (Object) null; case Long hx4J40v12 -> (Object) (hx4J40v12 + 10000L); case Integer hx4J40v12 -> (Object) (hx4J40v12.longValue() + 10000L); case Double hx4J40v12 -> (Object) (hx4J40v12 + ((double) 10000L)); case String hx4J40v12 -> (Object) (hx4J40v12 + "10000"); default -> (Object) null; })));
+                String baseId = this.numberToString(((index == null) ? null : (index + 10000L)));
                 Map<String, Object> entry = new HashMap<String, Object>();
                 entry.put("id", marketName);
                 entry.put("symbol", mappedSymbol);
@@ -2159,7 +2159,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 return true;
             }
-            Helpers.addElementToObject(this.options, "refSet", true);
+            this.options.put("refSet", true);
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "setReferrer" );
                 put( "code", Hyperliquid.this.safeString(Hyperliquid.this.options, "ref", "CCXT1") );
@@ -2265,10 +2265,10 @@ public class Hyperliquid extends HyperliquidApi
                     maxFeeRate = "0%";
                 }
                 (this.approveBuilderFee(builder, maxFeeRate)).join();
-                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+                this.options.put("approvedBuilderFee", true);
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
+                this.options.put("builderFee", false); // disable builder fee if an error occurs
             }
             return true;
         }).thenApply(res -> (Boolean) res);

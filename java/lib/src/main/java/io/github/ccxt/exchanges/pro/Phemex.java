@@ -503,7 +503,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         List<Object> trades = (List<Object>) this.safeList2(message, "trades", "trades_p", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsed = this.parseTrades(trades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -558,7 +558,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             String messageHash = ((("kline:" + timeframe) + ":") + symbol);
             List<Object> ohlcvs = this.parseOHLCVs(candles, market, "1m", (Long) null, (Long) null, false);
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
@@ -909,7 +909,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
             Helpers.addElementToObject(snapshot, "nonce", nonce);
             io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, depth);
-            Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+            this.orderbooks.put(symbol, orderbook);
             client.resolve(orderbook, messageHash);
         } else
         {
@@ -924,7 +924,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 orderbook.put("nonce", nonce);
                 orderbook.put("timestamp", timestamp);
                 orderbook.put("datetime", this.iso8601(timestamp));
-                Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+                this.orderbooks.put(symbol, orderbook);
                 client.resolve(orderbook, messageHash);
             }
         }

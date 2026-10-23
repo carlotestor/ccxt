@@ -392,9 +392,9 @@ public class Predictfun extends PredictfunApi
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
             if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
             {
-                this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v15 -> (Map<String, Object>) hx4J40v15; case Object hx4J40v15 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v15.getClass().getName()); })));
+                this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
             }
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v14 -> (Map<String, Object>) hx4J40v14; case Object hx4J40v14 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v14.getClass().getName()); })));
+            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
             Integer queriesLength = ((List<?>)queries).size();
             Object paramsValue = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             // keys dropped before the client-side pass; the categories listing also drops its limit
@@ -424,7 +424,7 @@ public class Predictfun extends PredictfunApi
                 // a query/queries scope is answered by the dedicated search endpoint — the categories
                 // listing has no text filter, so paging it and matching client-side would both miss
                 // the venue's semantic matches and cost one request per page
-                rawTopics = (this.fetchRawTopicsByQueries(queries, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v13 -> (Map<String, Object>) hx4J40v13; case Object hx4J40v13 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v13.getClass().getName()); })))).join();
+                rawTopics = (this.fetchRawTopicsByQueries(queries, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -663,7 +663,7 @@ public class Predictfun extends PredictfunApi
                     put( "status", "closed" );
                 }});
             }
-            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v12 -> (Map<String, Object>) hx4J40v12; case Object hx4J40v12 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v12.getClass().getName()); })), queries);
+            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })), queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -1917,13 +1917,13 @@ public class Predictfun extends PredictfunApi
                 Helpers.addElementToObject(this.options, "backupJwtToken", this.safeString(this.options, "jwtToken"));
                 Helpers.addElementToObject(this.options, "backupJwtTokenExpiresAt", this.safeInteger(this.options, "jwtTokenExpiresAt", 0));
                 Helpers.addElementToObject(this.options, "jwtToken", null);
-                Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", 0);
+                this.options.put("jwtTokenExpiresAt", 0);
             } else
             {
                 Helpers.addElementToObject(this.options, "jwtToken", this.safeString(this.options, "backupJwtToken"));
                 Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", this.safeInteger(this.options, "backupJwtTokenExpiresAt", 0));
                 Helpers.addElementToObject(this.options, "backupJwtToken", null);
-                Helpers.addElementToObject(this.options, "backupJwtTokenExpiresAt", 0);
+                this.options.put("backupJwtTokenExpiresAt", 0);
             }
         }
     }
@@ -3005,7 +3005,7 @@ public class Predictfun extends PredictfunApi
         if ((statusCode != null && ((Number) statusCode).doubleValue() == 401))
         {
             Helpers.addElementToObject(this.options, "jwtToken", null);
-            Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", 0);
+            this.options.put("jwtTokenExpiresAt", 0);
         }
         String error = this.safeString(response, "error");
         this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
@@ -3033,13 +3033,13 @@ public class Predictfun extends PredictfunApi
         Map<String, Object> exchanges = (Map<String, Object>) this.safeDict(this.options, "exchanges", new HashMap<String, Object>() {{}});
         Map<String, Object> byChain = (Map<String, Object>) this.safeDict(exchanges, this.numberToString(chainIdValue), new HashMap<String, Object>() {{}});
         String identifier = "CTF_EXCHANGE";
-        if (Helpers.isTrue(isNegRisk) && Helpers.isTrue(isYieldBearing))
+        if (Boolean.TRUE.equals(isNegRisk) && Boolean.TRUE.equals(isYieldBearing))
         {
             identifier = "YIELD_BEARING_NEG_RISK_CTF_EXCHANGE";
-        } else if (Helpers.isTrue(isNegRisk))
+        } else if (Boolean.TRUE.equals(isNegRisk))
         {
             identifier = "NEG_RISK_CTF_EXCHANGE";
-        } else if (Helpers.isTrue(isYieldBearing))
+        } else if (Boolean.TRUE.equals(isYieldBearing))
         {
             identifier = "YIELD_BEARING_CTF_EXCHANGE";
         }
@@ -3061,13 +3061,13 @@ public class Predictfun extends PredictfunApi
         Map<String, Object> tokens = (Map<String, Object>) this.safeDict(this.options, "conditionalTokens", new HashMap<String, Object>() {{}});
         Map<String, Object> byChain = (Map<String, Object>) this.safeDict(tokens, this.numberToString(chainIdValue), new HashMap<String, Object>() {{}});
         String identifier = "CONDITIONAL_TOKENS";
-        if (Helpers.isTrue(isNegRisk) && Helpers.isTrue(isYieldBearing))
+        if (Boolean.TRUE.equals(isNegRisk) && Boolean.TRUE.equals(isYieldBearing))
         {
             identifier = "YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS";
-        } else if (Helpers.isTrue(isNegRisk))
+        } else if (Boolean.TRUE.equals(isNegRisk))
         {
             identifier = "NEG_RISK_CONDITIONAL_TOKENS";
-        } else if (Helpers.isTrue(isYieldBearing))
+        } else if (Boolean.TRUE.equals(isYieldBearing))
         {
             identifier = "YIELD_BEARING_CONDITIONAL_TOKENS";
         }
@@ -3088,7 +3088,7 @@ public class Predictfun extends PredictfunApi
         Map<String, Object> adapters = (Map<String, Object>) this.safeDict(this.options, "adapters", new HashMap<String, Object>() {{}});
         Map<String, Object> byChain = (Map<String, Object>) this.safeDict(adapters, this.numberToString(chainIdValue), new HashMap<String, Object>() {{}});
         String identifier = "NEG_RISK_ADAPTER";
-        if (Helpers.isTrue(isYieldBearing))
+        if (Boolean.TRUE.equals(isYieldBearing))
         {
             identifier = "YIELD_BEARING_NEG_RISK_ADAPTER";
         }
@@ -3921,7 +3921,7 @@ public class Predictfun extends PredictfunApi
             {
                 if (!(((Map<?, ?>)this.orderbooks).containsKey(outcomeHandle)))
                 {
-                    Helpers.addElementToObject(this.orderbooks, outcomeHandle, this.orderBook(new HashMap<String, Object>() {{}}));
+                    this.orderbooks.put(outcomeHandle, this.orderBook(new HashMap<String, Object>() {{}}));
                 }
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcomeHandle);
                 List<Object> bids = yesBids;

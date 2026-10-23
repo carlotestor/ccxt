@@ -339,7 +339,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
         String messageHash = this.safeString(parameters, "channel");
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         client.resolve(ticker, messageHash);
     }
 
@@ -417,7 +417,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
         Object symbol = ticker.get("symbol");
-        Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
+        this.bidsasks.put(((String)symbol), ticker);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(ticker, messageHash);
     }
@@ -533,7 +533,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         if (java.util.Objects.equals(this.safeDict(this.trades, symbol, (Object) null), null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
+            this.trades.put(symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         for (var i = 0; i < ((List<?>)trades).size(); i++)
@@ -542,7 +542,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, market);
             stored.append(parsed);
         }
-        Helpers.addElementToObject(this.trades, symbol, stored);
+        this.trades.put(symbol, stored);
         String messageHash = ((("trades|" + symbol) + "|") + interval);
         client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
@@ -784,7 +784,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Long timestamp = this.safeInteger(data, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook());
+            this.orderbooks.put(symbol, this.countedOrderBook());
         }
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -795,7 +795,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         storedOrderBook.put("timestamp", timestamp);
         storedOrderBook.put("datetime", this.iso8601(timestamp));
         storedOrderBook.put("symbol", symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, storedOrderBook);
+        this.orderbooks.put(symbol, storedOrderBook);
         String messageHash = ((("book|" + symbol) + "|") + descriptor);
         client.resolve(storedOrderBook, messageHash);
     }
@@ -1044,7 +1044,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
         Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(this.safeDict(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, (Object) null), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);

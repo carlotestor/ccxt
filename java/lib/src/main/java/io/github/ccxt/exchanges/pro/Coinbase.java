@@ -124,7 +124,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscribe.put("type", "subscribe");
             subscribe.put("product_ids", productIds);
             subscribe.put("channel", name);
-            if (Helpers.isTrue(isPrivate))
+            if (Boolean.TRUE.equals(isPrivate))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
@@ -157,7 +157,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 throw new ExchangeError((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
             }
-            Helpers.addElementToObject(this.options, "unSubscriptionPending", true);
+            this.options.put("unSubscriptionPending", true);
             Map<String, Object> market = null;
             Object watchMessageHash = name;
             String unWatchMessageHash = ("unsubscribe:" + name);
@@ -194,13 +194,13 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscription.put("topic", topic);
             subscription.put("unsubscribe", true);
             subscription.put("symbols", new ArrayList<Object>(Arrays.asList(symbol)));
-            if (Helpers.isTrue(isPrivate))
+            if (Boolean.TRUE.equals(isPrivate))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
             }
-            Helpers.addElementToObject(this.options, "unSubscription", subscription);
+            this.options.put("unSubscription", subscription);
             Object res = (this.watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription)).join();
-            Helpers.addElementToObject(this.options, "unSubscriptionPending", false);
+            this.options.put("unSubscriptionPending", false);
             Helpers.addElementToObject(this.options, "unSubscription", null);
             return res;
         });
@@ -243,7 +243,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscribe.put("type", "subscribe");
             subscribe.put("product_ids", productIds);
             subscribe.put("channel", name);
-            if (Helpers.isTrue(isPrivate))
+            if (Boolean.TRUE.equals(isPrivate))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
@@ -273,7 +273,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 throw new ExchangeError((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
             }
-            Helpers.addElementToObject(this.options, "unSubscriptionPending", true);
+            this.options.put("unSubscriptionPending", true);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -296,7 +296,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             message.put("type", "unsubscribe");
             message.put("product_ids", productIds);
             message.put("channel", name);
-            if (Helpers.isTrue(isPrivate))
+            if (Boolean.TRUE.equals(isPrivate))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
             }
@@ -309,7 +309,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }};
             Helpers.addElementToObject(this.options, "unSubscription", subscription);
             Object res = (this.watchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription)).join();
-            Helpers.addElementToObject(this.options, "unSubscriptionPending", false);
+            this.options.put("unSubscriptionPending", false);
             Helpers.addElementToObject(this.options, "unSubscription", null);
             return res;
         });
@@ -576,7 +576,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 String symbol = (String) result.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(this.tickers, symbol, result);
+                    this.tickers.put(symbol, result);
                 }
                 ((List<Object>)newTickers).add(result);
                 if (!java.util.Objects.equals(channel, null))
@@ -927,7 +927,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache.ArrayCacheBySymbolById(((Number)tradesLimit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, tradesArray);
+            this.trades.put(symbol, tradesArray);
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
@@ -1143,7 +1143,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
                 {
-                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                    this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
             } else if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {

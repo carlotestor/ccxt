@@ -1600,7 +1600,7 @@ public class Myriad extends MyriadApi
         }
         if ((((Integer) dotIndex) > -1))
         {
-            return Helpers.slice(scaled, 0, dotIndex);
+            return (scaled == null ? null : scaled.substring(0, (int) Math.min(((Number)dotIndex).intValue() < 0 ? scaled.length() + ((Number)dotIndex).intValue() : ((Number)dotIndex).intValue(), scaled.length())));
         }
         return scaled;
     }
@@ -3742,7 +3742,7 @@ public class Myriad extends MyriadApi
         Object existing = this.safeValue(this.options, "requestId");
         if (java.util.Objects.equals(existing, null))
         {
-            Helpers.addElementToObject(this.options, "requestId", this.createSafeDictionary());
+            this.options.put("requestId", this.createSafeDictionary());
         }
         Object options = this.options.get("requestId");
         Long previousValue = this.safeInteger(options, url, 0);
@@ -3787,7 +3787,7 @@ public class Myriad extends MyriadApi
             Object connectSent = this.safeValue(client.subscriptions, "connect");
             if (java.util.Objects.equals(connectSent, null))
             {
-                Helpers.addElementToObject(this.options, "wsConnected", false);
+                this.options.put("wsConnected", false);
                 Long requestId = this.requestId((String) (url));
                 // give the anonymous connect a name so the params object is non-empty (PHP serialises an
                 // empty array as a JSON array, which Centrifugo rejects)
@@ -3877,7 +3877,7 @@ public class Myriad extends MyriadApi
         if (!java.util.Objects.equals(connectReply, null))
         {
             // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
-            Helpers.addElementToObject(this.options, "wsConnected", true);
+            this.options.put("wsConnected", true);
             client.resolve(true, "centrifugoConnected");
             return;
         }
@@ -3974,7 +3974,7 @@ public class Myriad extends MyriadApi
             PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
             io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
             orderbook.reset(snapshot);
-            Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
+            this.orderbooks.put(((String)sym), orderbook);
             return null;
         });
 
@@ -4143,7 +4143,7 @@ public class Myriad extends MyriadApi
         if (java.util.Objects.equals(this.safeValue(this.trades, sym), null))
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Helpers.addElementToObject(this.trades, sym, new ArrayCache(((Number)tradesLimit).intValue()));
+            this.trades.put(sym, new ArrayCache(((Number)tradesLimit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (sym == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(sym));
         stored.append(trade);
@@ -4369,7 +4369,7 @@ public class Myriad extends MyriadApi
             mapLiteral16.put("quoteVolume", null);
             mapLiteral16.put("info", oc);
             Object ticker = this.safePredictionTicker(mapLiteral16, market);
-            Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
+            this.tickers.put(sym, ((Object)ticker));
             client.resolve(ticker, ("ticker::" + sym));
         }
         client.resolve(this.tickers, "tickers");
@@ -4530,7 +4530,7 @@ public class Myriad extends MyriadApi
                     balances.put(id, this.numberToString(this.safeNumber(p, "contracts", 0)));
                 }
             }
-            Helpers.addElementToObject(this.options, "positionBalances", balances);
+            this.options.put("positionBalances", balances);
             return null;
         });
 

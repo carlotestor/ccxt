@@ -184,7 +184,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         Integer length = ((List<?>)trades).size();
         for (var j = 0; (length != null && j < length); j++)
@@ -407,7 +407,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (Boolean.TRUE.equals(isSnapshot))
@@ -424,7 +424,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             orderbook.put("datetime", this.iso8601(timestamp));
         }
         String messageHash = (("orderbook" + ":") + symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -565,9 +565,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         parsed.put("timestamp", timestamp);
         parsed.put("datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.tickers, symbol, parsed);
+        this.tickers.put(symbol, parsed);
         String messageHash = ("ticker:" + symbol);
-        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
+        client.resolve((this.tickers == null || symbol == null ? null : this.tickers.get(symbol)), messageHash);
     }
 
     /**
@@ -684,7 +684,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String symbol = (String) market.get("symbol");
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
         {
@@ -995,7 +995,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, "positions");
             }
@@ -1194,7 +1194,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return false;
         } catch(Exception error)
         {
-            if (Helpers.isInstance(error, AuthenticationError.class))
+            if ((error instanceof AuthenticationError))
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);

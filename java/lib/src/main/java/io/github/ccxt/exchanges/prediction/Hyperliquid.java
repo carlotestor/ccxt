@@ -259,7 +259,7 @@ public class Hyperliquid extends HyperliquidApi
             Object colonIndex = ((String)part).indexOf(":");
             if ((((Integer) colonIndex) > -1))
             {
-                String key = Helpers.slice(part, 0, colonIndex);
+                String key = (part == null ? null : part.substring(0, (int) Math.min(((Number)colonIndex).intValue() < 0 ? part.length() + ((Number)colonIndex).intValue() : ((Number)colonIndex).intValue(), part.length())));
                 String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v7 -> (Object) (hx4J40v7 + 1L); case Integer hx4J40v7 -> (Object) (hx4J40v7.longValue() + 1L); case Double hx4J40v7 -> (Object) (hx4J40v7 + ((double) 1L)); case String hx4J40v7 -> (Object) (hx4J40v7 + "1"); default -> (Object) null; })), null);
                 result.put(key, value);
             }
@@ -2669,10 +2669,10 @@ public class Hyperliquid extends HyperliquidApi
                 // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
                 String maxFeeRate = this.safeString(this.options, "feeRate", "0%");
                 (this.approveBuilderFee(builder, maxFeeRate)).join();
-                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+                this.options.put("approvedBuilderFee", true);
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
+                this.options.put("builderFee", false); // disable builder fee if an error occurs
             }
             return null;
         });

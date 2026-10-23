@@ -2664,9 +2664,9 @@ public class Alpaca extends AlpacaApi
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 Long baseLength = (((long) positionSymbol.length()) - 3L);
-                if (((baseLength != null && baseLength > 0)) && (java.util.Objects.equals(Helpers.slice(positionSymbol, baseLength, null), "USD")))
+                if (((baseLength != null && baseLength > 0)) && (java.util.Objects.equals((positionSymbol == null ? null : positionSymbol.substring((int) Math.min(Math.max(baseLength < 0 ? positionSymbol.length() + baseLength : baseLength, 0), positionSymbol.length()))), "USD")))
                 {
-                    baseId = Helpers.slice(positionSymbol, 0, baseLength);
+                    baseId = (positionSymbol == null ? null : positionSymbol.substring(0, (int) Math.min(baseLength < 0 ? positionSymbol.length() + baseLength : baseLength, positionSymbol.length())));
                 }
             }
             if (java.util.Objects.equals(baseId, null))

@@ -232,7 +232,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
             Object symbol = ticker.get("symbol");
-            Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+            this.tickers.put(((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
             if (!java.util.Objects.equals(eventVar, null))
             {
@@ -279,7 +279,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
             Object symbol = ticker.get("symbol");
-            Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
+            this.bidsasks.put(((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
             String messageHash = ((eventVar + ":") + symbol);
             client.resolve(ticker, messageHash);
@@ -362,7 +362,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
         tradesArray.append(trade);
-        Helpers.addElementToObject(this.trades, symbol, tradesArray);
+        this.trades.put(symbol, tradesArray);
         client.resolve(tradesArray, messageHash);
     }
 
@@ -568,7 +568,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Object timeframe = this.findTimeframe(interval, (Object) null);
         String messageHash = ((((name + "@") + marketId) + "_") + interval);
         List<Object> candles = (List<Object>) this.safeList(message, "candle", new ArrayList<Object>(Arrays.asList()));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1049,7 +1049,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object messageItem = (messages == null || i < 0 || i >= messages.size() ? null : messages.get(i));
             this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
         // getBook is a one-shot request but this.watch tracks it as a persistent
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
@@ -1069,7 +1069,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Long storedLimit = this.safeInteger(limits, symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedLimit, limit)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             Helpers.addElementToObject(limits, symbol, limit);
             Helpers.addElementToObject(this.options, "orderBookLimits", limits);
         }
@@ -1098,7 +1098,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                     // multi-symbol watches share one subscription object without a
                     // per-market method - initialize the order book directly
                     Long limit = this.safeInteger(subscription, "limit");
-                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                    this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
             }
         }
@@ -1152,7 +1152,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             {
                 continue;
             }
-            Object subscription = Helpers.GetValue(client.subscriptions, key);
+            Object subscription = (client.subscriptions == null || key == null ? null : client.subscriptions.get(key));
             String subHash = (key == null ? null : ((String)key).replaceFirst("unsubscribe:", ""));
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, (String) (key), false);

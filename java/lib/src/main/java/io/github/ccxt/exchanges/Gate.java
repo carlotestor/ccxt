@@ -2021,7 +2021,7 @@ public class Gate extends GateApi
                 } catch(Exception e)
                 {
                     // if the request fails, the unifiedAccount is disabled
-                    Helpers.addElementToObject(this.options, "unifiedAccount", false);
+                    this.options.put("unifiedAccount", false);
                 }
             }
             Boolean unified = java.util.Objects.equals(this.safeBool(this.options, "unifiedAccount", (Object) null), true);
@@ -2841,7 +2841,7 @@ public class Gate extends GateApi
         String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
         Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(trigger, false)))
+        if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(trigger, false)))
         {
             if (java.util.Objects.equals(market, null))
             {
@@ -2873,7 +2873,7 @@ public class Gate extends GateApi
         }};
         if (!java.util.Objects.equals(market, null))
         {
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(trigger, false)))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(trigger, false)))
             {
                 // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
                 request.put("market", market.get("id"));

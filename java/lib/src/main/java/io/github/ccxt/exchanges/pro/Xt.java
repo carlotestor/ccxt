@@ -943,7 +943,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             fundingRate.put("timestamp", timestamp);
             fundingRate.put("datetime", this.iso8601(timestamp));
             Object symbol = fundingRate.get("symbol");
-            Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
+            this.fundingRates.put(((String)symbol), fundingRate);
             String eventVar = this.safeString(message, "event");
             if (!java.util.Objects.equals(eventVar, null))
             {
@@ -992,7 +992,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, "position::contract");
             }
@@ -1129,7 +1129,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             String symbol = (String) ticker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.tickers, symbol, ticker);
+                this.tickers.put(symbol, ticker);
             }
             String eventVar = this.safeString(message, "event");
             String messageHashTail = "contract";
@@ -1231,7 +1231,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             String symbol = (String) ticker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.tickers, symbol, ticker);
+                this.tickers.put(symbol, ticker);
             }
             ((List<Object>)newTickers).add(ticker);
         }
@@ -1307,7 +1307,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
             String symbol = (String) market.get("symbol");
             List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
@@ -1377,7 +1377,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
-                Helpers.addElementToObject(this.trades, symbol, tradesArray);
+                this.trades.put(symbol, tradesArray);
             }
             tradesArray.append(trade);
             if (!java.util.Objects.equals(eventVar, null))
@@ -1471,7 +1471,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
                 Long limit = this.safeInteger(subscription, "limit");
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long nonce = this.safeInteger(orderbook, "nonce");

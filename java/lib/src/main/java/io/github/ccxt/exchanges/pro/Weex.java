@@ -404,7 +404,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("ticker::" + symbol);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
 
@@ -637,7 +637,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
+            this.trades.put(symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
@@ -654,7 +654,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object sortedTrade = (sorted == null || j < 0 || j >= sorted.size() ? null : sorted.get(j));
             tradesArray.append(sortedTrade);
         }
-        Helpers.addElementToObject(this.trades, symbol, tradesArray);
+        this.trades.put(symbol, tradesArray);
         client.resolve(tradesArray, messageHash);
     }
 
@@ -1151,10 +1151,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Long limit = this.safeInteger(subscription, "limit");
             if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             } else
             {
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
             }
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
@@ -1309,7 +1309,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String symbol = (String) ticker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.bidsasks, symbol, ticker);
+            this.bidsasks.put(symbol, ticker);
         }
         String messageHash = ("bidask::" + symbol);
         client.resolve(ticker, messageHash);
@@ -2005,7 +2005,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
             }
@@ -2188,7 +2188,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 cache.append(position);
             }
             // don't remove the future from the .futures cache
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
             ((io.github.ccxt.ws.Future)future).resolve(cache);
             client.resolve(cache, "positions");
             return null;

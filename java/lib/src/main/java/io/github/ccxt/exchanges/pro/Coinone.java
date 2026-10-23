@@ -160,7 +160,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
         String messageHash = ("orderbook:" + symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -243,7 +243,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         {
             return;
         }
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         String messageHash = ("ticker:" + symbol);
         client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
@@ -378,7 +378,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
+            this.trades.put(((String)symbol), stored);
         }
         stored.append(trade);
         String messageHash = ("trade:" + symbol);

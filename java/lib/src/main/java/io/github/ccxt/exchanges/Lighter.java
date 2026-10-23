@@ -560,7 +560,7 @@ public class Lighter extends LighterApi
     {
         if (!(((Map<?, ?>)this.options).containsKey("auths")))
         {
-            Helpers.addElementToObject(this.options, "auths", new HashMap<String, Object>() {{}});
+            this.options.put("auths", new HashMap<String, Object>() {{}});
         }
         if (!((switch ((Object)(this.options.get("auths"))) { case List<?> j39v4 -> ((Object)(strAccountIndex)) != null && j39v4.contains(strAccountIndex); case Map<?, ?> j39v3 -> ((Object)(strAccountIndex)) instanceof String && j39v3.containsKey(strAccountIndex); case null, default -> false; })))
         {
@@ -846,18 +846,18 @@ public class Lighter extends LighterApi
                 if (Boolean.TRUE.equals(isStandardTier))
                 {
                     standardTier = true;
-                    Helpers.addElementToObject(this.options, "builderFee", false);
+                    this.options.put("builderFee", false);
                 } else
                 {
                     Long builder = this.safeInteger(this.options, "integratorAccountIndex", 718718);
                     Long takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
                     Long makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
                     (this.approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, new HashMap<String, Object>() {{}})).join();
-                    Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+                    this.options.put("approvedBuilderFee", true);
                 }
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "builderFee", false);
+                this.options.put("builderFee", false);
             }
             if (Boolean.TRUE.equals(standardTier))
             {
@@ -1253,11 +1253,11 @@ public class Lighter extends LighterApi
                 Boolean isStandardTier = (this.checkIfStandardTier(accountIndex)).join();
                 if (Boolean.TRUE.equals(isStandardTier))
                 {
-                    Helpers.addElementToObject(this.options, "builderFee", false);
+                    this.options.put("builderFee", false);
                 }
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "builderFee", false);
+                this.options.put("builderFee", false);
             }
             List<Object> groupingTypeparamsGroupingTypeVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "groupingType", 3L);
             Long groupingType = (Long) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(0);

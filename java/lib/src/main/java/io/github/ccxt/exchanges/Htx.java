@@ -2909,7 +2909,7 @@ public class Htx extends HtxApi
         // - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
         if (!(((Map<?, ?>)this.options).containsKey("futureMarketIdsForSymbols")))
         {
-            Helpers.addElementToObject(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
+            this.options.put("futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         }
         Map<String, Object> futureMarketIdsForSymbols = (Map<String, Object>) this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         if (futureMarketIdsForSymbols.containsKey(symbolOrMarketId))
@@ -4420,8 +4420,8 @@ public class Htx extends HtxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Helpers.addElementToObject(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
+            this.options.put("networkNamesByChainIds", new HashMap<String, Object>() {{}});
+            this.options.put("networkChainIdsByNames", new HashMap<String, Object>() {{}});
             return this.parseCurrencies(data);
         });
 
@@ -4431,11 +4431,11 @@ public class Htx extends HtxApi
     {
         if (!(((Map<?, ?>)this.options).containsKey("networkNamesByChainIds")))
         {
-            Helpers.addElementToObject(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
+            this.options.put("networkNamesByChainIds", new HashMap<String, Object>() {{}});
         }
         if (!(((Map<?, ?>)this.options).containsKey("networkChainIdsByNames")))
         {
-            Helpers.addElementToObject(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
+            this.options.put("networkChainIdsByNames", new HashMap<String, Object>() {{}});
         }
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);

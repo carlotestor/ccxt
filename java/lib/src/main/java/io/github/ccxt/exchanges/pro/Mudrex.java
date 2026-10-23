@@ -269,7 +269,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), tf);
         if (java.util.Objects.equals(stored, null))
         {
@@ -308,7 +308,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 put( "close", last );
                 put( "info", t );
             }}, (Map<String, Object>) null);
-            Helpers.addElementToObject(this.tickers, symbol, result);
+            this.tickers.put(symbol, result);
             String messageHash = ("ticker:" + symbol);
             client.resolve(result, messageHash);
             client.resolve(result, "tickers");

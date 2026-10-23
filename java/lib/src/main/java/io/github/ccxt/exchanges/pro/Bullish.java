@@ -234,14 +234,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, tradesArrayCache);
+            this.trades.put(symbol, tradesArrayCache);
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             tradesArray.append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
         }
-        Helpers.addElementToObject(this.trades, symbol, tradesArray);
+        this.trades.put(symbol, tradesArray);
         String messageHash = ("trades::" + market.get("symbol"));
         client.resolve(tradesArray, messageHash);
     }
@@ -337,7 +337,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = (Map<String, Object>) this.parseTicker(merged, market);
         }
-        Helpers.addElementToObject(this.tickers, symbol, parsed);
+        this.tickers.put(symbol, parsed);
         String messageHash = ("ticker::" + symbol);
         client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
@@ -405,7 +405,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Long timestamp = this.safeInteger(data, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> bids = (List<Object>) this.separateBidsOrAsks((List<Object>) (this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()))));
@@ -422,7 +422,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             parsed.put("nonce", this.safeInteger(sequenceNumberRange, lastIndex));
         }
         orderbook.reset(parsed);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 

@@ -240,7 +240,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         {
             tradesCache.append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
         }
-        Helpers.addElementToObject(this.trades, symbol, tradesCache);
+        this.trades.put(symbol, tradesCache);
         if (!java.util.Objects.equals(eventVar, null))
         {
             String messageHash = ((eventVar + ":") + symbol);
@@ -493,7 +493,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Long timestamp = this.safeInteger(message, "timestamp");
         result.put("timestamp", timestamp);
         result.put("datetime", this.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
-        Helpers.addElementToObject(this.tickers, symbol, result);
+        this.tickers.put(symbol, result);
         if (!java.util.Objects.equals(eventVar, null))
         {
             String messageHash = ((eventVar + ":") + symbol);

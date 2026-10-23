@@ -222,7 +222,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             stored = new ArrayCache(((Number)tradesLimit).intValue());
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.trades, symbol, stored);
+                this.trades.put(symbol, stored);
             }
         }
         stored.append(trade);
@@ -280,7 +280,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             if (java.util.Objects.equals(stored, null))
             {
                 stored = new ArrayCache(((Number)tradesLimit).intValue());
-                Helpers.addElementToObject(this.trades, symbol, stored);
+                this.trades.put(symbol, stored);
             }
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
@@ -310,7 +310,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 if (java.util.Objects.equals(stored, null))
                 {
                     stored = new ArrayCache(((Number)tradesLimit).intValue());
-                    Helpers.addElementToObject(this.trades, symbol, stored);
+                    this.trades.put(symbol, stored);
                 }
                 stored.append(trade);
                 storesForSymbols.put(symbol, stored);
@@ -404,7 +404,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String type = this.safeString(message, "type", "");
         String timeframeIdFull = (type == null ? null : ((String)type).substring(Math.min(8, ((String)type).length())));
         Object timeframeEndIndex = ((String)timeframeIdFull).indexOf("_");
-        String timeframeId = Helpers.slice(timeframeIdFull, 0, timeframeEndIndex);
+        String timeframeId = (timeframeIdFull == null ? null : timeframeIdFull.substring(0, (int) Math.min(((Number)timeframeEndIndex).intValue() < 0 ? timeframeIdFull.length() + ((Number)timeframeEndIndex).intValue() : ((Number)timeframeEndIndex).intValue(), timeframeIdFull.length())));
         String marketId = this.safeString(message, "symbol", "").toLowerCase();
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
@@ -413,7 +413,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Map<String, Object> ohlcvsBySymbol = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, (Object) null);
         if (java.util.Objects.equals(ohlcvsBySymbol, null))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -493,7 +493,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String messageHash = ("orderbook:" + symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (Boolean.TRUE.equals(isInitial))
@@ -532,7 +532,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             orderbook.put(side, bookside);
         }
         orderbook.put("symbol", symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -611,7 +611,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String symbol = (String) market.get("symbol");
         if (!(((Map<?, ?>)this.bidsasks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.bidsasks, symbol, this.parseTicker(new HashMap<String, Object>() {{}}, (Map<String, Object>) null));
+            this.bidsasks.put(symbol, this.parseTicker(new HashMap<String, Object>() {{}}, (Map<String, Object>) null));
             Helpers.addElementToObject((symbol == null || this.bidsasks == null ? null : ((Map<?, ?>)this.bidsasks).get(symbol)), "symbol", symbol);
         }
         Object currentBidAsk = (symbol == null || this.bidsasks == null ? null : ((Map<?, ?>)this.bidsasks).get(symbol));
@@ -643,7 +643,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Helpers.addElementToObject(currentBidAsk, "info", rawBidAskChanges);
         Map<String, Object> bidsAsksDict = new HashMap<String, Object>() {{}};
         bidsAsksDict.put(symbol, currentBidAsk);
-        Helpers.addElementToObject(this.bidsasks, symbol, currentBidAsk);
+        this.bidsasks.put(symbol, currentBidAsk);
         client.resolve(bidsAsksDict, messageHash);
     }
 
@@ -723,7 +723,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
-            Helpers.addElementToObject(this.orderbooks, symbol, ob);
+            this.orderbooks.put(symbol, ob);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
@@ -748,7 +748,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         orderbook.put("nonce", nonce);
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 

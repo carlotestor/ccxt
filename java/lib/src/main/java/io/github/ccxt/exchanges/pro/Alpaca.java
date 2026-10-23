@@ -135,7 +135,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         String messageHash = ("ticker:" + symbol);
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
+            this.tickers.put(symbol, ticker);
         }
         client.resolve(ticker, messageHash);
     }
@@ -243,7 +243,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(this.ohlcvs, symbol, stored);
+            this.ohlcvs.put(symbol, stored);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(message, (Map<String, Object>) null);
         ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
@@ -315,7 +315,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         Boolean isSnapshot = (Boolean) this.safeBool(message, "r", false);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (Boolean.TRUE.equals(isSnapshot))
@@ -332,7 +332,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             orderbook.put("datetime", datetime);
         }
         String messageHash = (("orderbook" + ":") + symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -410,7 +410,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(message, (Map<String, Object>) null);
         stored.append(parsed);

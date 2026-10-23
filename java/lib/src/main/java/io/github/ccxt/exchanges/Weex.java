@@ -5263,7 +5263,7 @@ public class Weex extends WeexApi
         if (((String)marketId).endsWith("SUSDT"))
         {
             Long baseLength = (((long) ((String)marketId).length()) - 5L);
-            return (Helpers.slice(marketId, 0, baseLength) + "USDT");
+            return ((marketId == null ? null : marketId.substring(0, (int) Math.min(baseLength < 0 ? marketId.length() + baseLength : baseLength, marketId.length()))) + "USDT");
         }
         return marketId;
     }

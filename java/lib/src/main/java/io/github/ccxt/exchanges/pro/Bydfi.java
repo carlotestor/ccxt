@@ -376,8 +376,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
         Object symbol = ticker.get("symbol");
         String messageHash = ("ticker::" + symbol);
-        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
-        client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
+        this.tickers.put(((String)symbol), ticker);
+        client.resolve((this.tickers == null || ((String)symbol) == null ? null : this.tickers.get(((String)symbol))), messageHash);
         client.resolve(this.tickers, "ticker::all");
     }
 
@@ -542,7 +542,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Object timeframe = this.findTimeframe(interval, timeframes);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
         {
@@ -714,13 +714,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Long timestamp = this.safeInteger(message, "E");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a", 0, 1, 2);
         orderbook.reset(parsed);
         String messageHash = ("orderbook::" + symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -1147,7 +1147,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Balances response = (this.fetchBalance(parameters)).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
             future.resolve();
             client.resolve(this.balance, "balance");
             return null;

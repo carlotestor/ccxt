@@ -2194,8 +2194,8 @@ public class Kraken extends KrakenApi
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        String baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
-        String quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
+        String baseId = (id == null ? null : id.substring((int) Math.min(Math.min(Math.max(baseIdStart < 0 ? id.length() + baseIdStart : baseIdStart, 0), id.length()), Math.min(baseIdEnd < 0 ? id.length() + baseIdEnd : baseIdEnd, id.length())), (int) Math.min(baseIdEnd < 0 ? id.length() + baseIdEnd : baseIdEnd, id.length())));
+        String quoteId = (id == null ? null : id.substring((int) Math.min(Math.min(Math.max(quoteIdStart < 0 ? id.length() + quoteIdStart : quoteIdStart, 0), id.length()), Math.min(quoteIdEnd < 0 ? id.length() + quoteIdEnd : quoteIdEnd, id.length())), (int) Math.min(quoteIdEnd < 0 ? id.length() + quoteIdEnd : quoteIdEnd, id.length())));
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))

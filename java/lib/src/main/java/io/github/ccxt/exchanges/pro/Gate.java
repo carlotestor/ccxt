@@ -699,7 +699,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             orderbook.put("nonce", null);
@@ -746,7 +746,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String messageHash = ("orderbook:" + symbol);
         if (java.util.Objects.equals(this.safeValue(this.orderbooks, symbol), null))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, 1000));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, 1000));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (Boolean.TRUE.equals(full))
@@ -1148,13 +1148,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(this.tickers, symbol, parsedItem);
+                    this.tickers.put(symbol, parsedItem);
                 }
             } else
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(this.bidsasks, symbol, parsedItem);
+                    this.bidsasks.put(symbol, parsedItem);
                 }
             }
             String messageHash = ((objectName + ":") + symbol);
@@ -1331,7 +1331,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 cachedTrades = new ArrayCache(((Number)limit).intValue());
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(this.trades, symbol, cachedTrades);
+                    this.trades.put(symbol, cachedTrades);
                 }
             }
             cachedTrades.append(trade);
@@ -1431,7 +1431,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String marketId = Helpers.replace(subscription, (String)prefix, (String)"");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", marketType);
             List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, (Map<String, Object>) null);
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            this.ohlcvs.put(symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
@@ -1846,7 +1846,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
                 client.resolve(cache, (type + ":position"));
             }
@@ -2523,7 +2523,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             if (((String)messageHash).startsWith("unsubscribe"))
             {
-                Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
+                Object subscription = (client.subscriptions == null || messageHash == null ? null : client.subscriptions.get(messageHash));
                 String subId = this.safeString(subscription, "id");
                 if (!java.util.Objects.equals(id, subId))
                 {

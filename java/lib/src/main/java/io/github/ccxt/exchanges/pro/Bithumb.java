@@ -326,7 +326,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(tickerMessage, (Map<String, Object>) null);
         String messageHash = ("ticker:" + symbol);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
 
@@ -551,7 +551,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
                 ob.put("symbol", legacySymbol);
-                Helpers.addElementToObject(this.orderbooks, legacySymbol, ob);
+                this.orderbooks.put(legacySymbol, ob);
             }
             io.github.ccxt.ws.WsOrderBook legacyOrderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(legacySymbol);
             this.handleBookDeltas(legacyOrderbook, list);
@@ -571,7 +571,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Long obLimit = this.safeInteger(options, "limit", 1000);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, obLimit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, obLimit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
@@ -771,7 +771,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 var stored = new ArrayCache(((Number)limit).intValue());
-                Helpers.addElementToObject(this.trades, symbol, stored);
+                this.trades.put(symbol, stored);
             }
             io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
             trades.append(parsed);

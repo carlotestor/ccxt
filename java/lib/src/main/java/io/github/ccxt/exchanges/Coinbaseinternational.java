@@ -3743,17 +3743,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object quesPos = ((String)uri).indexOf("?");
             if ((((Integer) quesPos) > 0))
             {
-                uri = Helpers.slice(uri, 0, quesPos);
+                uri = (uri == null ? null : ((String)uri).substring(0, (int) Math.min(((Number)quesPos).intValue() < 0 ? ((String)uri).length() + ((Number)quesPos).intValue() : ((Number)quesPos).intValue(), ((String)uri).length())));
             }
         }
         String nonce = this.randomBytes(16);
         String aud = "retail_rest_api_proxy";
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             aud = "cdp_service";
         }
         String iss = "coinbase-cloud";
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             iss = "cdp";
         }
@@ -3762,11 +3762,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         request.put("sub", this.apiKey);
         request.put("iss", iss);
         request.put("nbf", seconds);
-        request.put("exp", ((Object) (switch ((Object) (seconds)) { case null -> (Object) null; case Long hx4J40v4 -> (Object) (hx4J40v4 + 120L); case Integer hx4J40v4 -> (Object) (hx4J40v4.longValue() + 120L); case Double hx4J40v4 -> (Object) (hx4J40v4 + ((double) 120L)); case String hx4J40v4 -> (Object) (hx4J40v4 + "120"); default -> (Object) null; })));
+        request.put("exp", ((Object) (switch ((Object) (seconds)) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 120L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 120L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 120L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "120"); default -> (Object) null; })));
         request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
         {
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+            if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
             {
                 request.put("uri", uri);
             } else
@@ -3774,7 +3774,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("uris", new ArrayList<Object>(Arrays.asList(uri)));
             }
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             Object byteArray = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(byteArray, 0, 32);
@@ -4026,10 +4026,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if (Boolean.TRUE.equals(deribit))
         {
-            Helpers.addElementToObject(this.options, "route", "deribit");
+            this.options.put("route", "deribit");
         } else
         {
-            Helpers.addElementToObject(this.options, "route", "coinbase");
+            this.options.put("route", "coinbase");
         }
         Helpers.addElementToObject(this.options, "routeBackend", deribit);
         Helpers.addElementToObject(this.has, "fetchLeverage", !Boolean.TRUE.equals(deribit));

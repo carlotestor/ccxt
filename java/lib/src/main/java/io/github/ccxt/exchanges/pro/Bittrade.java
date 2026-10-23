@@ -149,7 +149,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         ticker.put("timestamp", timestamp);
         ticker.put("datetime", this.iso8601(timestamp));
         Object symbol = ticker.get("symbol");
-        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+        this.tickers.put(((String)symbol), ticker);
         client.resolve(ticker, ch);
         return message;
     }
@@ -242,7 +242,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, tradesCache);
+            this.trades.put(symbol, tradesCache);
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -334,7 +334,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         String symbol = (String) market.get("symbol");
         String interval = this.safeString(parts, 3);
         Object timeframe = this.findTimeframe(interval, (Object) null);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -443,7 +443,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= messages.size() ? null : messages.get(i))), orderbook);
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -608,7 +608,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Long limit = this.safeInteger(subscription, "limit");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("nonce", null);

@@ -260,7 +260,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String marketId = this.safeString(ticker, "instrument");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker((Map<String, Object>) (ticker), (Map<String, Object>) null);
-            Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
+            this.tickers.put(symbol, parsedTicker);
             Long timestamp = this.parse8601(datetime);
             parsedTicker.put("timestamp", timestamp);
             parsedTicker.put("datetime", this.iso8601(timestamp));
@@ -460,7 +460,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         orderbook.put("nonce", timestamp);
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, channel);
     }
 
@@ -1297,7 +1297,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open", (Object) null), this.safeNumber(message, "high", (Object) null), this.safeNumber(message, "low", (Object) null), this.safeNumber(message, "close", (Object) null), this.safeNumber(message, "volume", (Object) null)));
         Map<String, Object> symbolOhlcvs = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(this.ohlcvs, symbol, symbolOhlcvs);
+        this.ohlcvs.put(symbol, symbolOhlcvs);
         Object stored = this.safeValue(symbolOhlcvs, timeframe);
         if (java.util.Objects.equals(stored, null))
         {

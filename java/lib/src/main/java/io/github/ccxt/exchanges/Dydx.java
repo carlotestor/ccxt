@@ -780,7 +780,7 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
-            Object markets = Helpers.objectValues(data);
+            Object markets = new ArrayList<Object>(data.values());
             return this.parseMarkets(markets);
         });
 
@@ -3051,8 +3051,8 @@ public class Dydx extends DydxApi
     {
         super.setSandboxMode(enable);
         // rewrite testnet parameters
-        Helpers.addElementToObject(this.options, "chainName", "dydx-testnet-4");
-        Helpers.addElementToObject(this.options, "chainId", 11155111);
+        this.options.put("chainName", "dydx-testnet-4");
+        this.options.put("chainId", 11155111);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("feeDenom")), "CHAINTOKEN_DENOM", "adv4tnt");
     }
 }

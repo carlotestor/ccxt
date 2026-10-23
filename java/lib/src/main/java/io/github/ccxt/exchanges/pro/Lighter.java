@@ -231,7 +231,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         String type = this.safeString(message, "type", "");
@@ -373,7 +373,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((data == null || marketId == null ? null : data.get(marketId)), market);
-                Helpers.addElementToObject(this.tickers, symbol, ticker);
+                this.tickers.put(symbol, ticker);
                 client.resolve(ticker, this.getMessageHash("ticker", symbol, (String) null));
                 client.resolve(ticker, this.getMessageHash("ticker", (String) null, (String) null));
             }
@@ -383,7 +383,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) market.get("symbol");
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
+            this.tickers.put(symbol, ticker);
             client.resolve(ticker, this.getMessageHash("ticker", symbol, (String) null));
         }
     }
@@ -745,7 +745,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         Integer dataLength = ((List<?>)data).size();
         for (var i = 0; (dataLength != null && i < dataLength); i++)
@@ -1726,8 +1726,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
                     Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
-                    String subscriptionId = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "id");
-                    String subscription = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "subscription");
+                    String subscriptionId = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "id");
+                    String subscription = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "subscription");
                     if (java.util.Objects.equals(id, subscriptionId))
                     {
                         client.reject(e, subscriptionHash);
