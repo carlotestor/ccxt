@@ -11,6 +11,7 @@ import { isMainEntry } from "./transpile.js";
 import { nativeGetValue } from './hx10w2-R01.js';
 import { r07TypedLocals } from "./hx10w2-R07.js";
 import { hx10w2R08 } from './hx10w2-R08.js';
+import { r05FieldChainInserts } from './hx10w3-R05.js'; // hx10 R05
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import { r02NativeInserts } from './hx10w2-R02.js';
 import { hx10w2R03 } from './hx10w2-R03.js';
@@ -9032,6 +9033,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = r02NativeInserts(rustContent); // hx10 R02
                 rustContent = hx10w2R03(rustContent); // hx10w2 R03
                 rustContent = hx10w2R08(rustContent); // hx10 wave-2 R08
+                rustContent = r05FieldChainInserts(rustContent); // hx10 R05
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9771,6 +9773,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = r02NativeInserts(finalFile); // hx10 R02
         finalFile = hx10w2R03(finalFile); // hx10w2 R03
         finalFile = hx10w2R08(finalFile); // hx10 wave-2 R08
+        finalFile = r05FieldChainInserts(finalFile); // hx10 R05
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -11064,6 +11067,7 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.dropRedundantIsTrue(content);
         content = this.rewriteNativeErrorClassChecks(content);
         content = hx10w2R08(content); // hx10 wave-2 R08
+        content = r05FieldChainInserts(content); // hx10 R05
         return content;
     }
 
