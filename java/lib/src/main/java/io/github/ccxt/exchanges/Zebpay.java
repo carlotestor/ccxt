@@ -1315,49 +1315,47 @@ public class Zebpay extends ZebpayApi
             String upperCaseType = ((String)type).toUpperCase();
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
-            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
+            Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Object request = new HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "side", ((String)side).toUpperCase() );
             }};
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                var requestqueryVariable = this.orderRequest(symbol, type, amount, (Map<String, Object>) (request), price, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-                request = ((List<Object>) requestqueryVariable).get(0);
-                query = ((List<Object>) requestqueryVariable).get(1);
-                response = (this.privateSpotPostV2ExOrders(this.extend(request, query))).join();
+                List<Object> orderRequestResult = (List<Object>) this.orderRequest(symbol, type, amount, (Map<String, Object>) (request), price, query);
+                response = (this.privateSpotPostV2ExOrders(this.extend((orderRequestResult == null || 0 >= ((List<?>)orderRequestResult).size() ? null : ((List<?>)orderRequestResult).get(0)), (orderRequestResult == null || 1 >= ((List<?>)orderRequestResult).size() ? null : ((List<?>)orderRequestResult).get(1))))).join();
             } else
             {
                 String marginAsset = this.safeString(query, "marginAsset", "INR");
                 String formType = this.safeStringUpper(query, "formType", "ORDER_FORM");
-                ((Map<String, Object>)request).put("formType", formType);
-                ((Map<String, Object>)request).put("amount", this.parseToNumeric(this.amountToPrecision(market.get("id"), amount)));
-                ((Map<String, Object>)request).put("marginAsset", marginAsset);
+                request.put("formType", formType);
+                request.put("amount", this.parseToNumeric(this.amountToPrecision(market.get("id"), amount)));
+                request.put("marginAsset", marginAsset);
                 Boolean hasTP = !java.util.Objects.equals(takeProfitPrice, null);
                 Boolean hasSL = !java.util.Objects.equals(stopLossPrice, null);
                 if (Boolean.TRUE.equals(hasTP) || Boolean.TRUE.equals(hasSL))
                 {
                     if (Boolean.TRUE.equals(hasTP))
                     {
-                        ((Map<String, Object>)request).put("takeProfitPrice", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
+                        request.put("takeProfitPrice", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
                     }
                     if (Boolean.TRUE.equals(hasSL))
                     {
-                        ((Map<String, Object>)request).put("stopLossPrice", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
+                        request.put("stopLossPrice", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
                     }
                     response = (this.privateSwapPostV1TradeOrderAddTPSL(this.extend(request, query))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("type", upperCaseType);
+                    request.put("type", upperCaseType);
                     if (java.util.Objects.equals(type, "limit"))
                     {
                         if (java.util.Objects.equals(price, null))
                         {
                             throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for limit orders")) ;
                         }
-                        ((Map<String, Object>)request).put("price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
+                        request.put("price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
                     }
                     response = (this.privateSwapPostV1TradeOrder(this.extend(request, query))).join();
                 }

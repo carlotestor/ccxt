@@ -1231,7 +1231,7 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Object parameters)
+    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1939,7 +1939,7 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Object parameters)
+    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

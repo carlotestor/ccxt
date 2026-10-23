@@ -2386,13 +2386,21 @@ public class Kraken extends KrakenApi
                 price = this.safeString(parts, 5);
             }
         }
-        side = this.safeString(description, "type", side);
+        String descriptionSide = this.safeString(description, "type");
+        if (!java.util.Objects.equals(descriptionSide, null))
+        {
+            side = descriptionSide;
+        }
         rawType = this.safeString(description, "ordertype", rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, "pair", marketId);
         Object marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         String symbol = null;
         Long timestamp = this.safeTimestamp(orderOmitted, "opentm");
-        amount = this.safeString(orderOmitted, "vol", amount);
+        String orderAmount = this.safeString(orderOmitted, "vol");
+        if (!java.util.Objects.equals(orderAmount, null))
+        {
+            amount = orderAmount;
+        }
         String filled = this.safeString(orderOmitted, "vol_exec");
         Map<String, Object> fee = null;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -4388,14 +4396,15 @@ public class Kraken extends KrakenApi
             if (!(response instanceof String))
             {
                 String message = ((this.id + " ") + body);
-                if ((switch ((Object)(response)) { case List<?> j39v21 -> j39v21.contains("error"); case Map<?, ?> j39v20 -> j39v20.containsKey("error"); case null, default -> false; }))
+                List<Object> errors = (List<Object>) this.safeList(response, "error", (Object) null);
+                if (!java.util.Objects.equals(errors, null))
                 {
-                    Integer numErrors = (switch ((Object)(Helpers.GetValue(response, "error"))) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
+                    Integer numErrors = ((List<?>)errors).size();
                     if ((numErrors != null && numErrors > 0))
                     {
-                        for (var i = 0; i < (switch ((Object)(Helpers.GetValue(response, "error"))) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
+                        for (var i = 0; (numErrors != null && i < numErrors); i++)
                         {
-                            Object error = Helpers.GetValue(Helpers.GetValue(response, "error"), i);
+                            Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
                             this.throwExactlyMatchedException(this.exceptions.get("exact"), error, message);
                             this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, message);
                         }

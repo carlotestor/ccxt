@@ -1051,6 +1051,7 @@ public class Bullish extends BullishApi
                 }
             }
         }
+        Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
         mapLiteral1.put("symbol", symbol);
@@ -1069,8 +1070,8 @@ public class Bullish extends BullishApi
         mapLiteral1.put("contract", contract);
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
-        mapLiteral1.put("taker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker"));
-        mapLiteral1.put("maker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker"));
+        mapLiteral1.put("taker", tradingFees.get("taker"));
+        mapLiteral1.put("maker", tradingFees.get("maker"));
         mapLiteral1.put("contractSize", contractSize);
         mapLiteral1.put("expiry", this.parse8601(expiryDatetime));
         mapLiteral1.put("expiryDatetime", expiryDatetime);

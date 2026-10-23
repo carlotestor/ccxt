@@ -100,8 +100,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "crypto");
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -196,8 +196,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "crypto");
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -266,8 +266,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "crypto");
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -366,8 +366,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "crypto");
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -435,8 +435,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading");
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "trading");
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             String messageHash = "myTrades";
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -479,8 +479,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading");
-            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "trading");
+            (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -719,7 +719,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         return this.safeTrade(mapLiteral1, market);
     }
 
-    public CompletableFuture<Object> authenticate(Object url, Map<String, Object> parameters)
+    public CompletableFuture<Object> authenticate(String url, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -736,7 +736,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                     put( "key", Alpaca.this.apiKey );
                     put( "secret", Alpaca.this.secret );
                 }};
-                if (java.util.Objects.equals(url, this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading")))
+                if (java.util.Objects.equals(url, this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "trading")))
                 {
                     // this auth request is being deprecated in test environment
                     request = ((Object)new HashMap<String, Object>() {{

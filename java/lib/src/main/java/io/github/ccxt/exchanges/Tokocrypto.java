@@ -3230,7 +3230,7 @@ public class Tokocrypto extends TokocryptoApi
                 Long entryLimit = this.safeInteger(entry, 0);
                 if ((!java.util.Objects.equals(limit, null)) && (!java.util.Objects.equals(entryLimit, null)) && ((limit == null || (entryLimit != null && limit <= entryLimit))))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return (entry == null || 1 >= ((List<?>)entry).size() ? null : ((List<?>)entry).get(1));
                 }
             }
         }

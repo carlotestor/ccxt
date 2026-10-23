@@ -135,7 +135,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return newValue;
     }
 
-    public Object createPublicRequest(Object market, Object requestId, Object topicID, Object suffix, Boolean unWatch)
+    public Object createPublicRequest(Map<String, Object> market, Object requestId, Object topicID, Object suffix, Boolean unWatch)
     {
         String marketId = this.safeString(market, "symbol"); // spot markets use symbol with slash
         if (java.util.Objects.equals(this.safeString(market, "type"), "swap"))
@@ -158,14 +158,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return request;
     }
 
-    public CompletableFuture<Object> watchPublic(Object market, Object messageHash, Object topicID, Map<String, Object> parameters, Object suffix)
+    public CompletableFuture<Object> watchPublic(Map<String, Object> market, Object messageHash, Object topicID, Map<String, Object> parameters, Object suffix)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), Helpers.GetValue(market, "type"));
+            String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), market.get("type"));
             Long requestId = this.requestId();
-            Map<String, Object> request = (Map<String, Object>) this.createPublicRequest(market, requestId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), false);
+            Map<String, Object> request = (Map<String, Object>) this.createPublicRequest((Map<String, Object>) (market), requestId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), false);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "subHash", messageHash );
                 put( "id", requestId );
@@ -175,12 +175,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public CompletableFuture<Object> unWatchPublic(Object market, Object messageHash, Object topicID, Map<String, Object> parameters, Map<String, Object> subscription, Object suffix)
+    public CompletableFuture<Object> unWatchPublic(Map<String, Object> market, Object messageHash, Object topicID, Map<String, Object> parameters, Map<String, Object> subscription, Object suffix)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), Helpers.GetValue(market, "type"));
+            String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), market.get("type"));
             Long requestId = this.requestId();
             Client client = this.client(url);
             Map<String, Object> existingSubscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, (Object) null);
@@ -189,12 +189,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 throw new BadRequest(((this.id + " no subscription for ") + messageHash)) ;
             }
             Long subId = this.safeInteger(existingSubscription, "id");
-            Map<String, Object> request = (Map<String, Object>) this.createPublicRequest(market, subId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), true); // unsubscribe message uses the same id as the original subscribe message
+            Map<String, Object> request = (Map<String, Object>) this.createPublicRequest((Map<String, Object>) (market), subId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), true); // unsubscribe message uses the same id as the original subscribe message
             String unsubHash = ("unsubscribe::" + messageHash);
             Map<String, Object> subscriptionExtended = this.extend(subscription, new HashMap<String, Object>() {{
                 put( "subHash", messageHash );
                 put( "unsubHash", unsubHash );
-                put( "symbols", new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol"))) );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(market.get("symbol"))) );
                 put( "id", requestId );
             }});
             return (this.watch(url, unsubHash, this.deepExtend(request, parameters), unsubHash, subscriptionExtended)).join();
@@ -310,7 +310,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("ticker" + "::") + market.get("symbol"));
-            return (this.watchPublic(market, messageHash, "7", parameters, "")).join();
+            return (this.watchPublic((Map<String, Object>) (market), messageHash, "7", parameters, "")).join();
         }).thenApply(Ticker::new);
 
     }
@@ -338,7 +338,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "ticker" );
             }};
-            return (this.unWatchPublic(market, messageHash, "7", parameters, subscription, "")).join();
+            return (this.unWatchPublic((Map<String, Object>) (market), messageHash, "7", parameters, subscription, "")).join();
         });
 
     }
@@ -472,7 +472,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("trades" + "::") + market.get("symbol"));
-            List<Object> trades = (List<Object>) (this.watchPublic(market, messageHash, "2", parameters, "")).join();
+            List<Object> trades = (List<Object>) (this.watchPublic((Map<String, Object>) (market), messageHash, "2", parameters, "")).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -506,7 +506,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "trades" );
             }};
-            return (this.unWatchPublic(market, messageHash, "2", parameters, subscription, "")).join();
+            return (this.unWatchPublic((Map<String, Object>) (market), messageHash, "2", parameters, subscription, "")).join();
         });
 
     }
@@ -665,7 +665,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String interval = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = (((("ohlcv" + "::") + symbolValue) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String suffix = ("_" + interval);
-            List<Object> ohlcv = (List<Object>) (this.watchPublic(market, messageHash, "11", parameters, suffix)).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic((Map<String, Object>) (market), messageHash, "11", parameters, suffix)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -705,7 +705,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "topic", "ohlcv" );
                 put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
             }};
-            return (this.unWatchPublic(market, messageHash, "11", parameters, subscription, suffix)).join();
+            return (this.unWatchPublic((Map<String, Object>) (market), messageHash, "11", parameters, subscription, suffix)).join();
         });
 
     }
@@ -805,7 +805,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "watchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
             Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) suffixparamsValueVariable).get(1);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", paramsValue, suffix)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic((Map<String, Object>) (market), messageHash, "25", paramsValue, suffix)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -838,7 +838,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "orderbook" );
             }};
-            return (this.unWatchPublic(market, messageHash, "25", paramsValue, subscription, suffix)).join();
+            return (this.unWatchPublic((Map<String, Object>) (market), messageHash, "25", paramsValue, subscription, suffix)).join();
         });
 
     }

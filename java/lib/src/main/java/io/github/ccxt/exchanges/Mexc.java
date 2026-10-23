@@ -2853,7 +2853,7 @@ public class Mexc extends MexcApi
             Map<String, Object> query = marginModequeryVariable.second();
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return (this.createSpotOrder(market, (String) (type), side, amount, price, marginMode, query)).join();
+                return (this.createSpotOrder(market, (String) (type), (String) (side), amount, price, marginMode, query)).join();
             } else
             {
                 return (this.createSwapOrder(market, type, (String) (side), amount, price, marginMode, query)).join();
@@ -2862,16 +2862,16 @@ public class Mexc extends MexcApi
 
     }
 
-    public Object createSpotOrderRequest(Object market, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public Map<String, Object> createSpotOrderRequest(Object market, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
-        Object symbol = Helpers.GetValue(market, "symbol");
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if ((java.util.Objects.equals(type, null)) || (java.util.Objects.equals(side, null)))
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires a type and a side argument")) ;
         }
         String orderSide = ((String)side).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("symbol", Helpers.GetValue(market, "id"));
+        request.put("symbol", ((Map<String, Object>)market).get("id"));
         request.put("side", orderSide);
         request.put("type", ((String)type).toUpperCase());
         if (java.util.Objects.equals(type, "market"))
@@ -2934,7 +2934,7 @@ public class Mexc extends MexcApi
                 request.put("type", "FILL_OR_KILL");
             }
         }
-        return this.extend(request, paramsWithoutTif);
+        return (Map<String, Object>) (this.extend(request, paramsWithoutTif));
     }
 
     /**
@@ -2953,7 +2953,7 @@ public class Mexc extends MexcApi
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object market, String type, Object side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSpotOrder(Object market, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2964,7 +2964,7 @@ public class Mexc extends MexcApi
             }
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, "test");
-            Map<String, Object> request = (Map<String, Object>) this.createSpotOrderRequest(market, (String) (type), (String) (side), amount, price, marginMode, paramsOmitted);
+            Map<String, Object> request = this.createSpotOrderRequest(market, (String) (type), (String) (side), amount, price, marginMode, paramsOmitted);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(test))
             {
@@ -3043,7 +3043,7 @@ public class Mexc extends MexcApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbol = Helpers.GetValue(market, "symbol");
+            String symbol = (String) ((Map<String, Object>)market).get("symbol");
             Long openType = this.safeInteger(parameters, "openType", 2); // defaulting to cross margin
             if (!java.util.Objects.equals(marginMode, null))
             {
@@ -3085,7 +3085,7 @@ public class Mexc extends MexcApi
                 volString = "0";
             }
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("symbol", Helpers.GetValue(market, "id"));
+            request.put("symbol", ((Map<String, Object>)market).get("id"));
             request.put("vol", Helpers.parseFloat(volString));
             request.put("type", orderType);
             request.put("openType", openType);
@@ -3231,7 +3231,7 @@ public class Mexc extends MexcApi
                 Pair<String, Map<String, Object>> marginModeparamsLoopVariable = this.handleMarginModeAndParams("createOrder", paramsLoop, (String) null);
                 marginMode = marginModeparamsLoopVariable.first();
                 paramsLoop = marginModeparamsLoopVariable.second();
-                Map<String, Object> orderRequest = (Map<String, Object>) this.createSpotOrderRequest(market, type, side, amount, price, java.util.Objects.toString(marginMode, null), orderParams);
+                Map<String, Object> orderRequest = this.createSpotOrderRequest(market, type, side, amount, price, java.util.Objects.toString(marginMode, null), orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6999,7 +6999,7 @@ public class Mexc extends MexcApi
 }});
             }
         }
-        return this.assignDefaultDepositWithdrawFees(result, (Map<String, Object>) null);
+        return this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), (Map<String, Object>) null);
     }
 
     /**

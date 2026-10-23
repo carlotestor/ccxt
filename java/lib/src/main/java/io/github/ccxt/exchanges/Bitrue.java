@@ -999,8 +999,8 @@ public class Bitrue extends BitrueApi
             }
             Object promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> spotMarkets = (List<Object>) this.safeList(this.safeDict(promises, 0, (Object) null), "symbols", new ArrayList<Object>(Arrays.asList()));
-            Object futureMarkets = this.safeValue(promises, 1);
-            Object deliveryMarkets = this.safeValue(promises, 2);
+            List<Object> futureMarkets = (List<Object>) this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> deliveryMarkets = (List<Object>) this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = spotMarkets;
             markets = (List<Object>) this.arrayConcat(markets, futureMarkets);
             markets = (List<Object>) this.arrayConcat(markets, deliveryMarkets);
@@ -2335,7 +2335,7 @@ public class Bitrue extends BitrueApi
             {
                 request.put("symbol", market.get("id"));
                 request.put("quantity", this.amountToPrecision(symbol, amount));
-                Object validOrderTypes = this.safeValue(market.get("info"), "orderTypes");
+                List<Object> validOrderTypes = (List<Object>) this.safeList(market.get("info"), "orderTypes", new ArrayList<Object>(Arrays.asList()));
                 if (!this.inArray(uppercaseType, validOrderTypes))
                 {
                     throw new InvalidOrder(((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;

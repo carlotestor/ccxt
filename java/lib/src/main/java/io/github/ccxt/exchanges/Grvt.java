@@ -2201,12 +2201,12 @@ public class Grvt extends GrvtApi
     {
         List<Object> matchedResults = new ArrayList<Object>(Arrays.asList());
         List<Object> nonMatchedResults = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(transfers)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)transfers).size(); i++)
         {
-            Object transfer = Helpers.GetValue(transfers, i);
+            Object transfer = (transfers == null || i < 0 || i >= ((List<?>)transfers).size() ? null : ((List<?>)transfers).get(i));
             if ((java.util.Objects.requireNonNullElse(onlyMainAccount, true) && java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") && java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0")) || (!java.util.Objects.requireNonNullElse(onlyMainAccount, true) && (!java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") || !java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0"))))
             {
-                String metadata = this.safeString(Helpers.GetValue(transfer, "info"), "transfer_metadata");
+                String metadata = this.safeString(((Map<String, Object>)transfer).get("info"), "transfer_metadata");
                 Object parsedMetadata = this.parseJson(metadata);
                 String direction = this.safeString(parsedMetadata, "direction");
                 if (java.util.Objects.equals(direction, transferType))
@@ -2261,17 +2261,17 @@ public class Grvt extends GrvtApi
                 toSubAccount = (((java.util.Objects.equals(toAccount, "trading")))) ? tradingAccountId : fundingAccountId;
                 paramsFundingAccountId = paramsFunding;
             }
-            Object request = (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("from_account_id", this.safeString(paramsFundingAccountId, "from_account_id", defaultFromAccountId));
-                j39v4.put("from_sub_account_id", this.safeString(paramsFundingAccountId, "from_sub_account_id", fromSubAccount));
-                j39v4.put("to_account_id", this.safeString(paramsFundingAccountId, "to_account_id", defaultFromAccountId));
-                j39v4.put("to_sub_account_id", this.safeString(paramsFundingAccountId, "to_sub_account_id", toSubAccount));
-                j39v4.put("currency", currency.get("id"));
-                j39v4.put("num_tokens", this.currencyToPrecision((String) (code), amount, (String) null));
-                j39v4.put("signature", this.defaultSignature());
-                j39v4.put("transfer_type", "STANDARD");
-                j39v4.put("transfer_metadata", null);
-                yield j39v4; } });
+            Object request = (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("from_account_id", this.safeString(paramsFundingAccountId, "from_account_id", defaultFromAccountId));
+                j39v1.put("from_sub_account_id", this.safeString(paramsFundingAccountId, "from_sub_account_id", fromSubAccount));
+                j39v1.put("to_account_id", this.safeString(paramsFundingAccountId, "to_account_id", defaultFromAccountId));
+                j39v1.put("to_sub_account_id", this.safeString(paramsFundingAccountId, "to_sub_account_id", toSubAccount));
+                j39v1.put("currency", currency.get("id"));
+                j39v1.put("num_tokens", this.currencyToPrecision((String) (code), amount, (String) null));
+                j39v1.put("signature", this.defaultSignature());
+                j39v1.put("transfer_type", "STANDARD");
+                j39v1.put("transfer_metadata", null);
+                yield j39v1; } });
             request = this.createSignedRequest((Map<String, Object>) (request), "EIP712_TRANSFER_TYPE", currency, (String) null);
             Map<String, Object> response = null;
             try
@@ -2572,7 +2572,7 @@ public class Grvt extends GrvtApi
             }
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted3, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
             // Trigger & SL & TP
-            List<Object> triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, paramsOmitted2, true);
+            List<Object> triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, (Map<String, Object>) (paramsOmitted2), true);
             String triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(0);
             var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(1);
             var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(2);
@@ -2621,14 +2621,14 @@ public class Grvt extends GrvtApi
                 }
                 // trigger by
                 String triggerPriceType = this.safeStringUpper(paramsTriggerPrices, "triggerPriceType", "LAST");
-                Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-                    j39v6.put("trigger_type", selectedType);
-                    j39v6.put("tpsl", (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-            j39v5.put("trigger_by", triggerPriceType);
-            j39v5.put("trigger_price", selectedPrice);
-            j39v5.put("close_position", this.safeBool(paramsTriggerPrices, "closePosition", false));
-            yield j39v5; } }));
-                    yield j39v6; } }));
+                Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                    j39v3.put("trigger_type", selectedType);
+                    j39v3.put("tpsl", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("trigger_by", triggerPriceType);
+            j39v2.put("trigger_price", selectedPrice);
+            j39v2.put("close_position", this.safeBool(paramsTriggerPrices, "closePosition", false));
+            yield j39v2; } }));
+                    yield j39v3; } }));
             }
             Object paramsTrigger = paramsTriggerPrices;
             if (Boolean.TRUE.equals(isTriggerOrder))
@@ -3972,7 +3972,7 @@ public class Grvt extends GrvtApi
         String queryString = "";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 queryString = this.urlencode(query);
                 url = (url + ("?" + queryString));

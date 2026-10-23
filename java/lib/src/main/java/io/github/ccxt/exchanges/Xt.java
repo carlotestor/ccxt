@@ -2247,11 +2247,12 @@ public class Xt extends XtApi
             //         }
             //     }
             //
-            Object ticker = this.safeValue(response, "result");
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return this.parseTicker(Helpers.GetValue(ticker, 0), market);
+                List<Object> tickers = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+                return this.parseTicker((tickers == null || 0 >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(0)), market);
             }
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 

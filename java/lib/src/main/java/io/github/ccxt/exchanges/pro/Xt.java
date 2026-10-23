@@ -111,7 +111,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tradeType = "contract";
             }
-            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType);
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = this.safeString(apiUrls, tradeType);
             if (!Boolean.TRUE.equals(isContract))
             {
                 url = (url + "/private");
@@ -295,7 +296,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/") + tail);
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = ((this.safeString(apiUrls, tradeType) + "/") + tail);
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
@@ -361,7 +363,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tail = ((Boolean.TRUE.equals(privateAccess))) ? "user" : "market";
             }
-            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/") + tail);
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = ((this.safeString(apiUrls, tradeType) + "/") + tail);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", id );
@@ -833,7 +836,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "contract") + "/") + "user");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = ((this.safeString(apiUrls, "contract") + "/") + "user");
             Client client = this.client(url);
             this.setPositionsCache(client);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);

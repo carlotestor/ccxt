@@ -5325,13 +5325,14 @@ public class Digifinex extends DigifinexApi
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
-                Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
-                if (java.util.Objects.equals(depositWithdrawFee, null))
+                if (java.util.Objects.equals(this.safeDict(depositWithdrawFees, code, (Object) null), null))
                 {
-                    depositWithdrawFees.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
-                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info", new ArrayList<Object>(Arrays.asList()));
+                    Map<String, Object> feeStructure = (Map<String, Object>) this.depositWithdrawFee(new HashMap<String, Object>() {{}});
+                    feeStructure.put("info", new ArrayList<Object>(Arrays.asList()));
+                    depositWithdrawFees.put(code, feeStructure);
                 }
-                Object depositWithdrawInfo = Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info");
+                Object depositWithdrawFee = (depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code));
+                Object depositWithdrawInfo = Helpers.GetValue(depositWithdrawFee, "info");
                 ((List<Object>)depositWithdrawInfo).add(entry);
                 String networkId = this.safeString(entry, "chain");
                 Object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
@@ -5347,15 +5348,15 @@ public class Digifinex extends DigifinexApi
                     String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks"), networkCode, new HashMap<String, Object>() {{
+                        Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
                     }
                 } else
                 {
-                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "withdraw", withdrawResult);
-                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "deposit", depositResult);
+                    Helpers.addElementToObject(depositWithdrawFee, "withdraw", withdrawResult);
+                    Helpers.addElementToObject(depositWithdrawFee, "deposit", depositResult);
                 }
             }
         }
@@ -5364,7 +5365,7 @@ public class Digifinex extends DigifinexApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = this.currency(code);
-            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
+            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((Map<String, Object>) ((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code))), currency));
         }
         return depositWithdrawFees;
     }

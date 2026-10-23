@@ -820,7 +820,7 @@ public class Lighter extends LighterApi
         String hashMessage = this.hashMessage(message);
         String signature = this.signHash(hashMessage, privateKey);
         Object decTxInfo = this.parseJson(txInfo);
-        Helpers.addElementToObject(decTxInfo, "L1Sig", signature);
+        ((Map<String, Object>)decTxInfo).put("L1Sig", signature);
         return this.json(decTxInfo);
     }
 
@@ -1022,7 +1022,7 @@ public class Lighter extends LighterApi
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */
         if (java.util.Objects.equals(price, null))
         {
@@ -1154,11 +1154,12 @@ public class Lighter extends LighterApi
             request.put("integrator_maker_fee", this.options.get("integratorMakerFee"));
         }
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
-        ((List<Object>)orders).add(this.extend(request, paramsRequest));
+        Map<String, Object> firstOrder = this.extend(request, paramsRequest);
+        ((List<Object>)orders).add(firstOrder);
         if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
         {
             // group order
-            Helpers.addElementToObject((orders == null || 0 >= orders.size() ? null : orders.get(0)), "client_order_index", 0); // client order index should be 0
+            firstOrder.put("client_order_index", 0); // client order index should be 0
             String triggerOrderSide = "";
             if (java.util.Objects.equals(orderSide, "BUY"))
             {
@@ -1180,7 +1181,7 @@ public class Lighter extends LighterApi
     put( "stopLossPrice", stopLossOrderTriggerPrice );
     put( "reduceOnly", true );
 }})), 0);
-                Helpers.addElementToObject(orderObj, "client_order_index", 0);
+                ((Map<String, Object>)orderObj).put("client_order_index", 0);
                 ((List<Object>)orders).add(orderObj);
             }
             if (!java.util.Objects.equals(takeProfit, null))
@@ -1189,7 +1190,7 @@ public class Lighter extends LighterApi
     put( "takeProfitPrice", takeProfitOrderTriggerPrice );
     put( "reduceOnly", true );
 }})), 0);
-                Helpers.addElementToObject(orderObj, "client_order_index", 0);
+                ((Map<String, Object>)orderObj).put("client_order_index", 0);
                 ((List<Object>)orders).add(orderObj);
             }
         }

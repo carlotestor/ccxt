@@ -1972,7 +1972,7 @@ public class Luno extends LunoApi
             Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(response);
             Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(response, "fee", (Object) null));
             Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
-            return this.assignDefaultDepositWithdrawFees(result, currency);
+            return this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }

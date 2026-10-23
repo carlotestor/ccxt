@@ -6893,11 +6893,11 @@ public class Bingx extends BingxApi
         // const sortedParams = this.keysort (params);
         Object copied = this.clone(parameters);
         List<String> rawKeys = new ArrayList<String>(parameters.keySet());
-        List<String> keys = this.sort(rawKeys);
-        for (var i = 0; i < keys.size(); i++)
+        Object keys = this.sort(rawKeys);
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
+            Object key = (keys == null || i < 0 || i >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(i));
+            Object value = (parameters == null || key == null ? null : parameters.get(key));
             if ((value instanceof List))
             {
                 String arrStr = "[";
@@ -7506,17 +7506,17 @@ public class Bingx extends BingxApi
         }};
     }
 
-    public Object customEncode(Map<String, Object> parameters)
+    public String customEncode(Map<String, Object> parameters)
     {
         // const sortedParams = this.keysort (params);
         List<String> rawKeys = new ArrayList<String>(parameters.keySet());
-        List<String> keys = this.sort(rawKeys);
+        Object keys = this.sort(rawKeys);
         String adjustedValue = null;
-        Object result = null;
-        for (var i = 0; i < keys.size(); i++)
+        String result = null;
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
+            Object key = (keys == null || i < 0 || i >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(i));
+            Object value = (parameters == null || key == null ? null : parameters.get(key));
             if ((value instanceof List))
             {
                 String arrStr = null;
@@ -7549,10 +7549,10 @@ public class Bingx extends BingxApi
             }
             if ((i == 0))
             {
-                result = ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(((Object) (switch ((Object) (key)) { case null -> (Object) ("null" + ("=")); case Double hx4J40v1 -> (Object) (hx4J40v1 + 0.0); case Object hx4J40v1 -> (Object) (String.valueOf(hx4J40v1) + ("=")); })), value);
+                result = ((key + "=") + value);
             } else
             {
-                result = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(result, ((("&" + key) + "=") + value));
+                result = (result + ((("&" + key) + "=") + value));
             }
         }
         return result;

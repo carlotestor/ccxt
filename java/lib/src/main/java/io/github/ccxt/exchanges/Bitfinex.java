@@ -1202,7 +1202,7 @@ public class Bitfinex extends BitfinexApi
         List<Object> pool = (List<Object>) this.safeList(indexed.get("pool"), id, new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(pool, 1);
         Map<String, Object> explorer = (Map<String, Object>) this.safeDict(indexed, "explorer", new HashMap<String, Object>() {{}});
-        Boolean isCryptoCoin = (!java.util.Objects.equals(rawType, null)) || ((id != null && explorer.containsKey(id))); // "hacky" solution
+        Boolean isCryptoCoin = (!java.util.Objects.equals(rawType, null)) || (explorer.containsKey(id)); // "hacky" solution
         String type = ((Boolean.TRUE.equals(isCryptoCoin))) ? "crypto" : null;
         List<Object> feeValues = (List<Object>) this.safeList(indexed.get("fees"), id, new ArrayList<Object>(Arrays.asList()));
         List<Object> fees = (List<Object>) this.safeList(feeValues, 1, new ArrayList<Object>(Arrays.asList()));
@@ -2427,9 +2427,9 @@ public class Bitfinex extends BitfinexApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Object individualOrder = Helpers.GetValue(entry, 4);
+                Object individualOrder = (entry == null || 4 >= ((List<?>)entry).size() ? null : ((List<?>)entry).get(4));
                 ((List<Object>)results).add(new HashMap<String, Object>() {{
-                    put( "result", Helpers.GetValue(individualOrder, 0) );
+                    put( "result", (individualOrder == null || 0 >= ((List<?>)individualOrder).size() ? null : ((List<?>)individualOrder).get(0)) );
                 }});
             }
             return this.parseOrders(results, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});

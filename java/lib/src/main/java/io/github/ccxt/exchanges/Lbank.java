@@ -3603,7 +3603,7 @@ public class Lbank extends LbankApi
         }
         if (java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(this.keysort(query))));
             }
@@ -3685,7 +3685,7 @@ public class Lbank extends LbankApi
 
     public String convertSecretToPem(Object secret)
     {
-        Long secretLength = (((switch ((Object)(secret)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; })) - 0L);
+        Long secretLength = (((switch ((Object)(secret)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; })) - 0L);
         Long fullLines = this.parseToInt((((double) secretLength) / ((double) 64)));
         String pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; ((fullLines != null && i <= fullLines)); i++)

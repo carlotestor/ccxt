@@ -816,7 +816,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String marketId = this.safeString2(arg, "instId", "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) market.get("symbol");
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        Map<String, Object> symbolOhlcvs = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+        Helpers.addElementToObject(this.ohlcvs, symbol, symbolOhlcvs);
         String channel = this.safeString2(arg, "channel", "topic", "");
         String interval = this.safeString(arg, "interval");
         Boolean isUta = null;
@@ -834,18 +835,18 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             return;
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        Object stored = this.safeValue(symbolOhlcvs, timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            Helpers.addElementToObject(symbolOhlcvs, timeframe, stored);
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             List<Object> parsed = (List<Object>) this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
-            stored.append(parsed);
+            ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
         }
         String messageHash = null;
         if (Boolean.TRUE.equals(isUta))
@@ -3256,15 +3257,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 String code = this.safeString(message, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "exact"), code, feedback);
+                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("exact"), code, feedback);
                 String msg = this.safeString(message, "msg", "");
-                this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "broad"), msg, feedback);
+                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("broad"), msg, feedback);
                 throw new ExchangeError(feedback) ;
             }
             return false;
         } catch(Exception e)
         {
-            if ((e instanceof AuthenticationError))
+            if (Helpers.isInstance(e, AuthenticationError.class))
             {
                 String messageHash = "authenticated";
                 client.reject(e, messageHash);

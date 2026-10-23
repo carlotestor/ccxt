@@ -224,11 +224,11 @@ public class Binance extends BinanceApi
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
                 for (var ei = 0; (eventsLength != null && ei < eventsLength); ei++)
                 {
-                    Object eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
+                    List<Object> eventMarkets = (List<Object>) this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList()));
                     Integer eventMarketsLength = ((List<?>)eventMarkets).size();
                     for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                     {
-                        ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
+                        ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
                     }
                 }
                 return queryMarkets;
@@ -243,11 +243,11 @@ public class Binance extends BinanceApi
             {
                 Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)parsedEvents).add(parsedEvent);
-                Object eventMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
+                List<Object> eventMarkets = (List<Object>) this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer eventMarketsLength = ((List<?>)eventMarkets).size();
                 for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                 {
-                    ((List<Object>)flatMarkets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
+                    ((List<Object>)flatMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
                 }
             }
             this.setEvents(parsedEvents);
@@ -322,7 +322,7 @@ public class Binance extends BinanceApi
                 //         "hasMore": true
                 //     }
                 //
-                List<Object> pageTopics = (List<Object>)(this.safeList(response, "marketTopics", new ArrayList<Object>(Arrays.asList())));
+                List<Object> pageTopics = (List<Object>) this.safeList(response, "marketTopics", new ArrayList<Object>(Arrays.asList()));
                 Integer pageTopicsLength = ((List<?>)pageTopics).size();
                 for (var i = 0; (pageTopicsLength != null && i < pageTopicsLength); i++)
                 {
@@ -349,7 +349,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    public CompletableFuture<Object> fetchRawTopicDetail(Object topicId, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchRawTopicDetail(Object topicId, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -358,7 +358,7 @@ public class Binance extends BinanceApi
                 put( "marketTopicId", topicId );
             }};
             return (this.sapiPrivateGetMarketDetail(this.extend(request, parameters))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -380,13 +380,13 @@ public class Binance extends BinanceApi
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
                 Object rawTopic = (rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i));
-                List<Object> rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
+                List<Object> rawMarkets = (List<Object>) this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer rawMarketsLength = ((List<?>)rawMarkets).size();
                 Boolean hasOutcomes = false;
                 if ((rawMarketsLength != null && rawMarketsLength > 0))
                 {
                     Map<String, Object> firstMarket = (Map<String, Object>) this.safeDict(rawMarkets, 0, new HashMap<String, Object>() {{}});
-                    List<Object> firstOutcomes = (List<Object>)(this.safeList(firstMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
+                    List<Object> firstOutcomes = (List<Object>) this.safeList(firstMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
                     Integer firstOutcomesLength = ((List<?>)firstOutcomes).size();
                     hasOutcomes = ((firstOutcomesLength != null && firstOutcomesLength > 0));
                 }
@@ -398,7 +398,7 @@ public class Binance extends BinanceApi
                     String topicId = this.safeString(rawTopic, "marketTopicId");
                     if (!java.util.Objects.equals(topicId, null))
                     {
-                        Object detail = (this.fetchRawTopicDetail(topicId, new HashMap<String, Object>() {{}})).join();
+                        Map<String, Object> detail = (this.fetchRawTopicDetail(topicId, new HashMap<String, Object>() {{}})).join();
                         ((List<Object>)result).add(detail);
                     }
                 }
@@ -474,7 +474,7 @@ public class Binance extends BinanceApi
                 rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
             } else if (!java.util.Objects.equals(eventId, null))
             {
-                Object detail = (this.fetchRawTopicDetail(eventId, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+                Map<String, Object> detail = (this.fetchRawTopicDetail(eventId, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
                 rawTopics = new ArrayList<Object>(Arrays.asList(detail));
             } else
             {
@@ -517,7 +517,7 @@ public class Binance extends BinanceApi
             {
                 Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)result).add(parsedEvent);
-                List<Object> parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
+                List<Object> parsedMarkets = (List<Object>) this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
                 for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
@@ -666,7 +666,7 @@ public class Binance extends BinanceApi
         //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
-        List<Object> rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
+        List<Object> rawMarkets = (List<Object>) this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         Boolean anyActive = false;
         Integer rawMarketsLength = ((List<?>)rawMarkets).size();
@@ -1897,7 +1897,7 @@ public class Binance extends BinanceApi
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    public CompletableFuture<Object> fetchQuote(Map<String, Object> request, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchQuote(Map<String, Object> request, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1933,7 +1933,7 @@ public class Binance extends BinanceApi
             // }
             //
             return response;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -2053,7 +2053,7 @@ public class Binance extends BinanceApi
                 j39v3.put("side", sideUpper);
                 j39v3.put("amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000"));
                 yield j39v3; } }));
-            Object quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), paramsOmitted)).join();
+            Map<String, Object> quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), paramsOmitted)).join();
             String quoteId = this.safeString(quote, "quoteId");
             Map<String, Object> orderRequest = this.extend(commonRequest, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                 j39v2.put("walletId", Helpers.GetValue(wallet, "walletId"));

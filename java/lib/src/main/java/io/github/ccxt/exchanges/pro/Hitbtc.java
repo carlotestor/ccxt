@@ -119,7 +119,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "private");
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
@@ -170,7 +170,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Boolean isBatch = ((String)name).indexOf("batch") >= 0;
             Boolean resolvedPerSymbol = !Boolean.TRUE.equals(isBatch) || (java.util.Objects.equals(messageHashPrefix, "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-            String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "public");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null) && Boolean.TRUE.equals(resolvedPerSymbol))
             {
@@ -192,7 +192,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, subscription)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, subscription)).join();
         });
 
     }
@@ -214,7 +214,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate()).join();
-            String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "private");
             List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_subscribe"))));
             String messageHash = this.safeString(splitName, 0, "");
             if (!java.util.Objects.equals(symbol, null))
@@ -251,7 +251,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate()).join();
-            String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "private");
             String messageHash = String.valueOf(this.incrementingNonce());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );

@@ -702,7 +702,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public CompletableFuture<Object> fetchTradingLimitsById(String id, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradingLimitsById(String id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -728,11 +728,11 @@ public class Bittrade extends BittradeApi
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
             return this.parseTradingLimits((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})), (String) null, new HashMap<String, Object>() {{}});
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
-    public Object parseTradingLimits(Map<String, Object> limits, String symbol, Map<String, Object> parameters)
+    public Map<String, Object> parseTradingLimits(Map<String, Object> limits, String symbol, Map<String, Object> parameters)
     {
         //
         //   {                                  symbol: "aidocbtc",

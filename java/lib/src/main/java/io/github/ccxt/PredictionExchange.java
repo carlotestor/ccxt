@@ -1759,20 +1759,22 @@ public Object describe()
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         String orderType = this.safeString(outcomeOrder, "type");
         String timeInForce = this.safeString(outcomeOrder, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(outcomeOrder, "postOnly", (Object) null);
+        // the venue flag and the derived one are each written once, so neither local widens
+        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", (Object) null);
+        Boolean derivedPostOnly = null;
         if (java.util.Objects.equals(timeInForce, null))
         {
             if (java.util.Objects.equals(orderType, "market"))
             {
                 timeInForce = "IOC";
             }
-            if (java.util.Objects.equals(postOnly, true))
+            if (java.util.Objects.equals(postOnlyValue, true))
             {
                 timeInForce = "PO";
             }
-        } else if (java.util.Objects.equals(postOnly, null))
+        } else if (java.util.Objects.equals(postOnlyValue, null))
         {
-            postOnly = (java.util.Objects.equals(timeInForce, "PO"));
+            derivedPostOnly = (java.util.Objects.equals(timeInForce, "PO"));
         }
         Long timestamp = this.safeInteger(outcomeOrder, "timestamp");
         String datetime = this.safeString(outcomeOrder, "datetime");
@@ -1799,7 +1801,7 @@ public Object describe()
         result.put("cost", this.parseNumber(cost));
         result.put("fee", fee);
         result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", (Object) null));
-        result.put("postOnly", postOnly);
+        result.put("postOnly", (((!java.util.Objects.equals(postOnlyValue, null)))) ? postOnlyValue : derivedPostOnly);
         result.put("trades", trades);
         result.put("outcome", this.safeString(outcomeOrder, "outcome"));
         result.put("outcomeId", this.safeString(outcomeOrder, "outcomeId"));

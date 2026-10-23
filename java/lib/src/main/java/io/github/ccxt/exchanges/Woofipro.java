@@ -2362,7 +2362,8 @@ public class Woofipro extends WoofiproApi
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         String algoType = this.safeString(parameters, "algoType");
-        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+        Object paramsChildOrders = this.safeValue(parameters, "childOrders");
+        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(paramsChildOrders, null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
         Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -2484,7 +2485,8 @@ public class Woofipro extends WoofiproApi
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
-            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeList(parameters, "childOrders", (Object) null), null));
+            List<Object> paramsChildOrders = (List<Object>) this.safeList(parameters, "childOrders", (Object) null);
+            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(paramsChildOrders, null));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2533,7 +2535,8 @@ public class Woofipro extends WoofiproApi
                 String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
                 Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(orderParams, "stopLoss", (Object) null);
                 Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(orderParams, "takeProfit", (Object) null);
-                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeList(orderParams, "childOrders", (Object) null), null));
+                List<Object> paramsChildOrders = (List<Object>) this.safeList(orderParams, "childOrders", (Object) null);
+                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(paramsChildOrders, null));
                 if (Boolean.TRUE.equals(isConditional))
                 {
                     throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
@@ -2605,7 +2608,8 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Object paramsChildOrders = this.safeValue(parameters, "childOrders");
+            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(paramsChildOrders, null));
             String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
             String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
             if (!java.util.Objects.equals(price, null))

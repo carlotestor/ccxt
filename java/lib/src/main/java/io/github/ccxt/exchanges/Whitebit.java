@@ -1316,7 +1316,7 @@ public class Whitebit extends WhitebitApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = this.currency(code);
-            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
+            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((Map<String, Object>) ((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code))), currency));
         }
         return depositWithdrawFees;
     }
@@ -1612,14 +1612,16 @@ public class Whitebit extends WhitebitApi
                 }
                 // Build comprehensive funding limits
                 Map<String, Object> currencyLimits = (Map<String, Object>) this.safeDict(currency, "limits", new HashMap<String, Object>() {{}});
+                Map<String, Object> depositLimits = (Map<String, Object>) this.safeDict(currencyLimits, "deposit", new HashMap<String, Object>() {{}});
+                Map<String, Object> withdrawLimits = (Map<String, Object>) this.safeDict(currencyLimits, "withdraw", new HashMap<String, Object>() {{}});
                 Map<String, Object> limits = new HashMap<String, Object>() {{
                     put( "deposit", new HashMap<String, Object>() {{
-                        put( "min", Helpers.GetValue(currencyLimits.get("deposit"), "min") );
-                        put( "max", Helpers.GetValue(currencyLimits.get("deposit"), "max") );
+                        put( "min", depositLimits.get("min") );
+                        put( "max", depositLimits.get("max") );
                     }} );
                     put( "withdraw", new HashMap<String, Object>() {{
-                        put( "min", Helpers.GetValue(currencyLimits.get("withdraw"), "min") );
-                        put( "max", Helpers.GetValue(currencyLimits.get("withdraw"), "max") );
+                        put( "min", withdrawLimits.get("min") );
+                        put( "max", withdrawLimits.get("max") );
                     }} );
                 }};
                 // Add fee information if available

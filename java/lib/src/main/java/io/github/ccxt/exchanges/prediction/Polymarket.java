@@ -711,7 +711,7 @@ public class Polymarket extends PolymarketApi
                 }};
                 firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
                 Map<String, Object> first = (this.gammaPublicGetPublicSearch(firstRequest)).join();
-                List<Object> firstEvents = (List<Object>)(this.safeList(first, "events", new ArrayList<Object>(Arrays.asList())));
+                List<Object> firstEvents = (List<Object>) this.safeList(first, "events", new ArrayList<Object>(Arrays.asList()));
                 Integer firstEventsLength = ((List<?>)firstEvents).size();
                 Map<String, Object> pagination = (Map<String, Object>) this.safeDict(first, "pagination", new HashMap<String, Object>() {{}});
                 Long totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
@@ -755,7 +755,7 @@ public class Polymarket extends PolymarketApi
                 }
                 for (var ri = 0; ri < ((List<?>)restResponses).size(); ri++)
                 {
-                    List<Object> pageEvents = (List<Object>)(this.safeList((restResponses == null || ri < 0 || ri >= ((List<?>)restResponses).size() ? null : ((List<?>)restResponses).get(ri)), "events", new ArrayList<Object>(Arrays.asList())));
+                    List<Object> pageEvents = (List<Object>) this.safeList((restResponses == null || ri < 0 || ri >= ((List<?>)restResponses).size() ? null : ((List<?>)restResponses).get(ri)), "events", new ArrayList<Object>(Arrays.asList()));
                     for (var ei = 0; ei < ((List<?>)pageEvents).size(); ei++)
                     {
                         ((List<Object>)allEvents).add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
@@ -952,7 +952,7 @@ public class Polymarket extends PolymarketApi
     public Object parseEventToMarkets(Map<String, Object> eventVar)
     {
         String eventSlug = this.safeString(eventVar, "slug", this.safeString(eventVar, "id"));
-        List<Object> rawMarkets = (List<Object>)(this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList())));
+        List<Object> rawMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         //
         // {

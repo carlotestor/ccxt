@@ -2282,7 +2282,11 @@ public class Kucoin extends KucoinApi
                 ((List<Object>)promises).add(this.loadMigrationStatus(false));
             }
             Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Object symbolsData = ((fetchSpotMarkets)) ? this.safeList((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "data", new ArrayList<Object>(Arrays.asList())) : new ArrayList<Object>(Arrays.asList());
+            List<Object> symbolsData = new ArrayList<Object>(Arrays.asList());
+            if (fetchSpotMarkets)
+            {
+                symbolsData = (List<Object>) this.safeList((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "data", new ArrayList<Object>(Arrays.asList()));
+            }
             Object crossIndex = 0;
             Object isolatedIndex = 0;
             Object tickersIndex = 0;
@@ -2319,7 +2323,7 @@ public class Kucoin extends KucoinApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsData).size(); i++)
             {
-                Object market = (symbolsData == null || i < 0 || i >= ((List<?>)symbolsData).size() ? null : ((List<?>)symbolsData).get(i));
+                Object market = (symbolsData == null || i < 0 || i >= symbolsData.size() ? null : symbolsData.get(i));
                 String id = this.safeString(market, "symbol");
                 if (java.util.Objects.equals(id, null))
                 {
@@ -5069,7 +5073,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> market = this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, "test");
-            Boolean hasTpOrSlOrder = (!java.util.Objects.equals(this.safeValue(paramsOmitted, "stopLoss"), null)) || (!java.util.Objects.equals(this.safeValue(paramsOmitted, "takeProfit"), null));
+            Boolean hasTpOrSlOrder = (!java.util.Objects.equals(this.safeDict(paramsOmitted, "stopLoss", (Object) null), null)) || (!java.util.Objects.equals(this.safeDict(paramsOmitted, "takeProfit", (Object) null), null));
             Map<String, Object> orderRequest = (Map<String, Object>) this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(testOrder))

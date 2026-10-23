@@ -921,8 +921,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(this.parseOrderBookBidAsk(bidAsk, 0, 1, 2));
             } else
             {
-                Double price = this.safeFloat(bidAsk, "p");
-                Double amount = this.safeFloat(bidAsk, "s");
+                Double price = this.safeNumber(bidAsk, "p", (Object) null);
+                Double amount = this.safeNumber(bidAsk, "s", (Object) null);
                 ((io.github.ccxt.ws.OrderBookSide) bookSide).store(price, amount);
             }
         }
@@ -2411,10 +2411,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageHash = this.safeString(client.subscriptions, id);
             try
             {
-                this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "exact"), code, this.json(message));
+                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("exact"), code, this.json(message));
                 this.throwExactlyMatchedException(this.exceptions.get("exact"), code, this.json(errs));
                 String errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
-                this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "broad"), errorMessage, this.json(message));
+                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("broad"), errorMessage, this.json(message));
                 throw new ExchangeError((String)this.json(message)) ;
             } catch(Exception e)
             {

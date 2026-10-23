@@ -1082,14 +1082,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             data = this.parseSbeTrade(frameHex, blockLength, frameLength);
             if (!java.util.Objects.equals(data, null))
             {
-                channel = ("trades." + (Helpers.GetValue(data, "market")));
+                channel = ("trades." + (((Map<String, Object>)data).get("market")));
             }
         } else if ((templateId != null && templateId == 3))
         {
             data = this.parseSbeOrderBook(frameHex, blockLength, frameLength);
             if (!java.util.Objects.equals(data, null))
             {
-                channel = this.getOrderBookChannel((String) (Helpers.GetValue(data, "market")));
+                channel = this.getOrderBookChannel((String) (((Map<String, Object>)data).get("market")));
             }
         } else if ((templateId != null && templateId == 4))
         {
@@ -1104,14 +1104,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             data = this.parseSbeOrder(frameHex, blockLength, frameLength);
             if (!java.util.Objects.equals(data, null))
             {
-                channel = ("orders." + (Helpers.GetValue(data, "market")));
+                channel = ("orders." + (((Map<String, Object>)data).get("market")));
             }
         } else if ((templateId != null && templateId == 21))
         {
             data = this.parseSbeFill(frameHex, blockLength, frameLength);
             if (!java.util.Objects.equals(data, null))
             {
-                channel = ("fills." + (Helpers.GetValue(data, "market")));
+                channel = ("fills." + (((Map<String, Object>)data).get("market")));
             }
         } else if ((templateId != null && templateId == 22))
         {

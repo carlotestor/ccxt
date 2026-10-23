@@ -215,7 +215,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                messageHashResolved = ((Object) (switch ((Object) (messageHashResolved)) { case null -> (Object) ("null" + ((":" + market.get("id")))); case Double hx4J40v7 -> (Object) (hx4J40v7 + 0.0); case Object hx4J40v7 -> (Object) (String.valueOf(hx4J40v7) + ((":" + market.get("id")))); }));
+                messageHashResolved = ((Object) (switch ((Object) (messageHashResolved)) { case null -> (Object) ("null" + ((":" + market.get("id")))); case Double hx4J40v6 -> (Object) (hx4J40v6 + 0.0); case Object hx4J40v6 -> (Object) (String.valueOf(hx4J40v6) + ((":" + market.get("id")))); }));
                 firstArgument.put("instId", market.get("id"));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -379,7 +379,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
         });
 
     }
@@ -609,7 +609,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
         });
 
     }
@@ -1337,7 +1337,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         });
 
     }
@@ -1716,7 +1716,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
         });
 
     }
@@ -1779,8 +1779,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Long seqId = this.safeInteger(message, "seqId");
         Long prevSeqId = this.safeInteger(message, "prevSeqId");
-        Object nonce = Helpers.GetValue(orderbook, "nonce");
-        if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !Helpers.isEqual(nonce, prevSeqId))
+        Long nonce = this.safeInteger(orderbook, "nonce");
+        if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !java.util.Objects.equals(nonce, prevSeqId))
         {
             var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             ((Map<String,Object>)client.subscriptions).remove((String)messageHash);

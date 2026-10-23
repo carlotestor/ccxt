@@ -200,18 +200,17 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
-            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
-            String type = this.safeString(firstMarket, "type", "swap");
-            Integer symbolsLength = ((List<?>)symbolsList).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
-            if (java.util.Objects.equals(symbolsLength, 0))
+            if ((java.util.Objects.equals(symbolsNormalized, null)) || ((((List<?>)symbolsNormalized).size() == 0)))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
             }
+            List<String> symbolsList = symbolsNormalized;
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
+            String type = this.safeString(firstMarket, "type", "swap");
+            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
             String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), type);
             if (java.util.Objects.equals(url, null))
             {
@@ -268,18 +267,17 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
-            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
-            String type = this.safeString(firstMarket, "type", "swap");
-            Integer symbolsLength = ((List<?>)symbolsList).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
-            if (java.util.Objects.equals(symbolsLength, 0))
+            if ((java.util.Objects.equals(symbolsNormalized, null)) || ((((List<?>)symbolsNormalized).size() == 0)))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
             }
+            List<String> symbolsList = symbolsNormalized;
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
+            String type = this.safeString(firstMarket, "type", "swap");
+            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
             String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), type);
             if (java.util.Objects.equals(url, null))
             {
@@ -374,18 +372,17 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
-            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
-            String type = this.safeString(firstMarket, "type", "swap");
-            Integer symbolsLength = ((List<?>)symbolsList).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
-            if (java.util.Objects.equals(symbolsLength, 0))
+            if ((java.util.Objects.equals(symbolsNormalized, null)) || ((((List<?>)symbolsNormalized).size() == 0)))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
             }
+            List<String> symbolsList = symbolsNormalized;
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
+            String type = this.safeString(firstMarket, "type", "swap");
+            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
             String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), type);
             if (java.util.Objects.equals(url, null))
             {
@@ -447,18 +444,17 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
-            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
-            String type = this.safeString(firstMarket, "type", "swap");
-            Integer symbolsLength = ((List<?>)symbolsList).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
-            if (java.util.Objects.equals(symbolsLength, 0))
+            if ((java.util.Objects.equals(symbolsNormalized, null)) || ((((List<?>)symbolsNormalized).size() == 0)))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
             }
+            List<String> symbolsList = symbolsNormalized;
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
+            String type = this.safeString(firstMarket, "type", "swap");
+            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
             String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), type);
             if (java.util.Objects.equals(url, null))
             {
@@ -598,14 +594,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
-            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
-            String type = this.safeString(firstMarket, "type", "swap");
-            Integer symbolsLength = ((List<?>)symbolsList).size();
-            if (java.util.Objects.equals(symbolsLength, 0))
+            if ((java.util.Objects.equals(symbolsNormalized, null)) || ((((List<?>)symbolsNormalized).size() == 0)))
             {
                 throw new ArgumentsRequired((this.id + " watchBidsAsks() requires a non-empty array of symbols")) ;
             }
+            List<String> symbolsList = symbolsNormalized;
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
+            String type = this.safeString(firstMarket, "type", "swap");
             String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), type);
             if (java.util.Objects.equals(url, null))
             {
@@ -662,14 +657,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
-            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
-            String type = this.safeString(firstMarket, "type", "swap");
-            Integer symbolsLength = ((List<?>)symbolsList).size();
-            if (java.util.Objects.equals(symbolsLength, 0))
+            if ((java.util.Objects.equals(symbolsNormalized, null)) || ((((List<?>)symbolsNormalized).size() == 0)))
             {
                 throw new ArgumentsRequired((this.id + " unWatchBidsAsks() requires a non-empty array of symbols")) ;
             }
+            List<String> symbolsList = symbolsNormalized;
+            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsList);
+            String type = this.safeString(firstMarket, "type", "swap");
             String url = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), type);
             if (java.util.Objects.equals(url, null))
             {

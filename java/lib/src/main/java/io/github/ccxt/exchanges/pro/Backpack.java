@@ -490,19 +490,15 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTicker(String symbol, Object parameters)
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.subscribeWsTickers("watchTicker", new ArrayList<String>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })), false, true)).join();
+            (this.subscribeWsTickers("watchTicker", new ArrayList<String>(Arrays.asList(symbol)), parameters, false, true)).join();
             return null;
         });
 
-    }
-    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchTicker(symbol, (Object) (parameters));
     }
 
     /**
@@ -870,7 +866,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Object parameters)
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -879,10 +875,6 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
         });
 
-    }
-    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
-    {
-        return this.unWatchOHLCV(symbol, timeframe, (Object) (parameters));
     }
 
     /**
@@ -1084,7 +1076,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTrades(String symbol, Object parameters)
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1093,10 +1085,6 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         });
 
-    }
-    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchTrades(symbol, (Object) (parameters));
     }
 
     /**
@@ -1371,7 +1359,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object parameters)
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1380,10 +1368,6 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })))).join();
         });
 
-    }
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     /**

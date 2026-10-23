@@ -141,7 +141,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })))).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
         });
 
     }
@@ -377,8 +377,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             books = (Map<String, Object>) this.safeDict(data, "update", new HashMap<String, Object>() {{}});
             Long previousNonce = this.safeInteger(data, "pu");
-            Object currentNonce = (orderbook == null ? null : orderbook.get("nonce"));
-            if (!Helpers.isEqual(currentNonce, previousNonce))
+            Long currentNonce = this.safeInteger(orderbook, "nonce");
+            if (!java.util.Objects.equals(currentNonce, previousNonce))
             {
                 Object checksum = this.handleOption("watchOrderBook", "checksum", true);
                 if (java.util.Objects.equals(checksum, true))

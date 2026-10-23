@@ -13328,17 +13328,19 @@ public class Bitget extends BitgetApi
         //
         List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         Integer chainsLength = ((List<?>)chains).size();
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
+        Map<String, Object> withdraw = new HashMap<String, Object>() {{
+            put( "fee", null );
+            put( "percentage", null );
+        }};
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "withdraw", new HashMap<String, Object>() {{
-                put( "fee", null );
-                put( "percentage", null );
-            }} );
+            put( "withdraw", withdraw );
             put( "deposit", new HashMap<String, Object>() {{
                 put( "fee", null );
                 put( "percentage", null );
             }} );
-            put( "networks", new HashMap<String, Object>() {{}} );
+            put( "networks", networks );
         }};
         for (var i = 0; (chainsLength != null && i < chainsLength); i++)
         {
@@ -13348,7 +13350,7 @@ public class Bitget extends BitgetApi
             String networkCode = this.networkIdToCode(networkId, currencyCode);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                networks.put(networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -13361,8 +13363,8 @@ public class Bitget extends BitgetApi
             }
             if (java.util.Objects.equals(chainsLength, 1))
             {
-                Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(chain, "withdrawFee", (Object) null));
-                Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
+                withdraw.put("fee", this.safeNumber(chain, "withdrawFee", (Object) null));
+                withdraw.put("percentage", false);
             }
         }
         return result;

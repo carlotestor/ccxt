@@ -2423,7 +2423,7 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the limits object of a market structure
      */
-    public CompletableFuture<Object> fetchTradingLimitsById(String id, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradingLimitsById(String id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2449,7 +2449,7 @@ public class Htx extends HtxApi
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
             return this.parseTradingLimits((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})), (String) null, new HashMap<String, Object>() {{}});
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -5114,10 +5114,10 @@ public class Htx extends HtxApi
 
     public Object parseMarginBalanceHelper(Map<String, Object> balance, Object code, Map<String, Object> result)
     {
-        Object account = null;
+        Map<String, Object> account = null;
         if (result.containsKey(code))
         {
-            account = (result == null || code == null ? null : result.get(code));
+            account = (Map<String, Object>) this.safeDict(result, code, (Object) null);
         } else
         {
             account = this.account();
@@ -11145,7 +11145,7 @@ public class Htx extends HtxApi
     }});
                     yield j39v21; } }));
             }
-            this.assignDefaultDepositWithdrawFees(result, currency);
+            this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), currency);
         }
         return result;
     }

@@ -2206,7 +2206,7 @@ public class Toobit extends ToobitApi
         {
             request.put("timeInForce", "LIMIT_MAKER");
         }
-        List<Object> values = (List<Object>) this.handleTriggerPricesAndParams(symbol, paramsPostOnly, true);
+        List<Object> values = (List<Object>) this.handleTriggerPricesAndParams(symbol, (Map<String, Object>) (paramsPostOnly), true);
         String triggerPrice = (String) ((List<Object>)values).get(0);
         Object paramsTrigger = ((List<Object>)values).get(3);
         if (!java.util.Objects.equals(triggerPrice, null))

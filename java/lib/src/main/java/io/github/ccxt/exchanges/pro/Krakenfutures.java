@@ -1922,7 +1922,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> rawSubs = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < (symbolsNormalized == null ? 0 : symbolsNormalized.size()); i++)
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String messageHash = this.getMessageHash(unifiedName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
                 ((List<Object>)messageHashes).add(messageHash);

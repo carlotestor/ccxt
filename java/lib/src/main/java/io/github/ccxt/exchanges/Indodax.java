@@ -1365,7 +1365,7 @@ public class Indodax extends IndodaxApi
             Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
             Helpers.addElementToObject(result.get("deposit"), "fee", 0);
             Helpers.addElementToObject(result.get("deposit"), "percentage", false);
-            return this.assignDefaultDepositWithdrawFees(result, currency);
+            return this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }

@@ -1942,7 +1942,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         if (!java.util.Objects.equals(errorMessage, null))
         {
             String requestId = this.safeString2(message, "reqid", "req_id");
-            Object broad = Helpers.GetValue(this.exceptions.get("ws"), "broad");
+            Object broad = ((Map<String, Object>)this.exceptions.get("ws")).get("broad");
             Object broadKey = this.findBroadlyMatchedKey(broad, (String) (errorMessage));
             Object exception = null;
             if (java.util.Objects.equals(broadKey, null))

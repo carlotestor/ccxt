@@ -4076,11 +4076,12 @@ public class Bybit extends BybitApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                Map<String, Object> symbolMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                market = symbolMarket;
                 Integer symbolsLength = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    request.put("symbol", market.get("id"));
+                    request.put("symbol", symbolMarket.get("id"));
                 }
             }
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchFundingRates", market, parameters, (String) null);
@@ -6575,8 +6576,9 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("cancelAllOrders", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -6850,8 +6852,9 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchOrdersClassic", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -7069,8 +7072,9 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchCanceledAndClosedOrders", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -7277,8 +7281,9 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchOpenOrders", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -7443,8 +7448,9 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchMyTrades", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -8417,9 +8423,10 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                symbol = market.get("symbol");
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                symbol = symbolMarket.get("symbol");
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchPositions", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -9932,8 +9939,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = null;
-            market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if ((java.util.Objects.equals(market.get("spot"), true)) || (java.util.Objects.equals(market.get("option"), true)))
             {
                 throw new BadRequest(((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + symbol)) ;
@@ -10232,8 +10238,9 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchSettlementHistory", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -10302,8 +10309,9 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchMySettlementHistory", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -10592,14 +10600,13 @@ public class Bybit extends BybitApi
                 put( "category", "option" );
                 put( "baseCoin", baseCoin );
             }};
-            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 Integer symbolsLength = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-                    request.put("symbol", market.get("id"));
+                    Map<String, Object> symbolMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                    request.put("symbol", symbolMarket.get("id"));
                 }
             }
             Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
@@ -10742,8 +10749,9 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchMyLiquidations", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
@@ -10920,11 +10928,10 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = null;
             String symbol = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+                Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 if (java.util.Objects.equals(market.get("spot"), true))
                 {
                     throw new NotSupported((this.id + " fetchLeverageTiers() is not supported for spot market")) ;
@@ -11052,8 +11059,9 @@ public class Bybit extends BybitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("symbol", symbolMarket.get("id"));
             }
             var typeparamsValueVariable = this.getBybitType("fetchFundingHistory", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);

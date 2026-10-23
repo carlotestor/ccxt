@@ -159,12 +159,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String symbol = (String) market.get("symbol");
             String messageHash = (("candles" + ":") + symbol);
             List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
-            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
             {
                 Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
             }
-            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey("unknown")))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -344,7 +342,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String method = "market_subscribe";
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = this.safeString(apiUrls, "ws");
             Object id = this.incrementingNonce();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
@@ -359,7 +358,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 put( "method", method );
                 put( "params", args );
             }};
-            (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -898,7 +897,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 method = "balanceMargin_subscribe";
                 messageHash = (messageHash + "margin");
             }
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = this.safeString(apiUrls, "ws");
             Client client = this.client(url);
             this.setBalanceCache(client, type, messageHash);
             Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchBalance", "fetchBalanceSnapshot", true);
@@ -1053,7 +1053,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = this.safeString(apiUrls, "ws");
             Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -1075,7 +1076,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = this.safeString(apiUrls, "ws");
             Object id = this.incrementingNonce();
             Client client = (Client)this.safeValue(this.clients, url);
             Map<String, Object> request = null;
@@ -1153,7 +1155,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
             this.checkRequiredCredentials(true);
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = this.safeString(apiUrls, "ws");
             Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -1172,7 +1175,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            String url = this.safeString(apiUrls, "ws");
             Client client = this.client(url);
             String subscribeHash = "authenticated";
             // handleAuthenticate () resolves the handshake future with 1, so 1 is
@@ -1287,11 +1291,11 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 String code = this.safeString(message, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "exact"), code, feedback);
+                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("exact"), code, feedback);
             }
         } catch(Exception e)
         {
-            if ((e instanceof AuthenticationError))
+            if (Helpers.isInstance(e, AuthenticationError.class))
             {
                 client.reject(e, "authenticated");
                 if (((Map<?, ?>)client.subscriptions).containsKey("authenticated"))

@@ -460,7 +460,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Object parameters)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -473,10 +473,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
-    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
-    {
-        return this.fetchTime((Object) (parameters));
-    }
 
     /**
      * @method
@@ -486,7 +482,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
-    public CompletableFuture<Status> fetchStatus(Object parameters)
+    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -513,10 +509,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(Status::new);
 
     }
-    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
-    {
-        return this.fetchStatus((Object) (parameters));
-    }
 
     /**
      * @method
@@ -526,7 +518,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object parameters)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -608,10 +600,6 @@ public class Polymarket extends PolymarketApi
         });
 
     }
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
-    {
-        return this.fetchCurrencies((Object) (parameters));
-    }
 
     /**
      * @method
@@ -621,7 +609,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object parameters)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -655,10 +643,6 @@ public class Polymarket extends PolymarketApi
             return this.parseMarkets(response);
         });
 
-    }
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
-    {
-        return this.fetchMarkets((Object) (parameters));
     }
 
     public MarketInterface parseMarket(Object market)
@@ -740,7 +724,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object parameters)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -761,10 +745,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(Ticker::new);
 
     }
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchTicker(symbol, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -775,7 +755,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Object parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -858,10 +838,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(Tickers::new);
 
     }
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
-    {
-        return this.fetchTickers(symbols, (Object) (parameters));
-    }
 
     public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
@@ -925,7 +901,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Object parameters)
+    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -949,10 +925,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(Tickers::new);
 
     }
-    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
-    {
-        return this.fetchBidsAsks(symbols, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -964,7 +936,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Object parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -995,10 +967,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(OrderBook::new);
 
     }
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchOrderBook(symbol, limit, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -1012,7 +980,7 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1027,7 +995,7 @@ public class Polymarket extends PolymarketApi
                 request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 paramsOmitted = this.omit(paramsOmitted, "until");
@@ -1054,10 +1022,6 @@ public class Polymarket extends PolymarketApi
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchTrades(symbol, since, limit, (Object) (parameters));
     }
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
@@ -1133,20 +1097,20 @@ public class Polymarket extends PolymarketApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling the endpoint multiple times
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             List<Object> paginateparamsOmittedVariable = (List<Object>) this.handleOptionAndParams(paramsOmitted, "fetchOHLCV", "paginate", (Object) null);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparamsOmittedVariable).get(0));
-            paramsOmitted = ((List<Object>) paginateparamsOmittedVariable).get(1);
+            paramsOmitted = (Map<String, Object>) ((List<Object>) paginateparamsOmittedVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v14 -> (Map<String, Object>) hx4J40v14; case Object hx4J40v14 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v14.getClass().getName()); })), 1000L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsOmitted, 1000L)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1186,10 +1150,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchOHLCV(symbol, timeframe, since, limit, (Object) (parameters));
-    }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
@@ -1210,7 +1170,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object parameters)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1231,10 +1191,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(FundingRate::new);
 
     }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchFundingRate(symbol, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -1245,7 +1201,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Object parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1257,10 +1213,6 @@ public class Polymarket extends PolymarketApi
             return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
         }).thenApply(FundingRates::new);
 
-    }
-    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
-    {
-        return this.fetchFundingRates(symbols, (Object) (parameters));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -1319,7 +1271,7 @@ public class Polymarket extends PolymarketApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling the endpoint multiple times
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1330,13 +1282,13 @@ public class Polymarket extends PolymarketApi
             }
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             List<Object> paginateparamsOmittedVariable = (List<Object>) this.handleOptionAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate", (Object) null);
             paginate = Boolean.TRUE.equals(((List<Object>) paginateparamsOmittedVariable).get(0));
-            paramsOmitted = ((List<Object>) paginateparamsOmittedVariable).get(1);
+            paramsOmitted = (Map<String, Object>) ((List<Object>) paginateparamsOmittedVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "1h", ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v13 -> (Map<String, Object>) hx4J40v13; case Object hx4J40v13 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v13.getClass().getName()); })), 100L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "1h", paramsOmitted, 100L)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1380,10 +1332,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchFundingRateHistory(symbol, since, limit, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -1394,7 +1342,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object parameters)
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1415,10 +1363,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(OpenInterest::new);
 
     }
-    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchOpenInterest(symbol, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -1429,7 +1373,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Object parameters)
+    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1441,10 +1385,6 @@ public class Polymarket extends PolymarketApi
             return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
         }).thenApply(OpenInterests::new);
 
-    }
-    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
-    {
-        return this.fetchOpenInterests(symbols, (Object) (parameters));
     }
 
     public Object parseOpenInterest(Object interest, Map<String, Object> market)
@@ -1484,7 +1424,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object parameters)
+    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1533,10 +1473,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(TradingFees::new);
 
     }
-    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
-    {
-        return this.fetchTradingFees((Object) (parameters));
-    }
 
     /**
      * @method
@@ -1565,7 +1501,7 @@ public class Polymarket extends PolymarketApi
         Boolean isPostOnlyTimeInForce = (java.util.Objects.equals(timeInForce, "PO"));
         Boolean postOnly = false;
         Object paramsOmitted = parameters;
-        List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); })));
+        List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
         postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
         paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
         if (Boolean.TRUE.equals(isMarketOrder))
@@ -1652,7 +1588,7 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Object parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1681,10 +1617,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
-    {
-        return this.createOrder(symbol, type, side, amount, price, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -1696,7 +1628,7 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object parameters)
+    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1727,7 +1659,7 @@ public class Polymarket extends PolymarketApi
                 put( "type", "createOrders" );
                 put( "args", entries );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })))).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), parameters)).join();
             List<Object> response = (this.tradePostTradeOrders(signed)).join();
             //
             //     [
@@ -1752,17 +1684,13 @@ public class Polymarket extends PolymarketApi
                 {
                     merged.put("status", null);
                 }
-                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, ((Map<String, Object>) (switch ((Object) (marketInner)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })));
+                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, ((Map<String, Object>) (switch ((Object) (marketInner)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
                 parsed.put("info", ack);
                 ((List<Object>)results).add(parsed);
             }
             return results;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
-    {
-        return this.createOrders(orders, (Object) (parameters));
     }
 
     /**
@@ -1776,7 +1704,7 @@ public class Polymarket extends PolymarketApi
      * @param {string} [params.clientOrderId] cancel by the client order id instead of the exchange order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(String id, String symbol, Object parameters)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1786,10 +1714,6 @@ public class Polymarket extends PolymarketApi
             return canceled;
         }).thenApply(Order::new);
 
-    }
-    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
-    {
-        return this.cancelOrder(id, symbol, (Object) (parameters));
     }
 
     /**
@@ -1803,7 +1727,7 @@ public class Polymarket extends PolymarketApi
      * @param {string[]} [params.clientOrderIds] cancel by client order ids instead of the exchange order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Object parameters)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1818,7 +1742,7 @@ public class Polymarket extends PolymarketApi
                     clientOrderIds = new ArrayList<Object>(Arrays.asList(clientOrderId));
                 }
             }
-            Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOrderId")));
             List<Object> signable = null;
             Map<String, Object> bodyOp = null;
             List<Object> response = null;
@@ -1831,7 +1755,7 @@ public class Polymarket extends PolymarketApi
                     hx4NewMap1.put("args", clientOrderIds);
                     bodyOp = hx4NewMap1;
                 }
-                Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })))).join();
+                Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), paramsOmitted)).join();
                 response = (this.tradeDeleteTradeOrdersCoid(signed)).join();
             } else
             {
@@ -1845,7 +1769,7 @@ public class Polymarket extends PolymarketApi
                     put( "type", "cancelOrders" );
                     put( "args", numericIds );
                 }};
-                Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })))).join();
+                Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), paramsOmitted)).join();
                 response = (this.tradeDeleteTradeOrders(signed)).join();
             }
             //
@@ -1873,10 +1797,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
-    {
-        return this.cancelOrders(ids, symbol, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -1887,7 +1807,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list with the raw acknowledgement of the venue
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Object parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1907,7 +1827,7 @@ public class Polymarket extends PolymarketApi
                 put( "type", "cancelAll" );
                 put( "args", args );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.tradeDeleteTradeOrdersAll(signed)).join();
             //
             //     { "status": "ok" }
@@ -1917,10 +1837,6 @@ public class Polymarket extends PolymarketApi
     }}, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
-    {
-        return this.cancelAllOrders(symbol, (Object) (parameters));
     }
 
     /**
@@ -1932,7 +1848,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw acknowledgement of the venue
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object parameters)
+    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1949,7 +1865,7 @@ public class Polymarket extends PolymarketApi
             HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
             mapLiteral3.put("time", deadline);
             bodyOp.put("args", mapLiteral3);
-            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.tradePatchTradeAutoCancel(signed)).join();
             //
             //     { "status": "ok", "deadline": 1788546570789 }
@@ -1957,10 +1873,6 @@ public class Polymarket extends PolymarketApi
             return response;
         });
 
-    }
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
-    {
-        return this.cancelAllOrdersAfter(timeout, (Object) (parameters));
     }
 
     /**
@@ -1977,7 +1889,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Object parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2000,7 +1912,7 @@ public class Polymarket extends PolymarketApi
         put( "qty", quantity );
     }})) );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), parameters)).join();
             List<Object> response = (this.tradePatchTradeOrders(signed)).join();
             //
             //     [
@@ -2027,10 +1939,6 @@ public class Polymarket extends PolymarketApi
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
-    }
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
-    {
-        return this.editOrder(id, symbol, type, side, amount, price, (Object) (parameters));
     }
 
     public String parseOrderStatus(String status)
@@ -2174,7 +2082,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object parameters)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2214,10 +2122,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(Balances::new);
 
     }
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
-    {
-        return this.fetchBalance((Object) (parameters));
-    }
 
     /**
      * @method
@@ -2228,7 +2132,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Object parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2252,10 +2156,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
-    {
-        return this.fetchPositions(symbols, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -2266,20 +2166,16 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Object parameters)
+    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v5 -> (List<String>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v5.getClass().getName()); })), parameters)).join();
+            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
             Map<String, Object> position = (Map<String, Object>) this.safeDict(positions, 0, (Object) null);
             return position;
         }).thenApply(Position::new);
 
-    }
-    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
-    {
-        return this.fetchPosition(symbol, (Object) (parameters));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -2367,7 +2263,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2386,10 +2282,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchOpenOrders(symbol, since, limit, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -2404,7 +2296,7 @@ public class Polymarket extends PolymarketApi
      * @param {string} [params.clientOrderId] fetch the order with this client order id only
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2423,7 +2315,7 @@ public class Polymarket extends PolymarketApi
                 request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 paramsOmitted = this.omit(paramsOmitted, "until");
@@ -2440,10 +2332,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchOrders(symbol, since, limit, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -2455,7 +2343,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Object parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2486,10 +2374,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchOrder(id, symbol, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -2504,7 +2388,7 @@ public class Polymarket extends PolymarketApi
      * @param {string} [params.cursor] opaque pagination cursor returned by the previous page
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2522,7 +2406,7 @@ public class Polymarket extends PolymarketApi
                 request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 paramsOmitted = this.omit(paramsOmitted, "until");
@@ -2560,10 +2444,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchMyTrades(symbol, since, limit, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -2577,7 +2457,7 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.until] timestamp in ms of the latest funding payment
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2596,7 +2476,7 @@ public class Polymarket extends PolymarketApi
                 request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 paramsOmitted = this.omit(paramsOmitted, "until");
@@ -2639,10 +2519,6 @@ public class Polymarket extends PolymarketApi
             return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
-    }
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchFundingHistory(symbol, since, limit, (Object) (parameters));
     }
 
     public String parseTransactionStatus(String status)
@@ -2746,7 +2622,7 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.until] timestamp in ms of the latest deposit
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2759,7 +2635,7 @@ public class Polymarket extends PolymarketApi
                 request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 paramsOmitted = this.omit(paramsOmitted, "until");
@@ -2776,10 +2652,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchDeposits(code, since, limit, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -2793,7 +2665,7 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.until] timestamp in ms of the latest withdrawal
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2806,7 +2678,7 @@ public class Polymarket extends PolymarketApi
                 request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 paramsOmitted = this.omit(paramsOmitted, "until");
@@ -2822,10 +2694,6 @@ public class Polymarket extends PolymarketApi
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchWithdrawals(code, since, limit, (Object) (parameters));
     }
 
     /**
@@ -2937,7 +2805,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object parameters)
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2966,10 +2834,6 @@ public class Polymarket extends PolymarketApi
             throw new BadSymbol(((this.id + " fetchLeverage() could not find the configuration for ") + symbol)) ;
         }).thenApply(Leverage::new);
 
-    }
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchLeverage(symbol, (Object) (parameters));
     }
 
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
@@ -3003,7 +2867,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
      */
-    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Object parameters)
+    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3017,10 +2881,6 @@ public class Polymarket extends PolymarketApi
         }).thenApply(MarginMode::new);
 
     }
-    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchMarginMode(symbol, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -3033,7 +2893,7 @@ public class Polymarket extends PolymarketApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', the venue keeps the current mode when omitted is not supported - the default is cross
      * @returns {object} the raw acknowledgement of the venue
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Object parameters)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3045,8 +2905,8 @@ public class Polymarket extends PolymarketApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String marginMode = null;
-            Object paramsOmitted = parameters;
-            Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("setLeverage", ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })), "cross");
+            Map<String, Object> paramsOmitted = parameters;
+            Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("setLeverage", paramsOmitted, "cross");
             marginMode = marginModeparamsOmittedVariable.first();
             paramsOmitted = marginModeparamsOmittedVariable.second();
             Boolean isCross = (!java.util.Objects.equals(marginMode, "isolated"));
@@ -3061,7 +2921,7 @@ public class Polymarket extends PolymarketApi
                     put( "lev", leverageInt );
                 }} );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.tradePatchTradeLeverage(signed)).join();
             //
             //     { "status": "ok", "instrument_id": 1, "leverage": 10, "cross": true }
@@ -3069,10 +2929,6 @@ public class Polymarket extends PolymarketApi
             return response;
         });
 
-    }
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
-    {
-        return this.setLeverage(leverage, symbol, (Object) (parameters));
     }
 
     /**
@@ -3086,7 +2942,7 @@ public class Polymarket extends PolymarketApi
      * @param {float} params.leverage the rate of leverage to set together with the mode
      * @returns {object} the raw acknowledgement of the venue
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Object parameters)
+    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3100,7 +2956,7 @@ public class Polymarket extends PolymarketApi
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a params.leverage argument, the venue updates the mode and the leverage in one operation")) ;
             }
-            Object paramsOmitted = this.omit(parameters, "leverage");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "leverage");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marginMode", marginMode );
             }};
@@ -3108,10 +2964,6 @@ public class Polymarket extends PolymarketApi
             return (this.setLeverage(leverageInt, symbol, this.extend(request, paramsOmitted))).join();
         });
 
-    }
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
-    {
-        return this.setMarginMode(marginMode, symbol, (Object) (parameters));
     }
 
     /**
@@ -3148,7 +3000,7 @@ public class Polymarket extends PolymarketApi
             mapLiteral6.put("amt", amountString);
             mapLiteral6.put("iid", instrumentId);
             bodyOp.put("args", mapLiteral6);
-            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.tradePatchTradeMargin(signed)).join();
             //
             //     { "status": "ok" }
@@ -3181,18 +3033,14 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object parameters)
+    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
-    }
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
-    {
-        return this.addMargin(symbol, amount, (Object) (parameters));
     }
 
     /**
@@ -3205,18 +3053,14 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
      */
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object parameters)
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "reduce", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
-    }
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
-    {
-        return this.reduceMargin(symbol, amount, (Object) (parameters));
     }
 
     public Object hashMessage(Object message)
@@ -3364,7 +3208,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    public CompletableFuture<Map<String, Object>> signPerpsOp(Object signable, Object bodyOp, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> signPerpsOp(Object signable, Map<String, Object> bodyOp, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

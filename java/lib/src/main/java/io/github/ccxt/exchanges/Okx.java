@@ -4386,8 +4386,8 @@ public class Okx extends OkxApi
         {
             request.put("sz", this.amountToPrecision(symbol, amount));
         }
-        Boolean spot = (Boolean) market.get("spot");
-        Boolean contract = (Boolean) market.get("contract");
+        Boolean spot = (Boolean) this.safeBool(market, "spot", (Object) null);
+        Boolean contract = (Boolean) this.safeBool(market, "contract", (Object) null);
         Object triggerPrice = this.safeValueN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerPx")));
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -10394,7 +10394,7 @@ public class Okx extends OkxApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = this.currency(code);
-            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
+            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((Map<String, Object>) ((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code))), currency));
         }
         return depositWithdrawFees;
     }

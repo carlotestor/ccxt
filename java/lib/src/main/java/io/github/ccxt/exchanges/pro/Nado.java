@@ -1281,7 +1281,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 throw new ArgumentsRequired((this.id + " watchExecuteRequest() requires requestIdString")) ;
             }
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "gateway");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "gateway");
             String messageHash = ("execute:" + requestIdString);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
@@ -1293,7 +1293,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
             Map<String, Object> stream = new HashMap<String, Object>() {{
                 put( "type", streamType );
             }};
@@ -1318,7 +1318,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 ((Map)client.subscriptions).put((String)("subscription:" + id), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
-                this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
+                this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
             }
             return (this.watch(url, messageHash, null, null, null)).join();
         });
@@ -1330,7 +1330,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
             Object clientSubscription = this.safeValue(client.subscriptions, messageHash);
             if (!java.util.Objects.equals(clientSubscription, null))
@@ -1350,7 +1350,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             ((Map)client.subscriptions).put((String)("subscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
-            this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(messageHash)), subscription);
+            this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(messageHash)), subscription);
             return (this.watch(url, messageHash, null, null, null)).join();
         });
 
@@ -1361,7 +1361,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
             Long id = this.requestId();
             String unsubscribeHash = ("unsubscribe:" + messageHash);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1389,7 +1389,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -1478,7 +1478,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
             {
@@ -1501,11 +1501,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                         ((Map)client.subscriptions).put((String)("subscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
-                        this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
+                        this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
                     }
                 }
             }
-            return (this.watchMultiple(url, messageHashes, null, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, null, messageHashes, null)).join();
         });
 
     }
@@ -1515,7 +1515,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
             Long id = this.requestId();
             Map<String, Object> request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), market, id, parameters);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -1538,7 +1538,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
             {
@@ -1555,7 +1555,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
-                (this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), request, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), subscription)).join();
+                (this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(unsubscribeHash)), request, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), subscription)).join();
             }
             return true;
         });
@@ -2268,7 +2268,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     public Object ping(Client client)
     {
-        String gatewayUrl = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "gateway");
+        String gatewayUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "gateway");
         if (java.util.Objects.equals(client.url, gatewayUrl))
         {
             // the v2 gateway is kept alive with protocol-level ping frames,

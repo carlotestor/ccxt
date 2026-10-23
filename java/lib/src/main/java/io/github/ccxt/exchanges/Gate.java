@@ -3831,7 +3831,7 @@ public class Gate extends GateApi
     public Object parseFundingHistories(Object response, String symbol, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             Map<String, Object> funding = this.parseFundingHistory(entry, (Map<String, Object>) null);
@@ -4556,7 +4556,7 @@ public class Gate extends GateApi
             //         "leverage": "2"
             //     }
             //
-            Object result = (switch (0) { default -> { HashMap<String, Object> j39v10 = new HashMap<String, Object>(); j39v10.put("info", response); yield j39v10; } });
+            Object result = (switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>(); j39v7.put("info", response); yield j39v7; } });
             Boolean isolated = java.util.Objects.equals(marginMode, "margin") && java.util.Objects.equals(type, "spot");
             Object data = response;
             if (((Map<?, ?>)data).containsKey("balances"))
@@ -4653,9 +4653,10 @@ public class Gate extends GateApi
             if (!java.util.Objects.equals(since, null))
             {
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
+                Long fromTimestamp = this.parseToInt((((double) since) / ((double) 1000)));
+                ((Map<String, Object>)request).put("from", fromTimestamp);
                 Object distance = ((limitValue - 1L) * duration);
-                Object toTimestamp = this.sum(((Map<String, Object>)request).get("from"), distance);
+                Object toTimestamp = this.sum(fromTimestamp, distance);
                 Long currentTimestamp = this.seconds();
                 Object to = (currentTimestamp == null ? null : (((Number) toTimestamp).doubleValue() < ((Number) currentTimestamp).doubleValue() ? (Object) (toTimestamp) : (Object) (currentTimestamp)));
                 if (!java.util.Objects.equals(until, null))
@@ -6030,7 +6031,7 @@ public class Gate extends GateApi
         {
             sizeRequest = signedAmount;
         }
-        Map<String, Object> request = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
         Boolean nonTriggerOrder = !Boolean.TRUE.equals(isTpsl) && (java.util.Objects.equals(trigger, null));
         if (Boolean.TRUE.equals(nonTriggerOrder))
         {
@@ -6745,18 +6746,18 @@ public class Gate extends GateApi
         String fee = this.safeString(order, "fee");
         if (!java.util.Objects.equals(fee, null))
         {
-            ((List<Object>)fees).add((switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
-                j39v12.put("currency", this.safeCurrencyCode(this.safeString(order, "fee_currency"), (Map<String, Object>) null));
-                j39v12.put("cost", fee);
-                yield j39v12; } }));
+            ((List<Object>)fees).add((switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
+                j39v9.put("currency", this.safeCurrencyCode(this.safeString(order, "fee_currency"), (Map<String, Object>) null));
+                j39v9.put("cost", fee);
+                yield j39v9; } }));
         }
         String rebate = this.safeString(order, "rebated_fee");
         if (!java.util.Objects.equals(rebate, null))
         {
-            ((List<Object>)fees).add((switch (0) { default -> { HashMap<String, Object> j39v11 = new HashMap<String, Object>();
-                j39v11.put("currency", this.safeCurrencyCode(this.safeString(order, "rebated_fee_currency"), (Map<String, Object>) null));
-                j39v11.put("cost", Precise.stringNeg(rebate));
-                yield j39v11; } }));
+            ((List<Object>)fees).add((switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
+                j39v8.put("currency", this.safeCurrencyCode(this.safeString(order, "rebated_fee_currency"), (Map<String, Object>) null));
+                j39v8.put("cost", Precise.stringNeg(rebate));
+                yield j39v8; } }));
         }
         Integer numFeeCurrencies = ((List<?>)fees).size();
         Boolean multipleFeeCurrencies = (numFeeCurrencies != null && numFeeCurrencies > 1);
@@ -8454,16 +8455,16 @@ public class Gate extends GateApi
         while (Precise.stringLt(floor, riskLimitMax))
         {
             String cap = Precise.stringAdd(floor, riskLimitStep);
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v13 = new HashMap<String, Object>();
-                j39v13.put("tier", this.parseNumber(Precise.stringDiv(cap, riskLimitStep)));
-                j39v13.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
-                j39v13.put("currency", this.safeString(market, "settle"));
-                j39v13.put("minNotional", this.parseNumber(floor));
-                j39v13.put("maxNotional", this.parseNumber(cap));
-                j39v13.put("maintenanceMarginRate", this.parseNumber(maintenanceMarginRate));
-                j39v13.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRatio)));
-                j39v13.put("info", info);
-                yield j39v13; } }));
+            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v10 = new HashMap<String, Object>();
+                j39v10.put("tier", this.parseNumber(Precise.stringDiv(cap, riskLimitStep)));
+                j39v10.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
+                j39v10.put("currency", this.safeString(market, "settle"));
+                j39v10.put("minNotional", this.parseNumber(floor));
+                j39v10.put("maxNotional", this.parseNumber(cap));
+                j39v10.put("maintenanceMarginRate", this.parseNumber(maintenanceMarginRate));
+                j39v10.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRatio)));
+                j39v10.put("info", info);
+                yield j39v10; } }));
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, maintenanceMarginUnit);
             initialMarginRatio = Precise.stringAdd(initialMarginRatio, initialMarginUnit);
             floor = cap;
@@ -8494,16 +8495,16 @@ public class Gate extends GateApi
         {
             Map<String, Object> item = (Map<String, Object>) this.safeDict(info, i, (Object) null);
             Double maxNotional = this.safeNumber(item, "risk_limit", (Object) null);
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
-                j39v14.put("tier", this.sum(i, 1));
-                j39v14.put("symbol", this.safeString(market, "symbol"));
-                j39v14.put("currency", this.safeString(market, "settle"));
-                j39v14.put("minNotional", minNotional);
-                j39v14.put("maxNotional", maxNotional);
-                j39v14.put("maintenanceMarginRate", this.safeNumber(item, "maintenance_rate", (Object) null));
-                j39v14.put("maxLeverage", this.safeNumber(item, "leverage_max", (Object) null));
-                j39v14.put("info", item);
-                yield j39v14; } }));
+            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v11 = new HashMap<String, Object>();
+                j39v11.put("tier", this.sum(i, 1));
+                j39v11.put("symbol", this.safeString(market, "symbol"));
+                j39v11.put("currency", this.safeString(market, "settle"));
+                j39v11.put("minNotional", minNotional);
+                j39v11.put("maxNotional", maxNotional);
+                j39v11.put("maintenanceMarginRate", this.safeNumber(item, "maintenance_rate", (Object) null));
+                j39v11.put("maxLeverage", this.safeNumber(item, "leverage_max", (Object) null));
+                j39v11.put("info", item);
+                yield j39v11; } }));
             minNotional = maxNotional;
         }
         return tiers;
@@ -8919,7 +8920,7 @@ public class Gate extends GateApi
         url = ((java.util.function.BinaryOperator<Object>) (hx4J40v3A, hx4J40v3B) -> { Object hx4J40v3P = hx4J40v3A instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3A; Object hx4J40v3Q = hx4J40v3B instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3B; if (hx4J40v3P instanceof Long hx4J40v3l && hx4J40v3Q instanceof Long hx4J40v3r) { return hx4J40v3l + hx4J40v3r; } if (hx4J40v3P instanceof Double || hx4J40v3Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v3D = hx4J40v3o -> { if (hx4J40v3o instanceof Double || hx4J40v3o instanceof Float || hx4J40v3o instanceof Long || hx4J40v3o instanceof Integer || hx4J40v3o instanceof java.math.BigDecimal) { return ((Number) hx4J40v3o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v3o)); } catch (NumberFormatException hx4J40v3e) { return 0.0; } }; return hx4J40v3D.applyAsDouble(hx4J40v3P) + hx4J40v3D.applyAsDouble(hx4J40v3Q); } if (hx4J40v3P instanceof String || hx4J40v3Q instanceof String) { return String.valueOf(hx4J40v3P) + String.valueOf(hx4J40v3Q); } return null; }).apply(url, entirePath);
         if (java.util.Objects.equals(authentication, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v16 -> { synchronized (j39v16) { yield new ArrayList<Object>(j39v16.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = ((Object) (switch ((Object) (url)) { case null -> (Object) ("null" + (("?" + this.urlencode(query)))); case Double hx4J40v2 -> (Object) (hx4J40v2 + 0.0); case Object hx4J40v2 -> (Object) (String.valueOf(hx4J40v2) + (("?" + this.urlencode(query)))); }));
             }
@@ -8937,7 +8938,7 @@ public class Gate extends GateApi
             }
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || Boolean.TRUE.equals(requiresURLEncoding) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PATCH")))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v15 -> { synchronized (j39v15) { yield new ArrayList<Object>(j39v15.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     // https://github.com/ccxt/ccxt/issues/27663
                     // sort explicitly (true) so the signed order matches the url order in Go,

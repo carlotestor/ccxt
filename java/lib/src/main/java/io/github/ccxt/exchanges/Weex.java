@@ -2806,7 +2806,7 @@ public class Weex extends WeexApi
         {
             request.put("price", this.priceToPrecision(symbol, price));
         }
-        List<Object> triggerPricestopLossPricetakeProfitPricequeryVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, parameters, true);
+        List<Object> triggerPricestopLossPricetakeProfitPricequeryVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, (Map<String, Object>) (parameters), true);
         String triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(0);
         var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(1);
         var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(2);
@@ -5294,7 +5294,7 @@ public class Weex extends WeexApi
         {
             requestBody = this.json(query);
         }
-        Map<String, Object> requestHeaders = null;
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(isPrivate))
         {
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);

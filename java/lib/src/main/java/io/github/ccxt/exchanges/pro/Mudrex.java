@@ -189,9 +189,9 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 prefix = "markKline";
             }
-            Object streamBaseId = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
-            Object streamQuoteId = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
-            String stream = (((((prefix + "@") + interval) + "@") + ((String)streamBaseId).toLowerCase()) + ((String)streamQuoteId).toLowerCase());
+            String streamBaseId = this.safeString(market, "baseId", "");
+            String streamQuoteId = this.safeString(market, "quoteId", "");
+            String stream = (((((prefix + "@") + interval) + "@") + streamBaseId.toLowerCase()) + streamQuoteId.toLowerCase());
             String messageHash = stream;
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();

@@ -608,7 +608,7 @@ public class Nado extends NadoApi
             if (Boolean.TRUE.equals(isStopOrder))
             {
                 // the final omit drops triggerDirection from the request
-                List<Object> triggerDirectionAndParams = (List<Object>) this.handleTriggerDirectionAndParams(paramsRecvWindow, (String) null, false);
+                List<Object> triggerDirectionAndParams = (List<Object>) this.handleTriggerDirectionAndParams((Map<String, Object>) (paramsRecvWindow), (String) null, false);
                 String triggerDirection = (String) ((List<Object>)triggerDirectionAndParams).get(0);
                 String directionSuffix = "below";
                 if (java.util.Objects.equals(triggerDirection, "ascending"))

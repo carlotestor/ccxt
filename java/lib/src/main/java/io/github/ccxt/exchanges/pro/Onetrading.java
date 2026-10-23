@@ -259,11 +259,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(ticker, "instrument");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Helpers.addElementToObject(this.tickers, symbol, this.parseWSTicker((Map<String, Object>) (ticker), (Map<String, Object>) null));
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker((Map<String, Object>) (ticker), (Map<String, Object>) null);
+            Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
             Long timestamp = this.parse8601(datetime);
-            Helpers.addElementToObject((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), "timestamp", timestamp);
-            Helpers.addElementToObject((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), "datetime", this.iso8601(timestamp));
-            client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), ("ticker." + symbol));
+            parsedTicker.put("timestamp", timestamp);
+            parsedTicker.put("datetime", this.iso8601(timestamp));
+            client.resolve(parsedTicker, ("ticker." + symbol));
         }
         client.resolve(this.tickers, "tickers");
     }
@@ -1295,17 +1296,18 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String timeframe = this.findTimeframe(timeframeId, timeframes);
         String channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open", (Object) null), this.safeNumber(message, "high", (Object) null), this.safeNumber(message, "low", (Object) null), this.safeNumber(message, "close", (Object) null), this.safeNumber(message, "volume", (Object) null)));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        Map<String, Object> symbolOhlcvs = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+        Helpers.addElementToObject(this.ohlcvs, symbol, symbolOhlcvs);
+        Object stored = this.safeValue(symbolOhlcvs, timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
         }
-        stored.append(parsed);
+        ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
         if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
         {
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            Helpers.addElementToObject(symbolOhlcvs, timeframe, stored);
         }
         client.resolve(stored, channel);
     }

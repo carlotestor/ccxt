@@ -1961,8 +1961,8 @@ public class Cryptocom extends CryptocomApi
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+                Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = (Map<String, Object>) this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
@@ -3300,7 +3300,7 @@ public class Cryptocom extends CryptocomApi
         }
     }
 
-    public Object customHandleMarginModeAndParams(Object methodName, Map<String, Object> parameters)
+    public Object customHandleMarginModeAndParams(String methodName, Map<String, Object> parameters)
     {
         /**
          * @ignore
@@ -4355,7 +4355,7 @@ public class Cryptocom extends CryptocomApi
         {
             Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
             Map<String, Object> market = this.market(symbol);
-            Boolean isSwap = (Boolean) market.get("swap");
+            Boolean isSwap = (Boolean) this.safeBool(market, "swap", (Object) null);
             String takerFeeKey = "effective_spot_taker_rate_bps";
             if (java.util.Objects.equals(isSwap, true))
             {

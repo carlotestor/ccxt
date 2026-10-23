@@ -1909,7 +1909,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public CompletableFuture<Object> onboarding(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> onboarding(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1932,7 +1932,7 @@ public class Paradex extends ParadexApi
             Helpers.addElementToObject(parameters, "public_key", account.get("publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 

@@ -1448,7 +1448,7 @@ public class Dydx extends DydxApi
         return this.hash(message, keccak(), "hex");
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public Map<String, Object> signHash(Object hash, Object privateKey)
     {
         Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = signature.get("r");
@@ -1460,7 +1460,7 @@ public class Dydx extends DydxApi
         }};
     }
 
-    public Object signMessage(Object message, Object privateKey)
+    public Map<String, Object> signMessage(Object message, Object privateKey)
     {
         return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
     }
@@ -1486,7 +1486,7 @@ public class Dydx extends DydxApi
         {
             throw new ArgumentsRequired((this.id + " signOnboardingAction() requires a privateKey to be set.")) ;
         }
-        Map<String, Object> signature = (Map<String, Object>) this.signMessage(msg, this.privateKey);
+        Map<String, Object> signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -1495,7 +1495,7 @@ public class Dydx extends DydxApi
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
         var signDoc = ((List<Object>) encodedTxsignDocVariable).get(1);
-        Map<String, Object> signature = (Map<String, Object>) this.signHash(encodedTx, privateKey);
+        Map<String, Object> signature = this.signHash(encodedTx, privateKey);
         return this.encodeDydxTxRaw((Map<String, Object>) (signDoc), Helpers.add(signature.get("r"), signature.get("s")));
     }
 
@@ -1578,7 +1578,7 @@ public class Dydx extends DydxApi
         return r;
     }
 
-    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Object parameters)
+    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1822,8 +1822,8 @@ public class Dydx extends DydxApi
                 put( "latestBlockHeight", lastBlockHeight );
             }});
             List<Object> orderRequestRes = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, newParams);
-            Object orderId = (orderRequestRes == null || 0 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(0));
-            Object orderRequest = (orderRequestRes == null || 1 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(1));
+            Object orderId = ((List<Object>)orderRequestRes).get(0);
+            Object orderRequest = ((List<Object>)orderRequestRes).get(1);
             String chainName = this.safeString(this.options, "chainName");
             Object signedTx = this.signDydxTx((String) (((Map<String, Object>)credentials).get("privateKey")), orderRequest, "", chainName, account, null, (Object) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1848,7 +1848,7 @@ public class Dydx extends DydxApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", orderId );
-                put( "clientOrderId", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(orderRequest, "value"), "order"), "orderId"), "clientId") );
+                put( "clientOrderId", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)orderRequest).get("value"), "order"), "orderId"), "clientId") );
             }}, (Map<String, Object>) null);
         }).thenApply(Order::new);
 

@@ -3380,16 +3380,16 @@ public class Woo extends WooApi
 
     }
 
-    public Object getDedicatedNetworkId(Object currency, Map<String, Object> parameters)
+    public Object getDedicatedNetworkId(Map<String, Object> currency, Map<String, Object> parameters)
     {
         List<Object> networkCodeRawparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
         String networkCodeRaw = (String) ((List<Object>) networkCodeRawparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeRawparamsNetworkCodeVariable).get(1);
-        String networkCode = this.networkIdToCode(networkCodeRaw, java.util.Objects.toString(Helpers.GetValue(currency, "code"), null));
-        Map<String, Object> networkEntry = (Map<String, Object>) ((((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(Helpers.GetValue(currency, "networks"), networkCode, (Object) null));
+        String networkCode = this.networkIdToCode(networkCodeRaw, java.util.Objects.toString(currency.get("code"), null));
+        Map<String, Object> networkEntry = (Map<String, Object>) ((((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(currency.get("networks"), networkCode, (Object) null));
         if (java.util.Objects.equals(networkEntry, null))
         {
-            List<Object> supportedNetworks = ((List<Object>) switch ((Object)(Helpers.GetValue(currency, "networks"))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> supportedNetworks = ((List<Object>) switch ((Object)(currency.get("networks"))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             throw new BadRequest(((this.id + "  can not determine a network code, please provide unified \"network\" param, one from the following: ") + this.json(supportedNetworks))) ;
         }
         String currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");

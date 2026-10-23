@@ -1587,7 +1587,7 @@ public class TestMain extends BaseTest
         {
             Assert(java.util.Objects.equals(exchange.hostname, null) || java.util.Objects.equals(exchange.hostname, ""), "binance.com hostname should be empty");
             Assert(java.util.Objects.equals(((Map<String, Object>)((Map<String, Object>)exchange.urls).get("api")).get("public"), "https://api.binance.com/api/v3"), ("https://api.binance.com/api/v3 does not match: " + ((Map<String, Object>)((Map<String, Object>)exchange.urls).get("api")).get("public")));
-            Assert((Helpers.inOp(Helpers.GetValue(((Map<String, Object>)exchange.api).get("sapi"), "get"), "lending/union/account")), ("SAPI should contain the endpoint lending/union/account, " + jsonStringify(Helpers.GetValue(((Map<String, Object>)exchange.api).get("sapi"), "get"))));
+            Assert((Helpers.inOp(((Map<String, Object>)((Map<String, Object>)exchange.api).get("sapi")).get("get"), "lending/union/account")), ("SAPI should contain the endpoint lending/union/account, " + jsonStringify(((Map<String, Object>)((Map<String, Object>)exchange.api).get("sapi")).get("get"))));
         } else if (java.util.Objects.equals(exchange.id, "binanceus"))
         {
             Assert(java.util.Objects.equals(exchange.hostname, "binance.us"), ("binance.us hostname does not match " + exchange.hostname));
