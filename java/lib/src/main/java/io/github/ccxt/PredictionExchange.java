@@ -520,11 +520,11 @@ public Object describe()
         // through fetchEvents; this never fetches
         if ((!java.util.Objects.equals(this.events, null)) && (((Map<?, ?>)this.events).containsKey(eventIdOrSlug)))
         {
-            return (this.events == null || eventIdOrSlug == null ? null : ((Map<?, ?>)this.events).get(eventIdOrSlug));
+            return Helpers.GetValue(this.events, eventIdOrSlug);
         }
         if ((!java.util.Objects.equals(this.events_by_slug, null)) && (((Map<?, ?>)this.events_by_slug).containsKey(eventIdOrSlug)))
         {
-            return (this.events_by_slug == null || eventIdOrSlug == null ? null : ((Map<?, ?>)this.events_by_slug).get(eventIdOrSlug));
+            return Helpers.GetValue(this.events_by_slug, eventIdOrSlug);
         }
         throw new BadSymbol((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
@@ -541,11 +541,11 @@ public Object describe()
         }
         if (((Map<?, ?>)this.outcomes).containsKey(outcomeSymbol))
         {
-            return (Map<String, Object>) ((this.outcomes == null || outcomeSymbol == null ? null : ((Map<?, ?>)this.outcomes).get(outcomeSymbol)));
+            return (Map<String, Object>) (Helpers.GetValue(this.outcomes, outcomeSymbol));
         }
         if ((!java.util.Objects.equals(this.outcomes_by_id, null)) && (((Map<?, ?>)this.outcomes_by_id).containsKey(outcomeSymbol)))
         {
-            return (Map<String, Object>) ((this.outcomes_by_id == null || outcomeSymbol == null ? null : ((Map<?, ?>)this.outcomes_by_id).get(outcomeSymbol)));
+            return (Map<String, Object>) (Helpers.GetValue(this.outcomes_by_id, outcomeSymbol));
         }
         throw new BadSymbol((((this.id + " does not have outcome ") + outcomeSymbol) + " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
@@ -576,11 +576,11 @@ public Object describe()
         {
             if ((!java.util.Objects.equals(this.outcomes, null)) && (((Map<?, ?>)this.outcomes).containsKey(outcomeIdOrSymbol)))
             {
-                return (Map<String, Object>) ((this.outcomes == null || outcomeIdOrSymbol == null ? null : ((Map<?, ?>)this.outcomes).get(outcomeIdOrSymbol)));
+                return (Map<String, Object>) (Helpers.GetValue(this.outcomes, outcomeIdOrSymbol));
             }
             if ((!java.util.Objects.equals(this.outcomes_by_id, null)) && (((Map<?, ?>)this.outcomes_by_id).containsKey(outcomeIdOrSymbol)))
             {
-                return (Map<String, Object>) ((this.outcomes_by_id == null || outcomeIdOrSymbol == null ? null : ((Map<?, ?>)this.outcomes_by_id).get(outcomeIdOrSymbol)));
+                return (Map<String, Object>) (Helpers.GetValue(this.outcomes_by_id, outcomeIdOrSymbol));
             }
         }
         if (!java.util.Objects.equals(outcomeObj, null))
