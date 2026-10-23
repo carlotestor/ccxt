@@ -4418,7 +4418,7 @@ export class BaseExchange {
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
                 const key = keys[i];
-                const network = networks[key];
+                const network = this.safeDict (networks, key, {});
                 const deposit = this.safeBool (network, 'deposit');
                 const currencyDeposit = this.safeBool (currency, 'deposit');
                 if (currencyDeposit === undefined || (deposit === true)) {
@@ -4607,7 +4607,7 @@ export class BaseExchange {
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
-            const value = marketValues[i];
+            const value = this.safeDict (marketValues, i, {});
             if (value['id'] in marketsById) {
                 const marketsByIdArray = (marketsById[value['id']] as any);
                 marketsByIdArray.push (value);
@@ -4891,7 +4891,7 @@ export class BaseExchange {
                         }
                     }
                     if (shouldParseFees) {
-                        const tradeFees = this.safeValue (trade, 'fees');
+                        const tradeFees = this.safeList (trade, 'fees');
                         if (tradeFees !== undefined) {
                             for (let j = 0; j < tradeFees.length; j++) {
                                 const tradeFee = tradeFees[j];
@@ -5130,7 +5130,7 @@ export class BaseExchange {
         if (markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        const market = markets[symbol];
+        const market = this.safeDict (markets, symbol, {});
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let useQuote: Bool = undefined;
         if (feeSide === 'get') {
@@ -6567,10 +6567,11 @@ export class BaseExchange {
         if (code === undefined) {
             return code;
         }
-        let currency = this.safeDict (this.currencies, code);
-        if (currency === undefined) {
-            currency = this.safeCurrency (code);
+        const currencyById = this.safeDict (this.currencies, code);
+        if (currencyById !== undefined) {
+            return currencyById['id'];
         }
+        const currency = this.safeCurrency (code);
         if (currency !== undefined) {
             return currency['id'];
         }
@@ -6645,10 +6646,7 @@ export class BaseExchange {
     }
 
     getListFromObjectValues (objects: any, key: IndexType): string[] {
-        let newArray = objects;
-        if (!Array.isArray (objects)) {
-            newArray = this.toArray (objects);
-        }
+        const newArray = this.toArray (objects);
         const results: string[] = [];
         for (let i = 0; i < newArray.length; i++) {
             results.push (newArray[i][key]);
@@ -6814,7 +6812,7 @@ export class BaseExchange {
         const options = this.safeDict (this.options, 'buildOHLCVC', {});
         const skipZeroPrices = this.safeBool (options, 'skipZeroPrices', true);
         for (let i = 0; i < oldest; i++) {
-            const trade = trades[i];
+            const trade = this.safeDict (trades, i, {});
             const ts = this.safeInteger (trade, 'timestamp');
             const price = trade['price'];
             if ((ts === undefined) || (price === undefined)) {
@@ -6933,7 +6931,7 @@ export class BaseExchange {
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                const markets = this.markets_by_id[marketId];
+                const markets = this.safeList (this.markets_by_id, marketId, []);
                 const numMarkets = markets.length;
                 if (numMarkets === 1) {
                     return markets[0];
