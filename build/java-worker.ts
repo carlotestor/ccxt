@@ -14,6 +14,7 @@ import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
 import { installJ03BooleanConditions } from './hx10w2-J03.js'; // hx10 wave-2 J03
+import { installJ06TupleAsyncLocals } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -107,6 +108,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJ14ScalarLocals (cachedTranspiler); // hx4 J14
         installJ17StringReturns (cachedTranspiler); // hx4 J17
         installJ03BooleanConditions (cachedTranspiler); // hx10 wave-2 J03
+        installJ06TupleAsyncLocals (cachedTranspiler); // hx10 wave-3 J06
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
