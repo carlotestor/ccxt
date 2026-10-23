@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
+import { installHx10G06NilDeclaredTupleJoins as hx10G06InstallTupleJoins } from './hx10w3-G06.js';
 
 // CCXT-side extension of the Go printer's local-variable typing.
 //
@@ -6953,6 +6954,7 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
     installCcxtGoNilDeclaredValueJoins (goTranspiler);
     installCcxtGoTernaryCast (goTranspiler);
     installCcxtGoNilDeclaredJoin (goTranspiler);
+    hx10G06InstallTupleJoins (goTranspiler);  // hx10 G06: tuple-slot param bags
     if (typeof goTranspiler.printVariableDeclarationList === 'function'
         && typeof goTranspiler.goEnclosingFunction === 'function'
         && typeof goTranspiler.goTypeNameIsShadowed === 'function'
