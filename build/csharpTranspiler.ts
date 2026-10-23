@@ -4,6 +4,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { hx10C07PromiseAll, hx10C07SelfTest } from './hx10w2-C07.js' // hx10 wave2 C07: promiseAll -> Task.WhenAll
+import { hx10W3C07SnippetChecks } from './hx10w3-C07.js' // hx10 wave3 C07: handleErrors code / ws boolean flags
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
@@ -8775,7 +8776,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks () ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
