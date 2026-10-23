@@ -16,11 +16,11 @@ const HX10W3C07_SIGNATURE_ARGS = {
 }
 
 // boolean flags: csharpBooleanParamType re-checks the checker per declaration (boolean, and
-// optional only for `bool?`), and every C# call site of these positions passes a bool literal or
-// omits the argument (backpack subscribeWsTickers/watchPublic/watchPrivate; getUrlByMarketType in
-// bybit/gate/htx, which no other method calls).
+// optional only for `bool?`), and every C# call site of these positions passes a bool literal, a
+// narrowed param or nothing (backpack subscribeWsTickers/watchPublic/watchPrivate; htx
+// getUrlByMarketType, whose `isLinear` position stays object: its callers pass a market-row read).
 const HX10W3C07_BOOLEAN_ARGS = {
-    'getUrlByMarketType': { 1: 'bool?', 2: 'bool?', 3: 'bool?', 4: 'bool?' },
+    'getUrlByMarketType': { 2: 'bool?', 3: 'bool?', 4: 'bool?' },
     'subscribeWsTickers': { 3: 'bool?', 4: 'bool?' },
     'watchPublic': { 3: 'bool?' },
     'watchPrivate': { 3: 'bool?' },
