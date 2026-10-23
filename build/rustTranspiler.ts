@@ -15,6 +15,7 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import { r02NativeInserts } from './hx10w2-R02.js';
 import { hx10w2R03 } from './hx10w2-R03.js';
 import { r04Scalars } from './hx10w2-R04.js'; // hx10 R04
+import { r04Callee } from './hx10w3-R04.js'; // hx10w3 R04
 import { r06Push } from './hx10w2-r06.js';
 
 ansi.nice;
@@ -9022,6 +9023,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.x45Native(rustContent); // hx5 X45
                 rustContent = this.r28Truth(rustContent); // hx4 R28
                 rustContent = r04Scalars(rustContent); // hx10 R04
+                rustContent = r04Callee(rustContent); // hx10w3 R04
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
                 rustContent = this.r31Str(rustContent); // hx4 R31
                 rustContent = this.r32Native(rustContent); // hx4 R32
@@ -9762,6 +9764,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.x45Native(finalFile); // hx5 X45
         finalFile = this.r28Truth(finalFile); // hx4 R28
         finalFile = r04Scalars(finalFile); // hx10 R04
+        finalFile = r04Callee(finalFile); // hx10w3 R04
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
         finalFile = this.r31Str(finalFile); // hx4 R31
         finalFile = this.r32Native(finalFile); // hx4 R32
