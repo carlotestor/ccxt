@@ -4903,7 +4903,7 @@ export default class binance extends binanceRest {
             this.handleOrder (client, message);
             return;
         }
-        let messageValue: any = message;
+        let messageValue: Dict = message;
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = this.safeDict (message, 'o', message);
             if ((e === 'ALGO_UPDATE') && !('T' in messageValue)) {

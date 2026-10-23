@@ -3197,7 +3197,7 @@ export default class binance extends Exchange {
         if (this.safeBool (this.options, 'enableDemoTrading', false)) {
             return {};
         }
-        const promises: Promise<Dict | List>[] = [ this.sapiGetCapitalConfigGetall (params) ];
+        const promises: Promise<List>[] = [ this.sapiGetCapitalConfigGetall (params) ];
         const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
         if (fetchMargins) {
             promises.push (this.sapiGetMarginAllPairs (params));
@@ -3212,7 +3212,7 @@ export default class binance extends Exchange {
         return this.parseCurrenciesCustom (responseCurrencies, marginablesById);
     }
 
-    parseCurrenciesCustom (responseCurrencies: any, marginablesById: NullableDict): Currencies {
+    parseCurrenciesCustom (responseCurrencies: Dict[], marginablesById: NullableDict): Currencies {
         const result: Dict = {};
         for (let i = 0; i < responseCurrencies.length; i++) {
             const parsed = this.parseCurrency (responseCurrencies[i]);
@@ -6152,7 +6152,7 @@ export default class binance extends Exchange {
         return this.parseOrders (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -9833,7 +9833,7 @@ export default class binance extends Exchange {
         return this.parseTransactions (responseList, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: Str, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str, type: Str = undefined): Str {
         if (type === undefined) {
             return status;
         }
@@ -11067,7 +11067,7 @@ export default class binance extends Exchange {
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    async futuresTransfer (code: string, amount: any, type: number, params: Dict = {}): Promise<TransferEntry> {
+    async futuresTransfer (code: string, amount: number, type: number, params: Dict = {}): Promise<TransferEntry> {
         if ((type < 1) || (type > 4)) {
             throw new ArgumentsRequired (this.id + ' type must be between 1 and 4');
         }
@@ -13008,7 +13008,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any[], market: Market) {
+    parseSettlements (settlements: Dict[], market: Market): List {
         //
         // fetchSettlementHistory
         //
@@ -13252,7 +13252,7 @@ export default class binance extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const ledgerType: Dict = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
@@ -13584,7 +13584,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: number, addOrReduce: number, params: Dict = {}): Promise<MarginModification> {
         // used to modify isolated positions
         let defaultType = this.safeString (this.options, 'defaultType', 'swap');
         if (defaultType === 'spot') {
@@ -13598,7 +13598,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const amountValue: any = this.amountToPrecision (symbol, amount);
+        const amountValue: Str = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -13920,7 +13920,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} The gift code id, code, currency and amount
      */
-    async createGiftCode (code: string, amount: any, params: Dict = {}): Promise<Dict> {
+    async createGiftCode (code: string, amount: Num, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -13960,7 +13960,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async redeemGiftCode (giftcardCode: any, params: Dict = {}) {
+    async redeemGiftCode (giftcardCode: string, params: Dict = {}): Promise<Dict> {
         const request: Dict = {
             'code': giftcardCode,
         };
@@ -13988,7 +13988,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async verifyGiftCode (id: string, params: Dict = {}) {
+    async verifyGiftCode (id: string, params: Dict = {}): Promise<Dict> {
         const request: Dict = {
             'referenceNo': id,
         };
