@@ -2001,6 +2001,9 @@ const VENUE_RETURN_KINDS = {
     'networkIdToCode': [ 'String' ], 'findTimeframe': [ 'String' ],
     'outcome': [ JAVA_ARRAY_TYPE_MAP () ], 'safeOutcome': [ JAVA_ARRAY_TYPE_MAP () ],
     'parseSearchQueries': [ 'java.util.List<Object>' ], 'parsePredictionTicker': [ JAVA_ARRAY_TYPE_MAP () ],
+    // hx10w3 J02: `parseWsBalance (…): Balances` is a dict view — the field it feeds (this.balance)
+    // prints Map<String, Object>, so the venue declarations and their callers must say so too
+    'parseWsBalance': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
