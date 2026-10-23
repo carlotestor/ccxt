@@ -10,6 +10,7 @@ import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import { nativeGetValue } from './hx10w2-R01.js';
 import { r07TypedLocals } from "./hx10w2-R07.js";
+import { r07StringNatives } from './hx10w3-R07.js'; // hx10 W3 R07
 import { hx10w2R08 } from './hx10w2-R08.js';
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import { r02NativeInserts } from './hx10w2-R02.js';
@@ -9011,6 +9012,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
                 rustContent = r06Push(rustContent);
                 rustContent = r07TypedLocals(rustContent); // hx10 W2 R07
+                rustContent = r07StringNatives(rustContent); // hx10 W3 R07
                 // And `instanceof <errorClass>` whose class has no subclass.
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
                 // Last: a `.clone()` in a by-value slot whose local is dead
@@ -9753,6 +9755,7 @@ impl std::ops::DerefMut for ${coreName} {
         // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
         finalFile = r06Push(finalFile);
         finalFile = r07TypedLocals(finalFile); // hx10 W2 R07
+        finalFile = r07StringNatives(finalFile); // hx10 W3 R07
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
