@@ -1292,8 +1292,8 @@ export default class htx extends Exchange {
         // decommissioned after the huobi -> htx rebrand and no longer resolve,
         // so this method uses the live native endpoints instead
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
-        let status = undefined;
-        let eta = undefined;
+        let status: Str = undefined;
+        let eta: Int = undefined;
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.spotPublicGetV2MarketStatus (paramsMarketType);
@@ -3892,7 +3892,7 @@ export default class htx extends Exchange {
     parseMarginBalanceHelper (balance: Dict, code: string, result: Dict): Dict {
         let account: NullableDict = undefined;
         if (code in result) {
-            account = result[code];
+            account = this.safeDict (result, code);
         } else {
             account = this.account ();
         }
@@ -7576,7 +7576,7 @@ export default class htx extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        let signedHeaders = undefined;
+        let signedHeaders: NullableDict = undefined;
         let signedBody: Str = undefined;
         const pathString: string = path;
         let url = '/';
