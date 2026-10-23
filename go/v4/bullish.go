@@ -2537,8 +2537,8 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	}
 	var isMarketOrder bool = ((typeVar == "market") || (typeVar == "MARKET"))
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (typeVar == "POST_ONLY"), params)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var orderType string = typeVar
 	if postOnly {
 		orderType = "POST_ONLY"
@@ -3199,7 +3199,7 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[*string], optionalArgs 
 	if IsEqual(tradingAccountId, nil) {
 		panic(ArgumentsRequired(this.Id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account"))
 	}
-	this.Options.Store("tradingAccountId", tradingAccountId)
+	this.Options["tradingAccountId"] = DerefScalar(tradingAccountId)
 
 	ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "tradingAccountId")}
 	return nil
@@ -3587,7 +3587,7 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	//         }
 	//     ]
 	//
-	var results any = this.ParsePositions(response, symbols)
+	var results []any = this.ParsePositions(response, symbols)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(results, "symbol", symbols))}
 	return nil
@@ -4231,9 +4231,9 @@ func (this *Bullish) signInBody(ch chan AsyncResult[any], optionalArgs ...any) a
 	//
 	var token *string = this.SafeString(response, "token")
 	var authorizer *string = this.SafeString(response, "authorizer")
-	this.Options.Store("authorizer", authorizer)
+	this.Options["authorizer"] = DerefScalar(authorizer)
 	this.Token = token
-	this.Options.Store("tokenExpires", this.Sum(this.Milliseconds(), (1000*60)*60*24)) // token expires in 24 hours
+	this.Options["tokenExpires"] = this.Sum(this.Milliseconds(), (1000*60)*60*24) // token expires in 24 hours
 
 	ch <- AsyncResult[any]{Value: token}
 	return nil
@@ -4346,7 +4346,10 @@ func (this *Bullish) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

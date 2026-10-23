@@ -530,7 +530,13 @@ func (this *Luno) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	//
 	var currenciesData []any = SafeListTyped(response, "data")
 	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
-	var values []any = ObjectValues(grouped)
+	var values []any = nil
+	if grouped != nil {
+		values = make([]any, 0, len(grouped))
+		for _, objectValue := range grouped {
+			values = append(values, objectValue)
+		}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(values)}
 	return nil

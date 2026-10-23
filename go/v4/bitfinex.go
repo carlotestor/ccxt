@@ -810,8 +810,8 @@ func (this *Bitfinex) IsFiat(code any) bool {
 }
 func (this *Bitfinex) GetCurrencyName(code any) any {
 	// temporary fix for transpiler recognition, even though this is in parent class
-	if InOp(GetValue(this.Options, "currencyNames"), code) {
-		return GetValue(GetValue(this.Options, "currencyNames"), code)
+	if InOp(this.Options["currencyNames"], code) {
+		return GetValue(this.Options["currencyNames"], code)
 	}
 	panic(NotSupported(Add(Add(this.Id+" ", code), " not supported for withdrawal")))
 }
@@ -2001,7 +2001,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 			return nil
 		}()
-		typeVar = this.SafeString(GetValue(this.Options, "exchangeTypes"), orderType)
+		typeVar = this.SafeString(this.Options["exchangeTypes"], orderType)
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -4651,8 +4651,8 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		rates = append(rates, rate)
 	}
 	var reversedArray []any = []any{}
-	var rawRates any = this.FilterBySymbolSinceLimit(rates, symbol, since, limit)
-	var ratesLength int = GetArrayLength(rawRates)
+	var rawRates []any = this.FilterBySymbolSinceLimit(rates, symbol, since, limit)
+	var ratesLength int = len(rawRates)
 	for i := 0; i < ratesLength; i++ {
 		var index int64 = (int64(ratesLength) - int64(i)) - 1
 		var valueAtIndex any = GetValue(rawRates, index)

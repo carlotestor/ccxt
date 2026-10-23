@@ -3209,7 +3209,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 			var builderFeeEnabled *bool = this.SafeBool(this.Options, "builderFee", true)
 			var feeRate any = 0
 			if builderFeeEnabled != nil && *builderFeeEnabled {
-				feeRate = ccxt.DerefScalar(this.SafeInteger(this.Options, "feeRate", 0))
+				feeRate = (*this.SafeInteger(this.Options, "feeRate", 0))
 			}
 			var feeHex string = this.IntToBase16(feeRate)
 			feeHex = (strings.Repeat("0", max(24-len(feeHex), 0)) + feeHex)[max(len(feeHex)-24, 0):]
@@ -4409,9 +4409,9 @@ func (this *Polymarket) SetApiCredentials(response any) map[string]any {
 	}
 	// cache in options rather than the typed apiKey/secret/password fields so the
 	// assignment is valid in the struct-based languages (C#/Go/Java)
-	this.Options.Store("l2ApiKey", creds["apiKey"])
-	this.Options.Store("l2Secret", creds["secret"])
-	this.Options.Store("l2Passphrase", creds["passphrase"])
+	this.Options["l2ApiKey"] = creds["apiKey"]
+	this.Options["l2Secret"] = creds["secret"]
+	this.Options["l2Passphrase"] = creds["passphrase"]
 	return creds
 }
 
@@ -5292,7 +5292,10 @@ func (this *Polymarket) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ccxt.ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

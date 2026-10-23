@@ -1314,9 +1314,14 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			// const ob = this.orderBook ({})
 			var ob ccxt.OrderBookInterface = this.CountedOrderBook(map[string]any{})
 			ccxt.AddElementToObject(ob, "symbol", symbol)
-			ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
+			if symbol != nil {
+				this.Orderbooks[*symbol] = ob
+			}
 		}
-		var storedOrderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+		var storedOrderBook ccxt.OrderBookInterface
+		if symbol != nil {
+			storedOrderBook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		}
 		var asks []any = ccxt.SafeList2Typed(rawOrderBook, "asks", "a", []any{})
 		var bids []any = ccxt.SafeList2Typed(rawOrderBook, "bids", "b", []any{})
 		this.HandleDeltas(storedOrderBook.GetAsks(), asks)
@@ -1368,7 +1373,9 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		}
 		var parsedOrderbook map[string]any = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
 		orderbook.(ccxt.OrderBookInterface).Reset(parsedOrderbook)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+		if symbol != nil {
+			this.Orderbooks[*symbol] = orderbook
+		}
 	}
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, symbol), messageHash)
 }
@@ -3769,7 +3776,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 	var messageHash any = ccxt.Add("unsubscribe:orderbook:", market["symbol"])
 	var subMessageHash string = "orderbook:" + *symbol
 	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+		delete(this.Orderbooks, *symbol)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
@@ -3799,7 +3806,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	var messageHash any = ccxt.Add("unsubscribe:trade:", market["symbol"])
 	var subMessageHash string = "trade:" + *symbol
 	if ccxt.InOp(this.Trades, symbol) {
-		ccxt.Remove(this.Trades, symbol)
+		delete(this.Trades, *symbol)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
@@ -3881,8 +3888,8 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
 	}
 	if ccxt.InOp(this.Ohlcvs, symbol) {
-		if (timeframe != nil) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
-			ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+		if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
+			ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
 		}
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)

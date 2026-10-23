@@ -1256,14 +1256,22 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if typeVar != nil && *typeVar == "snapshot" {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			}
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any
+		if symbol != nil {
+			orderbook = this.Orderbooks[*symbol]
+		}
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else if typeVar != nil && *typeVar == "l2update" {
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any
+		if symbol != nil {
+			orderbook = this.Orderbooks[*symbol]
+		}
 		var timestamp *int64 = this.Parse8601(this.SafeString(message, "time"))
 		var changes []any = ccxt.SafeListTyped(message, "changes")
 		var sides map[string]any = map[string]any{

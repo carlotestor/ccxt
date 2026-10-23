@@ -79,7 +79,7 @@ func (this *Deribit) Describe() any {
 }
 func (this *Deribit) RequestId() int64 {
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	return requestId
 }
 
@@ -321,12 +321,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return symbolsNormalized[i]
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval))
 	}
 	var message map[string]any = map[string]any{
@@ -440,12 +435,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return symbolsNormalized[i]
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		channels = append(channels, ccxt.Add("quote.", market["id"]))
 	}
 	var message map[string]any = map[string]any{
@@ -649,9 +639,14 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	var trades []any = ccxt.SafeListTyped(params, "data")
 	if ccxt.IsEqual(this.SafeDict(this.Trades, symbol), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
+		if symbol != nil {
+			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(this.Trades, symbol)
+	var stored any
+	if symbol != nil {
+		stored = this.Trades[*symbol]
+	}
 	for i := 0; i < len(trades); i++ {
 		var trade any = func() any {
 			if i >= 0 && i < len(trades) {
@@ -664,7 +659,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades|"+*symbol+"|", interval))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Trades[*symbol], messageHash)
 }
 
 /**
@@ -777,9 +772,9 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var parsed any = this.ParseTrades(trades)
+	var parsed []any = this.ParseTrades(trades)
 	var marketIds map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
+	for i := 0; i < len(parsed); i++ {
 		var trade any = ccxt.GetValue(parsed, i)
 		cachedTrades.(ccxt.Appender).Append(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
@@ -941,9 +936,14 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.CountedOrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.CountedOrderBook()
+		}
 	}
-	var storedOrderBook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var storedOrderBook any
+	if symbol != nil {
+		storedOrderBook = this.Orderbooks[*symbol]
+	}
 	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
@@ -1123,7 +1123,7 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
 	var data any = this.SafeValue(params, "data", map[string]any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	if ccxt.IsArray(data) {
 		orders = this.ParseOrders(data)
 	} else {
@@ -1131,7 +1131,7 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 		orders = []any{order}
 	}
 	var cachedOrders any = this.Orders
-	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		cachedOrders.(ccxt.Appender).Append(ccxt.GetValue(orders, i))
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
@@ -1235,7 +1235,7 @@ func (this *Deribit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
@@ -1279,7 +1279,9 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
 	if ccxt.IsEqual(this.SafeDict(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, ccxt.NewArrayCacheByTimestamp(limit))

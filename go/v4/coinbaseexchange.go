@@ -1645,14 +1645,16 @@ func (this *Coinbaseexchange) fetchTradingFeesBody(ch chan AsyncResult[map[strin
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       response,
-			"symbol":     symbol,
-			"maker":      maker,
-			"taker":      taker,
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       response,
+				"symbol":     symbol,
+				"maker":      maker,
+				"taker":      taker,
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -3052,11 +3054,11 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan AsyncResult[Depos
 			panic(r1.Err)
 		}
 		accounts = r1.Raw
-		this.Options.Store("coinbaseAccounts", accounts) // cache it
-		this.Options.Store("coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
+		this.Options["coinbaseAccounts"] = accounts // cache it
+		this.Options["coinbaseAccountsByCurrencyId"] = this.IndexBy(accounts, "currency")
 	}
 	var currencyId *string = SafeStringPtr(currency["id"])
-	var account any = this.SafeDict(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
+	var account any = this.SafeDict(this.Options["coinbaseAccountsByCurrencyId"], currencyId)
 	if account == nil {
 		panic(InvalidAddress(this.Id + " createDepositAddress() could not find currency code " + code + " with id = " + *currencyId + " in this.options['coinbaseAccountsByCurrencyId']"))
 	}
@@ -3464,7 +3466,10 @@ func (this *Coinbaseexchange) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

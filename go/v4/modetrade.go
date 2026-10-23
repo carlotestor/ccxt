@@ -738,7 +738,7 @@ func (this *Modetrade) Describe() any {
 }
 func (this *Modetrade) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	this.Options.Store("sandboxMode", enable)
+	this.Options["sandboxMode"] = enable
 }
 
 /**
@@ -1074,26 +1074,28 @@ func (this *Modetrade) ParseCurrency(rawCurrency any) map[string]any {
 				return Precise.StringMin(precision, minPrecision)
 			}()
 		}
-		AddElementToObject(resultingNetworks, networkId, map[string]any{
-			"id":      networkId,
-			"network": networkId,
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": nil,
-					"max": nil,
+		if networkId != nil {
+			resultingNetworks[*networkId] = map[string]any{
+				"id":      networkId,
+				"network": networkId,
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
 				},
-				"deposit": map[string]any{
-					"min": nil,
-					"max": nil,
-				},
-			},
-			"active":    nil,
-			"deposit":   nil,
-			"withdraw":  nil,
-			"fee":       this.SafeNumber(network, "withdrawal_fee"),
-			"precision": this.ParseNumber(precision),
-			"info":      network,
-		})
+				"active":    nil,
+				"deposit":   nil,
+				"withdraw":  nil,
+				"fee":       this.SafeNumber(network, "withdrawal_fee"),
+				"precision": this.ParseNumber(precision),
+				"info":      network,
+			}
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
@@ -4676,7 +4678,10 @@ func (this *Modetrade) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

@@ -749,14 +749,16 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 		if derefNum, isNum := this.ParseNumber(Precise.StringDiv(takerString, "100")).(float64); isNum {
 			taker = &derefNum
 		}
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       fee,
-			"symbol":     symbol,
-			"taker":      taker,
-			"maker":      maker,
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       fee,
+				"symbol":     symbol,
+				"taker":      taker,
+				"maker":      maker,
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}

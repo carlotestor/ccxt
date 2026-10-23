@@ -3323,8 +3323,8 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol *string, typeVar *string, sid
 	}
 	var isMarketOrder bool = (typeValue == "MARKET")
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (typeValue == "LIMIT_MAKER"), paramsCost)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly && (typeValue == "LIMIT") {
 		request["type"] = "LIMIT_MAKER"
 	}
@@ -3392,8 +3392,8 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol *string, typeVar *string, sid
 	var timeInForceParam *string = SafeStringPtr(timeInForceParamparamsTimeInForceVariable[0])
 	var paramsTimeInForce map[string]any = MapTyped(timeInForceParamparamsTimeInForceVariable[1])
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (timeInForceParam != nil && *timeInForceParam == "LIMIT_MAKER"), paramsTimeInForce)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var timeInForce *string = timeInForceParam
 	if postOnly {
 		timeInForce = SafeStringPtr("LIMIT_MAKER")
@@ -5657,7 +5657,10 @@ func (this *Hashkey) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

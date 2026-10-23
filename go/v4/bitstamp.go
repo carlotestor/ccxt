@@ -1391,10 +1391,10 @@ func (this *Bitstamp) fetchMarketsFromCacheBody(ch chan AsyncResult[[]map[string
 		//            "market_type": "SPOT"
 		//        },
 		//
-		this.Options.Store("fetchMarkets", this.Extend(options, map[string]any{
+		this.Options["fetchMarkets"] = this.Extend(options, map[string]any{
 			"response":  response,
 			"timestamp": now,
-		}))
+		})
 	}
 	var cache map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var markets []any = SafeListTypedDefault(cache, "response", []any{})

@@ -182,7 +182,7 @@ func (this *Bybit) DescribeData() any {
 func (this *Bybit) RequestId() int64 {
 	this.LockId()
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	this.UnlockId()
 	return requestId
 }
@@ -337,7 +337,7 @@ func (this *Bybit) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbo
 		"args":  []any{orderRequest},
 		"header": map[string]any{
 			"X-BAPI-TIMESTAMP":   strconv.FormatInt(this.Milliseconds(), 10),
-			"X-BAPI-RECV-WINDOW": ccxt.ToString(ccxt.GetValue(this.Options, "recvWindow")),
+			"X-BAPI-RECV-WINDOW": ccxt.ToString(this.Options["recvWindow"]),
 		},
 	}
 
@@ -419,7 +419,7 @@ func (this *Bybit) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 		"args":  []any{orderRequest},
 		"header": map[string]any{
 			"X-BAPI-TIMESTAMP":   strconv.FormatInt(this.Milliseconds(), 10),
-			"X-BAPI-RECV-WINDOW": ccxt.ToString(ccxt.GetValue(this.Options, "recvWindow")),
+			"X-BAPI-RECV-WINDOW": ccxt.ToString(this.Options["recvWindow"]),
 		},
 	}
 
@@ -493,7 +493,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 		"args":  []any{orderRequest},
 		"header": map[string]any{
 			"X-BAPI-TIMESTAMP":   strconv.FormatInt(this.Milliseconds(), 10),
-			"X-BAPI-RECV-WINDOW": ccxt.ToString(ccxt.GetValue(this.Options, "recvWindow")),
+			"X-BAPI-RECV-WINDOW": ccxt.ToString(this.Options["recvWindow"]),
 		},
 	}
 
@@ -1064,7 +1064,7 @@ func (this *Bybit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	var result map[string]any = ccxt.StructResultMap(r.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(result[symbol], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:
@@ -1157,7 +1157,7 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
@@ -1323,7 +1323,9 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var ohlcvsByTimeframe any = this.SafeDict(this.Ohlcvs, symbol)
 	if ohlcvsByTimeframe == nil {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	if ccxt.IsEqual(this.SafeValue(ohlcvsByTimeframe, timeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1663,9 +1665,14 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	if isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
@@ -1682,7 +1689,7 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	if limit != nil && *limit == "1" {
-		var bidask any = this.ParseWsBidAsk(ccxt.UnWrapType(ccxt.GetValue(this.Orderbooks, symbol)), market)
+		var bidask any = this.ParseWsBidAsk(ccxt.UnWrapType(this.Orderbooks[*symbol]), market)
 		var newBidsAsks map[string]any = map[string]any{}
 		if symbol != nil {
 			newBidsAsks[*symbol] = bidask

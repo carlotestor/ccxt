@@ -1403,7 +1403,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	var response map[string]any = r1.Value
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var ordersRaw []any = SafeListTypedDefault(responseData, "orders", []any{})
-	var orders any = this.ParseOrders(ordersRaw, market, since, limit)
+	var orders []any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.FilterBySymbolSinceLimit(trades, this.SafeString(market, "symbol"), since, limit))}

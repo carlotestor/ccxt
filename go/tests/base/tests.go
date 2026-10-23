@@ -3279,7 +3279,8 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan ccxt.AsyncR
 	}
 	var accounts any = exchange.SafeList(exchangeData, "accounts")
 	if !IsEqual(accounts, nil) && !IsEqual(accounts, nil) {
-		exchange.SetAccounts(accounts)
+		// the field is a List<object>: assign the call, not the untyped local
+		exchange.SetAccounts(exchange.SafeList(exchangeData, "accounts"))
 	}
 	// exchange.Setoptions(exchange.GetdeepExtend() (exchange.Getoptions(), globalOptions); // custom options to be used in the tests)
 	exchange.ExtendExchangeOptions(globalOptions)

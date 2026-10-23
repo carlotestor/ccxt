@@ -637,9 +637,9 @@ func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	// }
 	var rows []any = SafeListTypedDefault(spotConfig, "assets", []any{})
 	var chains any = this.SafeList(multiChain, "chains", []any{})
-	this.Options.Store("_temp_currencies_chains", chains)
+	this.Options["_temp_currencies_chains"] = chains
 	var result map[string]any = this.ParseCurrencies(rows)
-	this.Options.Delete("_temp_currencies_chains")
+	delete(this.Options, "_temp_currencies_chains")
 
 	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
@@ -649,7 +649,7 @@ func (this *Apex) ParseCurrency(currency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(currency, "displayName")
 	var networks map[string]any = map[string]any{}
-	var chains any = GetValue(this.Options, "_temp_currencies_chains")
+	var chains any = this.Options["_temp_currencies_chains"]
 	for j := 0; j < GetArrayLength(chains); j++ {
 		var chain map[string]any = SafeMapTyped(chains, j)
 		var tokens []any = SafeListTyped(chain, "tokens")
@@ -1704,7 +1704,7 @@ func (this *Apex) getAccountIdBody(ch chan AsyncResult[*string]) any {
 			panic(r.Err)
 		}
 		var accountData map[string]any = StructResultMap(r.Value, AccountToMap)
-		this.Options.Store("accountId", this.SafeString(accountData, "id", "0"))
+		this.Options["accountId"] = DerefScalar(this.SafeString(accountData, "id", "0"))
 	}
 
 	ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "accountId")}
@@ -1927,7 +1927,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var subAccounts []any = SafeListTyped(spotAccount, "subAccounts")
 	var nonce any = "0"
 	if len(subAccounts) > 0 {
-		nonce = DerefScalar(this.SafeString(func() any {
+		nonce = (*this.SafeString(func() any {
 			if 0 >= 0 && 0 < len(subAccounts) {
 				return DerefScalar(subAccounts[0])
 			}
@@ -2852,7 +2852,10 @@ func (this *Apex) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

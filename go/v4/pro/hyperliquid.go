@@ -530,9 +530,14 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
+		if symbol != nil {
+			this.Orderbooks[*symbol] = ob
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -980,7 +985,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 		messageHashes = append(messageHashes, "myLiquidations")
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			messageHashes = append(messageHashes, ccxt.Add("myLiquidations::", symbolsNormalized[i]))
+			messageHashes = append(messageHashes, "myLiquidations::"+symbolsNormalized[i])
 		}
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
@@ -1477,9 +1482,14 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		ccxt.AddElementToObject(this.Trades, symbol, stored)
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
-	var trades any = ccxt.GetValue(this.Trades, symbol)
+	var trades any
+	if symbol != nil {
+		trades = this.Trades[*symbol]
+	}
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
@@ -1727,7 +1737,9 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var timeframe *string = this.SafeString(data, "i")
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -2678,8 +2690,8 @@ func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription 
 	var subMessageHash string = "orderbook:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+	if _, ok := this.Orderbooks[*symbol]; ok {
+		delete(this.Orderbooks, *symbol)
 	}
 }
 func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription map[string]any) {
@@ -2690,8 +2702,8 @@ func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription map
 	var subMessageHash string = "trade:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Trades, symbol) {
-		ccxt.Remove(this.Trades, symbol)
+	if _, ok := this.Trades[*symbol]; ok {
+		delete(this.Trades, *symbol)
 	}
 }
 func (this *Hyperliquid) HandleTickersUnsubscription(client any, subscription map[string]any) {
@@ -2913,7 +2925,7 @@ func (this *Hyperliquid) HandlePong(client any, message map[string]any) any {
 }
 func (this *Hyperliquid) RequestId() int64 {
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = ccxt.DerefScalar(requestId)
 	return requestId
 }
 func (this *Hyperliquid) WrapAsPostAction(request any) map[string]any {

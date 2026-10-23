@@ -878,7 +878,7 @@ func (this *Kraken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			"info":    market,
 		})
 	}
-	this.Options.Store("marketsByAltname", this.IndexBy(result, "altname"))
+	this.Options["marketsByAltname"] = this.IndexBy(result, "altname")
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
@@ -2400,7 +2400,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	if IsEqual(id, nil) {
 		return id
 	}
-	var market any = this.SafeDict(GetValue(this.Options, "delistedMarketsById"), id)
+	var market any = this.SafeDict(this.Options["delistedMarketsById"], id)
 	if market != nil {
 		return market
 	}
@@ -2432,7 +2432,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 		"baseId":  baseId,
 		"quoteId": quoteId,
 	}
-	AddElementToObject(GetValue(this.Options, "delistedMarketsById"), id, market)
+	AddElementToObject(this.Options["delistedMarketsById"], id, market)
 	return market
 }
 func (this *Kraken) ParseOrderStatus(status *string) *string {
@@ -2887,8 +2887,8 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 	}
 	var isMarket bool = (typeVar != nil && *typeVar == "market")
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted2)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
 		var extendedPostFlags string = "post"
 		if flags != nil {
@@ -3238,7 +3238,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 		for i := 0; i < len(ids); i++ {
 			AddElementToObject(GetValue(rawTrades, ids[i]), "id", ids[i])
 		}
-		var trades any = this.ParseTrades(rawTrades, nil, since, limit)
+		var trades []any = this.ParseTrades(rawTrades, nil, since, limit)
 		var tradesFilteredBySymbol any = this.FilterBySymbol(trades, symbolResolved)
 		result = this.ArrayConcat(result, tradesFilteredBySymbol)
 	}
@@ -4699,7 +4699,7 @@ func (this *Kraken) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	//
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var result []any = SafeListTyped(response, "result")
-	var results any = this.ParsePositions(result, symbolsNormalized)
+	var results []any = this.ParsePositions(result, symbolsNormalized)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(results, "symbol", symbolsNormalized))}
 	return nil
@@ -5769,7 +5769,10 @@ func (this *Kraken) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

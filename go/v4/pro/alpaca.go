@@ -362,9 +362,14 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.Parse8601(datetime)
 	var isSnapshot *bool = this.SafeBool(message, "r", false)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	if isSnapshot != nil && *isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)

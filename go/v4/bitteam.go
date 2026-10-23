@@ -740,9 +740,9 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//     }
 	//
 	statusesResponse = this.IndexBy(statusesResponse, "unified_cryptoasset_id")
-	this.Options.Store("_temp_currencies_statuses", statusesResponse)
+	this.Options["_temp_currencies_statuses"] = statusesResponse
 	var result map[string]any = this.ParseCurrencies(currencies)
-	this.Options.Delete("_temp_currencies_statuses")
+	delete(this.Options, "_temp_currencies_statuses")
 
 	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil

@@ -99,7 +99,7 @@ func (this *Bydfi) Ping(client any) any {
 func (this *Bydfi) RequestId() int64 {
 	this.LockId()
 	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
-	this.Options.Store("reqid", reqid)
+	this.Options["reqid"] = reqid
 	this.UnlockId()
 	return reqid
 }
@@ -489,7 +489,7 @@ func (this *Bydfi) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	var result map[string]any = ccxt.StructResultMap(r.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(result[symbol], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:
@@ -591,7 +591,7 @@ func (this *Bydfi) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
@@ -695,7 +695,9 @@ func (this *Bydfi) HandleOHLCV(client any, message any) {
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(interval, timeframes)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -910,9 +912,14 @@ func (this *Bydfi) HandleOrderBook(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var parsed map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 	var messageHash string = "orderbook::" + *symbol
@@ -947,7 +954,7 @@ func (this *Bydfi) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var symbols any = nil
+	var symbols []any = nil
 	if symbol != nil {
 		symbols = []any{symbol}
 	}

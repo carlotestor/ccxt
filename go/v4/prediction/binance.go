@@ -2054,7 +2054,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	// }
 	//
 	var trades []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
-	var parsedTrades any = this.ParsePredictionTrades(trades, outcomeObj)
+	var parsedTrades []any = this.ParsePredictionTrades(trades, outcomeObj)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByOutcomeSinceLimit(parsedTrades, outcome, since, limit))}
 	return nil
@@ -2193,7 +2193,7 @@ func (this *Binance) fetchWalletBody(ch chan ccxt.AsyncResult[map[string]any], m
 	//
 	var wallets []any = ccxt.SafeListTyped(response, "wallets")
 	if walletAddress == nil {
-		this.Options.Store("wallet", this.SafeDict(wallets, 0))
+		this.Options["wallet"] = this.SafeDict(wallets, 0)
 
 		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "wallet")}
 		return nil
@@ -2207,12 +2207,12 @@ func (this *Binance) fetchWalletBody(ch chan ccxt.AsyncResult[map[string]any], m
 			return nil
 		}(), "walletAddress", "")
 		if w == walletAddress || (w != nil && walletAddress != nil && *w == *walletAddress) {
-			this.Options.Store("wallet", func() any {
+			this.Options["wallet"] = func() any {
 				if i >= 0 && i < len(wallets) {
 					return ccxt.DerefScalar(wallets[i])
 				}
 				return nil
-			}())
+			}()
 
 			ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "wallet")}
 			return nil

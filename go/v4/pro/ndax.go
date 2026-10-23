@@ -41,7 +41,7 @@ func (this *Ndax) Describe() any {
 }
 func (this *Ndax) RequestId() int64 {
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	return requestId
 }
 
@@ -662,7 +662,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, limit)
 	if symbol != nil {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+		this.Orderbooks[*symbol] = orderbook
 	}
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

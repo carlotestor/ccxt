@@ -771,7 +771,13 @@ func (this *Dydx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "markets")
-	var markets []any = ObjectValues(data)
+	var markets []any = nil
+	if data != nil {
+		markets = make([]any, 0, len(data))
+		for _, objectValue := range data {
+			markets = append(markets, objectValue)
+		}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1272,11 +1278,11 @@ func (this *Dydx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		request["limit"] = limit
 	}
 
-	listEp1235 := <-this.IndexerGetOrders(this.Extend(request, paramsSubAccountNumber))
-	if listEp1235.Err != nil {
-		panic(listEp1235.Err)
+	listEp1241 := <-this.IndexerGetOrders(this.Extend(request, paramsSubAccountNumber))
+	if listEp1241.Err != nil {
+		panic(listEp1241.Err)
 	}
-	var response []any = listEp1235.Value
+	var response []any = listEp1241.Value
 
 	//
 	// [
@@ -1625,7 +1631,7 @@ func (this *Dydx) RetrieveCredentials() any {
 	credentials = this.RetrieveDydxCredentials(privateKey)
 	AddElementToObject(credentials, "privateKey", this.BinaryToBase16(GetValue(credentials, "privateKey")))
 	AddElementToObject(credentials, "publicKey", this.BinaryToBase16(GetValue(credentials, "publicKey")))
-	this.Options.Store("dydxCredentials", credentials)
+	this.Options["dydxCredentials"] = credentials
 	return credentials
 }
 func (this *Dydx) FetchDydxAccountAsync() <-chan AsyncResult[map[string]any] {
@@ -1680,7 +1686,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan AsyncResult[map[string]any]) any 
 	AddElementToObject(account, "pub_key", map[string]any{
 		"key": GetValue(GetValue(account, "pub_key"), "key"),
 	})
-	this.Options.Store("dydxAccount", account)
+	this.Options["dydxAccount"] = account
 
 	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "dydxAccount", map[string]any{})}
 	return nil
@@ -3472,9 +3478,9 @@ func (this *Dydx) HandleErrors(httpCode any, reason any, url any, method any, he
 func (this *Dydx) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	// rewrite testnet parameters
-	this.Options.Store("chainName", "dydx-testnet-4")
-	this.Options.Store("chainId", 11155111)
-	AddElementToObject(GetValue(this.Options, "feeDenom"), "CHAINTOKEN_DENOM", "adv4tnt")
+	this.Options["chainName"] = "dydx-testnet-4"
+	this.Options["chainId"] = 11155111
+	AddElementToObject(this.Options["feeDenom"], "CHAINTOKEN_DENOM", "adv4tnt")
 }
 
 func NewDydx(userConfig map[string]any) *Dydx {
@@ -3504,7 +3510,10 @@ func (this *Dydx) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

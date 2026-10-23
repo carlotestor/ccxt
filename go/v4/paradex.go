@@ -2015,7 +2015,7 @@ func (this *Paradex) getSystemConfigBody(ch chan AsyncResult[map[string]any]) an
 			panic(r.Err)
 		}
 		response := r.Raw
-		this.Options.Store("systemConfig", response)
+		this.Options["systemConfig"] = response
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "systemConfig", map[string]any{})}
@@ -2099,7 +2099,7 @@ func (this *Paradex) retrieveAccountBody(ch chan AsyncResult[map[string]any]) an
 		var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
 		var signature string = this.SignMessage(msg, this.PrivateKey)
 		var account any = this.RetrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"))
-		this.Options.Store("paradexAccount", account)
+		this.Options["paradexAccount"] = account
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "paradexAccount", map[string]any{})}
@@ -2243,8 +2243,8 @@ func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optional
 	// }
 	//
 	var token *string = this.SafeString(response, "jwt_token")
-	this.Options.Store("authToken", token)
-	this.Options.Store("expires", expires)
+	this.Options["authToken"] = DerefScalar(token)
+	this.Options["expires"] = expires
 
 	ch <- AsyncResult[*string]{Value: token}
 	return nil
@@ -2861,7 +2861,7 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 	// }
 	//
 	var responseOrders []any = SafeListTypedDefault(response, "orders", []any{})
-	var parsedOrders any = this.ParseOrders(responseOrders)
+	var parsedOrders []any = this.ParseOrders(responseOrders)
 	var errors []any = SafeListTyped(response, "errors")
 	var rejected []any = []any{}
 	for i := 0; i < len(errors); i++ {
@@ -5146,7 +5146,10 @@ func (this *Paradex) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

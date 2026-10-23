@@ -2049,28 +2049,28 @@ func (this *Predictfun) SetSandboxMode(enable any) {
 	this.BaseExchange.SetSandboxMode(enable)
 	// the testnet is a different chain, so the EIP-712 chainId and every verifying contract
 	// change with it - and the venue serves the testnet without an api key
-	this.Options.Store("sandboxMode", enable)
-	this.Options.Store("chainId", func() int {
+	this.Options["sandboxMode"] = enable
+	this.Options["chainId"] = func() int {
 		if ccxt.EvalTruthy((enable)) {
 			return 97
 		}
 		return 56
-	}())
+	}()
 	this.RequiredCredentials["apiKey"] = !ccxt.EvalTruthy(enable)
 	if !ccxt.IsEqual(wasSandbox, enable) {
 		// a token minted for one host is not valid on the other, so the live one is set aside
 		// on the way in and taken back on the way out - a round trip through the sandbox then
 		// costs no re-authentication. the sandbox token is not kept: it dies with the switch
 		if ccxt.EvalTruthy(enable) {
-			this.Options.Store("backupJwtToken", this.SafeString(this.Options, "jwtToken"))
-			this.Options.Store("backupJwtTokenExpiresAt", this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0))
-			this.Options.Store("jwtToken", nil)
-			this.Options.Store("jwtTokenExpiresAt", 0)
+			this.Options["backupJwtToken"] = ccxt.DerefScalar(this.SafeString(this.Options, "jwtToken"))
+			this.Options["backupJwtTokenExpiresAt"] = ccxt.DerefScalar(this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0))
+			this.Options["jwtToken"] = nil
+			this.Options["jwtTokenExpiresAt"] = 0
 		} else {
-			this.Options.Store("jwtToken", this.SafeString(this.Options, "backupJwtToken"))
-			this.Options.Store("jwtTokenExpiresAt", this.SafeInteger(this.Options, "backupJwtTokenExpiresAt", 0))
-			this.Options.Store("backupJwtToken", nil)
-			this.Options.Store("backupJwtTokenExpiresAt", 0)
+			this.Options["jwtToken"] = ccxt.DerefScalar(this.SafeString(this.Options, "backupJwtToken"))
+			this.Options["jwtTokenExpiresAt"] = ccxt.DerefScalar(this.SafeInteger(this.Options, "backupJwtTokenExpiresAt", 0))
+			this.Options["backupJwtToken"] = nil
+			this.Options["backupJwtTokenExpiresAt"] = 0
 		}
 	}
 }
@@ -2182,11 +2182,11 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	if token == nil {
 		panic(ccxt.AuthenticationError(this.Id + " authenticate() did not return a token"))
 	}
-	this.Options.Store("jwtToken", token)
+	this.Options["jwtToken"] = ccxt.DerefScalar(token)
 	// measured from before the round trip, so the cached window closes a little early rather
 	// than a little late
 	var tokenExpiresIn *int64 = this.SafeInteger(this.Options, "tokenExpiresIn", 86400000)
-	this.Options.Store("jwtTokenExpiresAt", this.Sum(now, tokenExpiresIn))
+	this.Options["jwtTokenExpiresAt"] = this.Sum(now, tokenExpiresIn)
 
 	ch <- ccxt.AsyncResult[*string]{Value: token}
 	return nil
@@ -2433,8 +2433,8 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	}
 	var postOnly *bool = this.SafeBool(paramsTaker, "isPostOnly", false)
 	var postOnlyOptionparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, postOnly, paramsTaker)
-	var postOnlyOption bool = ccxt.GetValueBool(postOnlyOptionparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = ccxt.MapTyped(postOnlyOptionparamsPostOnlyVariable[1])
+	var postOnlyOption bool = postOnlyOptionparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyOptionparamsPostOnlyVariable[1].(map[string]any)
 	if postOnlyOption {
 		data["isPostOnly"] = postOnlyOption
 	}
@@ -3349,8 +3349,8 @@ func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, me
 	// means the credential itself was refused. drop the cached JWT, otherwise a token revoked
 	// or aged out before its window closes is replayed for the life of the process
 	if ccxt.IsEqual(statusCode, 401) {
-		this.Options.Store("jwtToken", nil)
-		this.Options.Store("jwtTokenExpiresAt", 0)
+		this.Options["jwtToken"] = nil
+		this.Options["jwtTokenExpiresAt"] = 0
 	}
 	var error *string = this.SafeString(response, "error")
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
@@ -3526,8 +3526,8 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		var marketSymbol *string = this.SafeString(outcomeObj, "market")
 		var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets, marketSymbol)
 		var marketRow map[string]any = ccxt.SafeMapTyped(marketObj, "info")
-		isNegRisk = ccxt.DerefScalar(this.SafeBool(marketRow, "isNegRisk", false))
-		isYieldBearing = ccxt.DerefScalar(this.SafeBool(marketRow, "isYieldBearing", false))
+		isNegRisk = (*this.SafeBool(marketRow, "isNegRisk", false))
+		isYieldBearing = (*this.SafeBool(marketRow, "isYieldBearing", false))
 	}
 	if side != nil && *side == "sell" {
 		var ctfToken *string = this.SafeString(params, "token", this.ConditionalTokensAddress(isNegRisk, isYieldBearing))
@@ -4307,7 +4307,7 @@ func (this *Predictfun) RequestId() int64 {
 	this.LockId()
 	var previous *int64 = this.SafeInteger(this.Options, "requestId", 0)
 	var next int64 = this.Sum(previous, 1).(int64)
-	this.Options.Store("requestId", next)
+	this.Options["requestId"] = next
 	this.UnlockId()
 	return next
 }
@@ -4446,10 +4446,10 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 		var isYesOutcome bool = (this.SafeInteger(outcomeInfo, "indexSet") != nil && *this.SafeInteger(outcomeInfo, "indexSet") == 1)
 		var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
 		if outcomeHandle != nil {
-			if !(ccxt.InOp(this.Orderbooks, outcomeHandle)) {
-				ccxt.AddElementToObject(this.Orderbooks, outcomeHandle, this.OrderBook(map[string]any{}))
+			if _, ok := this.Orderbooks[*outcomeHandle]; !ok {
+				this.Orderbooks[*outcomeHandle] = this.OrderBook(map[string]any{})
 			}
-			var orderbook any = ccxt.GetValue(this.Orderbooks, outcomeHandle)
+			var orderbook any = this.Orderbooks[*outcomeHandle]
 			var bids []any = yesBids
 			var asks []any = yesAsks
 			if !isYesOutcome {

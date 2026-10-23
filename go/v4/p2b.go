@@ -1602,7 +1602,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	for i := 0; i < len(keys); i++ {
 		var marketId string = keys[i]
 		var marketOrders any = result[marketId]
-		var parsedOrders any = this.ParseOrders(marketOrders, market, sinceResolved, limit)
+		var parsedOrders []any = this.ParseOrders(marketOrders, market, sinceResolved, limit)
 		orders = this.ArrayConcat(orders, parsedOrders)
 	}
 

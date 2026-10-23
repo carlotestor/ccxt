@@ -1891,7 +1891,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
-		newOrderRespType = DerefScalar(this.SafeString(newOrderRespType, "limit", "FULL"))
+		newOrderRespType = (*this.SafeString(newOrderRespType, "limit", "FULL"))
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 		if !IsEqual(orderType, "LIMIT_MAKER") {
@@ -3153,7 +3153,10 @@ func (this *Coinsph) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

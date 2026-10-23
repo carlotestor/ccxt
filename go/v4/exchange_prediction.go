@@ -367,7 +367,7 @@ func (this *PredictionExchange) SetEvents(events any) map[string]any {
 	if IsEqual(this.Events, nil) {
 		this.Events = map[string]any{}
 	}
-	if IsEqual(this.Events_by_slug, nil) {
+	if this.Events_by_slug == nil {
 		this.Events_by_slug = map[string]any{}
 	}
 	for i := 0; i < GetArrayLength(events); i++ {
@@ -476,7 +476,7 @@ func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
 	if (!IsEqual(this.Events, nil)) && (InOp(this.Events, eventIdOrSlug)) {
 		return GetValue(this.Events, eventIdOrSlug)
 	}
-	if (!IsEqual(this.Events_by_slug, nil)) && (InOp(this.Events_by_slug, eventIdOrSlug)) {
+	if (this.Events_by_slug != nil) && (InOp(this.Events_by_slug, eventIdOrSlug)) {
 		return GetValue(this.Events_by_slug, eventIdOrSlug)
 	}
 	panic(BadSymbol(Add(Add(this.Id+" has no cached event ", eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
@@ -485,13 +485,13 @@ func (this *PredictionExchange) Outcome(outcomeSymbol any) map[string]any {
 	if IsEqual(outcomeSymbol, nil) {
 		panic(ArgumentsRequired(this.Id + " outcome() requires an outcomeSymbol argument"))
 	}
-	if (IsEqual(this.Outcomes, nil)) || this.IsEmpty(this.Outcomes) {
+	if (this.Outcomes == nil) || this.IsEmpty(this.Outcomes) {
 		panic(ExchangeError(this.Id + " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first"))
 	}
 	if InOp(this.Outcomes, outcomeSymbol) {
 		return MapTyped(GetValue(this.Outcomes, outcomeSymbol))
 	}
-	if (!IsEqual(this.Outcomes_by_id, nil)) && (InOp(this.Outcomes_by_id, outcomeSymbol)) {
+	if (this.Outcomes_by_id != nil) && (InOp(this.Outcomes_by_id, outcomeSymbol)) {
 		return MapTyped(GetValue(this.Outcomes_by_id, outcomeSymbol))
 	}
 	panic(BadSymbol(Add(Add(this.Id+" does not have outcome ", outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")))
@@ -503,10 +503,10 @@ func (this *PredictionExchange) HasOutcome(outcomeIdOrSymbol any) bool {
 	if IsEqual(outcomeIdOrSymbol, nil) {
 		return false
 	}
-	if (!IsEqual(this.Outcomes, nil)) && (InOp(this.Outcomes, outcomeIdOrSymbol)) {
+	if (this.Outcomes != nil) && (InOp(this.Outcomes, outcomeIdOrSymbol)) {
 		return true
 	}
-	if (!IsEqual(this.Outcomes_by_id, nil)) && (InOp(this.Outcomes_by_id, outcomeIdOrSymbol)) {
+	if (this.Outcomes_by_id != nil) && (InOp(this.Outcomes_by_id, outcomeIdOrSymbol)) {
 		return true
 	}
 	return false
@@ -515,10 +515,10 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 	outcomeObj := GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
 	if !IsEqual(outcomeIdOrSymbol, nil) {
-		if (!IsEqual(this.Outcomes, nil)) && (InOp(this.Outcomes, outcomeIdOrSymbol)) {
+		if (this.Outcomes != nil) && (InOp(this.Outcomes, outcomeIdOrSymbol)) {
 			return MapTyped(GetValue(this.Outcomes, outcomeIdOrSymbol))
 		}
-		if (!IsEqual(this.Outcomes_by_id, nil)) && (InOp(this.Outcomes_by_id, outcomeIdOrSymbol)) {
+		if (this.Outcomes_by_id != nil) && (InOp(this.Outcomes_by_id, outcomeIdOrSymbol)) {
 			return MapTyped(GetValue(this.Outcomes_by_id, outcomeIdOrSymbol))
 		}
 	}
@@ -707,10 +707,10 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 	// still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
 	// for a full rebuild and by on-demand single-market fetches (kalshi fetchOutcome), so a
 	// cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
-	if IsEqual(this.Outcomes, nil) {
+	if this.Outcomes == nil {
 		this.Outcomes = map[string]any{}
 	}
-	if IsEqual(this.Outcomes_by_id, nil) {
+	if this.Outcomes_by_id == nil {
 		this.Outcomes_by_id = map[string]any{}
 	}
 	var outcomesList []any = SafeListTyped(market, "outcomes")
@@ -828,7 +828,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[map[string]
 			}
 		}
 		var missingLength int = len(missing)
-		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes)
+		var wasWarm bool = (this.Outcomes != nil) && !this.IsEmpty(this.Outcomes)
 		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
 		if (missingLength > 0) && (loadAll != nil && *loadAll) && !wasWarm && !(reload == true) {
 
@@ -866,7 +866,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[map[string]
 		ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(MapTyped(this.Outcomes))}
 		return nil
 	}
-	if !(reload == true) && (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes) {
+	if !(reload == true) && (this.Outcomes != nil) && !this.IsEmpty(this.Outcomes) {
 
 		ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(MapTyped(this.Outcomes))}
 		return nil
@@ -935,7 +935,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan AsyncResult[PredictionOu
 			ch <- AsyncResult[PredictionOutcome]{Value: PredictionOutcomeFromMap(this.SafeOutcome(outcomeSymbol))}
 			return nil
 		}
-		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes)
+		var wasWarm bool = (this.Outcomes != nil) && !this.IsEmpty(this.Outcomes)
 		// if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
 		// but the outcome cache is cold, index them for free before hitting the network — this
 		// makes cold-cache resolution consistent across languages regardless of loadAllOutcomes

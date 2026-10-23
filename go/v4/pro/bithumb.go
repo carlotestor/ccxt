@@ -653,9 +653,14 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		if !(ccxt.InOp(this.Orderbooks, legacySymbol)) {
 			var ob ccxt.OrderBookInterface = this.OrderBook()
 			ccxt.AddElementToObject(ob, "symbol", legacySymbol)
-			ccxt.AddElementToObject(this.Orderbooks, legacySymbol, ob)
+			if legacySymbol != nil {
+				this.Orderbooks[*legacySymbol] = ob
+			}
 		}
-		var legacyOrderbook any = ccxt.GetValue(this.Orderbooks, legacySymbol)
+		var legacyOrderbook any
+		if legacySymbol != nil {
+			legacyOrderbook = this.Orderbooks[*legacySymbol]
+		}
 		this.HandleBookDeltas(legacyOrderbook, list)
 		ccxt.AddElementToObject(legacyOrderbook, "timestamp", legacyTimestamp)
 		ccxt.AddElementToObject(legacyOrderbook, "datetime", this.Iso8601(legacyTimestamp))
@@ -671,9 +676,14 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var obLimit *int64 = this.SafeInteger(options, "limit", 1000)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, obLimit))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, obLimit)
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
 	var gen2TimestampStr *string = this.SafeString2(message, "timestamp", "datetime")
 	var timestamp any = nil
@@ -883,9 +893,14 @@ func (this *Bithumb) HandleTrades(client any, message map[string]any) {
 		if !(ccxt.InOp(this.Trades, symbol)) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-			ccxt.AddElementToObject(this.Trades, symbol, stored)
+			if symbol != nil {
+				this.Trades[*symbol] = stored
+			}
 		}
-		var trades any = ccxt.GetValue(this.Trades, symbol)
+		var trades any
+		if symbol != nil {
+			trades = this.Trades[*symbol]
+		}
 		trades.(ccxt.Appender).Append(parsed)
 		var messageHash string = "trade" + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
@@ -1140,7 +1155,7 @@ func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType any, subscrip
 	var subscriptions any = this.SafeDict(wsOptions, "gen2Subscriptions", map[string]any{})
 	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
 	ccxt.AddElementToObject(wsOptions, "gen2Subscriptions", subscriptions)
-	this.Options.Store("ws", wsOptions)
+	this.Options["ws"] = wsOptions
 	var request []any = []any{map[string]any{
 		"ticket": "ccxt",
 	}}
@@ -1176,7 +1191,7 @@ func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[ccxt.ClientInterf
 				"authorization": "Bearer " + jwtToken,
 			},
 		})
-		this.Options.Store("ws", wsOptions)
+		this.Options["ws"] = wsOptions
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateGen2"))
 	var client ccxt.ClientInterface = this.Client(url)

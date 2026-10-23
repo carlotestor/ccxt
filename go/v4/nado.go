@@ -3572,7 +3572,7 @@ func (this *Nado) ParseBalance(response any) map[string]any {
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
 		account["free"] = amount
 		if code != nil {
-			AddElementToObject(result, code, account)
+			if code != nil { result[*code] = account }
 		}
 	}
 	return this.SafeBalance(result).(map[string]any)
@@ -4062,7 +4062,7 @@ func (this *Nado) queryContractsBody(ch chan AsyncResult[map[string]any], option
 			panic(r.Err)
 		}
 		var response map[string]any = r.Value
-		this.Options.Store("gatewayContracts", this.SafeDict(response, "data", map[string]any{}))
+		this.Options["gatewayContracts"] = this.SafeDict(response, "data", map[string]any{})
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "gatewayContracts", map[string]any{})}
@@ -4760,7 +4760,10 @@ func (this *Nado) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

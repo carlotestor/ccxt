@@ -1004,7 +1004,7 @@ func (this *Poloniex) loadMarketsBody(ch chan AsyncResult[*sync.Map], optionalAr
 	markets := r.Value
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
-		this.Options.Store("currenciesByNumericId", this.IndexBy(this.Currencies, "numericId"))
+		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies, "numericId")
 	}
 
 	ch <- AsyncResult[*sync.Map]{Value: markets}
@@ -3806,7 +3806,7 @@ func (this *Poloniex) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 		panic(r.Err)
 	}
 	requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params)
-	request := GetValue(requestextraParamscurrencynetworkEntryVariable, 0)
+	request := requestextraParamscurrencynetworkEntryVariable[0]
 	extraParams := requestextraParamscurrencynetworkEntryVariable[1]
 	currency := GetValue(requestextraParamscurrencynetworkEntryVariable, 2)
 	networkEntry := GetValue(requestextraParamscurrencynetworkEntryVariable, 3)
@@ -3852,7 +3852,7 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 		panic(r.Err)
 	}
 	requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params)
-	request := GetValue(requestextraParamscurrencynetworkEntryVariable, 0)
+	request := requestextraParamscurrencynetworkEntryVariable[0]
 	extraParams := requestextraParamscurrencynetworkEntryVariable[1]
 	currency := GetValue(requestextraParamscurrencynetworkEntryVariable, 2)
 	networkEntry := GetValue(requestextraParamscurrencynetworkEntryVariable, 3)
@@ -4398,8 +4398,8 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	}
 	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
 	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
-	var withdrawalTransactions any = this.ParseTransactions(withdrawals, currency, since, limit)
-	var depositTransactions any = this.ParseTransactions(deposits, currency, since, limit)
+	var withdrawalTransactions []any = this.ParseTransactions(withdrawals, currency, since, limit)
+	var depositTransactions []any = this.ParseTransactions(deposits, currency, since, limit)
 	var transactions []any = this.ArrayConcat(depositTransactions, withdrawalTransactions)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(this.SortBy(transactions, "timestamp"), code, since, limit))}
@@ -4447,7 +4447,7 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		currency = this.Currency(code)
 	}
 	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
-	var transactions any = this.ParseTransactions(withdrawals, currency, since, limit)
+	var transactions []any = this.ParseTransactions(withdrawals, currency, since, limit)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(transactions, code, since, limit))}
 	return nil
@@ -4679,7 +4679,7 @@ func (this *Poloniex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		currency = this.Currency(code)
 	}
 	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
-	var transactions any = this.ParseTransactions(deposits, currency, since, limit)
+	var transactions []any = this.ParseTransactions(deposits, currency, since, limit)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(transactions, code, since, limit))}
 	return nil
@@ -4743,7 +4743,7 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var timestamp *int64 = this.SafeTimestamp(transactionValue, "timestamp")
 	var currencyId *string = this.SafeString(transactionValue, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var status any = DerefScalar(this.SafeString(transactionValue, "status", "pending"))
+	var status any = (*this.SafeString(transactionValue, "status", "pending"))
 	status = this.ParseTransactionStatus(status)
 	var txid *string = this.SafeString(transactionValue, "txid")
 	var typeVar string = "deposit"
@@ -5545,7 +5545,10 @@ func (this *Poloniex) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

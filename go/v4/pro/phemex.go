@@ -92,7 +92,7 @@ func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 func (this *Phemex) RequestId() int64 {
 	this.LockId()
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	this.UnlockId()
 	return requestId
 }
@@ -554,8 +554,8 @@ func (this *Phemex) HandleTrades(client any, message any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var trades []any = ccxt.SafeList2Typed(message, "trades", "trades_p", []any{})
-	var parsed any = this.ParseTrades(trades, market)
-	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
+	var parsed []any = this.ParseTrades(trades, market)
+	for i := 0; i < len(parsed); i++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsed, i))
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -601,15 +601,15 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe != nil {
 		var messageHash string = "kline:" + *timeframe + ":" + *symbol
-		var ohlcvs any = this.ParseOHLCVs(candles, market)
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+		var ohlcvs []any = this.ParseOHLCVs(candles, market)
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 		}
-		for i := 0; i < ccxt.GetArrayLength(ohlcvs); i++ {
+		for i := 0; i < len(ohlcvs); i++ {
 			var candle any = ccxt.GetValue(ohlcvs, i)
 			stored.(ccxt.Appender).Append(candle)
 		}
@@ -742,7 +742,7 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var subscriptionHash string = name + ".subscribe"
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		messageHashes = append(messageHashes, ccxt.Add("ticker:", symbolsNormalized[i]))
+		messageHashes = append(messageHashes, "ticker:"+symbolsNormalized[i])
 	}
 	var subscribe map[string]any = map[string]any{
 		"method": subscriptionHash,
@@ -1061,7 +1061,10 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		if ccxt.InOp(this.Orderbooks, symbol) {
-			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+			var orderbook any
+			if symbol != nil {
+				orderbook = this.Orderbooks[*symbol]
+			}
 			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
 			var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
 			var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
@@ -2014,7 +2017,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var expiryDelta int64 = *this.SafeInteger(this.Options, "expires", 120)
-		var expiration any = ccxt.Add(this.Seconds(), expiryDelta)
+		var expiration any = (this.Seconds() + expiryDelta)
 		var payload any = ccxt.Add(this.ApiKey, ccxt.ToString(expiration))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
 		var method string = "user.auth"

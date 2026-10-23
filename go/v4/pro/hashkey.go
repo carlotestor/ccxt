@@ -211,7 +211,9 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var klineType *string = this.SafeString(params, "klineType")
@@ -415,9 +417,14 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
+		if symbol != nil {
+			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(this.Trades, symbol)
+	var stored any
+	if symbol != nil {
+		stored = this.Trades[*symbol]
+	}
 	var data any = this.SafeList(message, "data")
 	if data != nil {
 		data = this.SortBy(data, "t")
@@ -507,10 +514,13 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "orderbook:" + *symbol
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var dataEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")
@@ -1230,7 +1240,7 @@ func (this *Hashkey) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 			if listenKey == nil {
 				panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 			}
-			this.Options.Store("listenKey", listenKey)
+			this.Options["listenKey"] = ccxt.DerefScalar(listenKey)
 			var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000)
 			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
 			// settle the flight: client.resolve () wakes every waiter and
@@ -1280,7 +1290,7 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], list
 						// catch block:
 						var url any = this.GetPrivateUrl(listenKey)
 						var client ccxt.ClientInterface = this.Client(url)
-						this.Options.Store("listenKey", nil)
+						this.Options["listenKey"] = nil
 						client.(ccxt.ClientInterface).Reject(error)
 						ccxt.Remove(this.Clients, url)
 						return nil

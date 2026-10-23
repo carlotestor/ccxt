@@ -2170,7 +2170,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 	var market map[string]any = this.Market(symbol)
 	orderTypeparamsOrderTypeVariable := this.HandleTypePostOnlyAndTimeInForce(typeVar, params)
 	var orderType *string = SafeStringPtr(orderTypeparamsOrderTypeVariable[0])
-	var paramsOrderType map[string]any = MapTyped(orderTypeparamsOrderTypeVariable[1])
+	var paramsOrderType map[string]any = orderTypeparamsOrderTypeVariable[1].(map[string]any)
 	var request map[string]any = map[string]any{
 		"instId":  market["id"],
 		"side":    side,
@@ -2330,8 +2330,8 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol string, typeVar string, s
 }
 func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params any) []any {
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (typeVar == "post_only"), params)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var typePostOnly string = typeVar
 	if postOnly {
 		typePostOnly = "post_only"

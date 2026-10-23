@@ -753,7 +753,7 @@ func (this *Derive) Describe() any {
 }
 func (this *Derive) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	this.Options.Store("sandboxMode", enable)
+	this.Options["sandboxMode"] = enable
 }
 
 /**
@@ -3349,7 +3349,7 @@ func (this *Derive) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 		}
 	}
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
-	var parsedOrders any = this.ParseOrders(orders, market)
+	var parsedOrders []any = this.ParseOrders(orders, market)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit))}
 	return nil
@@ -3522,7 +3522,7 @@ func (this *Derive) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
-	var parsedOrders any = this.ParseOrders(orders, market)
+	var parsedOrders []any = this.ParseOrders(orders, market)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit))}
 	return nil
@@ -5498,7 +5498,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) []an
 		var subaccountIdInt int64 = this.ParseToInt(derivesubAccountId)
 		if !(InOp(this.Options, "subaccount_id")) {
 			// remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
-			this.Options.Store("subaccount_id", subaccountIdInt)
+			this.Options["subaccount_id"] = subaccountIdInt
 		}
 		return []any{subaccountIdInt, paramsSubaccountId}
 	}
@@ -5511,7 +5511,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) []an
 func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) []any {
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
 	if (deriveWalletAddress != nil) && (deriveWalletAddress == nil || *deriveWalletAddress != "") {
-		this.Options.Store("deriveWalletAddress", deriveWalletAddress)
+		this.Options["deriveWalletAddress"] = DerefScalar(deriveWalletAddress)
 		return []any{deriveWalletAddress, paramsDeriveWalletAddress}
 	}
 	var optionsWallet *string = this.SafeString(this.Options, "deriveWalletAddress")
@@ -5617,7 +5617,10 @@ func (this *Derive) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

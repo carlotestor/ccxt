@@ -528,7 +528,13 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 	//
 	var coins []any = SafeListTyped(response, "result")
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
-	var groupedArray []any = ObjectValues(groupedById)
+	var groupedArray []any = nil
+	if groupedById != nil {
+		groupedArray = make([]any, 0, len(groupedById))
+		for _, objectValue := range groupedById {
+			groupedArray = append(groupedArray, objectValue)
+		}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(groupedArray)}
 	return nil

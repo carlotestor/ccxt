@@ -512,7 +512,7 @@ func (this *Extended) loadMarketsBody(ch chan AsyncResult[*sync.Map], optionalAr
 	markets := r.Value
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
-		this.Options.Store("currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
+		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
 	}
 
 	ch <- AsyncResult[*sync.Map]{Value: markets}
@@ -3447,7 +3447,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 		}
 		result = append(result, entry)
 	}
-	var positions any = this.ParsePositions(result, symbolsList)
+	var positions []any = this.ParsePositions(result, symbolsList)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit, "timestamp"))}
 	return nil
@@ -3551,7 +3551,7 @@ func (this *Extended) fetchExtendedAccountBody(ch chan AsyncResult[map[string]an
 		panic(r.Err)
 	}
 	var accountData map[string]any = StructResultMap(r.Value, AccountToMap)
-	this.Options.Store("account", GetValue(accountData, "info"))
+	this.Options["account"] = GetValue(accountData, "info")
 
 	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "account", map[string]any{})}
 	return nil
@@ -4510,7 +4510,7 @@ func (this *Extended) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var orders any = this.ParseOrders(data, market, since, limit)
+	var orders []any = this.ParseOrders(data, market, since, limit)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
 	return nil
@@ -4629,7 +4629,7 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		}
 		result = append(result, entry)
 	}
-	var orders any = this.ParseOrders(result, market, since, limit)
+	var orders []any = this.ParseOrders(result, market, since, limit)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
 	return nil
@@ -4958,7 +4958,7 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 		}
 		if ((method == "POST") || (method == "PATCH")) && !queryPost {
 			requestBody = SafeStringPtr(this.Json(query))
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			if requestHeaders != nil { requestHeaders["Content-Type"] = "application/json" }
 		}
 	}
 	var url any = Add(Add(this.ImplodeHostname(baseApiUrl)+"/api/", version), endpoint)

@@ -153,7 +153,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], messageHa
 func (this *Grvt) RequestId() int64 {
 	this.LockId()
 	var newValue int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", newValue)
+	this.Options["requestId"] = newValue
 	this.UnlockId()
 	return newValue
 }
@@ -511,10 +511,15 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
+		if symbol != nil {
+			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		}
 	}
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
-	var stored any = ccxt.GetValue(this.Trades, symbol)
+	var stored any
+	if symbol != nil {
+		stored = this.Trades[*symbol]
+	}
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
 }
@@ -643,7 +648,7 @@ func (this *Grvt) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
@@ -689,10 +694,10 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	var timeframeId string = strings.Replace(*secondPart, "-TRADE", "", 1)
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+	this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	if !(ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
 		var limit any = this.HandleOption("watchOHLCV", "limit", 1000)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
+		ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, ccxt.NewArrayCacheByTimestamp(limit))
 	}
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	var parsed any = this.ParseWsOHLCV(data, market)
@@ -856,9 +861,14 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(data, "event_time", 0.000001)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var sequenceNumber *int64 = this.SafeInteger(message, "sequence_number", 0)
 	var stream *string = this.SafeString(message, "stream")
 	var isSnapshotChannel bool = (stream != nil && *stream == "v1.book.s")

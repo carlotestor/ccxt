@@ -2990,7 +2990,7 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 	// - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
 	// - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
 	if !(InOp(this.Options, "futureMarketIdsForSymbols")) {
-		this.Options.Store("futureMarketIdsForSymbols", map[string]any{})
+		this.Options["futureMarketIdsForSymbols"] = map[string]any{}
 	}
 	var futureMarketIdsForSymbols map[string]any = SafeMapTyped(this.Options, "futureMarketIdsForSymbols")
 	if InOp(futureMarketIdsForSymbols, symbolOrMarketId) {
@@ -3025,12 +3025,12 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 		}
 		if IsEqual(constructedId, symbolOrMarketId) {
 			var symbol any = GetValue(market, "symbol")
-			AddElementToObject(GetValue(this.Options, "futureMarketIdsForSymbols"), symbolOrMarketId, symbol)
+			AddElementToObject(this.Options["futureMarketIdsForSymbols"], symbolOrMarketId, symbol)
 			return symbol
 		}
 	}
 	// if not found, just save it to avoid unnecessary future iterations
-	AddElementToObject(GetValue(this.Options, "futureMarketIdsForSymbols"), symbolOrMarketId, symbolOrMarketId)
+	AddElementToObject(this.Options["futureMarketIdsForSymbols"], symbolOrMarketId, symbolOrMarketId)
 	return symbolOrMarketId
 }
 func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -4763,18 +4763,18 @@ func (this *Htx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], option
 	//    }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	this.Options.Store("networkNamesByChainIds", map[string]any{})
-	this.Options.Store("networkChainIdsByNames", map[string]any{})
+	this.Options["networkNamesByChainIds"] = map[string]any{}
+	this.Options["networkChainIdsByNames"] = map[string]any{}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(data)}
 	return nil
 }
 func (this *Htx) ParseCurrency(rawCurrency any) map[string]any {
 	if !(InOp(this.Options, "networkNamesByChainIds")) {
-		this.Options.Store("networkNamesByChainIds", map[string]any{})
+		this.Options["networkNamesByChainIds"] = map[string]any{}
 	}
 	if !(InOp(this.Options, "networkChainIdsByNames")) {
-		this.Options.Store("networkChainIdsByNames", map[string]any{})
+		this.Options["networkChainIdsByNames"] = map[string]any{}
 	}
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -4784,7 +4784,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) map[string]any {
 		typeVar = "crypto"
 	}
 	if code != nil {
-		AddElementToObject(GetValue(this.Options, "networkChainIdsByNames"), code, map[string]any{})
+		AddElementToObject(this.Options["networkChainIdsByNames"], code, map[string]any{})
 	}
 	var chains []any = SafeListTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
@@ -4798,10 +4798,10 @@ func (this *Htx) ParseCurrency(rawCurrency any) map[string]any {
 		var uniqueChainId *string = this.SafeString(chainEntry, "chain")             // i.e. usdterc20, trc20usdt ...
 		var title *string = this.SafeString2(chainEntry, "baseChain", "displayName") // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
 		if (code != nil) && (title != nil) {
-			AddElementToObject(GetValue(GetValue(this.Options, "networkChainIdsByNames"), code), title, uniqueChainId)
+			AddElementToObject(GetValue(this.Options["networkChainIdsByNames"], code), title, uniqueChainId)
 		}
 		if uniqueChainId != nil {
-			AddElementToObject(GetValue(this.Options, "networkNamesByChainIds"), uniqueChainId, title)
+			AddElementToObject(this.Options["networkNamesByChainIds"], uniqueChainId, title)
 		}
 		var networkCode *string = this.NetworkIdToCode(uniqueChainId, code)
 		if networkCode != nil {
@@ -4864,12 +4864,12 @@ func (this *Htx) NetworkIdToCode(optionalArgs ...any) *string {
 	if networkId == nil {
 		return SafeStringPtr(nil)
 	}
-	var keys []string = ObjectKeys(GetValue(this.Options, "networkNamesByChainIds"))
+	var keys []string = ObjectKeys(this.Options["networkNamesByChainIds"])
 	var keysLength int = len(keys)
 	if keysLength == 0 {
 		panic(ExchangeError(this.Id + " networkIdToCode() - markets need to be loaded at first"))
 	}
-	var networkTitle *string = this.SafeString(GetValue(this.Options, "networkNamesByChainIds"), networkId, networkId)
+	var networkTitle *string = this.SafeString(this.Options["networkNamesByChainIds"], networkId, networkId)
 	return SafeStringPtr(this.Exchange.NetworkIdToCode(networkTitle, currencyCode))
 }
 func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
@@ -4881,12 +4881,12 @@ func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	if currencyCode == nil {
 		return this.Exchange.NetworkCodeToId(networkCode)
 	}
-	var keys []string = ObjectKeys(GetValue(this.Options, "networkChainIdsByNames"))
+	var keys []string = ObjectKeys(this.Options["networkChainIdsByNames"])
 	var keysLength int = len(keys)
 	if keysLength == 0 {
 		panic(ExchangeError(this.Id + " networkCodeToId() - markets need to be loaded at first"))
 	}
-	var uniqueNetworkIds map[string]any = SafeMapTyped(GetValue(this.Options, "networkChainIdsByNames"), currencyCode)
+	var uniqueNetworkIds map[string]any = SafeMapTyped(this.Options["networkChainIdsByNames"], currencyCode)
 	if InOp(uniqueNetworkIds, networkCode) {
 		return GetValue(uniqueNetworkIds, networkCode)
 	} else {
@@ -7185,8 +7185,8 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 		}
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((orderType == "market"), (orderType == "limit-maker"), paramsMarginMode)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
 		orderType = "limit-maker"
 	}
@@ -7295,8 +7295,8 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 		"volume":        this.AmountToPrecision(symbol, amount),
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (typeVar != nil && *typeVar == "post_only"), params)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var orderType any = func() any {
 		if postOnly {
 			return "post_only"
@@ -13070,7 +13070,10 @@ func (this *Htx) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

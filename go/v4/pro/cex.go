@@ -63,7 +63,7 @@ func (this *Cex) Describe() any {
 func (this *Cex) RequestId() string {
 	this.LockId()
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	this.UnlockId()
 	return strconv.FormatInt(requestId, 10)
 }
@@ -191,11 +191,11 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var currentSymbol *string = this.SafeString(ccxt.GetValue(this.Options, "watchTrades"), "symbol")
+	var currentSymbol *string = this.SafeString(this.Options["watchTrades"], "symbol")
 	if (currentSymbol != nil) && !ccxt.IsEqual(currentSymbol, symbol) {
 		panic(ccxt.ArgumentsRequired(this.Id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance"))
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "watchTrades"), "symbol", symbol)
+	ccxt.AddElementToObject(this.Options["watchTrades"], "symbol", symbol)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -299,15 +299,20 @@ func (this *Cex) HandleTrade(client any, message map[string]any) {
 }
 func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var symbol *string = this.SafeString(ccxt.GetValue(this.Options, "watchTrades"), "symbol")
+	var symbol *string = this.SafeString(this.Options["watchTrades"], "symbol")
 	if symbol == nil {
 		return
 	}
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
+		if symbol != nil {
+			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(this.Trades, symbol)
+	var stored any
+	if symbol != nil {
+		stored = this.Trades[*symbol]
+	}
 	var market map[string]any = this.Market(symbol)
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
@@ -1324,7 +1329,7 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	snapshot["nonce"] = incrementalId
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "orderbook"), symbol, map[string]any{
+	ccxt.AddElementToObject(this.Options["orderbook"], symbol, map[string]any{
 		"incrementalId": incrementalId,
 	})
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -1496,10 +1501,10 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 			return nil
 		}(), market)))
 	}
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+	if _, ok := this.Ohlcvs[symbol]; !ok {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), "unknown", stored)
+	ccxt.AddElementToObject(this.Ohlcvs[symbol], "unknown", stored)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Cex) HandleOHLCV24(client any, message map[string]any) any {

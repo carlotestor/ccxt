@@ -4482,13 +4482,13 @@ func (this *Myriad) ParseEvent(rawEvent any) map[string]any {
 func (this *Myriad) RequestId(url any) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if existing == nil {
-		this.Options.Store("requestId", this.CreateSafeDictionary())
+		this.Options["requestId"] = this.CreateSafeDictionary()
 	}
-	var options any = ccxt.GetValue(this.Options, "requestId")
+	var options any = this.Options["requestId"]
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	if !ccxt.IsEqual(url, nil) {
-		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
+		ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	}
 	return newValue
 }
@@ -4521,7 +4521,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url an
 	var client any = this.Client(url)
 	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "connect")
 	if connectSent == nil {
-		this.Options.Store("wsConnected", false)
+		this.Options["wsConnected"] = false
 		var requestId int64 = this.RequestId(url)
 		// give the anonymous connect a name so the params object is non-empty (PHP serialises an
 		// empty array as a JSON array, which Centrifugo rejects)
@@ -4654,7 +4654,7 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 	var connectReply map[string]any = ccxt.SafeMapTyped(msg, "connect")
 	if connectReply != nil {
 		// connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
-		this.Options.Store("wsConnected", true)
+		this.Options["wsConnected"] = true
 		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
 		return
 	}
@@ -4986,7 +4986,7 @@ func (this *Myriad) HandleTrades(client any, data map[string]any) {
 		},
 	}, market)
 	if ccxt.IsEqual(this.Trades, nil) {
-		this.Trades = this.CreateSafeDictionary()
+		this.Trades = map[string]any{}
 	}
 	if ccxt.IsEqual(this.SafeValue(this.Trades, sym), nil) {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -5569,7 +5569,7 @@ func (this *Myriad) seedPositionBalancesBody(ch chan ccxt.AsyncResult[bool], tra
 			}()
 		}
 	}
-	this.Options.Store("positionBalances", balances)
+	this.Options["positionBalances"] = balances
 	return nil
 }
 func (this *Myriad) HandlePosition(client any, data map[string]any) {
@@ -5613,7 +5613,7 @@ func (this *Myriad) HandlePosition(client any, data map[string]any) {
 		if posId != nil {
 			ccxt.AddElementToObject(balances, posId, updated)
 		}
-		this.Options.Store("positionBalances", balances)
+		this.Options["positionBalances"] = balances
 		if derefNum, isNum := this.ParseNumber(updated).(float64); isNum {
 			contracts = &derefNum
 		} else {

@@ -63,7 +63,7 @@ func (this *Bullish) Describe() any {
 }
 func (this *Bullish) RequestId() int64 {
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	return requestId
 }
 func (this *Bullish) Ping(client any) any {
@@ -148,7 +148,7 @@ func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	var cookies map[string]any = map[string]any{
 		"JWT_COOKIE": token,
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "cookies", cookies)
+	ccxt.AddElementToObject(this.Options["ws"], "cookies", cookies)
 	var id string = strconv.FormatInt(this.RequestId(), 10)
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -251,14 +251,17 @@ func (this *Bullish) HandleTrades(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = this.Market(symbol)
 	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
-	var trades any = this.ParseTrades(rawTrades, market)
+	var trades []any = this.ParseTrades(rawTrades, market)
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArrayCache := ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, tradesArrayCache)
 	}
-	var tradesArray any = ccxt.GetValue(this.Trades, symbol)
-	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
+	var tradesArray any
+	if symbol != nil {
+		tradesArray = this.Trades[*symbol]
+	}
+	for i := 0; i < len(trades); i++ {
 		tradesArray.(ccxt.Appender).Append(ccxt.GetValue(trades, i))
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
@@ -454,10 +457,13 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "orderbook::" + *symbol
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var bids []any = this.SeparateBidsOrAsks(this.SafeList(data, "bids", []any{}))
 	var asks []any = this.SeparateBidsOrAsks(this.SafeList(data, "asks", []any{}))
 	var snapshot map[string]any = map[string]any{

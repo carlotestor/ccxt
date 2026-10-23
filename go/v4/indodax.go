@@ -1224,7 +1224,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		var marketId string = marketIds[i]
 		var marketOrders any = GetValue(rawOrders, marketId)
 		market = this.SafeMarket(marketId)
-		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
+		var parsedOrders []any = this.ParseOrders(marketOrders, market, since, limit)
 		exchangeOrders = this.ArrayConcat(exchangeOrders, parsedOrders)
 	}
 
@@ -1685,12 +1685,12 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 			}
 		}
 		for i := 0; i < len(keys); i++ {
-			var key string = GetValue(keys, i).(string)
+			var key string = keys[i]
 			transactions = this.ArrayConcat(transactions, withdraw[key])
 		}
 		keys = ObjectKeys(deposit)
 		for i := 0; i < len(keys); i++ {
-			var key string = GetValue(keys, i).(string)
+			var key string = keys[i]
 			transactions = this.ArrayConcat(transactions, deposit[key])
 		}
 	} else {
@@ -2030,7 +2030,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 		privateBody = this.Urlencode(this.Extend(map[string]any{
 			"method":     path,
 			"timestamp":  this.Nonce(),
-			"recvWindow": GetValue(this.Options, "recvWindow"),
+			"recvWindow": this.Options["recvWindow"],
 		}, params))
 		privateHeaders = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
@@ -2113,7 +2113,10 @@ func (this *Indodax) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

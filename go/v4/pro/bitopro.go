@@ -243,13 +243,13 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var rawData []any = ccxt.SafeListTypedDefault(message, "data", []any{})
-	var trades any = this.ParseTrades(rawData, market)
+	var trades []any = this.ParseTrades(rawData, market)
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
 	}
-	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
+	for i := 0; i < len(trades); i++ {
 		tradesCache.(ccxt.Appender).Append(ccxt.GetValue(trades, i))
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
@@ -551,17 +551,17 @@ func (this *Bitopro) Authenticate(url string) {
 	}
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
-	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers")
+	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(this.Options["ws"], "options"), "headers")
 	var headers map[string]any = map[string]any{
 		"X-BITOPRO-API":       "ccxt",
 		"X-BITOPRO-APIKEY":    this.ApiKey,
 		"X-BITOPRO-PAYLOAD":   payload,
 		"X-BITOPRO-SIGNATURE": signature,
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers", headers)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", headers)
 	// instantiate client
 	this.Client(url)
-	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers", originalHeaders)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", originalHeaders)
 }
 
 /**

@@ -90,7 +90,7 @@ func (this *Woo) RequestId(url *string) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
+	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return newValue
 }
 func (this *Woo) WatchPublicAsync(messageHash any, message any) <-chan ccxt.AsyncResult[any] {
@@ -321,7 +321,10 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			return
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any
+		if symbol != nil {
+			orderbook = this.Orderbooks[*symbol]
+		}
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 		if timestamp == nil {
 			ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
@@ -336,7 +339,9 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 							}
 							ret_ = func(this *Woo) any {
 								// catch block:
-								ccxt.Remove(this.Orderbooks, symbol)
+								if symbol != nil {
+									delete(this.Orderbooks, *symbol)
+								}
 								if topic != nil {
 									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
 								}
@@ -364,9 +369,14 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			}
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any
+		if symbol != nil {
+			orderbook = this.Orderbooks[*symbol]
+		}
 		var timestamp *int64 = this.SafeInteger(message, "ts")
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -381,9 +391,14 @@ func (this *Woo) HandleOrderBookSubscription(client any, message map[string]any,
 		return
 	}
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	// handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
 	ccxt.AddElementToObject(orderbook, "timestamp", nil)
 	ccxt.AddElementToObject(orderbook, "datetime", nil)
@@ -1094,13 +1109,15 @@ func (this *Woo) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeFloat(data, "open"), this.SafeFloat(data, "high"), this.SafeFloat(data, "low"), this.SafeFloat(data, "close"), this.SafeFloat(data, "volume")}
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
 	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 		}
 	}
 	stored.(ccxt.Appender).Append(parsed)
@@ -2201,7 +2218,7 @@ func (this *Woo) HandleFundingRate(client any, message map[string]any) {
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(data))
 	var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 	if symbol != nil {
-		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+		this.FundingRates[*symbol] = fundingRate
 	}
 	var messageHash *string = this.SafeString(message, "topic")
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)

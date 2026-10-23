@@ -165,13 +165,13 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash string = "candles" + ":" + *symbol
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
-		if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-			ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if _, ok := this.Ohlcvs[*symbol]; !ok {
+			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 		if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), "unknown")) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored := ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), "unknown", stored)
+			ccxt.AddElementToObject(this.Ohlcvs[*symbol], "unknown", stored)
 		}
 		var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), "unknown")
 		ohlcv.(ccxt.Appender).Append(parsed)
@@ -280,9 +280,14 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
-		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
+		if symbol != nil {
+			this.Orderbooks[*symbol] = ob
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	if isSnapshot != nil && *isSnapshot == true {
@@ -559,8 +564,8 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var data []any = ccxt.SafeListTypedDefault(params, 1, []any{})
-	var parsedTrades any = this.ParseTrades(data, market)
-	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
+	var parsedTrades []any = this.ParseTrades(data, market)
+	for j := 0; j < len(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", market["symbol"]))

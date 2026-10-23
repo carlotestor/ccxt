@@ -1220,14 +1220,16 @@ func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) map[string]
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       fees,
-			"symbol":     symbol,
-			"maker":      maker,
-			"taker":      taker,
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       fees,
+				"symbol":     symbol,
+				"maker":      maker,
+				"taker":      taker,
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 	return result
 }
@@ -3555,7 +3557,7 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 			"BITVAVO-ACCESS-WINDOW":    accessWindow,
 		}
 		if !getOrDelete {
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			if requestHeaders != nil { requestHeaders["Content-Type"] = "application/json" }
 		}
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
@@ -3625,7 +3627,10 @@ func (this *Bitvavo) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

@@ -93,7 +93,7 @@ func (this *Weex) Describe() any {
 func (this *Weex) RequestId() *string {
 	this.LockId()
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	this.UnlockId()
 	return this.NumberToString(requestId)
 }
@@ -188,7 +188,7 @@ func (this *Weex) Authenticate(url any) {
 	var timestamp any = this.Nonce()
 	var payload string = ccxt.ToString(timestamp) + "/v3/ws/private"
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
-	var originalHeaders map[string]any = ccxt.SafeMapTyped(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers")
+	var originalHeaders map[string]any = ccxt.SafeMapTyped(ccxt.GetValue(this.Options["ws"], "options"), "headers")
 	var userAgent *string = this.SafeString(originalHeaders, "User-Agent", "ccxt")
 	var extendedOptions map[string]any = map[string]any{
 		"ws": map[string]any{
@@ -761,11 +761,14 @@ func (this *Weex) HandleTrade(client any, message any) {
 	}
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var messageHash string = "trade::" + *symbol
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
+		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 	}
-	var tradesArray any = ccxt.GetValue(this.Trades, symbol)
+	var tradesArray any
+	if symbol != nil {
+		tradesArray = this.Trades[*symbol]
+	}
 	var data []any = ccxt.SafeListTyped(message, "d")
 	var newTrades []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -875,7 +878,7 @@ func (this *Weex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var result map[string]any = ccxt.StructResultMap(r.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(result[symbol], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:
@@ -963,7 +966,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
@@ -1131,7 +1134,9 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 	}
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "d")
 	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
@@ -1142,7 +1147,7 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 		}
 	}
 	for i := 0; i < len(data); i++ {
@@ -1399,16 +1404,19 @@ func (this *Weex) HandleOrderBook(client any, message any) {
 	}
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var messageHash string = "orderbook::" + *symbol
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if _, ok := this.Orderbooks[*symbol]; !ok {
 		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		if limit != nil {
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		} else {
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var event *string = this.SafeString(message, "e")
 	var nonce *int64 = this.SafeInteger(message, "u")

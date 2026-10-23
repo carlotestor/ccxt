@@ -729,7 +729,7 @@ func (this *Gemini) fetchCurrenciesFromWebBody(ch chan AsyncResult[Currencies], 
 	//        ]
 	//    }
 	//
-	this.Options.Store("tradingPairs", this.SafeList(data, "tradingPairs"))
+	this.Options["tradingPairs"] = this.SafeList(data, "tradingPairs")
 	var currenciesArray []any = SafeListTypedDefault(data, "currencies", []any{})
 
 	ch <- AsyncResult[Currencies]{Value: CurrenciesFromMap(this.ParseCurrencies(currenciesArray))}
@@ -754,26 +754,28 @@ func (this *Gemini) ParseCurrency(rawCurrency any) map[string]any {
 	if networkId != nil {
 		networkCode = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
-				"info":      rawCurrency,
-				"id":        networkId,
-				"network":   networkCode,
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": precision,
-				"limits": map[string]any{
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
+			if networkCode != nil {
+				networks[*networkCode] = map[string]any{
+					"info":      rawCurrency,
+					"id":        networkId,
+					"network":   networkCode,
+					"active":    nil,
+					"deposit":   nil,
+					"withdraw":  nil,
+					"fee":       nil,
+					"precision": precision,
+					"limits": map[string]any{
+						"deposit": map[string]any{
+							"min": nil,
+							"max": nil,
+						},
+						"withdraw": map[string]any{
+							"min": nil,
+							"max": nil,
+						},
 					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-			})
+				}
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{

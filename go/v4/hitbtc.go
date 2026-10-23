@@ -1623,7 +1623,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		var marketId string = marketIds[i]
 		var marketInner map[string]any = this.Market(marketId)
 		var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
-		var parsed any = this.ParseTrades(rawTrades, marketInner)
+		var parsed []any = this.ParseTrades(rawTrades, marketInner)
 		trades = this.ArrayConcat(trades, parsed)
 	}
 
@@ -3355,8 +3355,8 @@ func (this *Hitbtc) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	requestparamsValueVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
-	var request map[string]any = MapTyped(requestparamsValueVariable[0])
-	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
+	var request map[string]any = requestparamsValueVariable[0].(map[string]any)
+	var paramsValue map[string]any = requestparamsValueVariable[1].(map[string]any)
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 

@@ -72,7 +72,7 @@ func (this *Paradex) GetOrderBookChannel(marketId any) any {
 }
 func (this *Paradex) RequestId() int64 {
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	return requestId
 }
 func (this *Paradex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
@@ -329,7 +329,9 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
 	// levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
 	var bids []any = []any{}
@@ -350,7 +352,10 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 		"bids": bids,
 		"asks": asks,
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var snapshot map[string]any = this.ParseOrderBook(orderbookData, symbol, timestamp, "bids", "asks")
 	snapshot["nonce"] = this.SafeInteger(data, "seq_no")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -457,7 +462,7 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var messageHashes []any = []any{}
 	if (symbolsNormalized != nil) && true {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", symbolsNormalized[i]))
+			var messageHash *string = ccxt.SafeStringPtr((channel + ".") + symbolsNormalized[i])
 			messageHashes = append(messageHashes, messageHash)
 		}
 	} else {
@@ -861,8 +866,8 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 	// one position per market, so a fill through zero flips its side: the cache keys by
 	// symbol and side, and the opposite side it still holds is flattened here
 	var side *string = this.SafeString(position, "side")
-	var cached any = this.FilterBySymbolSinceLimit(cache, symbol, nil, nil, true)
-	for i := 0; i < ccxt.GetArrayLength(cached); i++ {
+	var cached []any = this.FilterBySymbolSinceLimit(cache, symbol, nil, nil, true)
+	for i := 0; i < len(cached); i++ {
 		var previous any = ccxt.GetValue(cached, i)
 		var previousSide *string = this.SafeString(previous, "side")
 		var previousContracts *string = this.SafeString(previous, "contracts")
@@ -1127,7 +1132,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]c
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			for i := 0; i < len(symbolsNormalized); i++ {
-				var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", symbolsNormalized[i]))
+				var messageHash *string = ccxt.SafeStringPtr((channel + ".") + symbolsNormalized[i])
 				messageHashes = append(messageHashes, messageHash)
 			}
 		} else {

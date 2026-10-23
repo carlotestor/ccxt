@@ -2648,11 +2648,11 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan AsyncResult[Currencie
 			panic(r1.Err)
 		}
 		exchangeRates := r1.Value
-		this.Options.Store("fetchCurrencies", this.Extend(options, map[string]any{
+		this.Options["fetchCurrencies"] = this.Extend(options, map[string]any{
 			"currencies":    this.ArrayConcat(fiatData, cryptoData),
 			"exchangeRates": exchangeRates,
 			"timestamp":     now,
-		}))
+		})
 	}
 
 	ch <- AsyncResult[Currencies]{Value: CurrenciesFromMap(this.SafeDictMap(this.Options, "fetchCurrencies", map[string]any{}))}
@@ -2740,10 +2740,10 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		var code *string = this.SafeCurrencyCode(id)
 		var name *string = this.SafeString(currency, "name")
 		if code != nil {
-			AddElementToObject(GetValue(this.Options, "networks"), code, ToLower(name))
+			AddElementToObject(this.Options["networks"], code, ToLower(name))
 		}
 		if code != nil {
-			AddElementToObject(GetValue(this.Options, "networksById"), code, ToLower(name))
+			AddElementToObject(this.Options["networksById"], code, ToLower(name))
 		}
 		var typeVar string = "fiat"
 		if assetId != nil {
@@ -2804,8 +2804,8 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 			}
 		}
 	}
-	this.Options.Store("networks", this.Extend(networks, GetValue(this.Options, "networks")))
-	this.Options.Store("networksById", this.Extend(networksById, GetValue(this.Options, "networksById")))
+	this.Options["networks"] = this.Extend(networks, this.Options["networks"])
+	this.Options["networksById"] = this.Extend(networksById, this.Options["networksById"])
 
 	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
@@ -3374,8 +3374,8 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 		return this.SafeBalance(balanceResult).(map[string]any)
 	}
 	var balances []any = SafeList2Typed(response, "data", "accounts")
-	var accounts any = this.SafeList(params, "type", GetValue(this.Options, "accounts"))
-	var v3Accounts any = this.SafeList(params, "type", GetValue(this.Options, "v3Accounts"))
+	var accounts any = this.SafeList(params, "type", this.Options["accounts"])
+	var v3Accounts any = this.SafeList(params, "type", this.Options["v3Accounts"])
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3666,8 +3666,8 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	}
 	response := r3.Value
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var ledger any = this.ParseLedger(data, currency, since, limit)
-	var length int = GetArrayLength(ledger)
+	var ledger []any = this.ParseLedger(data, currency, since, limit)
+	var length int = len(ledger)
 	if length > 0 {
 		var lastIndex int64 = int64(length) - 1
 		var last any = this.SafeDict(ledger, lastIndex)
@@ -7039,13 +7039,15 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		var market map[string]any = this.Market(symbol)
 		if (isSpot && (market["spot"] == true)) || (!isSpot && (market["spot"] != true)) {
-			AddElementToObject(result, symbol, map[string]any{
-				"info":       response,
-				"symbol":     symbol,
-				"maker":      maker_fee,
-				"taker":      taker_fee,
-				"percentage": true,
-			})
+			if symbol != nil {
+				result[*symbol] = map[string]any{
+					"info":       response,
+					"symbol":     symbol,
+					"maker":      maker_fee,
+					"taker":      taker_fee,
+					"percentage": true,
+				}
+			}
 		}
 	}
 
@@ -7486,7 +7488,10 @@ func (this *Coinbase) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

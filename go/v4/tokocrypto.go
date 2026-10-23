@@ -2172,8 +2172,8 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	// GTX is the venue spelling of post only, on top of the two unified spellings
 	var isPostOnlyTimeInForce bool = (requestedTimeInForce != nil && *requestedTimeInForce == "GTX")
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	// only supported for spot/margin api
 	var typeResolved any = func() any {
 		if postOnly {
@@ -3515,7 +3515,10 @@ func (this *Tokocrypto) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

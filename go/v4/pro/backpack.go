@@ -974,7 +974,7 @@ func (this *Backpack) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	var result map[string]any = ccxt.StructResultMap(r1.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(result[symbol], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:
@@ -1093,7 +1093,7 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[stri
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
@@ -1206,7 +1206,9 @@ func (this *Backpack) HandleOHLCV(client any, message any) {
 	var parts []string = strings.Split(*stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1482,9 +1484,14 @@ func (this *Backpack) HandleTrades(client any, message any) {
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		ccxt.AddElementToObject(this.Trades, symbol, stored)
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
-	var cache any = ccxt.GetValue(this.Trades, symbol)
+	var cache any
+	if symbol != nil {
+		cache = this.Trades[*symbol]
+	}
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 	cache.(ccxt.Appender).Append(trade)
 	var messageHash string = "trades:" + *symbol
@@ -1638,8 +1645,8 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 		var marketId any = this.WsVenueMarketId("watchOrderBookForSymbols", this.Market(symbol), query)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("depth.", marketId))
 		topics = append(topics, topic)
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
+		if _, ok := this.Orderbooks[symbol]; !ok {
+			this.Orderbooks[symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 	}
 
@@ -1775,9 +1782,14 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
-	var storedOrderBook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var storedOrderBook any
+	if symbol != nil {
+		storedOrderBook = this.Orderbooks[*symbol]
+	}
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var deltaNonce *int64 = this.SafeInteger(data, "u")
 	var messageHash string = "orderbook:" + *symbol
@@ -1934,24 +1946,14 @@ func (this *Backpack) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
-	var filtered any = this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
+	var filtered []any = this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
 	if *this.SafeBool(query, "stock", false) {
 
 		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterStockStructures(filtered))}
 		return nil
 	}
 
-	var resolved []any
-	switch resolvedBox := filtered.(type) {
-	case []any:
-		resolved = resolvedBox
-	case ccxt.IArrayCache:
-		resolved = resolvedBox.ToArray()
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not []any"))
-	}
-	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(resolved)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(filtered)}
 	return nil
 }
 
@@ -2272,7 +2274,7 @@ func (this *Backpack) HandleBalance(client any, message any) bool {
 		"locked":    this.SafeString(data, "L"),
 		"staked":    this.SafeString(data, "S"),
 	})
-	this.Options.Store("wsBalanceAssets", assets)
+	this.Options["wsBalanceAssets"] = assets
 	var response any = this.ParseBalance(assets)
 	var parsed any = this.SafeDict(map[string]any{
 		"balances": response,

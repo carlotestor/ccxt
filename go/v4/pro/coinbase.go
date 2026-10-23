@@ -163,7 +163,7 @@ func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic stri
 	if *this.SafeBool(this.Options, "unSubscriptionPending", false) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
-	this.Options.Store("unSubscriptionPending", true)
+	this.Options["unSubscriptionPending"] = true
 	var market map[string]any = nil
 	var watchMessageHash any = name
 	var unWatchMessageHash any = "unsubscribe:" + name
@@ -201,15 +201,15 @@ func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic stri
 	if ccxt.EvalTruthy(isPrivate) {
 		message = this.Extend(message, this.CreateWSAuth(name, productIds))
 	}
-	this.Options.Store("unSubscription", subscription)
+	this.Options["unSubscription"] = subscription
 
 	r1 := <-this.Watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	res := r1.Value
-	this.Options.Store("unSubscriptionPending", false)
-	this.Options.Store("unSubscription", nil)
+	this.Options["unSubscriptionPending"] = false
+	this.Options["unSubscription"] = nil
 
 	var resolved bool
 	switch resolvedBox := res.(type) {
@@ -312,7 +312,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], to
 	if *this.SafeBool(this.Options, "unSubscriptionPending", false) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
-	this.Options.Store("unSubscriptionPending", true)
+	this.Options["unSubscriptionPending"] = true
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -348,15 +348,15 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], to
 		"unsubscribe":      true,
 		"symbols":          symbolsNormalized,
 	}
-	this.Options.Store("unSubscription", subscription)
+	this.Options["unSubscription"] = subscription
 
 	r1 := <-this.WatchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	res := r1.Value
-	this.Options.Store("unSubscriptionPending", false)
-	this.Options.Store("unSubscription", nil)
+	this.Options["unSubscriptionPending"] = false
+	this.Options["unSubscription"] = nil
 
 	var resolved bool
 	switch resolvedBox := res.(type) {
@@ -394,8 +394,8 @@ func (this *Coinbase) CreateWSAuth(name string, productIds any) map[string]any {
 		if (currentToken == nil) || (tokenExpiry < seconds) {
 			// we should generate new token
 			var token any = this.CreateAuthToken(seconds)
-			this.Options.Store("wsToken", token)
-			this.Options.Store("wsTokenTimestamp", seconds)
+			this.Options["wsToken"] = token
+			this.Options["wsTokenTimestamp"] = seconds
 		}
 		subscribe["jwt"] = this.SafeString(this.Options, "wsToken")
 	}
@@ -1336,7 +1336,7 @@ func (this *Coinbase) HandleOrderBookHelper(orderbook any, updates []any) {
 	for i := 0; i < len(updates); i++ {
 		var trade map[string]any = ccxt.SafeMapTyped(updates, i)
 		var sideId *string = this.SafeString(trade, "side")
-		var side *string = this.SafeString(ccxt.GetValue(this.Options, "sides"), sideId)
+		var side *string = this.SafeString(this.Options["sides"], sideId)
 		var price *float64 = this.SafeNumber(trade, "price_level")
 		var amount *float64 = this.SafeNumber(trade, "new_quantity")
 		var orderbookSide any = this.SafeValue(orderbook, side)
@@ -1389,13 +1389,16 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var typeVar *string = this.SafeString(event, "type")
 		if typeVar != nil && *typeVar == "snapshot" {
-			if !(ccxt.InOp(this.Orderbooks, symbol)) {
-				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			if _, ok := this.Orderbooks[*symbol]; !ok {
+				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 			}
 		} else if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			continue
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any
+		if symbol != nil {
+			orderbook = this.Orderbooks[*symbol]
+		}
 		if typeVar != nil && *typeVar == "snapshot" {
 			// reset in place so consumers holding a reference keep receiving updates after a resync
 			orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})

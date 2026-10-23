@@ -800,7 +800,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool]) an
 					}
 					ret_ = func(this *Pacifica) any {
 						// catch block:
-						this.Options.Store("builderFee", false) // disable builder fee if an error occurs
+						this.Options["builderFee"] = false // disable builder fee if an error occurs
 						return nil
 					}(this)
 				}
@@ -813,7 +813,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool]) an
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			this.Options.Store("approvedBuilderFee", true)
+			this.Options["approvedBuilderFee"] = true
 			return nil
 		}(this)
 
@@ -1329,7 +1329,7 @@ func (this *Pacifica) loadAccountSettingsBody(ch chan AsyncResult[bool], optiona
 	_ = params
 	var settings any = this.HandleOption("loadAccountSettings", "settings")
 	if (IsEqual(settings, nil)) || (refresh == true) {
-		this.Options.Store("settings", this.CreateSafeDictionary())
+		this.Options["settings"] = this.CreateSafeDictionary()
 
 		r := <-this.FetchAccountSettingsAsync(params)
 		if r.Err != nil {
@@ -1340,7 +1340,7 @@ func (this *Pacifica) loadAccountSettingsBody(ch chan AsyncResult[bool], optiona
 		} else {
 			settings = r.Value
 		}
-		this.Options.Store("settings", settings)
+		this.Options["settings"] = settings
 	}
 	return nil
 }
@@ -2101,7 +2101,7 @@ func (this *Pacifica) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		panic(r1.Err)
 	}
 	requestoperationTypeVariable := this.CreateOrderRequest(symbol, SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
-	var request map[string]any = MapTyped(requestoperationTypeVariable[0])
+	var request map[string]any = requestoperationTypeVariable[0].(map[string]any)
 	var operationType *string = SafeStringPtr(requestoperationTypeVariable[1])
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"})
 	var response map[string]any = nil
@@ -4518,7 +4518,7 @@ func (this *Pacifica) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	}
 	var response map[string]any = r1.Value
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var transactions any = this.ParseTransactions(data, this.SafeCurrency(code))
+	var transactions []any = this.ParseTransactions(data, this.SafeCurrency(code))
 	var deposits []any = this.FilterBy(transactions, "type", "deposit")
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterBySinceLimit(deposits, since, limit, "timestamp"))}
@@ -4573,7 +4573,7 @@ func (this *Pacifica) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	}
 	var response map[string]any = r1.Value
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var transactions any = this.ParseTransactions(data, this.SafeCurrency(code))
+	var transactions []any = this.ParseTransactions(data, this.SafeCurrency(code))
 	var withdrawals []any = this.FilterBy(transactions, "type", "withdrawal")
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterBySinceLimit(withdrawals, since, limit, "timestamp"))}
@@ -5246,7 +5246,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 		requestBody = SafeStringPtr(this.Json(paramsOmitted))
 	}
 	if !IsEqual(this.HandleOption("sign", "apiKey"), nil) {
-		headersValue["PF-API-KEY"] = GetValue(this.Options, "apiKey")
+		headersValue["PF-API-KEY"] = this.Options["apiKey"]
 	}
 	return map[string]any{
 		"url":     url,
@@ -5329,7 +5329,7 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload map[string
 			builderCode = this.HandleOption("postActionRequest", "builderCode")
 		}
 		if builderCode != nil {
-			var isOperationSupportBuilder *bool = this.SafeBool(GetValue(this.Options, "builderSupportOperations"), operationType, false)
+			var isOperationSupportBuilder *bool = this.SafeBool(this.Options["builderSupportOperations"], operationType, false)
 			if isOperationSupportBuilder != nil && *isOperationSupportBuilder {
 				sigPayload["builder_code"] = builderCode
 			}

@@ -1752,7 +1752,7 @@ func (this *Bydfi) CreateOrderRequest(symbol *string, typeVar *string, side *str
 	var timeInForce any = this.HandleTimeInForce(query)
 	var postOnly bool = false
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, (IsEqual(timeInForce, "POST_ONLY")), query)
-	postOnly = GetValueBool(postOnlyqueryVariable, 0, false)
+	postOnly = postOnlyqueryVariable[0].(bool)
 	query = postOnlyqueryVariable[1]
 	if postOnly {
 		timeInForce = "POST_ONLY"
@@ -2989,7 +2989,7 @@ func (this *Bydfi) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sym
 	//
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var positions any = this.ParsePositions(data)
+	var positions []any = this.ParsePositions(data)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
@@ -3090,7 +3090,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], op
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var positions any = this.ParsePositions(data, symbols)
+	var positions []any = this.ParsePositions(data, symbols)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil

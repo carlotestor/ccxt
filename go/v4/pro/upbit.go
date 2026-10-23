@@ -432,9 +432,14 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
 	if (typeVar != nil && *typeVar == "SNAPSHOT") && !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	// upbit always returns a snapshot of 15 topmost entries
 	// the "REALTIME" deltas are not incremental
 	// therefore we reset the orderbook on each update
@@ -533,7 +538,7 @@ func (this *Upbit) Authenticate(optionalArgs ...any) {
 				"authorization": "Bearer " + token,
 			},
 		})
-		this.Options.Store("ws", wsOptions)
+		this.Options["ws"] = wsOptions
 	}
 }
 func (this *Upbit) WatchPrivateAsync(symbol any, channel string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

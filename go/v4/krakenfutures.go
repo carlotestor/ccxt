@@ -687,7 +687,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			"info":    market,
 		})
 	}
-	var settlementCurrencies any = GetValue(GetValue(this.Options, "settlementCurrencies"), "flex")
+	var settlementCurrencies any = GetValue(this.Options["settlementCurrencies"], "flex")
 	var currencies []any = []any{}
 	for i := 0; i < GetArrayLength(settlementCurrencies); i++ {
 		var code any = GetValue(settlementCurrencies, i)
@@ -1611,8 +1611,8 @@ func (this *Krakenfutures) CreateOrderRequest(symbol *string, typeVar *string, s
 	var typeValue *string = this.SafeString(params, "orderType", typeVar)
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeValue != nil && *typeValue == "market"), (typeValue != nil && *typeValue == "post"), params)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
 		typeValue = SafeStringPtr("post")
 	} else if timeInForce != nil && *timeInForce == "ioc" {
@@ -2972,7 +2972,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	var fixed bool = false
 	var statusId any = nil
 	var price any = nil
-	var trades any = []any{}
+	var trades []any = []any{}
 	if orderEventsLength > 0 {
 		var executions []any = []any{}
 		for i := 0; i < len(orderEvents); i++ {
@@ -3042,10 +3042,10 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	var remaining *string = this.SafeString(details, "unfilledSize")
 	var average any = nil
 	var filled2 any = "0.0"
-	var tradesLength int = GetArrayLength(trades)
+	var tradesLength int = len(trades)
 	if tradesLength > 0 {
 		var vwapSum any = "0.0"
-		for i := 0; i < GetArrayLength(trades); i++ {
+		for i := 0; i < len(trades); i++ {
 			var trade map[string]any = SafeMapTyped(trades, i)
 			var tradeAmount *string = this.SafeString(trade, "amount")
 			var tradePrice *string = this.SafeString(trade, "price")
@@ -4205,7 +4205,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]Posit
 			updates = append(updates, update)
 		}
 	}
-	var positions any = this.ParsePositions(updates, symbols)
+	var positions []any = this.ParsePositions(updates, symbols)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
@@ -4859,12 +4859,12 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	var apiVersions map[string]any = SafeMapTyped(GetValue(this.Options, "versions"), apiName)
+	var apiVersions map[string]any = SafeMapTyped(this.Options["versions"], apiName)
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, this.Version)
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")
-	var apiAccess map[string]any = SafeMapTyped(GetValue(this.Options, "access"), apiName)
+	var apiAccess map[string]any = SafeMapTyped(this.Options["access"], apiName)
 	var methodAccess map[string]any = SafeMapTyped(apiAccess, method)
 	var access *string = this.SafeString(methodAccess, path, "public")
 	var endpoint any = Add(Add(version, "/"), this.ImplodeParams(path, paramsOmitted))

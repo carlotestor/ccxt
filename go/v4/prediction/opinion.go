@@ -1227,7 +1227,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan ccxt.AsyncResult[map[string]any]
 			ccxt.AddElementToObject(quoteTokens, address, entry)
 		}
 	}
-	this.Options.Store("quoteTokens", quoteTokens)
+	this.Options["quoteTokens"] = quoteTokens
 	var quoteToken map[string]any = this.SafeDictMap(quoteTokens, cacheKey)
 	if quoteToken == nil {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" loadQuoteToken() could not find quote token ", quoteTokenAddress)))
@@ -1267,7 +1267,7 @@ func (this *Opinion) loadMultiSignAddressBody(ch chan ccxt.AsyncResult[*string])
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var walletUsers map[string]any = ccxt.SafeMapTyped(result, "walletUsers")
 	var multiSignAddress *string = this.SafeString(walletUsers, "56", this.WalletAddress)
-	this.Options.Store("multiSignAddress", multiSignAddress)
+	this.Options["multiSignAddress"] = ccxt.DerefScalar(multiSignAddress)
 
 	ch <- ccxt.AsyncResult[*string]{Value: multiSignAddress}
 	return nil
@@ -2018,7 +2018,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	ccxt.AddElementToObject(this.Markets, marketHandle, market)
 	this.IndexMarketOutcomes(market)
 	ccxt.AddElementToObject(cached, idStr, market)
-	this.Options.Store(cacheKey, cached)
+	this.Options[cacheKey] = ccxt.DerefScalar(cached)
 
 	var resolved map[string]any
 	switch resolvedBox := market.(type) {
@@ -2142,11 +2142,13 @@ func (this *Opinion) ParseBalance(response any) map[string]any {
 	for i := 0; i < balancesLength; i++ {
 		var balance map[string]any = ccxt.SafeMapTyped(balances, i)
 		var code *string = this.SafeString(balance, "symbol", "USDT")
-		ccxt.AddElementToObject(result, code, map[string]any{
-			"free":  this.SafeNumber(balance, "availableBalance"),
-			"used":  this.SafeNumber(balance, "frozenBalance"),
-			"total": this.SafeNumber(balance, "totalBalance"),
-		})
+		if code != nil {
+			result[*code] = map[string]any{
+				"free":  this.SafeNumber(balance, "availableBalance"),
+				"used":  this.SafeNumber(balance, "frozenBalance"),
+				"total": this.SafeNumber(balance, "totalBalance"),
+			}
+		}
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
@@ -2407,7 +2409,7 @@ func (this *Opinion) deleteApiKeyBody(ch chan ccxt.AsyncResult[map[string]any], 
 		panic(r.Err)
 	}
 	response := r.Value
-	this.Options.Store("apiKey", nil)
+	this.Options["apiKey"] = nil
 	// sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
 	// exchange.apiKey would keep being used for private calls after the key is revoked.
 	// an empty string, not undefined: the strict base types the credential as string, and
@@ -2513,7 +2515,7 @@ func (this *Opinion) SetApiCredentials(response map[string]any) map[string]any {
 		"apiKey":        this.SafeString(response, "apiKey"),
 		"walletAddress": this.SafeString(response, "walletAddress"),
 	}
-	this.Options.Store("apiKey", creds["apiKey"])
+	this.Options["apiKey"] = creds["apiKey"]
 	// checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
 	// options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
 	this.ApiKey = creds["apiKey"]
@@ -2757,7 +2759,10 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
 		// the delta belongs to the market's other token, whose book is not being watched
 		return
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, sym)
+	var orderbook any
+	if sym != nil {
+		orderbook = this.Orderbooks[*sym]
+	}
 	var sideStr *string = this.SafeString(message, "side")
 	var bookSide any = func() any {
 		if sideStr != nil && *sideStr == "bids" {
@@ -2941,13 +2946,18 @@ func (this *Opinion) HandleTrades(client any, message any) {
 		"fee":          nil,
 	}, outcomeObj)
 	if ccxt.IsEqual(this.Trades, nil) {
-		this.Trades = this.CreateSafeDictionary()
+		this.Trades = map[string]any{}
 	}
 	if ccxt.IsEqual(this.SafeValue(this.Trades, sym), nil) {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, sym, ccxt.NewArrayCache(tradesLimit))
+		if sym != nil {
+			this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
+		}
 	}
-	var stored any = ccxt.GetValue(this.Trades, sym)
+	var stored any
+	if sym != nil {
+		stored = this.Trades[*sym]
+	}
 	stored.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 }

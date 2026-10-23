@@ -717,7 +717,7 @@ func (this *Bingx) HandleTrades(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade::" + *symbol
-	var trades any = nil
+	var trades []any = nil
 	if ccxt.IsArray(data) {
 		trades = this.ParseTrades(data, market)
 	} else {
@@ -729,7 +729,7 @@ func (this *Bingx) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	for j := 0; j < ccxt.GetArrayLength(trades); j++ {
+	for j := 0; j < len(trades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(trades, j))
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -964,7 +964,9 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 		// see handleOHLCV — subscription.limit may be missing for non-orderbook callers
 		// default to a reasonable depth instead of throwing NPE in the Java port.
 		var limit *int64 = this.SafeInteger(subscription, "limit", 100)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+		}
 	}
 	orderbook = ccxt.GetValue(this.Orderbooks, symbol)
 	var snapshot map[string]any = nil
@@ -1111,7 +1113,9 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 		candles = []any{this.SafeDict(data, "K", map[string]any{})}
 	}
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
 	var rawTimeframe *string = ccxt.SafeStringPtr(ccxt.GetValue(strings.Split(*dataType, "_"), 1))
 	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
 	var timeframes any = this.SafeDict(marketOptions, "timeframes", map[string]any{})
@@ -2026,8 +2030,8 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 								client.(ccxt.ClientInterface).Reject(error, messageHash)
 							}
 						}
-						this.Options.Store("listenKey", nil)
-						this.Options.Store("lastAuthenticatedTime", 0)
+						this.Options["listenKey"] = nil
+						this.Options["lastAuthenticatedTime"] = 0
 
 						return nil
 
@@ -2118,8 +2122,8 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				this.Options.Store("listenKey", listenKey)
-				this.Options.Store("lastAuthenticatedTime", time)
+				this.Options["listenKey"] = ccxt.DerefScalar(listenKey)
+				this.Options["lastAuthenticatedTime"] = ccxt.DerefScalar(time)
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 				// settle the flight: client.resolve () removes the future from
 				// client.futures and wakes every waiter

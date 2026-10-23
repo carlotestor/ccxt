@@ -418,12 +418,15 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var item any = ccxt.GetValue(data, marketId)
 		var messageHash string = "orderbooks::" + *symbol
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+		var orderbook ccxt.OrderBookInterface
+		if symbol != nil {
+			orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		}
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
 		if typeVar == "snapshot" {
@@ -439,7 +442,9 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 		ccxt.AddElementToObject(orderbook, "nonce", nonce)
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+		if symbol != nil {
+			this.Orderbooks[*symbol] = orderbook
+		}
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
@@ -1135,7 +1140,9 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		}
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)

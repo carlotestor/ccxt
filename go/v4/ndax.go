@@ -695,7 +695,7 @@ func (this *Ndax) signInBody(ch chan AsyncResult[any], optionalArgs ...any) any 
 	//
 	var sessionToken *string = this.SafeString(response, "SessionToken")
 	if sessionToken != nil {
-		this.Options.Store("sessionToken", sessionToken)
+		this.Options["sessionToken"] = DerefScalar(sessionToken)
 
 		ch <- AsyncResult[any]{Value: response}
 		return nil
@@ -705,7 +705,7 @@ func (this *Ndax) signInBody(ch chan AsyncResult[any], optionalArgs ...any) any 
 		if this.Twofa == nil {
 			panic(AuthenticationError(this.Id + " signIn() requires exchange.twofa credentials"))
 		}
-		this.Options.Store("pending2faToken", pending2faToken)
+		this.Options["pending2faToken"] = DerefScalar(pending2faToken)
 		request = map[string]any{
 			"Code": Totp(this.Twofa),
 		}
@@ -723,7 +723,7 @@ func (this *Ndax) signInBody(ch chan AsyncResult[any], optionalArgs ...any) any 
 		//     }
 		//
 		sessionToken = this.SafeString(responseInner, "SessionToken")
-		this.Options.Store("sessionToken", sessionToken)
+		this.Options["sessionToken"] = DerefScalar(sessionToken)
 
 		ch <- AsyncResult[any]{Value: responseInner}
 		return nil
@@ -2109,7 +2109,7 @@ func (this *Ndax) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
 	var orderType any
-	if derefPtr := this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)); derefPtr != nil {
+	if derefPtr := this.SafeInteger(this.Options["orderTypes"], this.Capitalize(typeVar)); derefPtr != nil {
 		orderType = *derefPtr
 	}
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
@@ -2241,7 +2241,7 @@ func (this *Ndax) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
 			}
 			return this.ParseNumber(amountString)
 		}(),
-		"OrderType": this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)),
+		"OrderType": this.SafeInteger(this.Options["orderTypes"], this.Capitalize(typeVar)),
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if price != nil {

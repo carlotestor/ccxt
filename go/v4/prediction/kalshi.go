@@ -694,7 +694,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 			_, ok := seen[*baseTicker]
 			return ok
 		}()) {
-			ccxt.AddElementToObject(seen, baseTicker, true)
+			if baseTicker != nil { seen[*baseTicker] = true }
 			tickers = append(tickers, baseTicker)
 		}
 	}
@@ -1835,7 +1835,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	}
 	// kalshi candles carry only the period-END timestamp; thread the candle duration through so
 	// parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
-	this.Options.Store("ohlcvCandleDurationSeconds", tf)
+	this.Options["ohlcvCandleDurationSeconds"] = tf
 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.ParseOHLCVs(usableCandles, outcomeObj, timeframe, since, limit))}
 	return nil

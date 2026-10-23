@@ -3501,7 +3501,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["symbol"] = market["id"]
 	}
 	if symbol == nil {
-		if *this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol", false) {
+		if *this.SafeBool(this.Options["fetchOpenOrders"], "warnIfNoSymbol", false) {
 			panic(ExchangeError(this.Id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set " + this.Id + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message."))
 		}
 	} else {
@@ -5555,7 +5555,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 		//                },
 		//                ...
 		//
-		this.Options.Store("leverageBrackets", this.CreateSafeDictionary())
+		this.Options["leverageBrackets"] = this.CreateSafeDictionary()
 		var entries []any = this.ToArray(response)
 		for i := 0; i < len(entries); i++ {
 			var entry map[string]any = SafeMapTyped(entries, i)
@@ -5569,12 +5569,12 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})
 			}
-			AddElementToObject(GetValue(this.Options, "leverageBrackets"), symbol, result)
+			AddElementToObject(this.Options["leverageBrackets"], symbol, result)
 		}
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := GetValue(this.Options, "leverageBrackets").(type) {
+	switch resolvedBox := this.Options["leverageBrackets"].(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -5878,8 +5878,8 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 		var cachedPrivateKeyHash *string = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
 		if (walletAddress == nil) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
 			walletAddress = SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey))
-			this.Options.Store("cachedWalletAddress", walletAddress)
-			this.Options.Store("privateKeyHashForCachedWalletAddress", privateKeyHash)
+			this.Options["cachedWalletAddress"] = DerefScalar(walletAddress)
+			this.Options["privateKeyHashForCachedWalletAddress"] = privateKeyHash
 		}
 		var signerAddress *string = this.SafeString(this.Options, "signerAddress", walletAddress) // default to user's wallet
 		if signerAddress == nil {
@@ -6109,7 +6109,7 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 		}
 	}
 	if !found {
-		this.Options.Store("approvedBuilderFee", true)
+		this.Options["approvedBuilderFee"] = true
 
 		{
 			func(this *Aster) (ret_ any) {
@@ -6120,8 +6120,8 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 						}
 						ret_ = func(this *Aster) any {
 							// catch block:
-							this.Options.Store("approvedBuilderFee", false)
-							this.Options.Store("builderFee", false) // disable if err
+							this.Options["approvedBuilderFee"] = false
+							this.Options["builderFee"] = false // disable if err
 							return nil
 						}(this)
 					}
@@ -6242,7 +6242,10 @@ func (this *Aster) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

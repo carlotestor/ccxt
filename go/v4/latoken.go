@@ -2561,7 +2561,7 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 			"X-LA-DIGEST":    "HMAC-SHA512",
 		}
 		if method == "POST" {
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			if requestHeaders != nil { requestHeaders["Content-Type"] = "application/json" }
 			requestBody = SafeStringPtr(this.Json(query))
 		}
 	}
@@ -2629,7 +2629,10 @@ func (this *Latoken) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

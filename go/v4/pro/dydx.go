@@ -188,8 +188,8 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var parsedTrades any = this.ParseTrades(rawTrades, market)
-	for i := 0; i < ccxt.GetArrayLength(parsedTrades); i++ {
+	var parsedTrades []any = this.ParseTrades(rawTrades, market)
+	for i := 0; i < len(parsedTrades); i++ {
 		var parsed any = ccxt.GetValue(parsedTrades, i)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -565,12 +565,12 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	var messageHash string = "ohlcv:" + *symbol
 	var ohlcv any = this.SafeDict(candles, 0, content)
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	var stored any = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 	}
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

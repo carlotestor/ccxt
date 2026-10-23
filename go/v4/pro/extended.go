@@ -132,13 +132,16 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var nonce *int64 = this.SafeInteger(message, "seq")
 	var typeVar *string = this.SafeString(message, "type", this.SafeString(data, "t"))
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if _, ok := this.Orderbooks[*symbol]; !ok {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+	var orderbook ccxt.OrderBookInterface
+	if symbol != nil {
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+	}
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
 		snapshot["nonce"] = nonce
@@ -149,7 +152,7 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	var previousNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (previousNonce != nil) && (!ccxt.IsEqual(nonce, ccxt.Add(previousNonce, 1))) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		ccxt.Remove(this.Orderbooks, symbol)
+		delete(this.Orderbooks, *symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
@@ -192,9 +195,9 @@ func (this *Extended) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 			},
 		}
 		this.ExtendExchangeOptions(defaultOptions)
-		var originalOptions any = ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options")
+		var originalOptions any = ccxt.GetValue(this.Options["ws"], "options")
 		var originalHeaders any = this.SafeDict(originalOptions, "headers", map[string]any{})
-		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "options", this.Extend(this.Extend(map[string]any{}, originalOptions), map[string]any{
+		ccxt.AddElementToObject(this.Options["ws"], "options", this.Extend(this.Extend(map[string]any{}, originalOptions), map[string]any{
 			"headers": this.Extend(this.Extend(map[string]any{
 				"User-Agent": this.UserAgents["chrome"],
 			}, originalHeaders), map[string]any{
@@ -202,7 +205,7 @@ func (this *Extended) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 			}),
 		}))
 		this.Client(url)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "options", originalOptions)
+		ccxt.AddElementToObject(this.Options["ws"], "options", originalOptions)
 	}
 
 	r := <-this.Watch(url, messageHash, nil, messageHash, subscription)
@@ -1147,8 +1150,13 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 		cacheKey = ccxt.Add(ccxt.Add(timeframe, ":"), candleType)
 	}
 	var messageHash *string = this.SafeString(subscription, "messageHash")
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), cacheKey)
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
+	var stored any
+	if symbol != nil {
+		stored = this.SafeValue(this.Ohlcvs[*symbol], cacheKey)
+	}
 	if stored == nil {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)

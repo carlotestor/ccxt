@@ -443,14 +443,16 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	var ohlcvsBySymbol any = this.SafeDict(this.Ohlcvs, symbol)
 	if ohlcvsBySymbol == nil {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 		}
 	}
 	var changesLength int = len(changes)
@@ -531,9 +533,12 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orderbook:" + *symbol
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+	var orderbook ccxt.OrderBookInterface
+	if symbol != nil {
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+	}
 	if isInitial {
 		// the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
 		var bidsSnapshot []any = []any{}
@@ -580,7 +585,9 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, side, bookside)
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -816,11 +823,14 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orderbook:" + *symbol
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if _, ok := this.Orderbooks[*symbol]; !ok {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
-		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
+		this.Orderbooks[*symbol] = ob
 	}
-	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+	var orderbook ccxt.OrderBookInterface
+	if symbol != nil {
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+	}
 	var bids ccxt.IOrderBookSide = orderbook.GetBids()
 	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {
@@ -840,7 +850,9 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Gemini) HandleL2Updates(client any, message map[string]any) {
@@ -1266,15 +1278,15 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	}
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
-	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers")
+	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(this.Options["ws"], "options"), "headers")
 	var headers map[string]any = map[string]any{
 		"X-GEMINI-APIKEY":    this.ApiKey,
 		"X-GEMINI-PAYLOAD":   b64,
 		"X-GEMINI-SIGNATURE": signature,
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers", headers)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", headers)
 	this.Client(url)
-	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers", originalHeaders)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", originalHeaders)
 	return nil
 }
 

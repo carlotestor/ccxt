@@ -688,7 +688,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 		panic(r2.Err)
 	}
 	rawOrders := r2.Value
-	var orders any = this.ParseOrders(rawOrders, market)
+	var orders []any = this.ParseOrders(rawOrders, market)
 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limit))}
 	return nil
@@ -874,10 +874,10 @@ func (this *Gate) HandleOrderBookSubscription(client any, message map[string]any
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if _, ok := this.Orderbooks[*symbol]; !ok {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any = this.Orderbooks[*symbol]
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
 		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	}
@@ -918,9 +918,12 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId, nil, "_", "spot")
 	var messageHash string = "orderbook:" + *symbol
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, 1000))
+		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, 1000)
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	if full != nil && *full {
 		var snapshopt map[string]any = this.ParseOrderBook(result, symbol, nil, "b", "a")
 		snapshopt["nonce"] = this.SafeInteger(result, "u")
@@ -1583,8 +1586,8 @@ func (this *Gate) HandleTrades(client any, message map[string]any) {
 	} else {
 		result = []any{rawResult}
 	}
-	var parsedTrades any = this.ParseTrades(result)
-	for i := 0; i < ccxt.GetArrayLength(parsedTrades); i++ {
+	var parsedTrades []any = this.ParseTrades(result)
+	for i := 0; i < len(parsedTrades); i++ {
 		var trade any = ccxt.GetValue(parsedTrades, i)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		var cachedTrades any = this.SafeValue(this.Trades, symbol)
@@ -1846,9 +1849,9 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = cachedTrades
 	}
-	var parsed any = this.ParseTrades(result)
+	var parsed []any = this.ParseTrades(result)
 	var marketIds map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
+	for i := 0; i < len(parsed); i++ {
 		var trade any = ccxt.GetValue(parsed, i)
 		cachedTrades.(ccxt.Appender).Append(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
@@ -2073,7 +2076,7 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	var query any = nil
 	typeVarqueryVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchPositions", market, params))
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
-	query = ccxt.GetValue(typeVarqueryVariable, 1)
+	query = typeVarqueryVariable[1]
 	if typeVar == "spot" {
 		typeVar = "swap"
 	}
@@ -2348,7 +2351,7 @@ func (this *Gate) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	var query any = nil
 	typeVarqueryVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchOrders", market, params))
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
-	query = ccxt.GetValue(typeVarqueryVariable, 1)
+	query = typeVarqueryVariable[1]
 	var typeId any = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot",
 		"margin": "spot",
@@ -2591,7 +2594,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]c
 	var query any = nil
 	typeVarqueryVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, params))
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
-	query = ccxt.GetValue(typeVarqueryVariable, 1)
+	query = typeVarqueryVariable[1]
 	var typeId any = this.GetSupportedMapping(typeVar, map[string]any{
 		"future": "futures",
 		"swap":   "futures",
@@ -3201,7 +3204,7 @@ func (this *Gate) RequestId() int64 {
 	// their support said that reqid must be an int32, not documented
 	this.LockId()
 	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
-	this.Options.Store("reqid", reqid)
+	this.Options["reqid"] = reqid
 	this.UnlockId()
 	return reqid
 }

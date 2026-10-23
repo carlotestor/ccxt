@@ -113,7 +113,7 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) any {
 	if ccxt.IsEqual(channel, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " getUrl() requires a channel argument"))
 	}
-	var isSandbox any = ccxt.GetValue(this.Options, "sandboxMode")
+	var isSandbox any = this.Options["sandboxMode"]
 	var sandboxSuffix string = ""
 	if isSandbox == true {
 		sandboxSuffix = "?brokerId=9999"
@@ -661,7 +661,7 @@ func (this *Okx) HandleFundingRate(client any, message map[string]any) {
 		var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(rawfr))
 		var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 		if symbol != nil {
-			ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+			this.FundingRates[*symbol] = fundingRate
 		}
 		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("funding-rate"+":", fundingRate["symbol"]))
 	}
@@ -1048,7 +1048,7 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 			return nil
 		}()))
 		this.Tickers.Store(symbol, ticker)
-		ccxt.AddElementToObject(newTickers, symbol, ticker)
+		if symbol != nil { newTickers[*symbol] = ticker }
 	}
 	if channel != nil {
 		var messageHash string = *channel + "::" + *symbol
@@ -1098,7 +1098,7 @@ func (this *Okx) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 			"instId":  marketId,
 		}
 		args = append(args, this.Extend(arg, paramsChannel))
-		messageHashes = append(messageHashes, ccxt.Add("bidask::", symbolsNormalized[i]))
+		messageHashes = append(messageHashes, "bidask::"+symbolsNormalized[i])
 	}
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -1762,7 +1762,7 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]ma
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
@@ -1895,13 +1895,15 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 			}
 			return nil
 		}(), market))
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		}
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			if (symbol != nil) && (timeframe != nil) {
-				ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+				ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
@@ -2234,11 +2236,11 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	var seqId *int64 = this.SafeInteger(message, "seqId")
 	var prevSeqId *int64 = this.SafeInteger(message, "prevSeqId")
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
-	if (prevSeqId != nil) && !ccxt.IsEqual(prevSeqId, int64(-1)) && (nonce != prevSeqId && (nonce == nil || prevSeqId == nil || *nonce != *prevSeqId)) {
+	if (prevSeqId != nil) && (prevSeqId == nil || *prevSeqId != int64(-1)) && (nonce != prevSeqId && (nonce == nil || prevSeqId == nil || *nonce != *prevSeqId)) {
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		if symbol != nil {
-			ccxt.Remove(this.Orderbooks, symbol)
+			delete(this.Orderbooks, *symbol)
 		}
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return orderbook
@@ -2371,7 +2373,10 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 		}
 	} else if action != nil && *action == "update" {
 		if ccxt.InOp(this.Orderbooks, symbol) {
-			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+			var orderbook any
+			if symbol != nil {
+				orderbook = this.Orderbooks[*symbol]
+			}
 			for i := 0; i < len(data); i++ {
 				var update any = func() any {
 					if i >= 0 && i < len(data) {
@@ -2394,9 +2399,14 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 		// channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.(*ccxt.WSClient).Subscriptions)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			if !(ccxt.InOp(this.Orderbooks, symbol)) {
-				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+				if symbol != nil {
+					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+				}
 			}
-			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+			var orderbook any
+			if symbol != nil {
+				orderbook = this.Orderbooks[*symbol]
+			}
 			for i := 0; i < len(data); i++ {
 				var update any = func() any {
 					if i >= 0 && i < len(data) {
@@ -3701,7 +3711,7 @@ func (this *Okx) HandleCancelOrders(client any, message map[string]any) {
 		var stringMsg string = this.Json(message)
 		this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})
 	}
-	var orders any = this.ParseOrders(args, nil, nil, nil)
+	var orders []any = this.ParseOrders(args, nil, nil, nil)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
 func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {

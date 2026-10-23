@@ -306,9 +306,14 @@ func (this *Toobit) HandleTrades(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
+		if symbol != nil {
+			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(this.Trades, symbol)
+	var stored any
+	if symbol != nil {
+		stored = this.Trades[*symbol]
+	}
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsed any = this.ParseWsTrades(data, market)
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
@@ -363,7 +368,7 @@ func (this *Toobit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var result map[string]any = ccxt.StructResultMap(r.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(result[symbol], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:
@@ -411,7 +416,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "common"), "/quote/ws/v1"))
 	var messageHashes []any = []any{}
-	var timeframes map[string]any = ccxt.SafeMapTyped(ccxt.GetValue(this.Options, "ws"), "timeframes")
+	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options["ws"], "timeframes")
 	var marketIds []any = []any{}
 	var selectedTimeframe any = nil
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
@@ -446,7 +451,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
@@ -494,11 +499,16 @@ func (this *Toobit) HandleOHLCV(client any, message map[string]any) {
 	var timeframeId *string = this.SafeString(params, "klineType")
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil {
+		stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+	}
 	if stored == nil {
-		var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "OHLCVLimit", 1000)
+		var limit *int64 = this.SafeInteger(this.Options["ws"], "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
@@ -858,18 +868,23 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(data, i)
 		var messageHash string = "orderBook::" + *symbol + "::" + "diffDepth"
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if _, ok := this.Orderbooks[*symbol]; !ok {
+			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+		var orderBook ccxt.OrderBookInterface
+		if symbol != nil {
+			orderBook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		}
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var bids []any = ccxt.SafeListTypedDefault(entry, "b", []any{})
 		var asks []any = ccxt.SafeListTypedDefault(entry, "a", []any{})
 		this.HandleDeltas(orderBook.GetAsks(), asks)
 		this.HandleDeltas(orderBook.GetBids(), bids)
 		ccxt.AddElementToObject(orderBook, "timestamp", timestamp)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderBook)
+		if symbol != nil {
+			this.Orderbooks[*symbol] = orderBook
+		}
 		client.(ccxt.ClientInterface).Resolve(orderBook, messageHash)
 	}
 }
@@ -913,11 +928,14 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message map[string]any, cha
 		var marketId *string = this.SafeString(entry, "s")
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash string = "orderBook::" + *symbol + "::" + channel
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if _, ok := this.Orderbooks[*symbol]; !ok {
+			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+		var orderbook ccxt.OrderBookInterface
+		if symbol != nil {
+			orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		}
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -1643,8 +1661,8 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var time int64 = this.Milliseconds()
-	var lastAuthenticatedTime int64 = *this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", 0)
-	var listenKeyRefreshRate *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
+	var lastAuthenticatedTime int64 = *this.SafeInteger(this.Options["ws"], "lastAuthenticatedTime", 0)
+	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options["ws"], "listenKeyRefreshRate", 1200000)
 	var delay int64 = ccxt.Add(listenKeyRefreshRate, 10000).(int64)
 	if time-lastAuthenticatedTime > delay {
 		this.CheckRequiredCredentials()
@@ -1700,8 +1718,8 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "listenKey", listenKey)
-				ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", time)
+				ccxt.AddElementToObject(this.Options["ws"], "listenKey", listenKey)
+				ccxt.AddElementToObject(this.Options["ws"], "lastAuthenticatedTime", time)
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 				// settle the flight: client.resolve () removes the future from
 				// client.futures and wakes every waiter
@@ -1751,8 +1769,8 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 							var messageHash string = messageHashes[i]
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
-						ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "listenKey", nil)
-						ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", 0)
+						ccxt.AddElementToObject(this.Options["ws"], "listenKey", nil)
+						ccxt.AddElementToObject(this.Options["ws"], "lastAuthenticatedTime", 0)
 
 						return nil
 
@@ -1766,19 +1784,19 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 				panic(r.Err)
 			}
 			var response map[string]any = r.Value
-			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "listenKey", this.SafeString(response, "listenKey"))
-			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", this.Milliseconds())
+			ccxt.AddElementToObject(this.Options["ws"], "listenKey", this.SafeString(response, "listenKey"))
+			ccxt.AddElementToObject(this.Options["ws"], "lastAuthenticatedTime", this.Milliseconds())
 			return nil
 		}(this)
 
 	}
 	// whether or not to schedule another listenKey keepAlive request
-	var listenKeyRefreshRate *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
+	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options["ws"], "listenKeyRefreshRate", 1200000)
 	this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 	return nil
 }
 func (this *Toobit) GetUserStreamUrl() any {
-	return ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "common"), "/api/v1/ws/"), this.SafeString(ccxt.GetValue(this.Options, "ws"), "listenKey"))
+	return ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "common"), "/api/v1/ws/"), this.SafeString(this.Options["ws"], "listenKey"))
 }
 func (this *Toobit) HandleErrorMessage(client any, message any) bool {
 	//

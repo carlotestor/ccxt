@@ -589,7 +589,13 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//     }
 	//
 	var coins map[string]any = SafeMapTyped(response, "coins")
-	var values []any = ObjectValues(coins)
+	var values []any = nil
+	if coins != nil {
+		values = make([]any, 0, len(coins))
+		for _, objectValue := range coins {
+			values = append(values, objectValue)
+		}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(values)}
 	return nil
@@ -1153,14 +1159,16 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var market map[string]any = this.Market(symbol)
 		var makerString *string = this.SafeString(makerFees, market["id"])
 		var takerString *string = this.SafeString(takerFees, market["id"])
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       fees,
-			"symbol":     symbol,
-			"maker":      this.ParseNumber(Precise.StringDiv(makerString, "100")),
-			"taker":      this.ParseNumber(Precise.StringDiv(takerString, "100")),
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       fees,
+				"symbol":     symbol,
+				"maker":      this.ParseNumber(Precise.StringDiv(makerString, "100")),
+				"taker":      this.ParseNumber(Precise.StringDiv(takerString, "100")),
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -1239,11 +1247,11 @@ func (this *Hollaex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	request["to"] = this.ParseToInt(float64(*until) / 1000) // convert to seconds
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "until")
 
-	listEp1184 := <-this.PublicGetChart(this.Extend(request, paramsOmitted))
-	if listEp1184.Err != nil {
-		panic(listEp1184.Err)
+	listEp1190 := <-this.PublicGetChart(this.Extend(request, paramsOmitted))
+	if listEp1190.Err != nil {
+		panic(listEp1190.Err)
 	}
-	var response []any = listEp1184.Value
+	var response []any = listEp1190.Value
 
 	//
 	//     [
@@ -1921,11 +1929,11 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	market = this.Market(symbol)
 	request["symbol"] = market["id"]
 
-	listEp1810 := <-this.PrivateDeleteOrderAll(this.Extend(request, params))
-	if listEp1810.Err != nil {
-		panic(listEp1810.Err)
+	listEp1816 := <-this.PrivateDeleteOrderAll(this.Extend(request, params))
+	if listEp1816.Err != nil {
+		panic(listEp1816.Err)
 	}
-	var response []any = listEp1810.Value
+	var response []any = listEp1816.Value
 
 	//
 	//     [

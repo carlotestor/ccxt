@@ -138,8 +138,8 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 	}
 	var isMarket bool = (typeVar == "market")
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, false, params)
-	var postOnly bool = ccxt.GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = ccxt.MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
 		ccxt.AddElementToObject(request["params"], "post_only", true)
 	}
@@ -790,8 +790,8 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var market map[string]any = this.Market(symbol)
-	var parsed any = this.ParseTrades(data, market)
-	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
+	var parsed []any = this.ParseTrades(data, market)
+	for i := 0; i < len(parsed); i++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsed, i))
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -824,13 +824,17 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(first, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var interval *int64 = this.SafeInteger(first, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash string = this.GetMessageHash("ohlcv", nil, symbol)
 	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -850,7 +854,7 @@ func (this *Kraken) RequestId() int64 {
 	// their support said that reqid must be an int32, not documented
 	this.LockId()
 	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
-	this.Options.Store("reqid", reqid)
+	this.Options["reqid"] = reqid
 	this.UnlockId()
 	return reqid
 }
@@ -1262,7 +1266,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[*sync.Map], optiona
 				ccxt.AddElementToObject(marketsByWsName, wsName, market)
 			}
 		}
-		this.Options.Store("marketsByWsName", marketsByWsName)
+		this.Options["marketsByWsName"] = marketsByWsName
 	}
 
 	ch <- ccxt.AsyncResult[*sync.Map]{Value: markets}
@@ -1424,9 +1428,11 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) || (!ccxt.IsEqual(storedDepth, depth)) {
 			// rebuild only on the first snapshot or when the depth changes,
 			// e.g. a re-subscription with a different limit
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, depth))
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
+			}
 			ccxt.AddElementToObject(depths, symbol, depth)
-			this.Options.Store("wsOrderBookDepths", depths)
+			this.Options["wsOrderBookDepths"] = depths
 		}
 		// reset in place so that references held by users keep receiving
 		// updates after a reconnect snapshot (a new object would orphan them)
@@ -1475,7 +1481,9 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		if c == nil || *c != localChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-			ccxt.Remove(this.Orderbooks, symbol)
+			if symbol != nil {
+				delete(this.Orderbooks, *symbol)
+			}
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			return
 		}

@@ -2218,7 +2218,7 @@ func (this *Zebpay) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	//    }
 	//
 	var positions []any = SafeListTypedDefault(response, "data", []any{})
-	var result any = this.ParsePositions(positions)
+	var result []any = this.ParsePositions(positions)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbols))}
 	return nil
@@ -2867,7 +2867,10 @@ func (this *Zebpay) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

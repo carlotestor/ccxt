@@ -4286,7 +4286,7 @@ func (this *Binance) IsLinear(typeVar any, optionalArgs ...any) bool {
 }
 func (this *Binance) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	this.Options.Store("sandboxMode", enable)
+	this.Options["sandboxMode"] = enable
 }
 func (this *Binance) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
@@ -4626,7 +4626,7 @@ func (this *Binance) EnableDemoTrading(enable any) {
 		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
 		this.Urls = newUrls
 	}
-	this.Options.Store("enableDemoTrading", enable)
+	this.Options["enableDemoTrading"] = enable
 }
 
 /**
@@ -5053,18 +5053,18 @@ func (this *Binance) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	}
 	var results []any = ListTyped(r.Value)
 	var markets []any = []any{}
-	this.Options.Store("crossMarginPairsData", []any{})
-	this.Options.Store("isolatedMarginPairsData", []any{})
+	this.Options["crossMarginPairsData"] = []any{}
+	this.Options["isolatedMarginPairsData"] = []any{}
 	for i := 0; i < len(results); i++ {
 		var res any = this.SafeValue(results, i)
 		if (fetchMargins != nil && *fetchMargins) && IsArray(res) {
 			var keysList []string = ObjectKeys(this.IndexBy(res, "symbol"))
-			var length int = GetArrayLength(GetValue(this.Options, "crossMarginPairsData"))
+			var length int = GetArrayLength(this.Options["crossMarginPairsData"])
 			// first one is the cross-margin promise
 			if length == 0 {
-				this.Options.Store("crossMarginPairsData", keysList)
+				this.Options["crossMarginPairsData"] = keysList
 			} else {
-				this.Options.Store("isolatedMarginPairsData", keysList)
+				this.Options["isolatedMarginPairsData"] = keysList
 			}
 		} else {
 			var resultMarkets []any = SafeList2Typed(res, "symbols", "optionSymbols", []any{})
@@ -5428,8 +5428,8 @@ func (this *Binance) ParseMarket(market any) any {
 	var isMarginTradingAllowed *bool = this.SafeBool(market, "isMarginTradingAllowed", false)
 	var marginModes map[string]any = nil
 	if spot {
-		var hasCrossMargin bool = this.InArray(id, GetValue(this.Options, "crossMarginPairsData"))
-		var hasIsolatedMargin bool = this.InArray(id, GetValue(this.Options, "isolatedMarginPairsData"))
+		var hasCrossMargin bool = this.InArray(id, this.Options["crossMarginPairsData"])
+		var hasIsolatedMargin bool = this.InArray(id, this.Options["isolatedMarginPairsData"])
 		marginModes = map[string]any{
 			"cross":    hasCrossMargin,
 			"isolated": hasIsolatedMargin,
@@ -7997,7 +7997,7 @@ func (this *Binance) EditSpotOrderRequest(id *string, symbol any, typeVar any, s
 	} else {
 		request["newClientOrderId"] = clientOrderId
 	}
-	request["newOrderRespType"] = this.SafeString(GetValue(this.Options, "newOrderRespType"), typeVar, "RESULT") // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+	request["newOrderRespType"] = this.SafeString(this.Options["newOrderRespType"], typeVar, "RESULT") // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
 	var timeInForceIsRequired bool = false
 	var priceIsRequired bool = false
 	var triggerPriceIsRequired bool = false
@@ -9895,7 +9895,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 	}
 	// handle newOrderRespType response type
 	if ((marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin")) && !isPortfolioMargin && (!(stock != nil && *stock)) {
-		request["newOrderRespType"] = this.SafeString(GetValue(this.Options, "newOrderRespType"), typeVar, "FULL") // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+		request["newOrderRespType"] = this.SafeString(this.Options["newOrderRespType"], typeVar, "FULL") // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
 	} else if !(stock != nil && *stock) {
 		// swap, futures and options
 		request["newOrderRespType"] = "RESULT" // "ACK", "RESULT", default "ACK"
@@ -10309,7 +10309,7 @@ func (this *Binance) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "fetchOrder", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = (*this.SafeBool(market, "stock", false))
 		if !EvalTruthy(stock) {
 			request["symbol"] = market["id"]
 		}
@@ -10967,12 +10967,12 @@ func (this *Binance) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	stock, paramsMarginMode = this.HandleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = (*this.SafeBool(market, "stock", false))
 		if !EvalTruthy(stock) {
 			request["symbol"] = market["id"]
 		}
 	} else if !EvalTruthy(stock) {
-		var warnWithoutSymbol *bool = this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnWithoutSymbol")
+		var warnWithoutSymbol *bool = this.SafeBool(this.Options["fetchOpenOrders"], "warnWithoutSymbol")
 		var optValue *bool = this.SafeBool(this.Options, "warnOnFetchOpenOrdersWithoutSymbol") // for backward compatibility
 		if (optValue != nil && *optValue == true) || ((optValue == nil) && (warnWithoutSymbol != nil && *warnWithoutSymbol == true)) {
 			panic(ExchangeError(this.Id + " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set " + this.Id + ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message."))
@@ -11640,7 +11640,7 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "cancelOrder", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = (*this.SafeBool(market, "stock", false))
 		if !EvalTruthy(stock) {
 			request["symbol"] = market["id"]
 		}
@@ -11856,7 +11856,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "cancelAllOrders", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = (*this.SafeBool(market, "stock", false))
 		if !EvalTruthy(stock) {
 			request["symbol"] = market["id"]
 		}
@@ -12660,7 +12660,7 @@ func (this *Binance) fetchMyDustTradesBody(ch chan AsyncResult[[]Trade], optiona
 			}())
 		}
 	}
-	var trades any = this.ParseTrades(data, nil, since, limit)
+	var trades []any = this.ParseTrades(data, nil, since, limit)
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.FilterBySinceLimit(trades, since, limit))}
 	return nil
@@ -15503,7 +15503,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any
 		} else {
 			panic(NotSupported(this.Id + " loadLeverageBrackets() supports linear and inverse contracts only"))
 		}
-		this.Options.Store("leverageBrackets", this.CreateSafeDictionary())
+		this.Options["leverageBrackets"] = this.CreateSafeDictionary()
 		if IsEqual(response, nil) {
 			panic(NullResponse(this.Id + " loadLeverageBrackets() returned empty response"))
 		}
@@ -15520,12 +15520,12 @@ func (this *Binance) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})
 			}
-			AddElementToObject(GetValue(this.Options, "leverageBrackets"), symbol, result)
+			AddElementToObject(this.Options["leverageBrackets"], symbol, result)
 		}
 	}
 
 	var resolved map[string]any
-	switch resolvedBox := GetValue(this.Options, "leverageBrackets").(type) {
+	switch resolvedBox := this.Options["leverageBrackets"].(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -17792,7 +17792,7 @@ func (this *Binance) requestBody(ch chan AsyncResult[any], path any, optionalArg
 	response := r.Value
 	// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 	if GetValue(api, 0) == "private" {
-		this.Options.Store("hasAlreadyAuthenticatedSuccessfully", true)
+		this.Options["hasAlreadyAuthenticatedSuccessfully"] = true
 	}
 
 	ch <- AsyncResult[any]{Value: response}
@@ -21001,7 +21001,10 @@ func (this *Binance) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

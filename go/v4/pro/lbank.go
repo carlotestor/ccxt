@@ -68,7 +68,7 @@ func (this *Lbank) RequestId() int64 {
 	this.LockId()
 	var previousValue *int64 = this.SafeInteger(this.Options, "requestId", 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	this.Options.Store("requestId", newValue)
+	this.Options["requestId"] = newValue
 	this.UnlockId()
 	return newValue
 }
@@ -678,9 +678,9 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	var messageHash string = "trades:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Trades[*symbol], messageHash)
 	messageHash = "fetchTrades:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Trades[*symbol], messageHash)
 }
 func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1218,9 +1218,14 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.Parse8601(datetime)
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "bids", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol

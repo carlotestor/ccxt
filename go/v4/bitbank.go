@@ -731,14 +731,16 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var marketId *string = this.SafeString(pair, "name")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       pair,
-			"symbol":     symbol,
-			"maker":      this.SafeNumber(pair, "maker_fee_rate_quote"),
-			"taker":      this.SafeNumber(pair, "taker_fee_rate_quote"),
-			"percentage": true,
-			"tierBased":  false,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       pair,
+				"symbol":     symbol,
+				"maker":      this.SafeNumber(pair, "maker_fee_rate_quote"),
+				"taker":      this.SafeNumber(pair, "taker_fee_rate_quote"),
+				"percentage": true,
+				"tierBased":  false,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}

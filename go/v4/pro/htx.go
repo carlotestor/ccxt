@@ -147,7 +147,7 @@ func (this *Htx) Describe() any {
 func (this *Htx) RequestId() string {
 	this.LockId()
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	this.UnlockId()
 	return strconv.FormatInt(requestId, 10)
 }
@@ -582,13 +582,15 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
 	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 		}
 	}
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
@@ -766,7 +768,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 						}
 						if symbol != nil {
-							ccxt.Remove(this.Orderbooks, symbol)
+							delete(this.Orderbooks, *symbol)
 						}
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						return nil
@@ -983,7 +985,10 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
 	var prevSeqNum *int64 = this.SafeInteger(tick, "prevSeqNum")
@@ -1082,9 +1087,14 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 		}
 		var sizeParts []string = strings.Split(*size, "_")
 		var limit *int64 = this.SafeInteger(sizeParts, 1)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	if (event == nil) && (ccxt.IsEqual(ccxt.GetValue(orderbook, "nonce"), nil)) {
 		ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
 	} else {
@@ -1097,10 +1107,10 @@ func (this *Htx) HandleOrderBookSubscription(client any, message map[string]any,
 	var market map[string]any = this.Market(symbol)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if _, ok := this.Orderbooks[*symbol]; !ok {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any = this.Orderbooks[*symbol]
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
 		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	}
@@ -1195,7 +1205,7 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	if typeVar == "spot" {
 		var mode any = nil
 		if mode == nil {
-			mode = ccxt.DerefScalar(this.SafeString2(this.Options, "watchMyTrades", "mode", "0"))
+			mode = (*this.SafeString2(this.Options, "watchMyTrades", "mode", "0"))
 			mode = ccxt.DerefScalar(this.SafeString(paramsRequest, "mode", mode))
 			paramsRequest = this.Omit(paramsRequest, "mode")
 		}

@@ -793,7 +793,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	var messageHashes []any = []any{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			messageHashes = append(messageHashes, ccxt.Add(name+"::", symbolsNormalized[i]))
+			messageHashes = append(messageHashes, (name+"::")+symbolsNormalized[i])
 		}
 	}
 
@@ -1167,7 +1167,9 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var parsed any = this.ParseWsOHLCV(data, market)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
 	var stored any = func() any {
 		if timeframe == nil {
 			return nil
@@ -1179,7 +1181,7 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			if (symbol != nil) && (timeframe != nil) {
-				ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+				ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)

@@ -107,7 +107,7 @@ func (this *Deepcoin) RequestId() int64 {
 	this.LockId()
 	var previousValue *int64 = this.SafeInteger(this.Options, "lastRequestId", 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	this.Options.Store("lastRequestId", newValue)
+	this.Options["lastRequestId"] = newValue
 	this.UnlockId()
 	return newValue
 }
@@ -342,8 +342,8 @@ func (this *Deepcoin) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
 				var newExpiryTimestamp *int64 = this.SafeTimestamp(data, "expire_time")
-				this.Options.Store("listenKey", listenKey)
-				this.Options.Store("listenKeyExpiryTimestamp", newExpiryTimestamp)
+				this.Options["listenKey"] = listenKey
+				this.Options["listenKeyExpiryTimestamp"] = ccxt.DerefScalar(newExpiryTimestamp)
 			}
 			// settle the flight: client.resolve wakes every waiter and drops
 			// the future from the registry under the client's own lock, so the
@@ -688,9 +688,14 @@ func (this *Deepcoin) HandleTrades(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
+		if symbol != nil {
+			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		}
 	}
-	var strored any = ccxt.GetValue(this.Trades, symbol)
+	var strored any
+	if symbol != nil {
+		strored = this.Trades[*symbol]
+	}
 	if data != nil {
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 		strored.(ccxt.Appender).Append(trade)
@@ -912,7 +917,9 @@ func (this *Deepcoin) HandleOHLCV(client any, message any) {
 	var interval *string = this.SafeString(data, "P")
 	var timeframe *string = this.FindTimeframe(interval)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1086,9 +1093,14 @@ func (this *Deepcoin) HandleOrderBook(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var typeVar *string = this.SafeString(message, "t")
 	if ccxt.IsEqual(ccxt.GetValue(orderbook, "timestamp"), nil) {
 		if typeVar != nil && *typeVar == "f" {
@@ -1111,7 +1123,10 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var orderedEntries map[string]any = map[string]any{
 		"bids": []any{},
 		"asks": []any{},

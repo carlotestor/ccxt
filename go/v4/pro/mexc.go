@@ -543,7 +543,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 			var market map[string]any = this.Market(symbolsNormalized[i])
 			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
 		}
-		messageHashes = append(messageHashes, ccxt.Add("bidask:", symbolsNormalized[i]))
+		messageHashes = append(messageHashes, "bidask:"+symbolsNormalized[i])
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot"))
 	var request map[string]any = map[string]any{
@@ -887,7 +887,7 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		symbol = this.Symbol(this.SafeString(message, "symbol"))
 		var data map[string]any = this.SafeDictMap(message, "publicSpotKline", map[string]any{})
 		var timeframeId *string = this.SafeString(data, "interval")
-		timeframe = this.FindTimeframe(timeframeId, ccxt.GetValue(this.Options, "timeframes"))
+		timeframe = this.FindTimeframe(timeframeId, this.Options["timeframes"])
 		parsed = this.ParseWsOHLCV(data, this.SafeMarket(symbol))
 	} else {
 		var d map[string]any = ccxt.SafeDict2Typed(message, "d", "data", map[string]any{})
@@ -1039,9 +1039,14 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 	var marketId *string = this.SafeString(parts, 2)
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 }
@@ -1142,10 +1147,13 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	var messageHash string = "orderbook:" + *symbol
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var storedOrderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+	var storedOrderBook ccxt.OrderBookInterface
+	if symbol != nil {
+		storedOrderBook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+	}
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var shouldReturn bool = false
 	if nonce == nil {
@@ -2175,7 +2183,7 @@ func (this *Mexc) HandleFundingRate(client any, message map[string]any) {
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(data))
 	var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 	if symbol != nil {
-		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+		this.FundingRates[*symbol] = fundingRate
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fundingRate:", symbol))
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
@@ -2330,7 +2338,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 			var market map[string]any = this.Market(symbolsNormalized[i])
 			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
 		}
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", symbolsNormalized[i]))
+		messageHashes = append(messageHashes, "unsubscribe:bidask:"+symbolsNormalized[i])
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot"))
 	var request map[string]any = map[string]any{
@@ -2583,7 +2591,7 @@ func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[*string], subscripti
 		ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(this.Options, "listenKey")}
 		return nil
 	}
-	this.Options.Store("listenKeyFetching", true)
+	this.Options["listenKeyFetching"] = true
 	client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
 	var response map[string]any = nil
 
@@ -2596,7 +2604,7 @@ func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[*string], subscripti
 					}
 					ret_ = func(this *Mexc) any {
 						// catch block:
-						this.Options.Store("listenKeyFetching", false)
+						this.Options["listenKeyFetching"] = false
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						panic(e)
 
@@ -2614,14 +2622,14 @@ func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[*string], subscripti
 		}(this)
 
 	}
-	this.Options.Store("listenKeyFetching", false)
+	this.Options["listenKeyFetching"] = false
 	//
 	//    {
 	//        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
 	//    }
 	//
 	listenKey = this.SafeString(response, "listenKey")
-	this.Options.Store("listenKey", listenKey)
+	this.Options["listenKey"] = ccxt.DerefScalar(listenKey)
 	client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 	this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
@@ -2662,7 +2670,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenK
 						}
 						var url any = ccxt.Add(*wsUrl+"?listenKey=", listenKey)
 						var client ccxt.ClientInterface = this.Client(url)
-						this.Options.Store("listenKey", nil)
+						this.Options["listenKey"] = nil
 						client.(ccxt.ClientInterface).Reject(error)
 						ccxt.Remove(this.Clients, url)
 						return nil

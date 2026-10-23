@@ -84,7 +84,7 @@ func (this *Nado) Describe() any {
 }
 func (this *Nado) RequestId() int64 {
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	return requestId
 }
 
@@ -580,7 +580,7 @@ func (this *Nado) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(stored).GetLimit(resultSymbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
+	var filtered []any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
 
 	var resolved map[string]any
 	switch resolvedBox := this.CreateOHLCVObject(resultSymbol, resultTimeframe, filtered).(type) {
@@ -2488,9 +2488,14 @@ func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil {
+		stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -2755,7 +2760,7 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) any {
 				"info":      bbo,
 			}, market))
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-			ccxt.AddElementToObject(result, symbol, ticker)
+			if symbol != nil { result[*symbol] = ticker }
 		}
 	}
 	return result
@@ -2796,7 +2801,10 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		return
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var messageHash string = "orderbook:" + *symbol
 	var maxTimestamp *string = this.SafeString(orderbook, "maxTimestamp")
 	var lastMaxTimestamp *string = this.SafeString(message, "last_max_timestamp")
@@ -2815,7 +2823,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 		if subscriptionMsg != nil {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		}
-		ccxt.Remove(this.Orderbooks, symbol)
+		delete(this.Orderbooks, *symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return

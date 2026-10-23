@@ -877,7 +877,7 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan ccxt.AsyncResult[map[string]an
 	}
 	var response map[string]any = r.Value
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	this.Options.Store("sxObv3Metadata", data)
+	this.Options["sxObv3Metadata"] = data
 
 	var resolved map[string]any
 	switch resolvedBox := data.(type) {
@@ -2290,11 +2290,13 @@ func (this *Sxbet) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 		}
 		var free *string = ccxt.Precise.StringDiv(this.SafeString(row, "availableAmount", "0"), usdcDecimals, 6)
 		var used *string = ccxt.Precise.StringDiv(this.SafeString(row, "escrowedAmount", "0"), usdcDecimals, 6)
-		ccxt.AddElementToObject(result, code, map[string]any{
-			"free":  this.ParseNumber(free),
-			"used":  this.ParseNumber(used),
-			"total": this.ParseNumber(ccxt.Precise.StringAdd(free, used)),
-		})
+		if code != nil {
+			result[*code] = map[string]any{
+				"free":  this.ParseNumber(free),
+				"used":  this.ParseNumber(used),
+				"total": this.ParseNumber(ccxt.Precise.StringAdd(free, used)),
+			}
+		}
 	}
 
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(this.SafeBalance(result).(map[string]any))}
@@ -2804,7 +2806,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
 		var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
 		if this.SafeBool(seenHashes, marketHash) == nil {
-			ccxt.AddElementToObject(seenHashes, marketHash, true)
+			if marketHash != nil { seenHashes[*marketHash] = true }
 			hashesOrder = append(hashesOrder, marketHash)
 		}
 	}
@@ -3135,13 +3137,13 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[str
 func (this *Sxbet) RequestId(url any) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if existing == nil {
-		this.Options.Store("requestId", this.CreateSafeDictionary())
+		this.Options["requestId"] = this.CreateSafeDictionary()
 	}
-	var options any = ccxt.GetValue(this.Options, "requestId")
+	var options any = this.Options["requestId"]
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	if !ccxt.IsEqual(url, nil) {
-		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
+		ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	}
 	return newValue
 }
@@ -3158,10 +3160,10 @@ func (this *Sxbet) RequestId(url any) int64 {
 func (this *Sxbet) RegisterSxbetWsRequest(requestId int64, messageHash any, subscription any) {
 	var existing any = this.SafeDict(this.Options, "wsPendingRequests")
 	if existing == nil {
-		this.Options.Store("wsPendingRequests", this.CreateSafeDictionary())
+		this.Options["wsPendingRequests"] = this.CreateSafeDictionary()
 	}
 	var requestIdString *string = this.NumberToString(requestId)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsPendingRequests"), requestIdString, map[string]any{
+	ccxt.AddElementToObject(this.Options["wsPendingRequests"], requestIdString, map[string]any{
 		"messageHash":  messageHash,
 		"subscription": subscription,
 	})
@@ -3211,7 +3213,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 	var client any = this.Client(url)
 	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "connect")
 	if connectSent == nil {
-		this.Options.Store("wsConnected", false)
+		this.Options["wsConnected"] = false
 
 		r := <-this.FetchSxbetRealtimeTokenAsync()
 		if r.Err != nil {
@@ -3360,12 +3362,12 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 			var failedHash *string = this.SafeString(pendingEntry, "messageHash")
 			var subscription *string = this.SafeString(pendingEntry, "subscription")
 			if subscription != nil && *subscription == "connect" {
-				this.Options.Store("wsConnected", false)
+				this.Options["wsConnected"] = false
 			}
 			if (subscription != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscription)) {
 				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscription)
 			}
-			this.Options.Store("wsPendingRequests", this.Omit(pendingRequests, requestIdString))
+			this.Options["wsPendingRequests"] = this.Omit(pendingRequests, requestIdString)
 			client.(ccxt.ClientInterface).Reject(error, failedHash)
 		} else {
 			// an error that cannot be correlated to one command fails the whole connection
@@ -3375,12 +3377,12 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 	}
 	if pendingEntry != nil {
 		// a successful command ack - the tracked request has served its purpose
-		this.Options.Store("wsPendingRequests", this.Omit(pendingRequests, requestIdString))
+		this.Options["wsPendingRequests"] = this.Omit(pendingRequests, requestIdString)
 	}
 	var connectReply map[string]any = ccxt.SafeMapTyped(msg, "connect")
 	if connectReply != nil {
 		// connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
-		this.Options.Store("wsConnected", true)
+		this.Options["wsConnected"] = true
 		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
 		return
 	}
@@ -3466,9 +3468,9 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		// seed from the REST snapshot so the book is served before the first publication
 		var watchedBooks any = this.SafeDict(this.Options, "wsWatchedBooks")
 		if watchedBooks == nil {
-			this.Options.Store("wsWatchedBooks", this.CreateSafeDictionary())
+			this.Options["wsWatchedBooks"] = this.CreateSafeDictionary()
 		}
-		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsWatchedBooks"), sym, marketHash)
+		ccxt.AddElementToObject(this.Options["wsWatchedBooks"], sym, marketHash)
 
 		r2 := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 		if r2.Err != nil {
@@ -3525,14 +3527,14 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 	}
 	var versionsAll any = this.SafeDict(this.Options, "wsBookVersions")
 	if versionsAll == nil {
-		this.Options.Store("wsBookVersions", this.CreateSafeDictionary())
+		this.Options["wsBookVersions"] = this.CreateSafeDictionary()
 	}
-	var held *string = this.SafeString(ccxt.GetValue(this.Options, "wsBookVersions"), marketHash, "")
+	var held *string = this.SafeString(this.Options["wsBookVersions"], marketHash, "")
 	// versions are fixed-width numeric strings - replace only on a strictly newer publication
 	if (held == nil || *held != "") && (ccxt.IsLessThanOrEqual(version, held)) {
 		return refreshed
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsBookVersions"), marketHash, version)
+	ccxt.AddElementToObject(this.Options["wsBookVersions"], marketHash, version)
 	var watchedBooks map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedBooks")
 	var watchedSyms []string = nil
 	if watchedBooks != nil {
@@ -3629,9 +3631,9 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
 	var watchedTickers any = this.SafeDict(this.Options, "wsWatchedTickers")
 	if watchedTickers == nil {
-		this.Options.Store("wsWatchedTickers", this.CreateSafeDictionary())
+		this.Options["wsWatchedTickers"] = this.CreateSafeDictionary()
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsWatchedTickers"), sym, marketHash)
+	ccxt.AddElementToObject(this.Options["wsWatchedTickers"], sym, marketHash)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	r1 := <-this.ConnectSxbetCentrifugoAsync(url)
@@ -3861,13 +3863,18 @@ func (this *Sxbet) HandleTrades(client any, rows []any) {
 			continue
 		}
 		if ccxt.IsEqual(this.Trades, nil) {
-			this.Trades = this.CreateSafeDictionary()
+			this.Trades = map[string]any{}
 		}
 		if ccxt.IsEqual(this.SafeValue(this.Trades, sym), nil) {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-			ccxt.AddElementToObject(this.Trades, sym, ccxt.NewArrayCache(tradesLimit))
+			if sym != nil {
+				this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
+			}
 		}
-		var stored any = ccxt.GetValue(this.Trades, sym)
+		var stored any
+		if sym != nil {
+			stored = this.Trades[*sym]
+		}
 		stored.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 	}

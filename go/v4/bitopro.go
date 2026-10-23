@@ -1140,7 +1140,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//         ]
 	//     }
 	//
-	var sparse any = this.ParseOHLCVs(data, market, timeframe, since, limitResolved)
+	var sparse []any = this.ParseOHLCVs(data, market, timeframe, since, limitResolved)
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.InsertMissingCandles(sparse, timeframeInSeconds*1000, alignedSince, limitResolved))}
 	return nil

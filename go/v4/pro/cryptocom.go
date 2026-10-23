@@ -377,9 +377,14 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "t")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var limit *int64 = this.SafeInteger(message, "depth")
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.CountedOrderBook(map[string]any{}, limit))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var channel *string = this.SafeString(message, "channel")
 	var nonce *int64 = this.SafeInteger2(data, "u", "s")
 	var books any = data
@@ -613,8 +618,8 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 	if dataLength == 0 {
 		return
 	}
-	var parsedTrades any = this.ParseTrades(data, market)
-	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
+	var parsedTrades []any = this.ParseTrades(data, market)
+	for j := 0; j < len(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
 	var channelReplaced string = ccxt.Replace(channel, ccxt.Add(".", marketId), "")
@@ -1224,13 +1229,15 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(message, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
 	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
 		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")

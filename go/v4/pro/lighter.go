@@ -270,9 +270,14 @@ func (this *Lighter) HandleOrderBook(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var typeVar *string = this.SafeString(message, "type", "")
 	if typeVar != nil && *typeVar == "subscribed/order_book" {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
@@ -1803,7 +1808,7 @@ func (this *Lighter) RequestId(url *string) any {
 	var options any = this.SafeDict(this.Options, "requestId", this.CreateSafeDictionary())
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
+	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return this.NumberToString(newValue)
 }
 
@@ -2250,7 +2255,9 @@ func (this *Lighter) HandleOrderBookUnSubscription(client any, marketId any) {
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+		if symbol != nil {
+			delete(this.Orderbooks, *symbol)
+		}
 	}
 }
 func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
@@ -2302,7 +2309,9 @@ func (this *Lighter) HandleTradesUnSubscription(client any, marketId any) {
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Trades, symbol) {
-		ccxt.Remove(this.Trades, symbol)
+		if symbol != nil {
+			delete(this.Trades, *symbol)
+		}
 	}
 }
 func (this *Lighter) HandleMyTradesUnSubscription(client any) {

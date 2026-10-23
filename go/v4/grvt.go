@@ -815,7 +815,7 @@ func (this *Grvt) signInWithApiKeyBody(ch chan AsyncResult[map[string]any], opti
 	//        "status": "success"
 	//    }
 	//
-	this.Options.Store("signInExpiration", now+86400000) // 24 hours
+	this.Options["signInExpiration"] = now + 86400000 // 24 hours
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -858,7 +858,7 @@ func (this *Grvt) signInWithPrivateKeyBody(ch chan AsyncResult[map[string]any], 
 	//        "status": "success"
 	//    }
 	//
-	this.Options.Store("signInExpiration", now+86400000) // 24 hours
+	this.Options["signInExpiration"] = now + 86400000 // 24 hours
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -913,7 +913,7 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 		}
 	}
 	if found {
-		this.Options.Store("approvedBuilderFee", true)
+		this.Options["approvedBuilderFee"] = true
 	} else {
 
 		{
@@ -925,7 +925,7 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 						}
 						ret_ = func(this *Grvt) any {
 							// catch block:
-							this.Options.Store("builderFee", false) // disable builder fee if an error occurs
+							this.Options["builderFee"] = false // disable builder fee if an error occurs
 							return nil
 						}(this)
 					}
@@ -959,7 +959,7 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 				if ack == nil || *ack != true {
 					panic(ExchangeError("Builder authorization failed, " + this.Json(authResponse)))
 				}
-				this.Options.Store("approvedBuilderFee", true)
+				this.Options["approvedBuilderFee"] = true
 				return nil
 			}(this)
 
@@ -1468,7 +1468,7 @@ func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -1680,7 +1680,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -1802,7 +1802,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -2030,7 +2030,7 @@ func (this *Grvt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -2130,7 +2130,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -2420,7 +2420,7 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -2465,7 +2465,7 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	//    }
 	//
 	var rows []any = SafeListTypedDefault(response, "result", []any{})
-	var transfers any = this.ParseTransfers(rows, currency, since, limit)
+	var transfers []any = this.ParseTransfers(rows, currency, since, limit)
 	var filteredResults any = this.FilterTransfersByType(transfers, "internal", false)
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ToArray(GetValue(filteredResults, 1)))}
@@ -2708,7 +2708,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan AsyncResult[bool]) any {
 	var responses []any = ListTyped(r.Value)
 	var result1 map[string]any = SafeMapTyped(GetValue(responses, 0), "result")
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
-	this.Options.Store("userMainAccountId", mainAccountId)
+	this.Options["userMainAccountId"] = DerefScalar(mainAccountId)
 	if accountIsUndefined {
 		var subAccountIds []any = SafeListTypedDefault(GetValue(responses, 1), "sub_account_ids", []any{})
 		var length int = len(subAccountIds)
@@ -2719,7 +2719,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan AsyncResult[bool]) any {
 			panic(ArgumentsRequired(this.Id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: " + this.Json(subAccountIds)))
 		}
 		var subAccountId *string = this.SafeString(subAccountIds, 0)
-		this.Options.Store("accountId", subAccountId)
+		this.Options["accountId"] = DerefScalar(subAccountId)
 	}
 
 	ch <- AsyncResult[bool]{Value: true}
@@ -3176,7 +3176,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -3654,7 +3654,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -3769,7 +3769,7 @@ func (this *Grvt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	}
 	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[1])
+	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
 	if since != nil {
 		requestUntilOptionString["start_time"] = func() any {
 			if v := this.NumberToString(*since * 1000000); v != nil {
@@ -4508,7 +4508,7 @@ func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, op
 }
 func (this *Grvt) RequestId() int64 {
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	return requestId
 }
 func (this *Grvt) Sign(path string, optionalArgs ...any) any {
@@ -4559,8 +4559,8 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 		requestHeaders = map[string]any{
 			"Content-Type": "application/json",
 		}
-		if (IsEqual(strings.HasSuffix(requestPath, "auth/api_key/login"), true)) || (IsEqual(strings.HasSuffix(requestPath, "auth/wallet/login"), true)) {
-			AddElementToObject(requestHeaders, "Cookie", "rm=true;")
+		if (strings.HasSuffix(requestPath, "auth/api_key/login") == true) || (strings.HasSuffix(requestPath, "auth/wallet/login") == true) {
+			if requestHeaders != nil { requestHeaders["Cookie"] = "rm=true;" }
 		} else {
 			var accountId *string = this.SafeString(this.Options, "AuthAccountId")
 			var cookieValue *string = this.SafeString(this.Options, "AuthCookieValue")
@@ -4581,11 +4581,11 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 func (this *Grvt) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if EndsWith(url, "auth/api_key/login") || EndsWith(url, "auth/wallet/login") {
 		var accountId *string = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
-		this.Options.Store("AuthAccountId", accountId)
+		this.Options["AuthAccountId"] = DerefScalar(accountId)
 		var cookie *string = this.SafeString2(headers, "Set-Cookie", "set-cookie")
 		if cookie != nil {
 			var cookieValue *string = SafeStringPtr(GetValue(strings.Split(*cookie, ";"), 0))
-			this.Options.Store("AuthCookieValue", cookieValue)
+			this.Options["AuthCookieValue"] = DerefScalar(cookieValue)
 		}
 		if (this.SafeString(this.Options, "AuthCookieValue") == nil) || (this.SafeString(this.Options, "AuthAccountId") == nil) {
 			panic(AuthenticationError(this.Id + " signIn() failed to receive auth-cookie or account-id"))

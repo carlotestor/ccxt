@@ -827,11 +827,11 @@ func (this *Delta) loadMarketsBody(ch chan AsyncResult[*sync.Map], optionalArgs 
 	markets := r.Value
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
-		this.Options.Store("currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
+		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
 	}
 	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId")
 	if (marketsByNumericId == nil) || (reload == true) {
-		this.Options.Store("marketsByNumericId", this.IndexByStringifiedNumericId(this.Markets))
+		this.Options["marketsByNumericId"] = this.IndexByStringifiedNumericId(this.Markets)
 	}
 
 	ch <- AsyncResult[*sync.Map]{Value: markets}
@@ -5260,7 +5260,10 @@ func (this *Delta) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

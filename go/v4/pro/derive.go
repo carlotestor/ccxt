@@ -64,7 +64,7 @@ func (this *Derive) RequestId(url *string) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
+	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return newValue
 }
 func (this *Derive) WatchPublicAsync(messageHash any, message any, subscription any) <-chan ccxt.AsyncResult[any] {
@@ -183,9 +183,14 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 			return ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
 		}()
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -354,7 +359,7 @@ func (this *Derive) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var ticker map[string]any = ccxt.MapTyped(r1.Value)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		ccxt.AddElementToObject(result, ticker["symbol"], ticker)
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
@@ -576,7 +581,9 @@ func (this *Derive) HandleOrderBookUnSubscription(client any, topic any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+		if symbol != nil {
+			delete(this.Orderbooks, *symbol)
+		}
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, ccxt.Add("unwatch", topic))
 }
@@ -586,7 +593,9 @@ func (this *Derive) HandleTradesUnSubscription(client any, topic any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if ccxt.InOp(this.Trades, symbol) {
-		ccxt.Remove(this.Trades, symbol)
+		if symbol != nil {
+			delete(this.Trades, *symbol)
+		}
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, ccxt.Add("unwatch", topic))
 }
@@ -1335,7 +1344,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 		var emptyCaches map[string]any = map[string]any{}
 		this.Positions = emptyCaches
 		var emptySnapshots map[string]any = map[string]any{}
-		this.Options.Store("loadedPositionsSnapshots", emptySnapshots)
+		this.Options["loadedPositionsSnapshots"] = emptySnapshots
 	}
 	// the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
 	var subaccountIdKey *string = this.NumberToString(subaccountId)
@@ -1359,7 +1368,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 			cache.(ccxt.Appender).Append(ccxt.GetValue(positionsSnapshot, i))
 		}
 		ccxt.AddElementToObject(loadedSnapshots, subaccountIdKey, true)
-		this.Options.Store("loadedPositionsSnapshots", loadedSnapshots)
+		this.Options["loadedPositionsSnapshots"] = loadedSnapshots
 	}
 	var topic any = ccxt.Add(this.NumberToString(subaccountId), ".balances")
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("positions:", topic))

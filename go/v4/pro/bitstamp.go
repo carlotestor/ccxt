@@ -572,7 +572,9 @@ func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(data, market))
-	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+	if symbol != nil {
+		this.FundingRates[*symbol] = fundingRate
+	}
 	client.(ccxt.ClientInterface).Resolve(fundingRate, "fundingRate:"+*symbol)
 }
 
@@ -1050,9 +1052,14 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message any) {
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		if symbol != nil {
+			this.Orderbooks[*symbol] = this.OrderBook()
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 }
@@ -1339,9 +1346,9 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 				}
 				var userId *string = this.SafeString(response, "user_id")
 				var validity *int64 = this.SafeIntegerProduct(response, "valid_sec", 1000)
-				this.Options.Store("expiresIn", this.Sum(time, validity))
-				this.Options.Store("userId", userId)
-				this.Options.Store("wsSessionToken", sessionToken)
+				this.Options["expiresIn"] = this.Sum(time, validity)
+				this.Options["userId"] = ccxt.DerefScalar(userId)
+				this.Options["wsSessionToken"] = ccxt.DerefScalar(sessionToken)
 				// settle the flight: client.resolve deletes the future from
 				// client.futures and wakes every waiter parked on it
 				client.(ccxt.ClientInterface).Resolve(sessionToken, messageHash)
@@ -1384,7 +1391,7 @@ func (this *Bitstamp) subscribePrivateBody(ch chan ccxt.AsyncResult[ccxt.ArrayCa
 		"event": "bts:subscribe",
 		"data": map[string]any{
 			"channel": messageHashValue,
-			"auth":    ccxt.GetValue(this.Options, "wsSessionToken"),
+			"auth":    this.Options["wsSessionToken"],
 		},
 	}
 	ccxt.AddElementToObject(subscription, "messageHash", messageHashValue)

@@ -1307,7 +1307,7 @@ func (this *Backpack) fetchSecuritiesBody(ch chan AsyncResult[any], optionalArgs
 		panic(r.Err)
 	}
 	response := r.Raw
-	this.Options.Store("securities", response)
+	this.Options["securities"] = response
 
 	ch <- AsyncResult[any]{Value: response}
 	return nil
@@ -3775,10 +3775,10 @@ func (this *Backpack) CreateOrderRequest(symbol *string, typeVar *string, side *
 		omitKeys = append(omitKeys, "clientOrderId")
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), false, this.Omit(query, omitKeys))
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
-		AddElementToObject(paramsPostOnly, "postOnly", true)
+		if paramsPostOnly != nil { paramsPostOnly["postOnly"] = true }
 	}
 	var bracketKeys []any = []any{}
 	var takeProfit map[string]any = SafeMapTyped(paramsPostOnly, "takeProfit")
@@ -5221,7 +5221,10 @@ func (this *Backpack) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

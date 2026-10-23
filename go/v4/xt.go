@@ -3541,8 +3541,8 @@ func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol any, type
 		paramsWithoutCost = this.Omit(paramsMarginMode, "cost")
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), paramsWithoutCost)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
 		timeInForce = SafeStringPtr("GTX")
 	}
@@ -3598,8 +3598,8 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol any, 
 	}
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), params)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
 		timeInForce = SafeStringPtr("GTX")
 	}
@@ -4645,7 +4645,7 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status str
 		// the track endpoints do not support a server-side state filter
 		// and return entries in every state, so filter by status first,
 		// otherwise since/limit could cut off matching rows
-		var parsedOrders any = this.ParseOrders(orders, market)
+		var parsedOrders []any = this.ParseOrders(orders, market)
 		var filteredOrders []any = this.FilterBy(parsedOrders, "status", status)
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySinceLimit(filteredOrders, since, limit))}
@@ -7449,7 +7449,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], optio
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var items []any = SafeListTypedDefault(result, "items", []any{})
-	var positions any = this.ParsePositions(items, symbolsNormalized)
+	var positions []any = this.ParsePositions(items, symbolsNormalized)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
@@ -8036,7 +8036,10 @@ func (this *Xt) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

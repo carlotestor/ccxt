@@ -228,8 +228,8 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
-	var parsedTrades any = this.ParseTrades(data, market)
-	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
+	var parsedTrades []any = this.ParseTrades(data, market)
+	for j := 0; j < len(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
 	if channel != nil {
@@ -671,7 +671,7 @@ func (this *Hollaex) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 		expires = ccxt.ToString(expires)
 		// we need to memoize these values to avoid generating a new url on each method execution
 		// that would trigger a new connection on each received message
-		this.Options.Store("ws-expires", expires)
+		this.Options["ws-expires"] = expires
 	}
 	var url any = ccxt.GetValue(this.Urls["api"], "ws")
 	var auth *string = ccxt.SafeStringPtr(ccxt.Add("CONNECT"+"/stream", expires))
@@ -847,11 +847,11 @@ func (this *Hollaex) HandlePong(client any, message any) any {
 	return message
 }
 func (this *Hollaex) OnError(client any, error any) {
-	this.Options.Store("ws-expires", nil)
+	this.Options["ws-expires"] = nil
 	this.base.OnError(client, error)
 }
 func (this *Hollaex) OnClose(client any, error any) {
-	this.Options.Store("ws-expires", nil)
+	this.Options["ws-expires"] = nil
 	this.base.OnClose(client, error)
 }
 

@@ -3583,7 +3583,7 @@ func (this *Bitget) Describe() any {
  * @param enabled
  */
 func (this *Bitget) SetSandboxMode(enabled any) {
-	this.Options.Store("sandboxMode", enabled)
+	this.Options["sandboxMode"] = enabled
 }
 
 /**
@@ -3695,7 +3695,7 @@ func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[[]any], params an
 			}(this)
 
 		}
-		this.Options.Store("uta", accountIsUTa)
+		this.Options["uta"] = accountIsUTa
 
 		ch <- AsyncResult[[]any]{Value: []any{accountIsUTa, paramsUta}}
 		return nil
@@ -3861,8 +3861,8 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	}
 	var results []any = ListTyped(r.Value)
 	var markets []any = []any{}
-	this.Options.Store("crossMarginPairsData", []any{})
-	this.Options.Store("isolatedMarginPairsData", []any{})
+	this.Options["crossMarginPairsData"] = []any{}
+	this.Options["isolatedMarginPairsData"] = []any{}
 	for i := 0; i < len(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)
 		var data []any = SafeListTypedDefault(res, "data", []any{})
@@ -3888,8 +3888,8 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 					isolatedKeys = append(isolatedKeys, entrySymbol)
 				}
 			}
-			this.Options.Store("crossMarginPairsData", crossKeys)
-			this.Options.Store("isolatedMarginPairsData", isolatedKeys)
+			this.Options["crossMarginPairsData"] = crossKeys
+			this.Options["isolatedMarginPairsData"] = isolatedKeys
 		} else {
 			markets = this.ArrayConcat(markets, data)
 		}
@@ -4001,8 +4001,8 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			spot = true
 			pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
-			var hasCrossMargin bool = this.InArray(marketId, GetValue(this.Options, "crossMarginPairsData"))
-			var hasIsolatedMargin bool = this.InArray(marketId, GetValue(this.Options, "isolatedMarginPairsData"))
+			var hasCrossMargin bool = this.InArray(marketId, this.Options["crossMarginPairsData"])
+			var hasIsolatedMargin bool = this.InArray(marketId, this.Options["isolatedMarginPairsData"])
 			marginModes = map[string]any{
 				"cross":    hasCrossMargin,
 				"isolated": hasIsolatedMargin,
@@ -4531,26 +4531,28 @@ func (this *Bitget) ParseCurrency(rawCurrency any) map[string]any {
 			}
 			return ((deposit == true) || rechargeable)
 		}()
-		AddElementToObject(networks, network, map[string]any{
-			"info":    chain,
-			"id":      networkId,
-			"network": network,
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": this.SafeNumber(chain, "minWithdrawAmount"),
-					"max": nil,
+		if network != nil {
+			networks[*network] = map[string]any{
+				"info":    chain,
+				"id":      networkId,
+				"network": network,
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(chain, "minWithdrawAmount"),
+						"max": nil,
+					},
+					"deposit": map[string]any{
+						"min": this.SafeNumber(chain, "minDepositAmount"),
+						"max": nil,
+					},
 				},
-				"deposit": map[string]any{
-					"min": this.SafeNumber(chain, "minDepositAmount"),
-					"max": nil,
-				},
-			},
-			"active":    nil,
-			"withdraw":  withdrawable,
-			"deposit":   rechargeable,
-			"fee":       this.SafeNumber(chain, "withdrawFee"),
-			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "withdrawMinScale"))),
-		})
+				"active":    nil,
+				"withdraw":  withdrawable,
+				"deposit":   rechargeable,
+				"fee":       this.SafeNumber(chain, "withdrawFee"),
+				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "withdrawMinScale"))),
+			}
+		}
 	}
 	var active bool = (withdraw == true) && (deposit == true)
 	var isFiat bool = this.InArray(code, fiatCurrencies)
@@ -7323,7 +7325,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if market["spot"] == true {
 		key = "spot"
 	}
-	var ohlcOptions map[string]any = SafeMapTyped(GetValue(this.Options, "fetchOHLCV"), key)
+	var ohlcOptions map[string]any = SafeMapTyped(this.Options["fetchOHLCV"], key)
 	var maxLimitPerTimeframe map[string]any = SafeMapTyped(ohlcOptions, "maxLimitPerTimeframe")
 	var timeframeLimitValue *int64 = this.SafeInteger(maxLimitPerTimeframe, timeframe)
 	// the per-timeframe cap only applies to a user-supplied limit
@@ -7354,7 +7356,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}()
 	var limitResolved any = recentLimit
 	var recentDuration any = Multiply(recentLimit, duration)
-	var recentEndpointDaysMap map[string]any = SafeMapTyped(GetValue(this.Options, "fetchOHLCV"), "maxRecentDaysPerTimeframe")
+	var recentEndpointDaysMap map[string]any = SafeMapTyped(this.Options["fetchOHLCV"], "maxRecentDaysPerTimeframe")
 	var recentEndpointAvailableDays *int64 = this.SafeInteger(recentEndpointDaysMap, timeframe)
 	var historicalEndpointNeeded bool = (useHistoryEndpoint != nil && *useHistoryEndpoint == true)
 	// exchange aligns from endTime, so it's important, not startTime
@@ -14423,7 +14425,7 @@ func (this *Bitget) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	var paramsMarketType any = nil
 	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchTransfers", nil, params))
 	typeVar = GetValue(typeVarparamsMarketTypeVariable, 0)
-	paramsMarketType = GetValue(typeVarparamsMarketTypeVariable, 1)
+	paramsMarketType = typeVarparamsMarketTypeVariable[1]
 	var fromAccount *string = this.SafeString(paramsMarketType, "fromAccount", typeVar)
 	paramsMarketType = this.Omit(paramsMarketType, "fromAccount")
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
@@ -16072,7 +16074,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var responseList []any = SafeListTypedDefault(data, "list", []any{})
-	var positions any = this.ParsePositions(responseList, symbols, paramsUTA)
+	var positions []any = this.ParsePositions(responseList, symbols, paramsUTA)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
@@ -16772,7 +16774,10 @@ func (this *Bitget) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

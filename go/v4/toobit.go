@@ -835,7 +835,7 @@ func (this *Toobit) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 		panic(r.Err)
 	}
 	response := r.Raw
-	this.Options.Store("exchangeInfo", response) // we store it in options for later use in fetchMarkets
+	this.Options["exchangeInfo"] = response // we store it in options for later use in fetchMarkets
 	//
 	//    {
 	//        "timezone": "UTC",
@@ -1068,7 +1068,7 @@ func (this *Toobit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var cachedInfo any = this.SafeDict(this.Options, "exchangeInfo")
 	var response any = cachedInfo
 	if cachedInfo != nil {
-		this.Options.Store("exchangeInfo", nil) // reset it to avoid using old cached data
+		this.Options["exchangeInfo"] = nil // reset it to avoid using old cached data
 	} else {
 
 		r := <-this.CommonGetApiV1ExchangeInfo(params)
@@ -2353,8 +2353,8 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
 	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsCost)
-	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(isPostOnlyparamsPostOnlyVariable[1])
+	var isPostOnly bool = isPostOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = isPostOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if isPostOnly {
 		request["type"] = "LIMIT_MAKER"
 	} else {
@@ -2414,8 +2414,8 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		request["priceType"] = "MARKET"
 	}
 	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsReduceOnly)
-	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(isPostOnlyparamsPostOnlyVariable[1])
+	var isPostOnly bool = isPostOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = isPostOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if isPostOnly {
 		request["timeInForce"] = "LIMIT_MAKER"
 	}
@@ -4302,7 +4302,10 @@ func (this *Toobit) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

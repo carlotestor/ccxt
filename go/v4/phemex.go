@@ -3457,7 +3457,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				}
 				var stopLossTriggerPriceType *string = this.SafeString2(stopLoss, "triggerPriceType", "slTrigger")
 				if stopLossTriggerPriceType != nil {
-					request["slTrigger"] = this.SafeString(GetValue(this.Options, "triggerPriceTypesMap"), stopLossTriggerPriceType, stopLossTriggerPriceType)
+					request["slTrigger"] = this.SafeString(this.Options["triggerPriceTypesMap"], stopLossTriggerPriceType, stopLossTriggerPriceType)
 				}
 				var slLimitPrice *string = this.SafeString(stopLoss, "price")
 				if slLimitPrice != nil {
@@ -3476,7 +3476,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				}
 				var takeProfitTriggerPriceType *string = this.SafeString2(takeProfit, "triggerPriceType", "tpTrigger")
 				if takeProfitTriggerPriceType != nil {
-					request["tpTrigger"] = this.SafeString(GetValue(this.Options, "triggerPriceTypesMap"), takeProfitTriggerPriceType, takeProfitTriggerPriceType)
+					request["tpTrigger"] = this.SafeString(this.Options["triggerPriceTypesMap"], takeProfitTriggerPriceType, takeProfitTriggerPriceType)
 				}
 				var tpLimitPrice *string = this.SafeString(takeProfit, "price")
 				if tpLimitPrice != nil {
@@ -5112,7 +5112,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 	//    }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var positions any = this.ParsePositions(data, []any{symbolValue})
+	var positions []any = this.ParsePositions(data, []any{symbolValue})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySymbolSinceLimit(positions, symbolValue, since, limit))}
 	return nil
@@ -6228,13 +6228,13 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 			AddElementToObject(transfer, "fromAccount", fromAccount)
 		}
 		if IsEqual(transfer["toAccount"], nil) {
-			AddElementToObject(transfer, "toAccount", toAccount)
+			if transfer != nil { transfer["toAccount"] = toAccount }
 		}
 		if IsEqual(transfer["amount"], nil) {
 			AddElementToObject(transfer, "amount", amount)
 		}
 		if IsEqual(transfer["currency"], nil) {
-			AddElementToObject(transfer, "currency", code)
+			if transfer != nil { transfer["currency"] = code }
 		}
 	}
 

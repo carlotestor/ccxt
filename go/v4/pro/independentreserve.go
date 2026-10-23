@@ -266,10 +266,10 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
 	var timestamp *int64 = this.SafeInteger(message, "Time")
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
+	if _, ok := this.Orderbooks[symbol]; !ok {
+		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[symbol])
 	if event != nil && *event == "OrderBookSnapshot" {
 		var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -308,7 +308,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		if responseChecksum == nil || *responseChecksum != calculatedChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-			this.Orderbooks.Delete(symbol)
+			delete(this.Orderbooks, symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			return
 		}

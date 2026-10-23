@@ -400,8 +400,13 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	var timeframe *string = this.FindTimeframe(interval)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channel, ":"), interval), ":"), marketId))
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
+	var stored any
+	if symbol != nil {
+		stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -845,7 +850,7 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) any {
 	var takerOrMaker *string = nil
 	if maker != nil {
 		takerOrMaker = ccxt.SafeStringPtr(func() string {
-			if ccxt.IsEqual(maker, int64(-1)) {
+			if maker != nil && *maker == int64(-1) {
 				return "taker"
 			}
 			return "maker"
@@ -1024,12 +1029,19 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		var limit *int64 = this.SafeInteger(subscription, "len")
 		if isRaw {
 			// raw order books
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}, limit))
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.IndexedOrderBook(map[string]any{}, limit)
+			}
 		} else {
 			// P0, P1, P2, P3, P4
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.CountedOrderBook(map[string]any{}, limit))
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
+			}
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any
+		if symbol != nil {
+			orderbook = this.Orderbooks[*symbol]
+		}
 		if isRaw {
 			var deltas []any = ccxt.SafeListTyped(message, 1)
 			for i := 0; i < len(deltas); i++ {
@@ -1086,14 +1098,20 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any
+		if symbol != nil {
+			orderbook = this.Orderbooks[*symbol]
+		}
 		var deltas any = func() any {
 			if 1 >= 0 && 1 < len(message) {
 				return ccxt.DerefScalar(message[1])
 			}
 			return nil
 		}()
-		var orderbookItem any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbookItem any
+		if symbol != nil {
+			orderbookItem = this.Orderbooks[*symbol]
+		}
 		if isRaw {
 			var price *string = this.SafeString(deltas, 1)
 			var deltas2 *float64 = this.SafeNumber(deltas, 2)
@@ -1186,7 +1204,9 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	var responseChecksum *int64 = this.SafeInteger(message, 2)
 	if responseChecksum == nil || *responseChecksum != localChecksum {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		ccxt.Remove(this.Orderbooks, symbol)
+		if symbol != nil {
+			delete(this.Orderbooks, *symbol)
+		}
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 		if checksum == true {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))

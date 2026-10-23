@@ -2053,9 +2053,9 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 		return nil
 	}
-	var trades any = this.ParseTrades(data, market, since, limit)
+	var trades []any = this.ParseTrades(data, market, since, limit)
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(trades); i++ {
+	for i := 0; i < len(trades); i++ {
 		var trade any = GetValue(trades, i)
 		var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 		if (timestamp == nil) || (until.(*int64) != nil && *timestamp <= *until.(*int64)) {
@@ -2534,7 +2534,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
 	postOnly = postOnlyqueryVariable[0]
-	query = GetValue(postOnlyqueryVariable, 1) // this will remove PO from params.timeInForce if present
+	query = postOnlyqueryVariable[1] // this will remove PO from params.timeInForce if present
 	if postOnly == true {
 		request["postOnly"] = true
 	}
@@ -2791,7 +2791,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
 	postOnly = postOnlyqueryVariable[0]
-	query = GetValue(postOnlyqueryVariable, 1) // this will remove PO from params.timeInForce if present
+	query = postOnlyqueryVariable[1] // this will remove PO from params.timeInForce if present
 	if postOnly == true {
 		request["postOnly"] = true
 	}
@@ -3654,14 +3654,16 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
 		var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       feeInfo,
-			"symbol":     symbol,
-			"maker":      makerFee,
-			"taker":      takerFee,
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       feeInfo,
+				"symbol":     symbol,
+				"maker":      makerFee,
+				"taker":      takerFee,
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -4659,7 +4661,7 @@ func (this *Btse) setMarginModeBody(ch chan AsyncResult[map[string]any], marginM
 		} else if hedged != nil && *hedged == true {
 			positionMode = "HEDGE"
 		}
-	} else if _, ok := params["hedged"]; ok && (hedged == nil || *hedged != true) {
+	} else if (func() bool { _, ok := params["hedged"]; return ok }()) && (hedged == nil || *hedged != true) {
 		panic(BadRequest(this.Id + " setMarginMode() hedged parameter cannot be false for isolated margin mode"))
 	} else {
 		positionMode = "ISOLATED"
@@ -5068,7 +5070,10 @@ func (this *Btse) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

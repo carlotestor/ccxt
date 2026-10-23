@@ -1391,14 +1391,16 @@ func (this *Bitso) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 		}()
 		var marketId *string = this.SafeString(fee, "book")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_")
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       fee,
-			"symbol":     symbol,
-			"maker":      this.SafeNumber(fee, "maker_fee_decimal"),
-			"taker":      this.SafeNumber(fee, "taker_fee_decimal"),
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       fee,
+				"symbol":     symbol,
+				"maker":      this.SafeNumber(fee, "maker_fee_decimal"),
+				"taker":      this.SafeNumber(fee, "taker_fee_decimal"),
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}

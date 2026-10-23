@@ -4054,7 +4054,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[stri
 	var paramsMarketType any = nil
 	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params))
 	typeVar = GetValue(typeVarparamsMarketTypeVariable, 0)
-	paramsMarketType = GetValue(typeVarparamsMarketTypeVariable, 1)
+	paramsMarketType = typeVarparamsMarketTypeVariable[1]
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
 	if typeVar == "option" {
 		typeVar = "WARRANT"

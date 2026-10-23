@@ -594,7 +594,13 @@ func (this *Lbank) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opti
 	//
 	var currenciesData []any = SafeListTyped(response, "data")
 	var grouped map[string]any = this.GroupBy(currenciesData, "assetCode")
-	var values []any = ObjectValues(grouped)
+	var values []any = nil
+	if grouped != nil {
+		values = make([]any, 0, len(grouped))
+		for _, objectValue := range grouped {
+			values = append(values, objectValue)
+		}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(values)}
 	return nil
@@ -4186,7 +4192,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 				var cachedPem *string = this.SafeString(this.Options, "pem")
 				if cachedPem == nil {
 					pem = this.ConvertSecretToPem(this.Encode(this.Secret))
-					this.Options.Store("pem", pem)
+					this.Options["pem"] = pem
 				} else {
 					pem = cachedPem
 				}
@@ -4374,7 +4380,10 @@ func (this *Lbank) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

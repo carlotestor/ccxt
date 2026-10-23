@@ -500,7 +500,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.InitAuthObject(accountIndex, apiKeyIndex)
-	var cachedAuths map[string]any = SafeMapTyped(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex)
+	var cachedAuths map[string]any = SafeMapTyped(GetValue(this.Options["auths"], accountIndex), apiKeyIndex)
 	var signer any = this.SafeValue(cachedAuths, "signer")
 	if !IsEqual(signer, nil) {
 
@@ -517,7 +517,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 			panic(r.Err)
 		}
 		signer = r.Value
-		AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "signer", signer)
+		AddElementToObject(GetValue(GetValue(this.Options["auths"], accountIndex), apiKeyIndex), "signer", signer)
 
 		ch <- AsyncResult[any]{Value: signer}
 		return nil
@@ -534,7 +534,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 			panic(r1.Err)
 		}
 		signer = r1.Value
-		AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "signer", signer)
+		AddElementToObject(GetValue(GetValue(this.Options["auths"], accountIndex), apiKeyIndex), "signer", signer)
 
 		r2 := <-this.ChangeApiKeyAsync()
 		if r2.Err != nil {
@@ -556,13 +556,13 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 }
 func (this *Lighter) InitAuthObject(strAccountIndex any, strApiKeyIndex any) {
 	if !(InOp(this.Options, "auths")) {
-		this.Options.Store("auths", map[string]any{})
+		this.Options["auths"] = map[string]any{}
 	}
-	if !(InOp(GetValue(this.Options, "auths"), strAccountIndex)) {
-		AddElementToObject(GetValue(this.Options, "auths"), strAccountIndex, map[string]any{})
+	if !(InOp(this.Options["auths"], strAccountIndex)) {
+		AddElementToObject(this.Options["auths"], strAccountIndex, map[string]any{})
 	}
-	if !(InOp(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex)) {
-		AddElementToObject(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex, map[string]any{
+	if !(InOp(GetValue(this.Options["auths"], strAccountIndex), strApiKeyIndex)) {
+		AddElementToObject(GetValue(this.Options["auths"], strAccountIndex), strApiKeyIndex, map[string]any{
 			"signer":            nil,
 			"lighterPrivateKey": nil,
 			"deadline":          nil,
@@ -611,14 +611,14 @@ func (this *Lighter) preLoadLighterLibraryBody(ch chan AsyncResult[bool], option
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 	this.InitAuthObject(strAccountIndex, strApiKeyIndex)
-	var signer any = this.SafeDict(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer")
+	var signer any = this.SafeDict(GetValue(GetValue(this.Options["auths"], strAccountIndex), strApiKeyIndex), "signer")
 	if !IsEqual(signer, nil) {
 
 		ch <- AsyncResult[bool]{Value: true}
 		return nil
 	}
 
-	r1 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)
+	r1 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -645,7 +645,7 @@ func (this *Lighter) HandleApiKeyIndex(params any, methodName1 string, optionNam
 	}
 	// apiKeyIndex = this.randNumber (2);
 	var defaultApiKeyIndex int = 254
-	this.Options.Store("apiKeyIndex", defaultApiKeyIndex) // default to a value to avoid overriding other keys
+	this.Options["apiKeyIndex"] = defaultApiKeyIndex // default to a value to avoid overriding other keys
 	return []any{defaultApiKeyIndex, paramsApiKeyIndex}
 }
 func (this *Lighter) HandleAccountIndexAsync(params any, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...any) <-chan AsyncResult[[]any] {
@@ -711,7 +711,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan AsyncResult[[]any], params a
 				panic(ArgumentsRequired(this.Id + " " + methodName1 + "() requires an " + optionName1 + " or " + optionName2 + " parameter"))
 			}
 			accountIndex = account["index"]
-			this.Options.Store("accountIndex", accountIndex)
+			this.Options["accountIndex"] = DerefScalar(accountIndex)
 		}
 	}
 
@@ -753,7 +753,7 @@ func (this *Lighter) createSubAccountBody(ch chan AsyncResult[map[string]any], n
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -795,15 +795,15 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 	if (cachedDeadline != nil) && (*cachedDeadline-minimumRemaining >= this.Seconds()) {
 		return this.SafeString(cachedAuth, "token")
 	}
-	var deadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineExpiry", 28800))
+	var deadline any = (this.Seconds() + (*this.SafeInteger(this.Options, "authDeadlineExpiry", 28800)))
 	var request map[string]any = map[string]any{
 		"deadline":      deadline,
 		"api_key_index": this.ParseToInt(apiKeyIndex),
 		"account_index": this.ParseToInt(accountIndex),
 	}
-	var token any = this.LighterCreateAuthToken(GetValue(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "signer"), request)
-	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "deadline", deadline)
-	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "token", token)
+	var token any = this.LighterCreateAuthToken(GetValue(GetValue(GetValue(this.Options["auths"], accountIndex), apiKeyIndex), "signer"), request)
+	AddElementToObject(GetValue(GetValue(this.Options["auths"], accountIndex), apiKeyIndex), "deadline", deadline)
+	AddElementToObject(GetValue(GetValue(this.Options["auths"], accountIndex), apiKeyIndex), "token", token)
 	return token
 }
 func (this *Lighter) Pow(n string, m any) any {
@@ -877,7 +877,7 @@ func (this *Lighter) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool], acc
 					}
 					ret_ = func(this *Lighter) any {
 						// catch block:
-						this.Options.Store("builderFee", false)
+						this.Options["builderFee"] = false
 						return nil
 					}(this)
 				}
@@ -891,7 +891,7 @@ func (this *Lighter) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool], acc
 			isStandardTier := r.Value
 			if isStandardTier == true {
 				standardTier = true
-				this.Options.Store("builderFee", false)
+				this.Options["builderFee"] = false
 			} else {
 				var builder *int64 = this.SafeInteger(this.Options, "integratorAccountIndex", 718718)
 				var takerFeeRate *int64 = this.SafeInteger(this.Options, "integratorTakerFee", 1000)
@@ -901,7 +901,7 @@ func (this *Lighter) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool], acc
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-				this.Options.Store("approvedBuilderFee", true)
+				this.Options["approvedBuilderFee"] = true
 			}
 			return nil
 		}(this)
@@ -959,7 +959,7 @@ func (this *Lighter) checkIfStandardTierBody(ch chan AsyncResult[bool], accountI
 	var tier *string = this.SafeString(accountLimits, "user_tier")
 	var isStandard bool = (tier != nil && *tier == "standard")
 	AddElementToObject(tiersForAccountIndexes, accountIndexStr, isStandard)
-	this.Options.Store("tiersForAccountIndexes", tiersForAccountIndexes)
+	this.Options["tiersForAccountIndexes"] = tiersForAccountIndexes
 
 	ch <- AsyncResult[bool]{Value: isStandard}
 	return nil
@@ -977,7 +977,7 @@ func (this *Lighter) approveBuilderFeeBody(ch chan AsyncResult[map[string]any], 
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
+	r := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1042,7 +1042,7 @@ func (this *Lighter) changeApiKeyBody(ch chan AsyncResult[any], optionalArgs ...
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
-	var signerNotLoad any = GetValue(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer")
+	var signerNotLoad any = GetValue(GetValue(GetValue(this.Options["auths"], strAccountIndex), strApiKeyIndex), "signer")
 	privateKeypublicKeyVariable := this.LighterGenerateApiKey(signerNotLoad)
 	privateKey := GetValue(privateKeypublicKeyVariable, 0)
 	publicKey := GetValue(privateKeypublicKeyVariable, 1)
@@ -1061,7 +1061,7 @@ func (this *Lighter) changeApiKeyBody(ch chan AsyncResult[any], optionalArgs ...
 		"account_index": accountIndex,
 	}
 	// create lighter client
-	var signer any = this.LighterCreateClient(signerNotLoad, GetValue(this.Options, "chainId"), privateKey, apiKeyIndex, accountIndex)
+	var signer any = this.LighterCreateClient(signerNotLoad, this.Options["chainId"], privateKey, apiKeyIndex, accountIndex)
 	txTypetxInfomessageToSignVariable := this.LighterSignChangePubkey(signer, this.Extend(signRaw, paramsAccountIndex))
 	txType := GetValue(txTypetxInfomessageToSignVariable, 0)
 	txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
@@ -1076,8 +1076,8 @@ func (this *Lighter) changeApiKeyBody(ch chan AsyncResult[any], optionalArgs ...
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "lighterPrivateKey", privateKey)
-	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer", signer) // reassign signer in go
+	AddElementToObject(GetValue(GetValue(this.Options["auths"], strAccountIndex), strApiKeyIndex), "lighterPrivateKey", privateKey)
+	AddElementToObject(GetValue(GetValue(this.Options["auths"], strAccountIndex), strApiKeyIndex), "signer", signer) // reassign signer in go
 
 	r3 := <-this.HandleBuilderFeeApprovalAsync(accountIndex, apiKeyIndex)
 	if r3.Err != nil {
@@ -1089,13 +1089,13 @@ func (this *Lighter) changeApiKeyBody(ch chan AsyncResult[any], optionalArgs ...
 }
 func (this *Lighter) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	this.Options.Store("sandboxMode", enable)
-	this.Options.Store("chainId", func() int {
+	this.Options["sandboxMode"] = enable
+	this.Options["chainId"] = func() int {
 		if EvalTruthy(enable) {
 			return 300
 		}
 		return 304
-	}())
+	}()
 }
 func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1241,9 +1241,9 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	request["avg_execution_price"] = this.ParseToInt(Precise.StringMul(priceStr, priceScale))
 	request["trigger_price"] = this.ParseToInt(Precise.StringMul(triggerPriceStr, priceScale))
 	if *this.SafeBool(this.Options, "builderFee", true) {
-		request["integrator_account_index"] = GetValue(this.Options, "integratorAccountIndex")
-		request["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
-		request["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")
+		request["integrator_account_index"] = this.Options["integratorAccountIndex"]
+		request["integrator_taker_fee"] = this.Options["integratorTakerFee"]
+		request["integrator_maker_fee"] = this.Options["integratorMakerFee"]
 	}
 	var orders []any = []any{}
 	var firstOrder map[string]any = this.Extend(request, paramsRequest)
@@ -1361,7 +1361,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1376,7 +1376,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 					}
 					ret_ = func(this *Lighter) any {
 						// catch block:
-						this.Options.Store("builderFee", false)
+						this.Options["builderFee"] = false
 						return nil
 					}(this)
 				}
@@ -1389,7 +1389,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 			}
 			isStandardTier := r3.Value
 			if isStandardTier == true {
-				this.Options.Store("builderFee", false)
+				this.Options["builderFee"] = false
 			}
 			return nil
 		}(this)
@@ -1573,7 +1573,7 @@ func (this *Lighter) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1614,9 +1614,9 @@ func (this *Lighter) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		"account_index": accountIndex,
 	}
 	if *this.SafeBool(this.Options, "builderFee", true) {
-		signRaw["integrator_account_index"] = GetValue(this.Options, "integratorAccountIndex")
-		signRaw["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
-		signRaw["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")
+		signRaw["integrator_account_index"] = this.Options["integratorAccountIndex"]
+		signRaw["integrator_taker_fee"] = this.Options["integratorTakerFee"]
+		signRaw["integrator_maker_fee"] = this.Options["integratorMakerFee"]
 	}
 	txTypetxInfoVariable := this.LighterSignModifyOrder(signer, this.Extend(signRaw, paramsOmitted))
 	txType := GetValue(txTypetxInfoVariable, 0)
@@ -3122,7 +3122,7 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3237,7 +3237,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3555,7 +3555,7 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3690,7 +3690,7 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r3 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+	r3 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
@@ -3849,7 +3849,7 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r3 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+	r3 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
@@ -3959,7 +3959,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r3 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+	r3 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
@@ -4111,7 +4111,7 @@ func (this *Lighter) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -4301,7 +4301,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r3 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+	r3 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
@@ -4597,7 +4597,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -4676,7 +4676,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan AsyncResult[[]map[string]any
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -4787,7 +4787,7 @@ func (this *Lighter) signAndCancelAllOrdersBody(ch chan AsyncResult[[]map[string
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -4908,7 +4908,7 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -5074,7 +5074,7 @@ func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symb
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
-	r2 := <-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+	r2 := <-this.LoadAccountAsync(this.Options["chainId"], this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -5343,7 +5343,10 @@ func (this *Lighter) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

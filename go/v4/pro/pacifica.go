@@ -86,10 +86,10 @@ func (this *Pacifica) SetupApiKeyHeaders(optionalArgs ...any) {
 		headers["PF-API-KEY"] = key
 	} else {
 		if !ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey"), nil) {
-			headers["PF-API-KEY"] = ccxt.GetValue(this.Options, "apiKey")
+			headers["PF-API-KEY"] = this.Options["apiKey"]
 		}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers", headers)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", headers)
 }
 
 /**
@@ -760,9 +760,14 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	}
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
+		if symbol != nil {
+			this.Orderbooks[*symbol] = ob
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -1368,9 +1373,14 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		ccxt.AddElementToObject(this.Trades, symbol, stored)
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
-	var trades any = ccxt.GetValue(this.Trades, symbol)
+	var trades any
+	if symbol != nil {
+		trades = this.Trades[*symbol]
+	}
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
@@ -1639,7 +1649,9 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var symbolOhlcvs any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
 	var ohlcv any = this.SafeValue(symbolOhlcvs, timeframe)
@@ -1906,7 +1918,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 				}
 			}()
 			// try block:
-			this.HandleErrors(0, error, "", postType, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers"), this.Json(data), message, map[string]any{}, map[string]any{})
+			this.HandleErrors(0, error, "", postType, ccxt.GetValue(ccxt.GetValue(this.Options["ws"], "options"), "headers"), this.Json(data), message, map[string]any{}, map[string]any{})
 			return nil
 		}(this)
 
@@ -1920,8 +1932,8 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map
 	var subMessageHash string = "orderbook:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+	if _, ok := this.Orderbooks[*symbol]; ok {
+		delete(this.Orderbooks, *symbol)
 	}
 }
 func (this *Pacifica) HandleTradesUnsubscription(client any, subscription map[string]any) {
@@ -1931,8 +1943,8 @@ func (this *Pacifica) HandleTradesUnsubscription(client any, subscription map[st
 	var subMessageHash string = "trade:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Trades, symbol) {
-		ccxt.Remove(this.Trades, symbol)
+	if _, ok := this.Trades[*symbol]; ok {
+		delete(this.Trades, *symbol)
 	}
 }
 func (this *Pacifica) HandleTickersUnsubscription(client any, subscription map[string]any) {
@@ -1956,9 +1968,9 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription map[str
 	var subMessageHash string = "candles:" + *timeframe + ":" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if (symbol != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
-		if (timeframe != nil) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
-			ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	if _, ok := this.Ohlcvs[*symbol]; (symbol != nil) && ok {
+		if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
+			ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
 		}
 	}
 }

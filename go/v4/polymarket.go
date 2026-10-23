@@ -1714,14 +1714,16 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 		var market map[string]any = this.Market(symbol)
 		var category *string = this.SafeString(market["info"], "category")
 		var entry any = this.SafeDict(byCategory, category, fallback)
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       entry,
-			"symbol":     symbol,
-			"maker":      this.SafeNumber(entry, "maker_fee_rate"),
-			"taker":      this.SafeNumber(entry, "taker_fee_rate"),
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       entry,
+				"symbol":     symbol,
+				"maker":      this.SafeNumber(entry, "maker_fee_rate"),
+				"taker":      this.SafeNumber(entry, "taker_fee_rate"),
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -3894,7 +3896,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 		"secret":     this.SafeString(response, "secret"),
 		"expires":    expiry,
 	}
-	this.Options.Store("proxyCredentials", credentials)
+	this.Options["proxyCredentials"] = credentials
 
 	ch <- AsyncResult[any]{Value: credentials}
 	return nil
@@ -4214,7 +4216,10 @@ func (this *Polymarket) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

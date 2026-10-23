@@ -775,8 +775,8 @@ func (this *Upbit) ParseMarket(market any) any {
 		"contract":       false,
 		"linear":         nil,
 		"inverse":        nil,
-		"taker":          this.SafeNumber(GetValue(this.Options, "tradingFeesByQuoteCurrency"), quote, GetValue(this.Fees["trading"], "taker")),
-		"maker":          this.SafeNumber(GetValue(this.Options, "tradingFeesByQuoteCurrency"), quote, GetValue(this.Fees["trading"], "maker")),
+		"taker":          this.SafeNumber(this.Options["tradingFeesByQuoteCurrency"], quote, GetValue(this.Fees["trading"], "taker")),
+		"maker":          this.SafeNumber(this.Options["tradingFeesByQuoteCurrency"], quote, GetValue(this.Fees["trading"], "maker")),
 		"contractSize":   nil,
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -971,14 +971,16 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 		var marketId *string = this.SafeString(orderbook, "market")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
-		AddElementToObject(result, symbol, map[string]any{
-			"symbol":    symbol,
-			"bids":      this.SortBy(this.ParseOrderBookBidsAsks(orderbook["orderbook_units"], "bid_price", "bid_size"), 0, true),
-			"asks":      this.SortBy(this.ParseOrderBookBidsAsks(orderbook["orderbook_units"], "ask_price", "ask_size"), 0),
-			"timestamp": timestamp,
-			"datetime":  this.Iso8601(timestamp),
-			"nonce":     nil,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"symbol":    symbol,
+				"bids":      this.SortBy(this.ParseOrderBookBidsAsks(orderbook["orderbook_units"], "bid_price", "bid_size"), 0, true),
+				"asks":      this.SortBy(this.ParseOrderBookBidsAsks(orderbook["orderbook_units"], "ask_price", "ask_size"), 0),
+				"timestamp": timestamp,
+				"datetime":  this.Iso8601(timestamp),
+				"nonce":     nil,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]OrderBook]{Value: OrderBookMapFromMap(result)}

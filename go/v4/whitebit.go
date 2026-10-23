@@ -1549,23 +1549,25 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any]
 		var hasPriceLimits bool = (priceLimits != nil) && (this.SafeNumber(priceLimits, "min") != nil) && (this.SafeNumber(priceLimits, "max") != nil)
 		var hasCostLimits bool = (costLimits != nil) && (this.SafeNumber(costLimits, "min") != nil) && (this.SafeNumber(costLimits, "max") != nil)
 		if (hasAmountLimits) && (hasPriceLimits) && (hasCostLimits) {
-			AddElementToObject(result, symbol, map[string]any{
-				"info": market,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": this.SafeNumber(amountLimits, "min"),
-						"max": this.SafeNumber(amountLimits, "max"),
+			if symbol != nil {
+				result[*symbol] = map[string]any{
+					"info": market,
+					"limits": map[string]any{
+						"amount": map[string]any{
+							"min": this.SafeNumber(amountLimits, "min"),
+							"max": this.SafeNumber(amountLimits, "max"),
+						},
+						"price": map[string]any{
+							"min": this.SafeNumber(priceLimits, "min"),
+							"max": this.SafeNumber(priceLimits, "max"),
+						},
+						"cost": map[string]any{
+							"min": this.SafeNumber(costLimits, "min"),
+							"max": this.SafeNumber(costLimits, "max"),
+						},
 					},
-					"price": map[string]any{
-						"min": this.SafeNumber(priceLimits, "min"),
-						"max": this.SafeNumber(priceLimits, "max"),
-					},
-					"cost": map[string]any{
-						"min": this.SafeNumber(costLimits, "min"),
-						"max": this.SafeNumber(costLimits, "max"),
-					},
-				},
-			})
+				}
+			}
 		}
 	}
 
@@ -2452,7 +2454,7 @@ func (this *Whitebit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 			var marketId string = keys[i]
 			var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 			var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
-			var parsed any = this.ParseTrades(rawTrades, marketNew, since, limit)
+			var parsed []any = this.ParseTrades(rawTrades, marketNew, since, limit)
 			results = this.ArrayConcat(results, parsed)
 		}
 		results = this.SortBy2(results, "timestamp", "id")
@@ -5595,7 +5597,7 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], 
 	//         }
 	//     ]
 	//
-	var positions any = this.ParsePositions(response)
+	var positions []any = this.ParsePositions(response)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySymbolSinceLimit(positions, symbol, since, limit))}
 	return nil
@@ -6452,7 +6454,10 @@ func (this *Whitebit) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

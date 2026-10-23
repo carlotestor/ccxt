@@ -151,7 +151,7 @@ func (this *Hyperliquid) Describe() any {
 }
 func (this *Hyperliquid) SetSandboxMode(enabled any) {
 	this.BaseExchange.SetSandboxMode(enabled)
-	this.Options.Store("sandboxMode", enabled)
+	this.Options["sandboxMode"] = enabled
 }
 func (this *Hyperliquid) Nonce() any {
 	// the venue nonce is a millisecond timestamp and must be strictly increasing per signer
@@ -465,10 +465,10 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.Market
 		}
 	}
 	var markets []any = []any{}
-	if ccxt.IsEqual(this.Outcomes, nil) {
+	if this.Outcomes == nil {
 		this.Outcomes = map[string]any{}
 	}
-	if ccxt.IsEqual(this.Outcomes_by_id, nil) {
+	if this.Outcomes_by_id == nil {
 		this.Outcomes_by_id = map[string]any{}
 	}
 	for i := 0; i < len(outcomesList); i++ {
@@ -847,7 +847,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	var mids any = this.SafeDict(allMids, "mids", allMids)
 	var tickers map[string]any = map[string]any{}
 	var outcomesMap any = func() any {
-		if !ccxt.IsEqual(this.Outcomes, nil) {
+		if this.Outcomes != nil {
 			return this.Outcomes
 		}
 		return map[string]any{}
@@ -1487,7 +1487,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	if ccxt.IsEqual(outcomeInput, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " resolveOutcomeInput() requires an outcome symbol or id"))
 	}
-	if ccxt.IsEqual(this.Outcomes, nil) || ccxt.IsEqual(this.Outcomes_by_id, nil) {
+	if (this.Outcomes == nil) || (this.Outcomes_by_id == nil) {
 		panic(ccxt.ExchangeError(this.Id + " outcomes not loaded"))
 	}
 	var sideHint any = this.ParseOutcomeInputSideHint(outcomeInput)
@@ -1657,7 +1657,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 		var wallet *string = this.SafeStringLower(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 		// feeInt defaults to 0: the builder is attached for statistics purposes only and the
 		// user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
-		var feeInt any = ccxt.DerefScalar(this.SafeInteger(this.Options, "feeInt", 0))
+		var feeInt any = (*this.SafeInteger(this.Options, "feeInt", 0))
 		if !(*this.SafeBool(this.Options, "builderFee", true)) {
 			feeInt = 0
 		}
@@ -2065,7 +2065,13 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			}
 		}
 	}
-	var dedupedValues []any = ccxt.ObjectValues(deduped)
+	var dedupedValues []any = nil
+	if deduped != nil {
+		dedupedValues = make([]any, 0, len(deduped))
+		for _, objectValue := range deduped {
+			dedupedValues = append(dedupedValues, objectValue)
+		}
+	}
 	var parsed any = this.ParsePredictionOrders(dedupedValues, nil, since)
 	var outcomeHandle any = nil
 	if outcome != nil {
@@ -2435,7 +2441,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	}
 	// parse without an outcome fallback — fills span every market the wallet traded, so a
 	// requested-outcome fallback would mislabel fills whose market is no longer listed
-	var parsedTrades any = this.ParsePredictionTrades(fills, nil)
+	var parsedTrades []any = this.ParsePredictionTrades(fills, nil)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit))}
 	return nil
@@ -3013,7 +3019,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan ccxt.AsyncResult[bool]) an
 					}
 					ret_ = func(this *Hyperliquid) any {
 						// catch block:
-						this.Options.Store("builderFee", false) // disable builder fee if an error occurs
+						this.Options["builderFee"] = false // disable builder fee if an error occurs
 						return nil
 					}(this)
 				}
@@ -3028,7 +3034,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan ccxt.AsyncResult[bool]) an
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			this.Options.Store("approvedBuilderFee", true)
+			this.Options["approvedBuilderFee"] = true
 			return nil
 		}(this)
 

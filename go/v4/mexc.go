@@ -3149,8 +3149,8 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar *string, side *stri
 		}
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (typeVar != nil && *typeVar == "LIMIT_MAKER"), paramsWithoutClientOrderId)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
 		request["type"] = "LIMIT_MAKER"
 	}
@@ -3308,7 +3308,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market any, ty
 		}
 	}
 	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
-	var openType any = DerefScalar(this.SafeInteger(params, "openType", 2)) // defaulting to cross margin
+	var openType any = (*this.SafeInteger(params, "openType", 2)) // defaulting to cross margin
 	if marginMode != nil {
 		if marginMode != nil && *marginMode == "cross" {
 			openType = this.ParseToInt(2)
@@ -3322,8 +3322,8 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market any, ty
 		panic(InvalidOrder(this.Id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price"))
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), IsEqual(typeVar, 2), params)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var orderType any = nil
 	if postOnly {
 		orderType = 2
@@ -5206,7 +5206,7 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	var paramsMarketType any = nil
 	marketTypeparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, params))
 	marketType = GetValue(marketTypeparamsMarketTypeVariable, 0)
-	paramsMarketType = GetValue(marketTypeparamsMarketTypeVariable, 1)
+	paramsMarketType = marketTypeparamsMarketTypeVariable[1]
 	var marginMode *string = this.SafeString(paramsMarketType, "marginMode")
 	var isMargin *bool = this.SafeBool(paramsMarketType, "margin", false)
 	var paramsOmitted2 any = this.Omit(paramsMarketType, []any{"margin", "marginMode"})
@@ -5415,7 +5415,7 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 			request["start_time"] = since
 			var end *int64 = this.SafeInteger(paramsMarketType, "end_time")
 			if end == nil {
-				request["end_time"] = this.Sum(since, GetValue(this.Options, "maxTimeTillEnd"))
+				request["end_time"] = this.Sum(since, this.Options["maxTimeTillEnd"])
 			}
 		}
 		if limit != nil {
@@ -7815,7 +7815,7 @@ func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) map[
 	for j := 0; j < len(networkList); j++ {
 		var networkEntry map[string]any = SafeMapTyped(networkList, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
-		var networkCode *string = this.SafeString(GetValue(this.Options, "networks"), networkId, networkId)
+		var networkCode *string = this.SafeString(this.Options["networks"], networkId, networkId)
 		var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 		AddElementToObject(result, networkCode, fee)
 	}
@@ -8164,7 +8164,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 	//    }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var positions any = this.ParsePositions(data, symbols, params)
+	var positions []any = this.ParsePositions(data, symbols, params)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
@@ -8429,7 +8429,10 @@ func (this *Mexc) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

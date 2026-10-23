@@ -731,7 +731,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				}
 				var entry map[string]any = this.DeepExtend(map[string]any{
 					"id":             currencyId,
-					"symbol":         Add(*base+"/", quote),
+					"symbol":         (*base + "/") + quote,
 					"base":           base,
 					"quote":          quote,
 					"settle":         nil,
@@ -1351,7 +1351,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		}
 		var promises []any = []any{}
 		for i := 0; i < len(quotes); i++ {
-			request["quoteId"] = GetValue(quotes, i)
+			request["quoteId"] = quotes[i]
 			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, paramsGeneration)))
 		}
 
@@ -1361,7 +1361,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		}
 		responses := r2.Value
 		for i := 0; i < len(quotes); i++ {
-			var quote string = GetValue(quotes, i).(string)
+			var quote string = quotes[i]
 			var response map[string]any = SafeMapTyped(responses, i)
 			var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 			var timestamp *int64 = this.SafeInteger(data, "date")
@@ -2066,8 +2066,8 @@ func (this *Bithumb) CreateOrderRequest(symbol *string, typeVar any, side any, a
 		return this.OmitDict(params, "timeInForce")
 	}()
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsTimeInForce)
-	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
+	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var isPostOnly bool = postOnly || (timeInForce == "PO")
 	var paramsOrder any = paramsPostOnly
 	if isPostOnly {
@@ -4214,7 +4214,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 			}
 			var auth any = nil
 			if (method != "GET") && (method != "DELETE") {
-				AddElementToObject(requestHeaders, "Content-Type", "application/json")
+				if requestHeaders != nil { requestHeaders["Content-Type"] = "application/json" }
 				if hasQuery {
 					requestBody = SafeStringPtr(this.Json(query))
 					auth = this.UrlencodeWithArrayBrackets(query)

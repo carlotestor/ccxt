@@ -4286,8 +4286,8 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 	}()
 	var tokenRefreshInMilliseconds int64 = this.ParseToInt(float64((*expiresIn * 1000)) * refreshRatio)
 	this.Token = accessToken
-	this.Options.Store("v2AccessToken", accessToken)
-	this.Options.Store("v2TokenExpires", this.Sum(now, tokenRefreshInMilliseconds))
+	this.Options["v2AccessToken"] = DerefScalar(accessToken)
+	this.Options["v2TokenExpires"] = this.Sum(now, tokenRefreshInMilliseconds)
 
 	ch <- AsyncResult[any]{Value: accessToken}
 	return nil
@@ -4447,11 +4447,11 @@ func (this *Coinbaseinternational) HandleRouteAndParams(methodName string, optio
 	}
 	// Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
 	if deribit {
-		this.Options.Store("route", "deribit")
+		this.Options["route"] = "deribit"
 	} else {
-		this.Options.Store("route", "coinbase")
+		this.Options["route"] = "coinbase"
 	}
-	this.Options.Store("routeBackend", deribit)
+	this.Options["routeBackend"] = deribit
 	this.Has["fetchLeverage"] = !deribit
 	this.Has["setLeverage"] = !deribit
 	return this.Omit(paramsResolved, []any{"route", "defaultRoute", "callerMethodName"})
@@ -4465,7 +4465,7 @@ func (this *Coinbaseinternational) HandleRouteAndParams(methodName string, optio
  * @returns {boolean} true for the native Deribit route
  */
 func (this *Coinbaseinternational) IsNativeDeribitCredentials() bool {
-	return this.ResolveRoute(GetValue(this.Options, "route"))
+	return this.ResolveRoute(this.Options["route"])
 }
 
 /**
@@ -4544,7 +4544,10 @@ func (this *Coinbaseinternational) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

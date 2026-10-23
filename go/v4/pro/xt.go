@@ -1332,7 +1332,9 @@ func (this *Xt) HandleFundingRate(client any, message map[string]any) any {
 		fundingRate["timestamp"] = timestamp
 		fundingRate["datetime"] = this.Iso8601(timestamp)
 		var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
-		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+		if symbol != nil {
+			this.FundingRates[*symbol] = fundingRate
+		}
 		var event *string = this.SafeString(message, "event")
 		if event != nil {
 			var messageHash string = *event + "::contract"
@@ -1698,8 +1700,13 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		}
+		var stored any
+		if symbol != nil {
+			stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1849,9 +1856,14 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			}
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook any
+		if symbol != nil {
+			orderbook = this.Orderbooks[*symbol]
+		}
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		if nonce == nil {
 			var cacheLength int = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())

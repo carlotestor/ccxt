@@ -706,7 +706,13 @@ func (this *Digifinex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 	//
 	var data []any = SafeListTyped(response, "data")
 	var groupedById map[string]any = this.GroupBy(data, "currency")
-	var values []any = ObjectValues(groupedById)
+	var values []any = nil
+	if groupedById != nil {
+		values = make([]any, 0, len(groupedById))
+		for _, objectValue := range groupedById {
+			values = append(values, objectValue)
+		}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(values)}
 	return nil
@@ -781,8 +787,8 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		listRecv775, _ := MarketInterfacesToList(r.Value), r.Value != nil
-		var retRes58019 []any = listRecv775
+		listRecv781, _ := MarketInterfacesToList(r.Value), r.Value != nil
+		var retRes58019 []any = listRecv781
 		if retRes58019 == nil {
 			ch <- AsyncResult[[]MarketInterface]{Value: nil}
 		} else {
@@ -795,8 +801,8 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv784, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
-	var retRes58215 []any = listRecv784
+	listRecv790, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
+	var retRes58215 []any = listRecv790
 	if retRes58215 == nil {
 		ch <- AsyncResult[[]MarketInterface]{Value: nil}
 	} else {
@@ -2831,8 +2837,8 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv2668, _ := OrdersToList(r1.Value), r1.Value != nil
-		var retRes212619 []any = listRecv2668
+		listRecv2674, _ := OrdersToList(r1.Value), r1.Value != nil
+		var retRes212619 []any = listRecv2674
 		if retRes212619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -6595,7 +6601,10 @@ func (this *Digifinex) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

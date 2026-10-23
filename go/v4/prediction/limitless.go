@@ -3456,7 +3456,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			}
 		}
 	}
-	var parsedTrades any = this.ParsePredictionTrades(trades, nil)
+	var parsedTrades []any = this.ParsePredictionTrades(trades, nil)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit))}
 	return nil

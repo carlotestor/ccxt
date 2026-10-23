@@ -77,7 +77,7 @@ func (this *Polymarket) Describe() any {
 }
 func (this *Polymarket) RequestId() int64 {
 	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options.Store("requestId", requestId)
+	this.Options["requestId"] = requestId
 	return requestId
 }
 
@@ -264,9 +264,14 @@ func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
 	snapshot["nonce"] = this.SafeInteger(message, "sq")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
+		if symbol != nil {
+			this.Orderbooks[*symbol] = ob
+		}
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -426,7 +431,7 @@ func (this *Polymarket) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	var newTicker map[string]any = ccxt.MapTyped(r1.Value)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
+		ccxt.AddElementToObject(result, newTicker["symbol"], newTicker)
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
@@ -528,7 +533,7 @@ func (this *Polymarket) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]cc
 	var ticker map[string]any = ccxt.MapTyped(r1.Value)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		ccxt.AddElementToObject(result, ticker["symbol"], ticker)
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
@@ -727,9 +732,14 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		ccxt.AddElementToObject(this.Trades, symbol, stored)
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
-	var trades any = ccxt.GetValue(this.Trades, symbol)
+	var trades any
+	if symbol != nil {
+		trades = this.Trades[*symbol]
+	}
 	for i := 0; i < len(rows); i++ {
 		var row any = this.SafeDict(rows, i, map[string]any{})
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(row, market))
@@ -928,7 +938,9 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1685,12 +1697,12 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		var symbol *string = this.SafeString(pending, "symbol")
 		if symbol != nil {
 			if topic != nil && *topic == "orderbook" {
-				if ccxt.InOp(this.Orderbooks, symbol) {
-					ccxt.Remove(this.Orderbooks, symbol)
+				if _, ok := this.Orderbooks[*symbol]; ok {
+					delete(this.Orderbooks, *symbol)
 				}
 			} else if topic != nil && *topic == "trades" {
 				if ccxt.InOp(this.Trades, symbol) {
-					ccxt.Remove(this.Trades, symbol)
+					delete(this.Trades, *symbol)
 				}
 			} else if topic != nil && *topic == "ticker" {
 				if this.Tickers.Has(symbol) {
@@ -1699,8 +1711,8 @@ func (this *Polymarket) HandleAck(client any, message any) {
 			} else if topic != nil && *topic == "ohlcv" {
 				var timeframe *string = this.SafeString(pending, "timeframe")
 				if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
-					if ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe) {
-						ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+					if ccxt.InOp(this.Ohlcvs[*symbol], timeframe) {
+						ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
 					}
 				}
 			}

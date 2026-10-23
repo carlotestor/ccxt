@@ -1157,12 +1157,12 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 				if key == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				this.Options.Store("listenKey", key)
+				this.Options["listenKey"] = ccxt.DerefScalar(key)
 				var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 				if wsUrl == nil {
 					panic(ccxt.ExchangeError(this.Id + " authenticate() has no private websocket url"))
 				}
-				this.Options.Store("listenKeyUrl", *wsUrl+"/stream?listenKey="+*key)
+				this.Options["listenKeyUrl"] = *wsUrl + "/stream?listenKey=" + *key
 				client.(ccxt.ClientInterface).Resolve(key, messageHash)
 				return nil
 			}(this)
@@ -1214,8 +1214,8 @@ func (this *Bitrue) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 					}
 					ret_ = func(this *Bitrue) any {
 						// catch block:
-						this.Options.Store("listenKey", nil)
-						this.Options.Store("listenKeyUrl", nil)
+						this.Options["listenKey"] = nil
+						this.Options["listenKeyUrl"] = nil
 
 						return nil
 

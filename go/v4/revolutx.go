@@ -417,7 +417,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -536,7 +536,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -671,7 +671,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		}
 		request["symbols"] = Join(marketIds, ",")
 	}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -703,7 +703,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		if symbol != nil && *symbol == "" {
 			continue
 		}
-		AddElementToObject(result, symbol, ticker)
+		if symbol != nil { result[*symbol] = ticker }
 	}
 	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
@@ -812,7 +812,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -911,7 +911,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	} else {
 		request["until"] = this.Milliseconds()
 	}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}

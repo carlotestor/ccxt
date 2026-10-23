@@ -51,7 +51,7 @@ func (this *Mudrex) Ping(client any) any {
 }
 func (this *Mudrex) RequestId() int64 {
 	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "correlationId", 0), 1).(int64)
-	this.Options.Store("correlationId", reqid)
+	this.Options["correlationId"] = reqid
 	return reqid
 }
 
@@ -71,7 +71,7 @@ func (this *Mudrex) SetBrokerHeaders() {
 	ccxt.AddElementToObject(headers, "Partner-Id", brokerId)
 	ccxt.AddElementToObject(innerOptions, "headers", headers)
 	ccxt.AddElementToObject(wsOptions, "options", innerOptions)
-	this.Options.Store("ws", wsOptions)
+	this.Options["ws"] = wsOptions
 }
 func (this *Mudrex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
 	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
@@ -313,13 +313,15 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	var market map[string]any = this.SafeMarket(strings.ToUpper(*s))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	}
 	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), tf)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (tf != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), tf, stored)
+			ccxt.AddElementToObject(this.Ohlcvs[*symbol], tf, stored)
 		}
 	}
 	stored.(ccxt.Appender).Append(parsed)
