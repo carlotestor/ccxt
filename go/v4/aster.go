@@ -5592,7 +5592,7 @@ func (this *Aster) KeccakMessage(message any) any {
 func (this *Aster) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.KeccakMessage(message), Slice(privateKey, int64(-64), nil))
 }
-func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) string {
+func (this *Aster) SignWithdrawPayload(withdrawPayload map[string]any, network any) string {
 	var chainId *int64 = this.SafeInteger(withdrawPayload, "chainId")
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,

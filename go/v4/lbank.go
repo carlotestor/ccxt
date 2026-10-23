@@ -4225,8 +4225,8 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Lbank) ConvertSecretToPem(secret any) string {
-	var secretLength int64 = int64(GetArrayLength(secret)) - 0
+func (this *Lbank) ConvertSecretToPem(secret string) string {
+	var secretLength int64 = int64(len(secret)) - 0
 	var fullLines int64 = this.ParseToInt(float64(secretLength) / 64)
 	var pem string = "-----BEGIN PRIVATE KEY-----\n" // eslint-disable-line
 	for i := 0; int64(i) <= fullLines; i++ {

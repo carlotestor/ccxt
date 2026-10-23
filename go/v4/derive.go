@@ -2561,7 +2561,7 @@ func (this *Derive) ParseFundingRate(contract any, optionalArgs ...any) FundingR
 		"interval":                 nil,
 	})
 }
-func (this *Derive) HashOrderMessage(order any) any {
+func (this *Derive) HashOrderMessage(order []any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	// EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
@@ -2573,7 +2573,7 @@ func (this *Derive) HashOrderMessage(order any) any {
 	var prefix []byte = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
 }
-func (this *Derive) SignOrder(order any, privateKey any) string {
+func (this *Derive) SignOrder(order []any, privateKey any) string {
 	var hashOrder any = this.HashOrderMessage(order)
 	return this.SignHash(Slice(hashOrder, int64(-64), nil), Slice(privateKey, int64(-64), nil))
 }
