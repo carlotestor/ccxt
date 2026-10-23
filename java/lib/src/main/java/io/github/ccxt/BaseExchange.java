@@ -9361,7 +9361,7 @@ public Object describe()
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object credentialValue = Helpers.GetValue(this, key);
             Boolean credentialMissing = (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, false)) || (java.util.Objects.equals(credentialValue, ""));
-            if ((java.util.Objects.equals((this.requiredCredentials == null || key == null ? null : ((Map<?, ?>)this.requiredCredentials).get(key)), true)) && Boolean.TRUE.equals(credentialMissing))
+            if ((java.util.Objects.equals(Helpers.GetValue(this.requiredCredentials, key), true)) && Boolean.TRUE.equals(credentialMissing))
             {
                 if (java.util.Objects.requireNonNullElse(error, true))
                 {
