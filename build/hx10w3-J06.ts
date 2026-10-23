@@ -95,13 +95,25 @@ function j06SameSymbol (checker: any, node: any, nameNode: any): boolean {
 
 // 'element' = the printed Java is a native get/put on this local; 'neutral' = the identifier is a
 // property NAME, not a read of the local; 'other' = any use that would see the new static type
-function j06UseVerdict (id: any): 'element' | 'neutral' | 'other' {
+function j06UseVerdict (id: any): 'element' | 'neutral' | 'other' | 'value' {
     const parent = id.parent;
     if (parent === undefined || parent === null) {
         return 'other';
     }
     if (ts.isPropertyAccessExpression (parent) && parent.name === id) {
         return 'neutral';
+    }
+    // positions whose printed Java takes the box as an Object: a return, a copy, the value of a
+    // dict element write. No overload is selected by the static type at any of them.
+    if (parent.kind === ts.SyntaxKind.ReturnStatement && parent.expression === id) {
+        return 'value';
+    }
+    if (parent.kind === ts.SyntaxKind.VariableDeclaration && parent.initializer === id) {
+        return 'value';
+    }
+    if (parent.kind === ts.SyntaxKind.BinaryExpression && parent.right === id
+        && parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken) {
+        return 'value';
     }
     if (ts.isElementAccessExpression (parent) && parent.expression === id) {
         const grand = parent.parent;
@@ -191,9 +203,6 @@ function j06AwaitRetype (printer: any, declaration: any, printed: string, iden: 
     const marker = iden + 'Object ' + printedName + ' = ';
     const trimmed = printed.trimEnd ();
     if (printed.slice (0, marker.length) !== marker || !trimmed.endsWith ('.join()') && !trimmed.endsWith ('.join();')) {
-        if (process.env['J06_DEBUG'] === '1') {
-            console.error ('j06 marker', JSON.stringify (iden), JSON.stringify (printedName), JSON.stringify (printed.slice (0, marker.length)));
-        }
         return undefined;
     }
     let type;
@@ -203,18 +212,15 @@ function j06AwaitRetype (printer: any, declaration: any, printed: string, iden: 
         return undefined;
     }
     const javaType = j06JsonBoxType (printer.getChecker (), type);
-    if (process.env['J06_DEBUG'] === '1') {
-        const checker = printer.getChecker ();
-        console.error ('j06 await', printedName, 'type', type && type.flags, 'idx', type && (() => { try { return checker.getIndexTypeOfType (type, ts.IndexKind.String); } catch (e) { return 'throw:' + e.message; } })(), 'box', javaType);
-    }
     if (javaType === undefined) {
         return undefined;
     }
     const scope = j06EnclosingFunction (declaration);
+    const elementOnly = scope !== undefined && j06ElementUsesOnly (printer, declaration.name, scope);
     if (process.env['J06_DEBUG'] === '1') {
-        console.error ('j06 scope', printedName, scope?.kind, 'elemOnly', scope !== undefined && j06ElementUsesOnly (printer, declaration.name, scope));
+        console.error ('j06 await', printedName, 'box', javaType, 'elemOnly', elementOnly);
     }
-    if (scope === undefined || !j06ElementUsesOnly (printer, declaration.name, scope)) {
+    if (!elementOnly) {
         return undefined;
     }
     return iden + javaType + ' ' + printedName + ' = (' + javaType + ') ' + printed.slice (marker.length);
@@ -352,6 +358,7 @@ export function j06TupleAsyncSelfTest (transpiler: any): string[] {
         '    prepareTuple (): [Dict, Dict] { return [ {}, {} ]; }',
         '    readTuple (symbol: string) { const [ request, query ] = this.prepareTuple (); return request[symbol]; }',
         '    readTupleMixed (symbol: string) { const [ request, query ] = this.prepareTuple (); return this.extend (request, query); }',
+        "    async readDictValue (symbol: string) { const data = await this.loadDict (); const out: Dict = {}; out['kept'] = data; return data[symbol]; }",
         '}',
     ].join ('\n');
     try {
@@ -379,6 +386,10 @@ export function j06TupleAsyncSelfTest (transpiler: any): string[] {
         }
         if (/java\.util\.Map<String, Object> xs = /.test (out)) {
             problems.push ('j06: an awaited list local must not take the map box');
+        }
+        const valueSection = out.slice (out.indexOf ('readDictValue'), out.indexOf ('readDictValue') + 900);
+        if (!/java\.util\.Map<String, Object> data = /.test (valueSection)) {
+            problems.push (`j06: a box used as a dict value must still take the box\n${valueSection}`);
         }
         const tupleDecl = 'java.util.Map<String, Object> request = (java.util.Map<String, Object>) ((java.util.List<Object>) requestqueryVariable).get(0);';
         if (out.indexOf (tupleDecl) === -1) {
