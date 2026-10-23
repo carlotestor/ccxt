@@ -132,7 +132,7 @@ export function c06w3ParseJson (content) {
 }
 
 // snippet checks (run from `csharpTranspiler.ts --self-test`)
-export function c06w3Checks (returnTypes, localReturnTypes) {
+export function c06w3Checks (returnTypes, localReturnTypes, nullableConcatVeto) {
     const problems = [];
     const probeReturn = {};
     const probeLocal = { 'c06ProbeKept': 'Int64?' };
@@ -146,6 +146,12 @@ export function c06w3Checks (returnTypes, localReturnTypes) {
     for (const name of Object.keys (HX10W3_C06_RETURN_TYPES)) {
         if (returnTypes[name] !== HX10W3_C06_RETURN_TYPES[name] || localReturnTypes[name] !== HX10W3_C06_RETURN_TYPES[name]) {
             problems.push ('hx10w3 C06 table registration: ' + name);
+        }
+    }
+    // a nullable-string return keeps the add() helper on the left of `+` (object overload is null-safe)
+    for (const [ name, type ] of Object.entries (HX10W3_C06_RETURN_TYPES)) {
+        if (type === 'string?' && nullableConcatVeto !== undefined && !nullableConcatVeto.has (name)) {
+            problems.push ('hx10w3 C06 concat veto missing: ' + name);
         }
     }
     const wrap = (body, ns) => 'namespace ' + (ns || 'ccxt') + ';\npublic partial class t : Exchange\n{\n    public string sig(object a)\n    {\n        return "x";\n    }\n\n    public object f(object o)\n    {\n' + body + '\n    }\n}\n';

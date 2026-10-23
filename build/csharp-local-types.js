@@ -18386,8 +18386,20 @@ function hx4C10PrintedStringLocal (csharp, identifier) {
     return key !== undefined && hx4C10PrintedStrings.has (key) && scope !== undefined && stringEqualityBindingIsProvable (scope, identifier);
 }
 
+// hx10w3 C06: a `string?` CALL operand keeps the add() helper on the LEFT side of `+`. The
+// object overload answers null for a null left where C# `+` continues with the right operand,
+// so only a non-null spelling may print natively. Mirrors the `string?` entries of
+// build/hx10w3-C06.js (that module's self-test checks both lists).
+export const CSHARP_NULLABLE_CALL_CONCAT_VETO = new Set ([ 'getWsUrl' ]);
+
 function hx4C10LeftIsNonNull (csharp, plus, left) {
     const value = stripParens (left);
+    if (value?.kind === ts.SyntaxKind.CallExpression) {
+        const callee = value.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && CSHARP_NULLABLE_CALL_CONCAT_VETO.has (callee.name?.text)) {
+            return true;
+        }
+    }
     if (value?.kind === ts.SyntaxKind.Identifier) {
         if (hx4C10NonNullLocal (csharp, value, new Set (), 0)) {
             return true;
