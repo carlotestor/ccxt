@@ -370,7 +370,7 @@ export function r04CalleeSelfTest (): string[] {
     return bad
 }
 
-if ((process.argv[1] ?? '').endsWith('hx10w3-R04.js') && process.argv.includes('--self-test')) {
+if (process.argv.includes('--self-test') && (process.argv[1] ?? '').includes('hx10w3')) {
     const bad = r04CalleeSelfTest()
     for (const b of bad) console.log(`FAIL ${b}`)
     console.log(bad.length === 0 ? `r04-callee self-test: ${HX10R04_CASES.length} cases pass` : `r04-callee self-test: ${bad.length} failing`)
