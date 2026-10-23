@@ -215,15 +215,19 @@ function stripKeySetBlobs (content: string, sp: Spell): string {
         const at = masked.indexOf (NEEDLE, from);
         if (at === -1) break;
         from = at + NEEDLE.length;
-        const start = at - head.length;
-        if (start < 0 || masked.slice (start, at) !== head) continue;
+        let start = -1;
+        for (const h of [ head, '((java.util.List<Object>) ' ]) {
+            const s = at - h.length;
+            if (s >= 0 && masked.slice (s, at) === h) { start = s; break; }
+        }
+        if (start === -1) continue;
         const fieldEnd = masked.indexOf (')', at + NEEDLE.length);
         if (fieldEnd === -1) continue;
         const field = masked.slice (at + NEEDLE.length, fieldEnd).trim ();
         if (!WS_FIELDS.includes (field)) continue;
         const end = closeOf (masked, start);
         if (end === -1) continue;
-        const z = masked.slice (start, end + 1).replace (/\s+/g, ' ').trim ();
+        const z = masked.slice (start, end + 1).replace (/java\.util\./g, '').replace (/\s+/g, ' ').trim ();
         const sync = '-> { synchronized (';
         const syncAt = z.indexOf (sync);
         if (syncAt === -1) continue;
@@ -231,14 +235,12 @@ function stripKeySetBlobs (content: string, sp: Spell): string {
         if (nameEnd === -1) continue;
         const v = z.slice (syncAt + sync.length, nameEnd);
         const receiver = 'client.' + field;
-        for (const prefix of [ 'java.util.', '' ]) {
-            for (const member of [ 'keySet', 'values' ]) {
-                const expected = '((List<Object>) switch ((Object)(' + receiver + ')) { case Map<?, ?> ' + v +
-                    ' -> { synchronized (' + v + ') { yield new ' + prefix + 'ArrayList<Object>(' + v + '.' + member +
-                    '()); } } case null, default -> new ' + prefix + 'ArrayList<Object>(); })';
-                if (z !== expected) continue;
-                edits.push ([ start, end + 1, 'new ' + sp.list + '<Object>(' + receiver + '.' + member + '())' ]);
-            }
+        for (const member of [ 'keySet', 'values' ]) {
+            const expected = '((List<Object>) switch ((Object)(' + receiver + ')) { case Map<?, ?> ' + v +
+                ' -> { synchronized (' + v + ') { yield new ArrayList<Object>(' + v + '.' + member +
+                '()); } } case null, default -> new ArrayList<Object>(); })';
+            if (z !== expected) continue;
+            edits.push ([ start, end + 1, 'new ' + sp.list + '<Object>(' + receiver + '.' + member + '())' ]);
         }
     }
     return applyEdits (content, edits);
@@ -430,6 +432,7 @@ export function j01wsSelfTest (): string[] {
     const cls = (body: string) => 'public class Gemini extends GeminiRest\n{\n    public Object m(Client client, Object o, String s)\n    {\n' + body + '\n    }\n}';
     const cases: [ string, string, string | undefined ][] = [
         [ 'keySet blob', '        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });', '        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());' ],
+        [ 'qualified keySet blob', '        java.util.List<Object> keys = ((java.util.List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new java.util.ArrayList<Object>(j39v1.keySet()); } } case null, default -> new java.util.ArrayList<Object>(); });', '        java.util.List<Object> keys = new java.util.ArrayList<Object>(client.subscriptions.keySet());' ],
         [ 'objectValues helper', '        Object values = Helpers.objectValues(client.subscriptions);', '        Object values = new ArrayList<Object>(client.subscriptions.values());' ],
         [ 'objectKeys helper', '        Object keys = Helpers.objectKeys(client.futures);', '        Object keys = new ArrayList<Object>(client.futures.keySet());' ],
         [ 'cast receiver op', '        return ((Map<?, ?>)client.futures).containsKey(s);', '        return client.futures.containsKey(s);' ],
