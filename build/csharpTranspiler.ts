@@ -15,6 +15,7 @@ import { csharpTupleReturns } from './csharp-local-types.js'
 import { hxC08NativeRuntimeStateReads, hxC08RuntimeStateSnippetChecks } from './hx10w2-C08.js'
 import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { c01NativeDictReads, c01SnippetChecks, c01ChainChecks } from './hx10w2-C01.js'
+import { hx10w3C01ArrayParams, hx10w3C01SnippetChecks, hx10w3C01ChainChecks } from './hx10w3-C01.js'
 import { hx10W2C04NativeHelperCalls, hx10W2C04SelfTest } from './hx10w2-C04.js'
 import { c06_apply, hx10C06SnippetChecks } from './hx10w2-C06.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
@@ -8775,7 +8776,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks () ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9355,7 +9356,8 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const c31Out = (objectNull && c31) ? hx4C31NativeMath (c30Out) : c30Out;
     const c30Again = hx4C30NativeMath (objectNull, c31Out);
     const c01Out = c01NativeDictReads (c30Again); // hx10w2 C01
-    const hx4Out = hx4C34NativeEqualityInOp (objectNull, hx4C36NativeSlice (objectNull, hx4C35NativeHelperCalls (objectNull, hx4C32NativeCompare (objectNull, c01Out)))); // hx4 C34..C36
+    const c01w3Out = hx10w3C01ArrayParams (c01Out); // hx10w3 C01
+    const hx4Out = hx4C34NativeEqualityInOp (objectNull, hx4C36NativeSlice (objectNull, hx4C35NativeHelperCalls (objectNull, hx4C32NativeCompare (objectNull, c01w3Out)))); // hx4 C34..C36
     const c02Out = hx10w2C02ListHelpers (hx4Out); // hx10w2 C02
     const c06Out = c06_apply (objectNull, c02Out); // hx10w2 C06
     return hx10C07PromiseAll (c06Out); // hx10w2 C07
