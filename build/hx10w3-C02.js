@@ -236,31 +236,34 @@ function w3idx (text, ctx) {
 }
 
 // the native spelling of one helper call on a proven candidate box, or undefined to keep the helper
-function w3rep (kind, name, box, texts, ctx, self) {
+function w3rep (kind, name, box, texts, ctx, self, tick) {
     if (box.kind === 'unknown') return undefined;
-    const dict = '((IDictionary<string, object>)' + name + ')';
-    const list = '((IList<object>)' + name + ')';
+    // `is` patterns name the box instead of casting it: a null receiver answers the helper's
+    // null branch in every arm, so no proof of non-nullness is needed for these reads
+    const dictVar = 'w3d' + tick;
+    const listVar = 'w3l' + tick;
+    const strVar = 'w3s' + tick;
     if (kind === 'getArrayLength') {
-        if (box.kind === 'list') return '(' + name + ' == null ? 0 : ' + list + '.Count)';
-        if (box.kind === 'dict') return '(' + name + ' == null ? 0 : ' + dict + '.Count)';
-        return '(' + name + ' == null ? 0 : ' + name + '.Length)';
+        if (box.kind === 'list') return '(' + name + ' is IList<object> ' + listVar + ' ? ' + listVar + '.Count : 0)';
+        if (box.kind === 'dict') return '(' + name + ' is IDictionary<string, object> ' + dictVar + ' ? ' + dictVar + '.Count : 0)';
+        return '(' + name + ' is string ' + strVar + ' ? ' + strVar + '.Length : 0)';
     }
     if (kind === 'inOp') {
         if (box.kind !== 'dict') return undefined;
-        const key = w3key (texts[0], ctx, self);
+        const key = w3key (texts[1], ctx, self);
         if (key === undefined) return undefined;
-        return '(' + name + ' != null && ' + dict + '.ContainsKey(' + key + '))';
+        return '(' + name + ' is IDictionary<string, object> ' + dictVar + ' && ' + dictVar + '.ContainsKey(' + key + '))';
     }
     if (kind === 'getValue') {
         if (box.kind === 'dict') {
             const key = w3key (texts[1], ctx, self);
             if (key === undefined) return undefined;
-            return '(' + name + ' != null && ' + dict + '.ContainsKey(' + key + ') ? ' + dict + '[' + key + '] : null)';
+            return '(' + name + ' is IDictionary<string, object> ' + dictVar + ' && ' + dictVar + '.ContainsKey(' + key + ') ? ' + dictVar + '[' + key + '] : null)';
         }
         const at = w3idx (texts[1], ctx);
         if (at === undefined) return undefined;
-        if (box.kind === 'list') return '(' + name + ' != null && ' + at.text + ' < ' + list + '.Count ? ' + list + '[' + at.text + '] : null)';
-        return '(' + name + ' != null && ' + at.text + ' < ' + name + '.Length ? ' + name + '[' + at.text + '].ToString () : null)';
+        if (box.kind === 'list') return '(' + name + ' is IList<object> ' + listVar + ' && ' + at.text + ' < ' + listVar + '.Count ? ' + listVar + '[' + at.text + '] : null)';
+        return '(' + name + ' is string ' + strVar + ' && ' + at.text + ' < ' + strVar + '.Length ? ' + strVar + '[' + at.text + '].ToString () : null)';
     }
     if (kind === 'add') {
         // the helper's string branch is `(string)a + (string)b`; a non-null string left never takes
@@ -280,6 +283,7 @@ export function hx10w3C02CandidateReads (content) {
     const masked = w3mask (content).split ('\n');
     if (masked.length !== lines.length) return content;
     let changed = false;
+    let tick = 0;
     for (const [ start, end ] of w3spans (masked)) {
         // the candidate scan of this method: declared and parameter types, `object` locals, lambda names
         const types = new Map ();
@@ -378,12 +382,12 @@ export function hx10w3C02CandidateReads (content) {
                 const args = w3args (line, m.index + m[0].length - 1);
                 if (args === undefined) continue;
                 if (kind === 'getArrayLength' ? (args.length !== 1) : (args.length !== 2)) continue;
-                const name = line.substring (args[kind === 'inOp' ? 1 : 0].start, args[kind === 'inOp' ? 1 : 0].end).trim ();
+                const name = line.substring (args[0].start, args[0].end).trim ();
                 if (!objectLocals.has (name)) continue;
                 const box = boxAt.get (name + ':' + k);
                 if (box === undefined) continue;
                 const texts = args.map ((a) => lines[k].substring (a.start, a.end));
-                const replacement = w3rep (kind, name, box, texts, ctx, name);
+                const replacement = w3rep (kind, name, box, texts, ctx, name, ++tick);
                 if (replacement === undefined) continue;
                 edits.push ({ start: m.index, end: args[args.length - 1].end + 1, text: replacement });
             }
@@ -425,19 +429,19 @@ export function w3checks () {
         }
     };
     runs ('dict copy', 'IDictionary<string, object> response', 'object data = response;\nreturn getValue(data, "id");',
-        '(data != null && ((IDictionary<string, object>)data).ContainsKey("id") ? ((IDictionary<string, object>)data)["id"] : null)');
-    runs ('dict literal membership', 'object response', 'object data = new Dictionary<string, object>() {};\nreturn inOp("id", data);',
-        '(data != null && ((IDictionary<string, object>)data).ContainsKey("id"))');
+        '(data is IDictionary<string, object> w3d1 && w3d1.ContainsKey("id") ? w3d1["id"] : null)');
+    runs ('dict literal membership', 'object response', 'object data = new Dictionary<string, object>() {};\nreturn inOp(data, "id");',
+        '(data is IDictionary<string, object> w3d1 && w3d1.ContainsKey("id"))');
     runs ('list literal length', 'object response', 'object rows = new List<object>() {};\nreturn getArrayLength(rows);',
-        '(rows == null ? 0 : ((IList<object>)rows).Count)');
+        '(rows is IList<object> w3l1 ? w3l1.Count : 0)');
     runs ('list literal index', 'object response', 'object rows = new List<object>() {};\nint i = 1;\nreturn getValue(rows, i);',
-        '(rows != null && i < ((IList<object>)rows).Count ? ((IList<object>)rows)[i] : null)');
-    runs ('string length', 'object response', 'object text = "abc";\nreturn getArrayLength(text);', '(text == null ? 0 : text.Length)');
+        '(rows is IList<object> w3l1 && i < w3l1.Count ? w3l1[i] : null)');
+    runs ('string length', 'object response', 'object text = "abc";\nreturn getArrayLength(text);', '(text is string w3s1 ? w3s1.Length : 0)');
     runs ('string concat', 'object response', 'object id = "a";\nreturn add(id, "-");', '(id + "-")');
     runs ('nullable string concat', 'object response', 'object id = this.safeString(response, "id");\nreturn add(id, "-");', '(id == null ? null : id + "-")');
     runs ('safeString2 keys are not a default', 'object response', 'object id = this.safeString2(response, "a", "b");\nreturn add(id, "-");', '(id == null ? null : id + "-")');
     runs ('later write joins', 'object response', 'object rows = null;\nrows = new List<object>() {};\nreturn getArrayLength(rows);',
-        '(rows == null ? 0 : ((IList<object>)rows).Count)');
+        '(rows is IList<object> w3l1 ? w3l1.Count : 0)');
     keeps ('mixed writes', 'object response', 'object rows = new List<object>() {};\nrows = response;\nreturn getArrayLength(rows);');
     keeps ('unproven declaration', 'object response', 'object rows = this.safeValue(response, "rows");\nreturn getArrayLength(rows);');
     keeps ('ref argument', 'object response', 'object rows = new List<object>() {};\nthis.fill(ref rows);\nreturn getArrayLength(rows);');
