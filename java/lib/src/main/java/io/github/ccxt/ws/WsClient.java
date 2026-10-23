@@ -83,7 +83,7 @@ public class WsClient {
 
     // State — typed maps; transpiled code reads/writes them directly
     public String url;
-    public Map<String, Object> futures = new ConcurrentHashMap<>();
+    public Map<String, Future> futures = new ConcurrentHashMap<>();
     public Map<String, Object> subscriptions = new ConcurrentHashMap<>();
     public Map<String, Object> rejections = new ConcurrentHashMap<>();
     public volatile boolean isConnected = false;
@@ -115,8 +115,6 @@ public class WsClient {
     private volatile Thread pingThread;
 
     // Typed accessors for internal use
-    @SuppressWarnings("unchecked")
-    private Map<String, Future> futuresMap() { return (Map<String, Future>)(Map<?, ?>) futures; }
     public Map<String, Object> subscriptionsMap() { return subscriptions; }
     private Map<String, Object> rejectionsMap() { return rejections; }
 
@@ -193,7 +191,7 @@ public class WsClient {
         Future f;
         Object rejection = null;
         synchronized (futuresSync) {
-            f = futuresMap().computeIfAbsent(messageHash, k -> new Future());
+            f = futures.computeIfAbsent(messageHash, k -> new Future());
             rejection = rejectionsMap().remove(messageHash);
         }
         if (rejection != null) {
@@ -221,7 +219,7 @@ public class WsClient {
         String messageHash = messageHash2.toString();
         Future f;
         synchronized (futuresSync) {
-            f = futuresMap().remove(messageHash);
+            f = futures.remove(messageHash);
             rejectionsMap().remove(messageHash); // clear any stale rejection for this hash
         }
         if (f != null) {
@@ -237,7 +235,7 @@ public class WsClient {
             String messageHash = messageHash2.toString();
             Future f;
             synchronized (futuresSync) {
-                f = futuresMap().remove(messageHash);
+                f = futures.remove(messageHash);
                 if (f == null) {
                     rejectionsMap().put(messageHash, error);
                 }
@@ -249,8 +247,8 @@ public class WsClient {
             // Drain under the monitor; settle outside so continuations cannot re-enter.
             var settled = new java.util.ArrayList<Future>();
             synchronized (futuresSync) {
-                for (String key : new java.util.ArrayList<>(futuresMap().keySet())) {
-                    Future f = futuresMap().remove(key);
+                for (String key : new java.util.ArrayList<>(futures.keySet())) {
+                    Future f = futures.remove(key);
                     if (f != null) {
                         settled.add(f);
                     }
@@ -693,8 +691,8 @@ public class WsClient {
                 : new io.github.ccxt.errors.ExchangeClosedByUser("Connection closed by the user");
         var settled = new java.util.ArrayList<Future>();
         synchronized (futuresSync) {
-            for (String key : new java.util.ArrayList<>(futuresMap().keySet())) {
-                Future f = futuresMap().remove(key);
+            for (String key : new java.util.ArrayList<>(futures.keySet())) {
+                Future f = futures.remove(key);
                 if (f != null && !f.isDone()) {
                     settled.add(f);
                 }
