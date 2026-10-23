@@ -102,7 +102,7 @@ public class BaseExchange {
         long factor = 2L;
         long maxDelay = 60000L;
         long stableAfter = 30000L;
-        Object wsOptions = Helpers.GetValue(this.options, "ws");
+        Object wsOptions = this.options.get("ws");
         Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
         if (backoff != null) {
             Object value = Helpers.GetValue(backoff, "base");
@@ -214,12 +214,7 @@ public class BaseExchange {
     public Object number = Float.class;                   // C# typeof(float) → Java Class<?> for Float
     public Map<String, Object> has = new HashMap<>();
     public Map<String, Object> features = new HashMap<>();
-    // ConcurrentHashMap so concurrent watchTrades / loadMarkets calls don't
-    // race on put/get/remove/iterate. Null values are not allowed by CHM,
-    // but the few exchange-side `options.put("listenKey", null)` sites are
-    // semantically equivalent to "delete the key" — Helpers.addElementToObject
-    // routes null puts to remove() to preserve that semantics (see
-    // SharedStateRaceTest for the concurrent regression that motivated this).
+    // ConcurrentHashMap: concurrent watchTrades / loadMarkets put/get/remove/iterate must not race
     public Map<String, Object> options = new java.util.concurrent.ConcurrentHashMap<>();
     public boolean isSandboxModeEnabled = false;
 
@@ -3844,7 +3839,14 @@ public class BaseExchange {
         if (options instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> optionsMap = (Map<String, Object>) options;
-            this.options = (Map<String, Object>) this.extend(this.options, optionsMap);
+            // a fresh CHM per merge: the test harness snapshots the previous map by reference
+            java.util.concurrent.ConcurrentHashMap<String, Object> merged = new java.util.concurrent.ConcurrentHashMap<>();
+            for (Map.Entry<String, Object> e : ((Map<String, Object>) this.extend(this.options, optionsMap)).entrySet()) {
+                if (e.getKey() != null && e.getValue() != null) {
+                    merged.put(e.getKey(), e.getValue());
+                }
+            }
+            this.options = merged;
         }
     }
 

@@ -1012,20 +1012,18 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             if (args.length != 2)
                 throw new IllegalArgumentException("Map requires (key, value)");
             Map<Object, Object> m = (Map<Object, Object>) map;
-            // ConcurrentHashMap rejects null values. We use it for thread-safe
-            // shared state (Exchange.options); translate null put → remove
-            // there since TS `obj[key] = null` is semantically equivalent to
-            // "key is not set" (safeValue returns null either way).
-            // Other maps (request payloads, responses) keep explicit null
-            // entries — many static-request/response tests check for them.
-            // The synchronized block pairs with objectKeys() above: any reader
-            // taking the map's monitor sees a stable view of put/remove here.
-            synchronized (m) {
-                if (args[1] == null && m instanceof java.util.concurrent.ConcurrentHashMap) {
+            // ConcurrentHashMap answers null-free shared state by removing; no monitor, it is atomic
+            if (m instanceof java.util.concurrent.ConcurrentHashMap) {
+                if (args[1] == null) {
                     m.remove(args[0]);
                 } else {
                     m.put(args[0], args[1]);
                 }
+                return;
+            }
+            // request/response payloads keep explicit null entries and one owner thread per map
+            synchronized (m) {
+                m.put(args[0], args[1]);
             }
             return;
         }
