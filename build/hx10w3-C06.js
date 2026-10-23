@@ -5,9 +5,6 @@
 // proven receiver/operand. Names whose returns are not proven stay exactly as the base emitted.
 
 export const HX10W3_C06_RETURN_TYPES = {
-    // pro/{binance,coinbaseinternational,paradex}: describe() keeps urls.api.ws (and .wsPrivate)
-    // string leaves; the non-literal paths are add() chains over them -> string or null.
-    'getWsUrl': 'string?',
     // backpack: one `return market;`, market declared IDictionary<string, object> from safeDict,
     // and the null case throws BadSymbol above it -> the cast is an identity.
     'rfqConversionMarket': 'IDictionary<string, object>',
@@ -132,7 +129,7 @@ export function c06w3ParseJson (content) {
 }
 
 // snippet checks (run from `csharpTranspiler.ts --self-test`)
-export function c06w3Checks (returnTypes, localReturnTypes, nullableConcatVeto) {
+export function c06w3Checks (returnTypes, localReturnTypes) {
     const problems = [];
     const probeReturn = {};
     const probeLocal = { 'c06ProbeKept': 'Int64?' };
@@ -146,12 +143,6 @@ export function c06w3Checks (returnTypes, localReturnTypes, nullableConcatVeto) 
     for (const name of Object.keys (HX10W3_C06_RETURN_TYPES)) {
         if (returnTypes[name] !== HX10W3_C06_RETURN_TYPES[name] || localReturnTypes[name] !== HX10W3_C06_RETURN_TYPES[name]) {
             problems.push ('hx10w3 C06 table registration: ' + name);
-        }
-    }
-    // a nullable-string return keeps the add() helper on the left of `+` (object overload is null-safe)
-    for (const [ name, type ] of Object.entries (HX10W3_C06_RETURN_TYPES)) {
-        if (type === 'string?' && nullableConcatVeto !== undefined && !nullableConcatVeto.has (name)) {
-            problems.push ('hx10w3 C06 concat veto missing: ' + name);
         }
     }
     const wrap = (body, ns) => 'namespace ' + (ns || 'ccxt') + ';\npublic partial class t : Exchange\n{\n    public string sig(object a)\n    {\n        return "x";\n    }\n\n    public object f(object o)\n    {\n' + body + '\n    }\n}\n';
