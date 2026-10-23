@@ -172,7 +172,9 @@ function j02Owner (content: string, sourcePath: string | undefined): J02Class | 
 function j02FieldWrites (text: string, field: string): string[] {
     const masked = j02Mask (text);
     const writes: string[] = [];
-    const rx = new RegExp ('(?<![\\w.])this\\.' + field + '\\s*=\\s*([^;]*);', 'g');
+    // an assignment, not the `==` of an already-converted read (a bare `=` match would read the
+    // guarded get as a non-map write of the field and lose the proof on the next build)
+    const rx = new RegExp ('(?<![\\w.])this\\.' + field + '\\s*=(?!=)\\s*([^;]*);', 'g');
     let m: RegExpExecArray | null;
     while ((m = rx.exec (masked)) !== null) {
         writes.push (m[1].trim ());
@@ -375,6 +377,10 @@ export function j02SelfTest (): string[] {
         // a base-class field resolved through the super chain (the runtime sources are the table)
         [ '    public Object f() { return Helpers.GetValue(this.options, "a"); }',
           'return (this.options == null ? null : this.options.get("a"))' ],
+        // the file already holds a converted read of the field: its `== null` is not a write, so the
+        // remaining helper call keeps its proof and converts too (idempotent rebuild)
+        [ '    public Object cache = new HashMap<String, Object>();\n    public Object g(Object k) { return (this.cache == null || k == null ? null : ((Map<?, ?>)this.cache).get(k)); }\n    public Object f() { return Helpers.GetValue(this.cache, "a"); }',
+          'return (this.cache == null ? null : ((java.util.Map<?, ?>)this.cache).get("a"))' ],
     ];
     for (const [ body, expect ] of pos) {
         const out = run (body);

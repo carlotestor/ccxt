@@ -306,7 +306,7 @@ public class BaseExchange {
     public Map<String, Object> tickers = new HashMap<>();
     public Map<String, Object> fundingRates = new HashMap<>();
     public Map<String, Object> bidsasks = new HashMap<>();
-    public Object balance = new ConcurrentHashMap<String, Object>();
+    public Map<String, Object> balance = new HashMap<>();
     public Object liquidations = new ConcurrentHashMap<String, Object>();
     public Object myLiquidations = new ConcurrentHashMap<String, Object>();
     public Map<String, Object> trades = new HashMap<>();
