@@ -920,7 +920,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     public void setBalanceCache(Client client, String type, Object subscriptionHash)
     {
-        if (((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash))
+        if (client.subscriptions.containsKey(subscriptionHash))
         {
             return;
         }
@@ -928,7 +928,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type), subscriptionHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -946,9 +946,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }})).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve();
                 client.resolve(this.balance, subscriptionHash);
             }
@@ -1137,9 +1137,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     resubRequest.put("id", id);
                     resubRequest.put("method", method);
                     resubRequest.put("params", marketIdsNew);
-                    if ((method != null && ((Map<?, ?>)client.subscriptions).containsKey(method)))
+                    if ((method != null && client.subscriptions.containsKey(method)))
                     {
-                        ((Map<String,Object>)client.subscriptions).remove((String)method);
+                        client.subscriptions.remove((String)method);
                     }
                     return (this.watch(url, messageHash, resubRequest, method, subscription)).join();
                 }
@@ -1189,7 +1189,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             // their own authorize frame. the flight lives in client.futures of the handshake client
             // under a non-messageHash key and settles only via client.resolve () / client.reject ()
             String messageHash = "authenticateFlight";
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
                 // a flight is already in progress - wake when the leader settles
                 // it, the socket is authorized by then. the flight gate is
@@ -1245,11 +1245,11 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 // replay that failure. the stale future is settled through
                 // client.reject () - guarded, so it always has a waiter and the
                 // error is never parked in client.rejections
-                if (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash))
+                if (client.subscriptions.containsKey(subscribeHash))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+                    client.subscriptions.remove((String)subscribeHash);
                 }
-                if (((Map<?, ?>)client.futures).containsKey(subscribeHash))
+                if (client.futures.containsKey(subscribeHash))
                 {
                     client.reject(e, subscribeHash);
                 }
@@ -1259,7 +1259,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             // rethrows the failure to the leader and attaches the handler that
             // keeps an alone-leader rejection from crashing the process
-            ((io.github.ccxt.ws.Future)future).getFuture().join();
+            future.getFuture().join();
             return authorized;
         });
 
@@ -1270,7 +1270,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
-        Object future = ((Map)client.futures).get("authenticated");
+        Object future = client.futures.get("authenticated");
         ((io.github.ccxt.ws.Future)future).resolve(1);
         return message;
     }
@@ -1298,9 +1298,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             if ((e instanceof AuthenticationError))
             {
                 client.reject(e, "authenticated");
-                if (((Map<?, ?>)client.subscriptions).containsKey("authenticated"))
+                if (client.subscriptions.containsKey("authenticated"))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove("authenticated");
+                    client.subscriptions.remove("authenticated");
                 }
                 return false;
             }
@@ -1356,8 +1356,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
     {
         // not every method stores its subscription
         // as an object so we can't do indeById here
-        Object subs = client.subscriptions;
-        Object values = Helpers.objectValues(subs);
+        Map<String, Object> subs = client.subscriptions;
+        Object values = new ArrayList<Object>(subs.values());
         for (var i = 0; i < ((List<?>)values).size(); i++)
         {
             Object subscription = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));

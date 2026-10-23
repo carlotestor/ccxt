@@ -9361,7 +9361,7 @@ public Object describe()
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object credentialValue = Helpers.GetValue(this, key);
             Boolean credentialMissing = (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, false)) || (java.util.Objects.equals(credentialValue, ""));
-            if ((java.util.Objects.equals((this.requiredCredentials == null || key == null ? null : ((Map<?, ?>)this.requiredCredentials).get(key)), true)) && Boolean.TRUE.equals(credentialMissing))
+            if ((java.util.Objects.equals(Helpers.GetValue(this.requiredCredentials, key), true)) && Boolean.TRUE.equals(credentialMissing))
             {
                 if (java.util.Objects.requireNonNullElse(error, true))
                 {
@@ -12498,17 +12498,17 @@ public Object describe()
 
     public void cleanUnsubscription(Client client, String subHash, String unsubHash, Object subHashIsPrefix)
     {
-        if ((!java.util.Objects.equals(unsubHash, null)) && ((unsubHash != null && ((Map<?, ?>)client.subscriptions).containsKey(unsubHash))))
+        if ((!java.util.Objects.equals(unsubHash, null)) && ((unsubHash != null && client.subscriptions.containsKey(unsubHash))))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)unsubHash);
+            client.subscriptions.remove((String)unsubHash);
         }
         if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(subHashIsPrefix, false)))
         {
-            if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subHash))))
+            if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && client.subscriptions.containsKey(subHash))))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)subHash);
+                client.subscriptions.remove((String)subHash);
             }
-            if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && ((Map<?, ?>)client.futures).containsKey(subHash))))
+            if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && client.futures.containsKey(subHash))))
             {
                 var error = new UnsubscribeError(((this.id + " ") + subHash));
                 client.reject(error, subHash);
@@ -12521,7 +12521,7 @@ public Object describe()
                 Object sub = (clientSubscriptions == null || i < 0 || i >= clientSubscriptions.size() ? null : clientSubscriptions.get(i));
                 if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(subHash, null)) && ((String)sub).startsWith(((String)subHash)))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)sub);
+                    client.subscriptions.remove((String)sub);
                 }
             }
             List<Object> clientFutures = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v115 -> { synchronized (j39v115) { yield new ArrayList<Object>(j39v115.keySet()); } } case null, default -> new ArrayList<Object>(); });
@@ -12613,10 +12613,10 @@ public Object describe()
                 for (var i = 0; i < ((List<?>)clients).size(); i++)
                 {
                     Client client = (Client)Helpers.GetValue(clients, i);
-                    Object futures = client.futures;
-                    if ((!java.util.Objects.equals(futures, null)) && (((Map<?, ?>)futures).containsKey("fetchPositionsSnapshot")))
+                    Map<String, io.github.ccxt.ws.Future> futures = client.futures;
+                    if ((!java.util.Objects.equals(futures, null)) && (futures.containsKey("fetchPositionsSnapshot")))
                     {
-                        ((Map<String,Object>)futures).remove("fetchPositionsSnapshot");
+                        futures.remove("fetchPositionsSnapshot");
                     }
                 }
             } else if ((java.util.Objects.equals(topic, "ticker") || java.util.Objects.equals(topic, "markPrice")) && (!java.util.Objects.equals(this.tickers, null)))

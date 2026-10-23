@@ -1315,7 +1315,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (java.util.Objects.equals(clientSubscription, null))
             {
                 String id = this.safeString(request, "id");
-                ((Map)client.subscriptions).put((String)("subscription:" + id), new HashMap<String, Object>() {{
+                client.subscriptions.put((String)("subscription:" + id), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
                 this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
@@ -1347,7 +1347,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "streamType", streamType );
             }};
-            ((Map)client.subscriptions).put((String)("subscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
+            client.subscriptions.put((String)("subscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
             this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(messageHash)), subscription);
@@ -1374,7 +1374,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "messageHash", messageHash );
             }};
             Client client = this.client(url);
-            ((Map)client.subscriptions).put((String)("unsubscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
+            client.subscriptions.put((String)("unsubscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
@@ -1398,7 +1398,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
                 if (!java.util.Objects.equals(future, null))
                 {
-                    return ((io.github.ccxt.ws.Future)future).getFuture().join();
+                    return future.getFuture().join();
                 }
                 return authenticated;
             }
@@ -1429,7 +1429,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "tx", tx );
                 put( "signature", signature );
             }};
-            ((Map)client.subscriptions).put((String)("authentication:" + this.numberToString(id)), messageHash);
+            client.subscriptions.put((String)("authentication:" + this.numberToString(id)), messageHash);
             return (this.watch(url, messageHash, this.extend(request, paramsSubaccount), messageHash, null)).join();
         });
 
@@ -1498,7 +1498,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                             put( "streamType", streamType );
                             put( "symbol", Nado.this.safeString(market, "symbol") );
                         }};
-                        ((Map)client.subscriptions).put((String)("subscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
+                        client.subscriptions.put((String)("subscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
                         this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
@@ -1524,7 +1524,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }};
             String unsubscribeHash = ("unsubscribe:" + messageHash);
             Client client = this.client(url);
-            ((Map)client.subscriptions).put((String)("unsubscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
+            client.subscriptions.put((String)("unsubscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
@@ -1551,7 +1551,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     put( "id", id );
                     put( "messageHash", messageHash );
                 }};
-                ((Map)client.subscriptions).put((String)("unsubscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
+                client.subscriptions.put((String)("unsubscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
@@ -2083,13 +2083,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 String subscriptionSymbol = this.safeString(subscription, "symbol");
                 if ((java.util.Objects.equals(streamType, "book_depth")) && (java.util.Objects.equals(subscriptionSymbol, symbol)))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
+                    client.subscriptions.remove((String)subscriptionHash);
                 }
             }
             Object subscriptionMsg = this.safeValue(client.subscriptions, messageHash);
             if (!java.util.Objects.equals(subscriptionMsg, null))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
             ((Map<String,Object>)this.orderbooks).remove(symbol);
             var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
@@ -2130,7 +2130,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         Object subscription = this.safeValue(client.subscriptions, messageHash);
         if (!java.util.Objects.equals(subscription, null))
         {
-            ((Map<String,Object>)client.subscriptions).remove(messageHash);
+            client.subscriptions.remove(messageHash);
         }
         client.resolve(message, messageHash);
     }
@@ -2142,7 +2142,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         if (!java.util.Objects.equals(subscription, null))
         {
             String subscribeHash = this.safeString(subscription, "subscribeHash");
-            ((Map<String,Object>)client.subscriptions).remove(("subscription:" + id));
+            client.subscriptions.remove(("subscription:" + id));
             client.resolve(message, subscribeHash);
         }
     }
@@ -2153,8 +2153,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String messageHash = this.safeString(client.subscriptions, ("authentication:" + id));
         if (!java.util.Objects.equals(messageHash, null))
         {
-            ((Map<String,Object>)client.subscriptions).remove(("authentication:" + id));
-            ((Map)client.subscriptions).put(messageHash, true);
+            client.subscriptions.remove(("authentication:" + id));
+            client.subscriptions.put(messageHash, true);
             client.resolve(message, messageHash);
         }
     }
@@ -2167,7 +2167,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             String messageHash = this.safeString(unsubscription, "messageHash");
             String unsubscribeHash = this.safeString(unsubscription, "unsubscribeHash");
-            ((Map<String,Object>)client.subscriptions).remove(("unsubscription:" + id));
+            client.subscriptions.remove(("unsubscription:" + id));
             if (!java.util.Objects.equals(messageHash, null))
             {
                 this.cleanUnsubscription(client, (String) (messageHash), (String) (unsubscribeHash), false);
@@ -2315,7 +2315,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object executeSubscription = this.safeValue(client.subscriptions, executeHash);
             if (!java.util.Objects.equals(executeSubscription, null))
             {
-                ((Map<String,Object>)client.subscriptions).remove(executeHash);
+                client.subscriptions.remove(executeHash);
                 client.reject(feedback, executeHash);
                 return true;
             }
@@ -2324,7 +2324,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         if (!java.util.Objects.equals(subscription, null))
         {
             String subscribeHash = this.safeString(subscription, "subscribeHash");
-            ((Map<String,Object>)client.subscriptions).remove(("subscription:" + id));
+            client.subscriptions.remove(("subscription:" + id));
             client.reject(feedback, subscribeHash);
         } else
         {

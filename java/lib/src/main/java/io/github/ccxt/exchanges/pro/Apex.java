@@ -315,7 +315,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
-                if (!(((Map<?, ?>)client.subscriptions).containsKey((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)))))
+                if (!(client.subscriptions.containsKey((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)))))
                 {
                     ((List<Object>)newTopics).add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
                 }
@@ -966,7 +966,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return;
         }
         String messageHash = "fetchPositionsSnapshot";
-        if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+        if (!(client.futures.containsKey(messageHash)))
         {
             client.future(messageHash);
             this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -993,10 +993,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 }
             }
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)(client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
-                ((io.github.ccxt.ws.Future)future).resolve(cache);
+                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
+                future.resolve(cache);
                 client.resolve(cache, "positions");
             }
             return null;
@@ -1106,7 +1106,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 }};
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
@@ -1198,9 +1198,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                if (client.subscriptions.containsKey(messageHash))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                    client.subscriptions.remove(messageHash);
                 }
             } else
             {
@@ -1357,14 +1357,14 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         if ((java.util.Objects.equals(success, true)) || ((code != null && code == 0)))
         {
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                client.subscriptions.remove(messageHash);
             }
         }
         return message;
