@@ -2914,7 +2914,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, float $amount, string $type, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $amountString = (string) $amount;
