@@ -4087,7 +4087,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut response: Value = Value::Null;
-        if is_true(&self.is_fiat(code.clone())) {
+        if self.is_fiat(code.clone()).as_bool() == Some(true) {
             let mut provider: Value = self.safe_string_k(params.clone(), "provider", &[]);
             if (provider == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a provider when the ticker is fiat".into()))));
@@ -4419,7 +4419,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (tag != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("memo".into(), tag); }
         }
-        if is_true(&self.is_fiat(code)) {
+        if self.is_fiat(code).as_bool() == Some(true) {
             let mut provider: Value = self.safe_value_k(paramsWithdrawTag.clone(), "provider", &[]);
             if (provider == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a provider when the ticker is fiat".into()))));

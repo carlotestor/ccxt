@@ -6537,8 +6537,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             network = network.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut withdrawable: Value = (Value::Bool(self.safe_string_k(chain.clone(), "withdrawable", &[]).as_str() == Some("true")));
             let mut rechargeable: Value = (Value::Bool(self.safe_string_k(chain.clone(), "rechargeable", &[]).as_str() == Some("true")));
-            withdraw = (if (withdraw == Value::Null) { withdrawable.clone() } else { Value::Bool((is_true(&withdraw) || matches!(&withdrawable, Value::Bool(true)))) });
-            deposit = (if (deposit == Value::Null) { rechargeable.clone() } else { Value::Bool((is_true(&deposit) || matches!(&rechargeable, Value::Bool(true)))) });
+            withdraw = (if (withdraw == Value::Null) { withdrawable.clone() } else { Value::Bool((withdraw.as_bool() == Some(true) || matches!(&withdrawable, Value::Bool(true)))) });
+            deposit = (if (deposit == Value::Null) { rechargeable.clone() } else { Value::Bool((deposit.as_bool() == Some(true) || matches!(&rechargeable, Value::Bool(true)))) });
             if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&network), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());

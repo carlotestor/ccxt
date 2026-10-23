@@ -1740,7 +1740,7 @@ impl NadoCore {
             let mut __for_first_976: bool = true;
             while { if !__for_first_976 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_976 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut order: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if is_true(&self.is_archive_order_closed(order.clone())) {
+            if self.is_archive_order_closed(order.clone()).as_bool() == Some(true) {
                 closedOrders.push(self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("status".to_string(), Value::Str("closed".into()));
@@ -3782,7 +3782,7 @@ impl NadoCore {
             price = self.parse_x18(self.safe_string_k(order.clone(), "price_x18", &[]));
             status = self.safe_string_k(order.clone(), "status", &[]);
             if (status == Value::Null) {
-                if is_true(&self.is_archive_order_closed(order.clone())) {
+                if self.is_archive_order_closed(order.clone()).as_bool() == Some(true) {
                     status = Value::Str("closed".into());
                 }
             }
