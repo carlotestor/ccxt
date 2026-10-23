@@ -319,11 +319,12 @@ func (this *Onetrading) HandleTicker(client any, message map[string]any) {
 		}()
 		var marketId *string = this.SafeString(ticker, "instrument")
 		var symbol *string = this.SafeSymbol(marketId)
-		this.Tickers.Store(symbol, this.ParseWSTicker(ticker))
+		var parsedTicker any = this.ParseWSTicker(ticker)
+		this.Tickers.Store(symbol, parsedTicker)
 		var timestamp *int64 = this.Parse8601(datetime)
-		ccxt.AddElementToObject(this.Tickers.Get(symbol), "timestamp", timestamp)
-		ccxt.AddElementToObject(this.Tickers.Get(symbol), "datetime", this.Iso8601(timestamp))
-		client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), "ticker."+*symbol)
+		ccxt.AddElementToObject(parsedTicker, "timestamp", timestamp)
+		ccxt.AddElementToObject(parsedTicker, "datetime", this.Iso8601(timestamp))
+		client.(ccxt.ClientInterface).Resolve(parsedTicker, "ticker."+*symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Tickers.ToMap(), "tickers")
 }
@@ -1438,15 +1439,16 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbol+".", timeframe))
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var symbolOhlcvs any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, symbolOhlcvs)
+	var stored any = this.SafeValue(symbolOhlcvs, timeframe)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 	}
 	stored.(ccxt.Appender).Append(parsed)
 	if (symbol != nil) && (timeframe != nil) {
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		ccxt.AddElementToObject(symbolOhlcvs, timeframe, stored)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }

@@ -97,8 +97,9 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 	if ccxt.EvalTruthy(isContract) {
 		tradeType = "contract"
 	}
+	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 	var url any
-	if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), tradeType); derefPtr != nil {
+	if derefPtr := this.SafeString(apiUrls, tradeType); derefPtr != nil {
 		url = *derefPtr
 	}
 	if !ccxt.EvalTruthy(isContract) {
@@ -348,7 +349,8 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name any, access st
 	var subscription map[string]any = map[string]any{
 		"id": id,
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), tradeType), "/"), tail))
+	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(apiUrls, tradeType), "/"), tail))
 
 	r2 := <-this.Watch(url, messageHash, request, messageHash, subscription)
 	if r2.Err != nil {
@@ -440,7 +442,8 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash any,
 			return "market"
 		}()
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), tradeType), "/"), tail))
+	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(apiUrls, tradeType), "/"), tail))
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"id":               id,
@@ -788,8 +791,8 @@ func (this *Xt) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes45615 := r1.Value
-	ch <- ccxt.AsyncResult[bool]{Value: retRes45615}
+	retRes45915 := r1.Value
+	ch <- ccxt.AsyncResult[bool]{Value: retRes45915}
 	return nil
 }
 
@@ -1170,7 +1173,8 @@ func (this *Xt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], op
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "contract"), "/"), "user"))
+	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(apiUrls, "contract"), "/"), "user"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)

@@ -5957,17 +5957,18 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
-			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
-			if depositWithdrawFee == nil {
-				depositWithdrawFees[*code] = this.DepositWithdrawFee(map[string]any{})
-				AddElementToObject(GetValue(depositWithdrawFees, code), "info", []any{})
+			if IsEqual(this.SafeDict(depositWithdrawFees, code), nil) {
+				var feeStructure map[string]any = this.DepositWithdrawFee(map[string]any{})
+				feeStructure["info"] = []any{}
+				depositWithdrawFees[*code] = feeStructure
 			}
-			var depositWithdrawInfo any = GetValue(func() any {
+			var depositWithdrawFee any = func() any {
 				if code == nil {
 					return nil
 				}
 				return depositWithdrawFees[*code]
-			}(), "info")
+			}()
+			var depositWithdrawInfo any = GetValue(depositWithdrawFee, "info")
 			AppendToArray(&depositWithdrawInfo, entry)
 			var networkId *string = this.SafeString(entry, "chain")
 			var withdrawFee any = this.SafeValue(entry, "min_withdraw_fee")
@@ -5987,14 +5988,14 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 			if networkId != nil {
 				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
-					AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
+					AddElementToObject(GetValue(depositWithdrawFee, "networks"), networkCode, map[string]any{
 						"withdraw": withdrawResult,
 						"deposit":  depositResult,
 					})
 				}
 			} else {
-				AddElementToObject(GetValue(depositWithdrawFees, code), "withdraw", withdrawResult)
-				AddElementToObject(GetValue(depositWithdrawFees, code), "deposit", depositResult)
+				AddElementToObject(depositWithdrawFee, "withdraw", withdrawResult)
+				AddElementToObject(depositWithdrawFee, "deposit", depositResult)
 			}
 		}
 	}
@@ -6041,11 +6042,11 @@ func (this *Digifinex) addMarginBody(ch chan AsyncResult[MarginModification], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes452015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes452015 == nil {
+	var retRes452115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes452115 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes452015)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes452115)}
 	}
 	return nil
 }
@@ -6078,11 +6079,11 @@ func (this *Digifinex) reduceMarginBody(ch chan AsyncResult[MarginModification],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes453715 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes453715 == nil {
+	var retRes453815 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes453815 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes453715)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes453815)}
 	}
 	return nil
 }

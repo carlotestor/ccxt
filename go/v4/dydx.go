@@ -1568,7 +1568,7 @@ func (this *Dydx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 func (this *Dydx) HashMessage(message any) any {
 	return this.Hash(message, keccak, "hex")
 }
-func (this *Dydx) SignHash(hash any, privateKey any) any {
+func (this *Dydx) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
@@ -1609,8 +1609,8 @@ func (this *Dydx) SignDydxTx(privateKey any, message any, memo any, chainId *str
 	encodedTxsignDocVariable := this.EncodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee)
 	encodedTx := GetValue(encodedTxsignDocVariable, 0)
 	signDoc := GetValue(encodedTxsignDocVariable, 1)
-	var signature any = this.SignHash(encodedTx, privateKey)
-	return this.EncodeDydxTxRaw(signDoc, Add(GetValue(signature, "r"), GetValue(signature, "s")))
+	var signature map[string]any = this.SignHash(encodedTx, privateKey)
+	return this.EncodeDydxTxRaw(signDoc, Add(signature["r"], signature["s"]))
 }
 func (this *Dydx) RetrieveCredentials() any {
 	var credentials any = this.SafeDict(this.Options, "dydxCredentials")
@@ -1988,12 +1988,12 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		"latestBlockHeight": lastBlockHeight,
 	})
 	var orderRequestRes []any = ArrayTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, newParams))
-	var orderId any = func() any {
+	var orderId *string = SafeStringPtr(func() any {
 		if 0 >= 0 && 0 < len(orderRequestRes) {
 			return DerefScalar(orderRequestRes[0])
 		}
 		return nil
-	}()
+	}())
 	var orderRequest any = func() any {
 		if 1 >= 0 && 1 < len(orderRequestRes) {
 			return DerefScalar(orderRequestRes[1])

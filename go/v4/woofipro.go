@@ -2581,7 +2581,8 @@ func (this *Woofipro) CreateOrderRequest(symbol *string, typeVar *string, side *
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
 	var algoType *string = this.SafeString(params, "algoType")
-	var isConditional bool = (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
+	var paramsChildOrders any = this.SafeValue(params, "childOrders")
+	var isConditional bool = (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (paramsChildOrders != nil)
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
@@ -2720,7 +2721,8 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeDict(params, "stopLoss")
 	var takeProfit any = this.SafeDict(params, "takeProfit")
-	var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (!IsEqual(this.SafeList(params, "childOrders"), nil))
+	var paramsChildOrders []any = SafeListTyped(params, "childOrders")
+	var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (paramsChildOrders != nil)
 	var response map[string]any = nil
 	if isConditional {
 
@@ -2784,7 +2786,8 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
 		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
-		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (!IsEqual(this.SafeList(orderParams, "childOrders"), nil))
+		var paramsChildOrders []any = SafeListTyped(orderParams, "childOrders")
+		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (paramsChildOrders != nil)
 		if isConditional {
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
 		}
@@ -2871,7 +2874,8 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	if triggerPrice != nil {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	var isConditional bool = (triggerPrice != nil) || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
+	var paramsChildOrders any = this.SafeValue(params, "childOrders")
+	var isConditional bool = (triggerPrice != nil) || (paramsChildOrders != nil)
 	var orderQtyKey string = func() string {
 		if isConditional {
 			return "quantity"
@@ -3391,11 +3395,11 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes242219 []any = r1.Value
-		if retRes242219 == nil {
+		var retRes242619 []any = r1.Value
+		if retRes242619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes242219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes242619)}
 		}
 		return nil
 	}
@@ -3523,11 +3527,11 @@ func (this *Woofipro) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes251015 []any = OrdersToList(r1.Value)
-	if retRes251015 == nil {
+	var retRes251415 []any = OrdersToList(r1.Value)
+	if retRes251415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes251015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes251415)}
 	}
 	return nil
 }
@@ -3580,11 +3584,11 @@ func (this *Woofipro) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes253515 []any = OrdersToList(r1.Value)
-	if retRes253515 == nil {
+	var retRes253915 []any = OrdersToList(r1.Value)
+	if retRes253915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes253515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes253915)}
 	}
 	return nil
 }
@@ -3708,11 +3712,11 @@ func (this *Woofipro) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes260719 []any = r1.Value
-		if retRes260719 == nil {
+		var retRes261119 []any = r1.Value
+		if retRes261119 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes260719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes261119)}
 		}
 		return nil
 	}
@@ -3988,8 +3992,8 @@ func (this *Woofipro) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3716, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3716
+	listRecv3720, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3720
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4078,11 +4082,11 @@ func (this *Woofipro) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes287215 []any = TransactionsToList(r.Value)
-	if retRes287215 == nil {
+	var retRes287615 []any = TransactionsToList(r.Value)
+	if retRes287615 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes287215)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes287615)}
 	}
 	return nil
 }
@@ -4122,11 +4126,11 @@ func (this *Woofipro) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes289015 []any = TransactionsToList(r.Value)
-	if retRes289015 == nil {
+	var retRes289415 []any = TransactionsToList(r.Value)
+	if retRes289415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes289015)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes289415)}
 	}
 	return nil
 }
@@ -4164,8 +4168,8 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3879, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3879
+	listRecv3883, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3883
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows any = this.SafeList(currencyRows, 1)
 	//
@@ -4637,11 +4641,11 @@ func (this *Woofipro) addMarginBody(ch chan AsyncResult[MarginModification], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes321415 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes321415 == nil {
+	var retRes321815 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes321815 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes321415)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes321815)}
 	}
 	return nil
 }
@@ -4671,11 +4675,11 @@ func (this *Woofipro) reduceMarginBody(ch chan AsyncResult[MarginModification], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes322815 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes322815 == nil {
+	var retRes323215 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes323215 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes322815)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes323215)}
 	}
 	return nil
 }

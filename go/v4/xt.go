@@ -2340,12 +2340,18 @@ func (this *Xt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opti
 	//         }
 	//     }
 	//
-	var ticker any = this.SafeValue(response, "result")
 	if market["spot"] == true {
+		var tickers []any = SafeListTyped(response, "result")
 
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(GetValue(ticker, 0), market)}
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(func() any {
+			if 0 >= 0 && 0 < len(tickers) {
+				return DerefScalar(tickers[0])
+			}
+			return nil
+		}(), market)}
 		return nil
 	}
+	var ticker map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -3370,11 +3376,11 @@ func (this *Xt) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes257915 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes257915 == nil {
+	var retRes258015 map[string]any = StructResultMap(r1.Value, OrderToMap)
+	if retRes258015 == nil {
 		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes257915)}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes258015)}
 	}
 	return nil
 }
@@ -3439,11 +3445,11 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes262319 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes262319 == nil {
+		var retRes262419 map[string]any = StructResultMap(r1.Value, OrderToMap)
+		if retRes262419 == nil {
 			ch <- AsyncResult[Order]{}
 		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes262319)}
+			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes262419)}
 		}
 		return nil
 	} else {
@@ -3452,11 +3458,11 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes262519 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes262519 == nil {
+		var retRes262619 map[string]any = StructResultMap(r2.Value, OrderToMap)
+		if retRes262619 == nil {
 			ch <- AsyncResult[Order]{}
 		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes262519)}
+			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes262619)}
 		}
 		return nil
 	}
@@ -4689,11 +4695,11 @@ func (this *Xt) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes354115 []any = OrdersToList(r.Value)
-	if retRes354115 == nil {
+	var retRes354215 []any = OrdersToList(r.Value)
+	if retRes354215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes354115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes354215)}
 	}
 	return nil
 }
@@ -4737,11 +4743,11 @@ func (this *Xt) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes356315 []any = OrdersToList(r.Value)
-	if retRes356315 == nil {
+	var retRes356415 []any = OrdersToList(r.Value)
+	if retRes356415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes356315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes356415)}
 	}
 	return nil
 }
@@ -4785,11 +4791,11 @@ func (this *Xt) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes358515 []any = OrdersToList(r.Value)
-	if retRes358515 == nil {
+	var retRes358615 []any = OrdersToList(r.Value)
+	if retRes358615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes358515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes358615)}
 	}
 	return nil
 }
@@ -6084,11 +6090,11 @@ func (this *Xt) addMarginBody(ch chan AsyncResult[MarginModification], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes453015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes453015 == nil {
+	var retRes453115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes453115 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes453015)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes453115)}
 	}
 	return nil
 }
@@ -6119,11 +6125,11 @@ func (this *Xt) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes454515 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes454515 == nil {
+	var retRes454615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes454615 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes454515)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes454615)}
 	}
 	return nil
 }
@@ -6477,11 +6483,11 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes479219 []any = r1.Value
-		if retRes479219 == nil {
+		var retRes479319 []any = r1.Value
+		if retRes479319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes479219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes479319)}
 		}
 		return nil
 	}
@@ -6586,11 +6592,11 @@ func (this *Xt) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes486415 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes486415 == nil {
+	var retRes486515 map[string]any = StructResultMap(r.Value, FundingRateToMap)
+	if retRes486515 == nil {
 		ch <- AsyncResult[FundingRate]{}
 	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes486415)}
+		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes486515)}
 	}
 	return nil
 }

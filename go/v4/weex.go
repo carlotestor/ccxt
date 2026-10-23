@@ -6093,7 +6093,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 	if hasJsonBody {
 		requestBody = this.Json(query)
 	}
-	var requestHeaders map[string]any = nil
+	var requestHeaders map[string]any = map[string]any{}
 	if isPrivate {
 		var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 		if (sandboxMode != nil && *sandboxMode) && (strings.Index(path, "capi/v3/sim/") != 0) {
@@ -6113,7 +6113,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 			"ACCESS-TIMESTAMP":  timestamp,
 		}
 		if (method == "POST") || (method == "DELETE") {
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			requestHeaders["Content-Type"] = "application/json"
 		}
 	} else {
 		requestHeaders = map[string]any{

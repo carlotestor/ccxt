@@ -238,19 +238,9 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	if priceType != nil && *priceType == "mark" {
 		prefix = "markKline"
 	}
-	var streamBaseId any = func() any {
-		if !ccxt.IsEqual(market["baseId"], nil) {
-			return market["baseId"]
-		}
-		return ""
-	}()
-	var streamQuoteId any = func() any {
-		if !ccxt.IsEqual(market["quoteId"], nil) {
-			return market["quoteId"]
-		}
-		return ""
-	}()
-	var stream string = prefix + "@" + *interval + "@" + ccxt.ToLower(streamBaseId) + ccxt.ToLower(streamQuoteId)
+	var streamBaseId *string = this.SafeString(market, "baseId", "")
+	var streamQuoteId *string = this.SafeString(market, "quoteId", "")
+	var stream string = prefix + "@" + *interval + "@" + strings.ToLower(*streamBaseId) + strings.ToLower(*streamQuoteId)
 	var messageHash string = stream
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	this.SetBrokerHeaders()

@@ -1950,7 +1950,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginModeparamsValueVariable := this.CustomHandleMarginModeAndParams("createOrder", paramsMarketType)
 	var marginMode *string = SafeStringPtr(marginModeparamsValueVariable[0])
-	paramsValue := GetValue(marginModeparamsValueVariable, 1)
+	var paramsValue map[string]any = MapTyped(marginModeparamsValueVariable[1])
 	if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 		request["spot_margin"] = "MARGIN"
 	} else if marketType != nil && *marketType == "spot" {
@@ -2028,7 +2028,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	} else {
 		request["type"] = uppercaseType
 	}
-	var paramsOmitted any = this.Omit(paramsValue, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
+	var paramsOmitted map[string]any = this.OmitDict(paramsValue, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -2127,8 +2127,8 @@ func (this *Cryptocom) createOrdersBody(ch chan AsyncResult[[]Order], orders any
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var orderRequest map[string]any = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
@@ -2199,7 +2199,7 @@ func (this *Cryptocom) createOrdersBody(ch chan AsyncResult[[]Order], orders any
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result))}
 	return nil
 }
-func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *string, side *string, amount *float64, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3604,7 +3604,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) Tr
 		"fee":         fee,
 	})
 }
-func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName any, optionalArgs ...any) []any {
+func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName string, optionalArgs ...any) []any {
 	/**
 	 * @ignore
 	 * @method
@@ -4805,7 +4805,7 @@ func (this *Cryptocom) ParseTradingFees(response map[string]any) map[string]any 
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		var market map[string]any = this.Market(symbol)
-		var isSwap *bool = SafeBoolPtr(market["swap"])
+		var isSwap *bool = this.SafeBool(market, "swap")
 		var takerFeeKey string = "effective_spot_taker_rate_bps"
 		if isSwap != nil && *isSwap == true {
 			takerFeeKey = "effective_deriv_taker_rate_bps"

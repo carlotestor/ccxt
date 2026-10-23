@@ -1008,8 +1008,8 @@ func (this *Bitrue) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	}
 	var promises []any = ListTyped(r.Value)
 	var spotMarkets any = this.SafeList(this.SafeDict(promises, 0), "symbols", []any{})
-	var futureMarkets any = this.SafeValue(promises, 1)
-	var deliveryMarkets any = this.SafeValue(promises, 2)
+	var futureMarkets []any = SafeListTypedDefault(promises, 1, []any{})
+	var deliveryMarkets []any = SafeListTypedDefault(promises, 2, []any{})
 	var markets any = spotMarkets
 	markets = this.ArrayConcat(markets, futureMarkets)
 	markets = this.ArrayConcat(markets, deliveryMarkets)
@@ -2480,7 +2480,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	} else if market["spot"] == true {
 		request["symbol"] = market["id"]
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
-		var validOrderTypes any = this.SafeValue(market["info"], "orderTypes")
+		var validOrderTypes []any = SafeListTypedDefault(market["info"], "orderTypes", []any{})
 		if !this.InArray(uppercaseType, validOrderTypes) {
 			panic(InvalidOrder(this.Id + " " + typeVar + " is not a valid order type in market " + symbol))
 		}

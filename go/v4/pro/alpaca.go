@@ -94,7 +94,7 @@ func (this *Alpaca) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "crypto"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "crypto")
 
 	r := <-this.AuthenticateAsync(url)
 	if r.Err != nil {
@@ -219,7 +219,7 @@ func (this *Alpaca) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "crypto"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "crypto")
 
 	r := <-this.AuthenticateAsync(url)
 	if r.Err != nil {
@@ -304,7 +304,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "crypto"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "crypto")
 
 	r := <-this.AuthenticateAsync(url)
 	if r.Err != nil {
@@ -415,7 +415,7 @@ func (this *Alpaca) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "crypto"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "crypto")
 
 	r := <-this.AuthenticateAsync(url)
 	if r.Err != nil {
@@ -503,7 +503,7 @@ func (this *Alpaca) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "trading"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "trading")
 
 	r := <-this.AuthenticateAsync(url)
 	if r.Err != nil {
@@ -573,7 +573,7 @@ func (this *Alpaca) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "trading"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "trading")
 
 	r := <-this.AuthenticateAsync(url)
 	if r.Err != nil {
@@ -845,7 +845,7 @@ func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any,
 			"key":    this.ApiKey,
 			"secret": this.Secret,
 		}
-		if ccxt.IsEqual(url, this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "trading")) {
+		if ccxt.IsEqual(url, this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "trading")) {
 			// this auth request is being deprecated in test environment
 			request = map[string]any{
 				"action": "authenticate",

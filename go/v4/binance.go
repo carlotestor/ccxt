@@ -23014,7 +23014,7 @@ func (this *Binance) FetchBorrowRateHistory(code string, options ...FetchBorrowR
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} The gift code id, code, currency and amount
  */
-func (this *Binance) CreateGiftCode(code string, amount any, options ...CreateGiftCodeOptions) (map[string]any, error) {
+func (this *Binance) CreateGiftCode(code string, amount float64, options ...CreateGiftCodeOptions) (map[string]any, error) {
 
 	opts := CreateGiftCodeOptionsStruct{}
 

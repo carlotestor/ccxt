@@ -1513,17 +1513,15 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var query map[string]any = this.OmitDict(params, []any{"marginAsset", "takeProfitPrice", "takeProfitPrice"})
 	this.CheckRequiredArgument("createOrder", side, "side")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"side":   strings.ToUpper(side),
 	}
 	var response map[string]any = nil
 	if market["spot"] == true {
-		requestqueryVariable := this.OrderRequest(symbol, typeVar, amount, request, price, query)
-		request = GetValue(requestqueryVariable, 0)
-		query = MapTyped(requestqueryVariable[1])
+		var orderRequestResult any = this.OrderRequest(symbol, typeVar, amount, request, price, query)
 
-		r1 := <-this.PrivateSpotPostV2ExOrders(this.Extend(request, query))
+		r1 := <-this.PrivateSpotPostV2ExOrders(this.Extend(GetValue(orderRequestResult, 0), GetValue(orderRequestResult, 1)))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1531,17 +1529,17 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	} else {
 		var marginAsset *string = this.SafeString(query, "marginAsset", "INR")
 		var formType *string = this.SafeStringUpper(query, "formType", "ORDER_FORM")
-		AddElementToObject(request, "formType", formType)
-		AddElementToObject(request, "amount", this.ParseToNumeric(this.AmountToPrecision(market["id"], amount)))
-		AddElementToObject(request, "marginAsset", marginAsset)
+		request["formType"] = formType
+		request["amount"] = this.ParseToNumeric(this.AmountToPrecision(market["id"], amount))
+		request["marginAsset"] = marginAsset
 		var hasTP bool = (takeProfitPrice != nil)
 		var hasSL bool = (stopLossPrice != nil)
 		if hasTP || hasSL {
 			if hasTP {
-				AddElementToObject(request, "takeProfitPrice", this.ParseToNumeric(this.PriceToPrecision(symbol, takeProfitPrice)))
+				request["takeProfitPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, takeProfitPrice))
 			}
 			if hasSL {
-				AddElementToObject(request, "stopLossPrice", this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice)))
+				request["stopLossPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice))
 			}
 
 			r2 := <-this.PrivateSwapPostV1TradeOrderAddTPSL(this.Extend(request, query))
@@ -1550,12 +1548,12 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			}
 			response = r2.Value
 		} else {
-			AddElementToObject(request, "type", upperCaseType)
+			request["type"] = upperCaseType
 			if typeVar == "limit" {
 				if price == nil {
 					panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit orders"))
 				}
-				AddElementToObject(request, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
+				request["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
 			}
 
 			r3 := <-this.PrivateSwapPostV1TradeOrder(this.Extend(request, query))
@@ -1577,7 +1575,7 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, request any, optionalArgs ...any) []any {
+func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, request map[string]any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1588,20 +1586,20 @@ func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, requ
 	var timeInForce *string = this.SafeString(params, "timeInForce", "GTC")
 	var clientOrderId *string = this.SafeString(params, "clientOrderId", this.Uuid())
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopLossPrice", "cost", "timeInForce", "clientOrderId"})
-	AddElementToObject(request, "type", upperCaseType)
-	AddElementToObject(request, "clientOrderId", clientOrderId)
-	AddElementToObject(request, "timeInForce", timeInForce)
+	request["type"] = upperCaseType
+	request["clientOrderId"] = clientOrderId
+	request["timeInForce"] = timeInForce
 	if upperCaseType == "MARKET" {
 		if quoteOrderQty == nil {
 			panic(ExchangeError(this.Id + " spot market orders require cost in params"))
 		}
-		AddElementToObject(request, "quoteOrderAmount", this.CostToPrecision(symbol, quoteOrderQty))
+		request["quoteOrderAmount"] = this.CostToPrecision(symbol, quoteOrderQty)
 	} else {
 		if triggerPrice != nil {
-			AddElementToObject(request, "stopLossPrice", this.PriceToPrecision(symbol, triggerPrice))
+			request["stopLossPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
-		AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
-		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+		request["amount"] = this.AmountToPrecision(symbol, amount)
+		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	return []any{request, paramsOmitted}
 }

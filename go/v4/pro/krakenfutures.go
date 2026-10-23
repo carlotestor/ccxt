@@ -2125,7 +2125,7 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], u
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	subscriptionArgs := ccxt.GetArg(optionalArgs, 1, nil)
+	var subscriptionArgs map[string]any = ccxt.GetArgMap(optionalArgs, 1, nil)
 	_ = subscriptionArgs
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params

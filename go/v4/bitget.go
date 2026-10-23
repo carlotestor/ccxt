@@ -14648,17 +14648,19 @@ func (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 	_ = currency
 	var chains []any = SafeListTyped(fee, "chains")
 	var chainsLength int = len(chains)
+	var networks map[string]any = map[string]any{}
+	var withdraw map[string]any = map[string]any{
+		"fee":        nil,
+		"percentage": nil,
+	}
 	var result map[string]any = map[string]any{
-		"info": fee,
-		"withdraw": map[string]any{
-			"fee":        nil,
-			"percentage": nil,
-		},
+		"info":     fee,
+		"withdraw": withdraw,
 		"deposit": map[string]any{
 			"fee":        nil,
 			"percentage": nil,
 		},
-		"networks": map[string]any{},
+		"networks": networks,
 	}
 	for i := 0; i < chainsLength; i++ {
 		var chain map[string]any = SafeMapTyped(chains, i)
@@ -14666,7 +14668,7 @@ func (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 		var currencyCode *string = this.SafeString(currency, "code")
 		var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 		if networkCode != nil {
-			AddElementToObject(result["networks"], networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"deposit": map[string]any{
 					"fee":        nil,
 					"percentage": nil,
@@ -14675,11 +14677,11 @@ func (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 					"fee":        this.SafeNumber(chain, "withdrawFee"),
 					"percentage": false,
 				},
-			})
+			}
 		}
 		if chainsLength == 1 {
-			AddElementToObject(result["withdraw"], "fee", this.SafeNumber(chain, "withdrawFee"))
-			AddElementToObject(result["withdraw"], "percentage", false)
+			withdraw["fee"] = this.SafeNumber(chain, "withdrawFee")
+			withdraw["percentage"] = false
 		}
 	}
 	return result
@@ -15091,11 +15093,11 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1092519 []any = r1.Value
-		if retRes1092519 == nil {
+		var retRes1092719 []any = r1.Value
+		if retRes1092719 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1092519)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1092719)}
 		}
 		return nil
 	}
@@ -15430,8 +15432,8 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14261, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv14261
+	listRecv14263, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv14263
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -15586,11 +15588,11 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1131619 []any = r1.Value
-		if retRes1131619 == nil {
+		var retRes1131819 []any = r1.Value
+		if retRes1131819 == nil {
 			ch <- AsyncResult[[]BorrowInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(retRes1131619)}
+			ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(retRes1131819)}
 		}
 		return nil
 	}
@@ -15784,8 +15786,8 @@ func (this *Bitget) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14584, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv14584
+	listRecv14586, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv14586
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -15860,8 +15862,8 @@ func (this *Bitget) closeAllPositionsBody(ch chan AsyncResult[[]Position], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14644, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv14644
+	listRecv14646, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv14646
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -16043,8 +16045,8 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14804, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv14804
+	listRecv14806, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv14806
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -16498,8 +16500,8 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv15215, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv15215
+	listRecv15217, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv15217
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {

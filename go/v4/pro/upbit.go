@@ -72,7 +72,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 		return symbolsMarket
 	}()
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url string = this.ImplodeParams(ccxt.GetValue(this.Urls["api"], "ws"), map[string]any{
+	var url string = this.ImplodeParams(this.SafeString(this.Urls["api"], "ws"), map[string]any{
 		"hostname": this.Hostname,
 	})
 	var client ccxt.ClientInterface = this.Client(url)
@@ -567,7 +567,7 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol any, c
 	if symbolResolved != nil {
 		messageHashResolved = ccxt.Add(messageHash+":", symbolResolved)
 	}
-	var url string = this.ImplodeParams(ccxt.GetValue(this.Urls["api"], "ws"), map[string]any{
+	var url string = this.ImplodeParams(this.SafeString(this.Urls["api"], "ws"), map[string]any{
 		"hostname": this.Hostname,
 	})
 	url += "/private"

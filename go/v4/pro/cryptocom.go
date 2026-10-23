@@ -392,8 +392,8 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		books = this.SafeDict(data, "update", map[string]any{})
 		var previousNonce *int64 = this.SafeInteger(data, "pu")
-		var currentNonce any = ccxt.GetValue(orderbook, "nonce")
-		if !ccxt.IsEqual(currentNonce, previousNonce) {
+		var currentNonce *int64 = this.SafeInteger(orderbook, "nonce")
+		if currentNonce != previousNonce && (currentNonce == nil || previousNonce == nil || *currentNonce != *previousNonce) {
 			var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 			if checksum == true {
 				panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))

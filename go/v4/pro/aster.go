@@ -224,22 +224,16 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	var symbolsList any = func() any {
-		if symbolsNormalized == nil {
-			return []any{}
-		}
-		return symbolsNormalized
-	}()
-	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
-	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchTickers")
 	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
 	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
-	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
-	if symbolsLength == 0 {
+	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
 	}
+	var symbolsList []string = symbolsNormalized
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
+	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -250,8 +244,8 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsList, i))
+	for i := 0; i < len(symbolsList); i++ {
+		var symbol string = symbolsList[i]
 		var market map[string]any = this.Market(symbol)
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@ticker"))
 		messageHashes = append(messageHashes, "ticker:"+market["symbol"].(string))
@@ -319,22 +313,16 @@ func (this *Aster) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	var symbolsList any = func() any {
-		if symbolsNormalized == nil {
-			return []any{}
-		}
-		return symbolsNormalized
-	}()
-	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
-	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "unWatchTickers")
 	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
 	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
-	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
-	if symbolsLength == 0 {
+	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
 	}
+	var symbolsList []string = symbolsNormalized
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
+	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -345,8 +333,8 @@ func (this *Aster) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsList, i))
+	for i := 0; i < len(symbolsList); i++ {
+		var symbol string = symbolsList[i]
 		var market map[string]any = this.Market(symbol)
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@ticker"))
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+market["symbol"].(string))
@@ -485,22 +473,16 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	var symbolsList any = func() any {
-		if symbolsNormalized == nil {
-			return []any{}
-		}
-		return symbolsNormalized
-	}()
-	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
-	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchMarkPrices")
 	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
 	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
-	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
-	if symbolsLength == 0 {
+	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
 	}
+	var symbolsList []string = symbolsNormalized
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
+	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -512,8 +494,8 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		"params": subscriptionArgs,
 	}
 	var use1sFreq *bool = this.SafeBool(paramsOmitted, "use1sFreq", true)
-	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsList, i))
+	for i := 0; i < len(symbolsList); i++ {
+		var symbol string = symbolsList[i]
 		var market map[string]any = this.Market(symbol)
 		var suffix string = ""
 		if use1sFreq != nil && *use1sFreq {
@@ -584,22 +566,16 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	var symbolsList any = func() any {
-		if symbolsNormalized == nil {
-			return []any{}
-		}
-		return symbolsNormalized
-	}()
-	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
-	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "unWatchMarkPrices")
 	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
 	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
-	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
-	if symbolsLength == 0 {
+	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
 	}
+	var symbolsList []string = symbolsNormalized
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
+	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -611,8 +587,8 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 		"params": subscriptionArgs,
 	}
 	var use1sFreq *bool = this.SafeBool(paramsOmitted, "use1sFreq", true)
-	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsList, i))
+	for i := 0; i < len(symbolsList); i++ {
+		var symbol string = symbolsList[i]
 		var market map[string]any = this.Market(symbol)
 		var suffix string = ""
 		if use1sFreq != nil && *use1sFreq {
@@ -756,18 +732,12 @@ func (this *Aster) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	var symbolsList any = func() any {
-		if symbolsNormalized == nil {
-			return []any{}
-		}
-		return symbolsNormalized
-	}()
-	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
-	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
-	if symbolsLength == 0 {
+	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks() requires a non-empty array of symbols"))
 	}
+	var symbolsList []string = symbolsNormalized
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
+	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -778,8 +748,8 @@ func (this *Aster) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsList, i))
+	for i := 0; i < len(symbolsList); i++ {
+		var symbol string = symbolsList[i]
 		var market map[string]any = this.Market(symbol)
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@bookTicker"))
 		messageHashes = append(messageHashes, "bidask:"+market["symbol"].(string))
@@ -847,18 +817,12 @@ func (this *Aster) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	var symbolsList any = func() any {
-		if symbolsNormalized == nil {
-			return []any{}
-		}
-		return symbolsNormalized
-	}()
-	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
-	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
-	if symbolsLength == 0 {
+	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchBidsAsks() requires a non-empty array of symbols"))
 	}
+	var symbolsList []string = symbolsNormalized
+	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsList))
+	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -869,8 +833,8 @@ func (this *Aster) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsList, i))
+	for i := 0; i < len(symbolsList); i++ {
+		var symbol string = symbolsList[i]
 		var market map[string]any = this.Market(symbol)
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@bookTicker"))
 		messageHashes = append(messageHashes, "unsubscribe:bidask:"+market["symbol"].(string))
@@ -2837,8 +2801,8 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes190332 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes190332, tradeFee)
+							retRes189732 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes189732, tradeFee)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

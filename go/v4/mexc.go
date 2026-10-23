@@ -3090,18 +3090,18 @@ func (this *Mexc) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		return nil
 	}
 }
-func (this *Mexc) CreateSpotOrderRequest(market any, typeVar *string, side any, amount any, optionalArgs ...any) any {
+func (this *Mexc) CreateSpotOrderRequest(market any, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var marginMode *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = marginMode
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbol any = GetValue(market, "symbol")
-	if (typeVar == nil) || (IsEqual(side, nil)) {
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	if (typeVar == nil) || (side == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a type and a side argument"))
 	}
-	var orderSide string = ToUpper(side)
+	var orderSide string = strings.ToUpper(*side)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   orderSide,
@@ -3187,12 +3187,12 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar *string, side any, 
  * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateSpotOrderAsync(market any, typeVar string, side any, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Mexc) CreateSpotOrderAsync(market any, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createSpotOrderBody(ch, market, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createSpotOrderBody(ch chan AsyncResult[Order], market any, typeVar string, side any, amount any, optionalArgs ...any) any {
+func (this *Mexc) createSpotOrderBody(ch chan AsyncResult[Order], market any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3210,7 +3210,7 @@ func (this *Mexc) createSpotOrderBody(ch chan AsyncResult[Order], market any, ty
 	}
 	var test *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
-	var request any = this.CreateSpotOrderRequest(market, SafeStringPtr(typeVar), side, amount, price, marginMode, paramsOmitted)
+	var request map[string]any = this.CreateSpotOrderRequest(market, SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, marginMode, paramsOmitted)
 	var response map[string]any = nil
 	if test != nil && *test {
 
@@ -3307,7 +3307,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market any, ty
 			panic(r.Err)
 		}
 	}
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var openType any = DerefScalar(this.SafeInteger(params, "openType", 2)) // defaulting to cross margin
 	if marginMode != nil {
 		if marginMode != nil && *marginMode == "cross" {
@@ -3508,7 +3508,7 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders any, opt
 		marginModeparamsLoopVariable := TupleSlice(this.HandleMarginModeAndParams("createOrder", paramsLoop))
 		marginMode = GetValue(marginModeparamsLoopVariable, 0)
 		paramsLoop = GetValue(marginModeparamsLoopVariable, 1)
-		var orderRequest any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, orderParams)
+		var orderRequest map[string]any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var request map[string]any = map[string]any{

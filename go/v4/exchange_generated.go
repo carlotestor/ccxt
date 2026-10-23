@@ -2270,12 +2270,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) map[string]any {
 	if length != 0 {
 		for i := 0; i < length; i++ {
 			var key *string = SafeStringPtr(keys[i])
-			var network map[string]any = MapTyped(func() any {
-				if key == nil {
-					return nil
-				}
-				return networks[*key]
-			}())
+			var network map[string]any = SafeMapTyped(networks, key)
 			var deposit *bool = this.SafeBool(network, "deposit")
 			var currencyDeposit *bool = this.SafeBool(currency, "deposit")
 			if (currencyDeposit == nil) || (deposit != nil && *deposit == true) {
@@ -2466,12 +2461,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	// we insert spot markets first
 	var marketValues []any = this.SortBy(this.ToArray(markets), "spot", true, true)
 	for i := 0; i < len(marketValues); i++ {
-		var value any = func() any {
-			if i >= 0 && i < len(marketValues) {
-				return MarketTyped(marketValues[i])
-			}
-			return nil
-		}()
+		var value any = this.SafeDict(marketValues, i, map[string]any{})
 		if InOp(marketsById, GetValue(value, "id")) {
 			var marketsByIdArray any = GetValue(marketsById, GetValue(value, "id"))
 			AppendToArray(&marketsByIdArray, value)
@@ -2791,8 +2781,8 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 					}
 				}
 				if shouldParseFees {
-					var tradeFees any = this.SafeValue(trade, "fees")
-					if !IsEqual(tradeFees, nil) {
+					var tradeFees any = this.SafeList(trade, "fees")
+					if tradeFees != nil {
 						for j := 0; j < GetArrayLength(tradeFees); j++ {
 							var tradeFee any = GetValue(tradeFees, j)
 							AppendToArray(&fees, this.Extend(map[string]any{}, tradeFee))
@@ -3048,7 +3038,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 	if IsEqual(markets, nil) {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
-	var market any = GetValue(markets, symbol)
+	var market any = this.SafeDict(markets, symbol, map[string]any{})
 	var feeSide *string = this.SafeString(market, "feeSide", "quote")
 	var useQuote bool
 	if feeSide != nil && *feeSide == "get" {
@@ -4938,12 +4928,13 @@ func (this *BaseExchange) CurrencyId(code any) any {
 	if IsEqual(code, nil) {
 		return code
 	}
-	var currency any = this.SafeDict(this.Currencies, code)
-	if IsEqual(currency, nil) {
-		currency = this.SafeCurrency(code)
+	var currencyById any = this.SafeDict(this.Currencies, code)
+	if currencyById != nil {
+		return GetValue(currencyById, "id")
 	}
-	if !IsEqual(currency, nil) {
-		return GetValue(currency, "id")
+	var currency map[string]any = this.SafeCurrency(code)
+	if currency != nil {
+		return currency["id"]
 	}
 	return code
 }
@@ -5046,13 +5037,15 @@ func (this *BaseExchange) ResolvePath(path any, params any) any {
 	return []any{this.ImplodeParams(path, params), this.Omit(params, this.ExtractParams(path))}
 }
 func (this *BaseExchange) GetListFromObjectValues(objects any, key any) any {
-	var newArray any = objects
-	if !IsArray(objects) {
-		newArray = this.ToArray(objects)
-	}
+	var newArray []any = this.ToArray(objects)
 	var results []any = []any{}
-	for i := 0; i < GetArrayLength(newArray); i++ {
-		results = append(results, GetValue(GetValue(newArray, i), key))
+	for i := 0; i < len(newArray); i++ {
+		results = append(results, GetValue(func() any {
+			if i >= 0 && i < len(newArray) {
+				return DerefScalar(newArray[i])
+			}
+			return nil
+		}(), key))
 	}
 	return results
 }
@@ -5390,7 +5383,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	var options map[string]any = SafeMapTyped(this.Options, "buildOHLCVC")
 	var skipZeroPrices *bool = this.SafeBool(options, "skipZeroPrices", true)
 	for i := 0; IsLessThan(i, oldest); i++ {
-		var trade map[string]any = MapTyped(GetValue(trades, i))
+		var trade map[string]any = SafeMapTyped(trades, i)
 		var ts *int64 = this.SafeInteger(trade, "timestamp")
 		var price any = trade["price"]
 		if (ts == nil) || (IsEqual(price, nil)) {
@@ -5576,10 +5569,15 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = marketType
 	if marketId != nil {
 		if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
-			var markets any = GetValue(this.Markets_by_id, marketId)
-			var numMarkets int = GetArrayLength(markets)
+			var markets []any = SafeListTyped(this.Markets_by_id, marketId)
+			var numMarkets int = len(markets)
 			if numMarkets == 1 {
-				return MarketTyped(GetValue(markets, 0))
+				return MarketTyped(func() any {
+					if 0 >= 0 && 0 < len(markets) {
+						return DerefScalar(markets[0])
+					}
+					return nil
+				}())
 			} else {
 				if (marketType == nil) && (market == nil) {
 					panic(ArgumentsRequired(Add(Add(this.Id+" safeMarket() requires a fourth argument for ", marketId), " to disambiguate between different markets with the same market id")))
@@ -5590,8 +5588,13 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 					}
 					return marketType
 				}()
-				for i := 0; i < GetArrayLength(markets); i++ {
-					var currentMarket any = GetValue(markets, i)
+				for i := 0; i < len(markets); i++ {
+					var currentMarket any = func() any {
+						if i >= 0 && i < len(markets) {
+							return DerefScalar(markets[i])
+						}
+						return nil
+					}()
 					if IsEqual(GetValue(currentMarket, marketTypeResolved), true) {
 						return MarketTyped(currentMarket)
 					}
@@ -5838,11 +5841,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes704115 map[string]any = r.Value
-	if retRes704115 == nil {
+	var retRes703915 map[string]any = r.Value
+	if retRes703915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes704115}
+		ch <- AsyncResult[map[string]any]{Value: retRes703915}
 	}
 	return nil
 }
@@ -7525,7 +7528,7 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPost
 		} else if EvalTruthy(isMarketOrder) {
 			panic(InvalidOrder(this.Id + " market orders cannot be postOnly"))
 		} else {
-			var keysToOmit []any = nil
+			var keysToOmit []any = []any{}
 			if po {
 				keysToOmit = []any{"timeInForce", "postOnly"}
 			} else {
@@ -8074,7 +8077,7 @@ func (this *BaseExchange) GetMarketFromSymbols(optionalArgs ...any) any {
 	return market
 }
 func (this *BaseExchange) ParseWsOHLCVs(ohlcvs any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timeframe string = GetArgString(optionalArgs, 1, "1m")
 	_ = timeframe
@@ -8288,7 +8291,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					}
 					errors = 0
 					result = this.ArrayConcat(result, response)
-					var firstElement any = this.SafeValue(response, 0)
+					var firstElement map[string]any = SafeMapTyped(response, 0)
 					paginationTimestamp = this.SafeInteger2(firstElement, "timestamp", 0)
 					if IsEqual(paginationTimestamp, nil) {
 						shouldBreak = true
@@ -8320,7 +8323,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					}
 					errors = 0
 					result = this.ArrayConcat(result, response)
-					var last any = this.SafeValue(response, responseLength-1)
+					var last map[string]any = SafeMapTyped(response, responseLength-1)
 					var lastTimestamp *int64 = this.SafeInteger(last, "timestamp", 0)
 					if lastTimestamp == nil {
 						shouldBreak = true
@@ -11775,12 +11778,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11330, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047815 []any = listRecv11330
-	if retRes1047815 == nil {
+	listRecv11333, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1047615 []any = listRecv11333
+	if retRes1047615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047615)}
 	}
 	return nil
 }

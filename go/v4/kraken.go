@@ -2570,26 +2570,18 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		return this.SafeString(orderOmitted, "descr")
 	}()
-	var side any = nil
+	var side *string = nil
 	var rawType any = nil
 	var marketId any = nil
 	var price any = nil
-	var amount any = nil
+	var amount *string = nil
 	var cost *string = nil
 	var triggerPrice *string = nil
 	if orderDescription != nil {
 		var parts []string = Split(orderDescription, " ")
-		if derefPtr := this.SafeString(parts, 0); derefPtr != nil {
-			side = *derefPtr
-		} else {
-			side = nil
-		}
+		side = this.SafeString(parts, 0)
 		if !(isUsingCost != nil && *isUsingCost) {
-			if derefPtr := this.SafeString(parts, 1); derefPtr != nil {
-				amount = *derefPtr
-			} else {
-				amount = nil
-			}
+			amount = this.SafeString(parts, 1)
 		} else {
 			cost = this.SafeString(parts, 1)
 		}
@@ -2620,13 +2612,19 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 			}
 		}
 	}
-	side = DerefScalar(this.SafeString(description, "type", side))
+	var descriptionSide *string = this.SafeString(description, "type")
+	if descriptionSide != nil {
+		side = descriptionSide
+	}
 	rawType = DerefScalar(this.SafeString(description, "ordertype", rawType)) // orderType has dash, e.g. trailing-stop
 	marketId = DerefScalar(this.SafeString(description, "pair", marketId))
 	var marketResolved any = this.ResolveMarketByAltnameOrId(marketId, market)
 	var symbol *string = nil
 	var timestamp *int64 = this.SafeTimestamp(orderOmitted, "opentm")
-	amount = DerefScalar(this.SafeString(orderOmitted, "vol", amount))
+	var orderAmount *string = this.SafeString(orderOmitted, "vol")
+	if orderAmount != nil {
+		amount = orderAmount
+	}
 	var filled *string = this.SafeString(orderOmitted, "vol_exec")
 	var fee map[string]any = nil
 	// kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -4225,11 +4223,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes320019 []any = r1.Value
-		if retRes320019 == nil {
+		var retRes320619 []any = r1.Value
+		if retRes320619 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes320019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes320619)}
 		}
 		return nil
 	}
@@ -4347,11 +4345,11 @@ func (this *Kraken) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes329115 map[string]any = StructResultMap(r.Value, DepositAddressToMap)
-	if retRes329115 == nil {
+	var retRes329715 map[string]any = StructResultMap(r.Value, DepositAddressToMap)
+	if retRes329715 == nil {
 		ch <- AsyncResult[DepositAddress]{}
 	} else {
-		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(retRes329115)}
+		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(retRes329715)}
 	}
 	return nil
 }
@@ -4468,8 +4466,8 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv4212, _ := MapSliceToList(r1.Value), r1.Value != nil
-		var depositMethods []any = listRecv4212
+		listRecv4218, _ := MapSliceToList(r1.Value), r1.Value != nil
+		var depositMethods []any = listRecv4218
 		if network != nil {
 			// find best matching deposit method, or fallback to the first one
 			for i := 0; i < len(depositMethods); i++ {
@@ -4793,11 +4791,11 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[TransferEntry], code any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes361515 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
-	if retRes361515 == nil {
+	var retRes362115 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
+	if retRes362115 == nil {
 		ch <- AsyncResult[TransferEntry]{}
 	} else {
-		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes361515)}
+		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes362115)}
 	}
 	return nil
 }
@@ -4990,11 +4988,17 @@ func (this *Kraken) HandleErrors(code any, reason any, url any, method any, head
 	if GetValue(body, 0) == "{" {
 		if !IsString(response) {
 			var message string = this.Id + " " + body
-			if InOp(response, "error") {
-				var numErrors int = GetArrayLength(GetValue(response, "error"))
+			var errors []any = SafeListTyped(response, "error")
+			if errors != nil {
+				var numErrors int = len(errors)
 				if numErrors > 0 {
-					for i := 0; i < GetArrayLength(GetValue(response, "error")); i++ {
-						var error any = GetValue(GetValue(response, "error"), i)
+					for i := 0; i < numErrors; i++ {
+						var error any = func() any {
+							if i >= 0 && i < len(errors) {
+								return DerefScalar(errors[i])
+							}
+							return nil
+						}()
 						this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, message)
 						this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, message)
 					}

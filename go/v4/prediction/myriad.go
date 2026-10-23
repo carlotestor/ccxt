@@ -366,7 +366,7 @@ func (this *Myriad) fetchRawMarketsBySearchBody(ch chan ccxt.AsyncResult[[]map[s
 	var seen map[string]any = map[string]any{}
 	var rawMarkets []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
-		var q any = ccxt.GetValue(queries, i)
+		var q *string = ccxt.SafeStringPtr(ccxt.GetValue(queries, i))
 
 		r := <-this.MyriadPublicGetMarkets(this.Extend(map[string]any{
 			"keyword": q,
@@ -1040,7 +1040,7 @@ func (this *Myriad) ParseTradeQuote(quote map[string]any, optionalArgs ...any) m
 	//         }
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
 		"outcome":         this.SafeString(market, "outcome"),
@@ -2999,7 +2999,7 @@ func (this *Myriad) FromWeiWithDecimals(hexValue any, decimals *int64) any {
 	}
 	return ccxt.Precise.StringDiv(decimalString, scale)
 }
-func (this *Myriad) ParseTradeTx(txHash any, quote any, market any, side any) map[string]any {
+func (this *Myriad) ParseTradeTx(txHash any, quote any, market map[string]any, side any) map[string]any {
 	return this.SafePredictionOrder(map[string]any{
 		"id":            txHash,
 		"clientOrderId": nil,
@@ -3910,7 +3910,7 @@ func (this *Myriad) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 		}
 	} else {
 		var chartsDict map[string]any = ccxt.SafeMapTyped(selectedOutcome, "price_charts")
-		chart = this.SafeValue(chartsDict, bucketKey)
+		chart = this.SafeDict(chartsDict, bucketKey)
 	}
 	var pointsList any = this.SafeList(chart, "prices", this.SafeList(chart, "data", chart))
 	var points any = func() any {
@@ -4041,13 +4041,18 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	}
 	var promises []any = []any{}
 	for i := 0; i < len(marketKeys); i++ {
-		var key any = func() any {
+		var key *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(marketKeys) {
 				return ccxt.DerefScalar(marketKeys[i])
 			}
 			return nil
+		}())
+		var grouped any = func() any {
+			if key == nil {
+				return nil
+			}
+			return outcomesByMarket[*key]
 		}()
-		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		var firstOutcome map[string]any = ccxt.SafeMapTyped(grouped, 0)
 		var info map[string]any = ccxt.SafeMapTyped(firstOutcome, "info")
 		promises = append(promises, this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
@@ -4062,14 +4067,19 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	}
 	var responses []any = ccxt.ListTyped(r1.Value)
 	for i := 0; i < len(marketKeys); i++ {
-		var key any = func() any {
+		var key *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(marketKeys) {
 				return ccxt.DerefScalar(marketKeys[i])
 			}
 			return nil
-		}()
+		}())
 		var response any = ccxt.GetValue(responses, i)
-		var grouped any = ccxt.GetValue(outcomesByMarket, key)
+		var grouped any = func() any {
+			if key == nil {
+				return nil
+			}
+			return outcomesByMarket[*key]
+		}()
 		for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
 			var outcomeObj any = ccxt.GetValue(grouped, j)
 			var ticker map[string]any = this.ParsePredictionTicker(response, outcomeObj)
@@ -4576,7 +4586,7 @@ func (this *Myriad) pongBody(ch chan ccxt.AsyncResult[bool], client any, optiona
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
-	message := ccxt.GetArg(optionalArgs, 0, nil)
+	var message map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = message
 
 	r := <-client.(ccxt.ClientInterface).SendAsync("{}")
@@ -5772,7 +5782,7 @@ func (this *Myriad) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) 
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
  * @returns {object[]} an array of raw myriad market objects
  */
-func (this *Myriad) FetchRawMarketsBySearch(queries []any, options ...FetchRawMarketsBySearchOptions) ([]map[string]any, error) {
+func (this *Myriad) FetchRawMarketsBySearch(queries []string, options ...FetchRawMarketsBySearchOptions) ([]map[string]any, error) {
 
 	opts := FetchRawMarketsBySearchOptionsStruct{}
 

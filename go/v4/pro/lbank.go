@@ -281,12 +281,13 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		var timeframeId *string = this.SafeString(message, "kbar")
 		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+		var ohlcvsForSymbol any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, ohlcvsForSymbol)
+		var stored any = this.SafeValue(ohlcvsForSymbol, timeframe)
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			ccxt.AddElementToObject(ohlcvsForSymbol, timeframe, stored)
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fetchOHLCV:"+*symbol+":", timeframeId))
@@ -297,12 +298,13 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		var datetime *string = this.SafeString(rawOHLCV, "t")
 		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
 		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+		var ohlcvsForSymbol any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, ohlcvsForSymbol)
+		var stored any = this.SafeValue(ohlcvsForSymbol, timeframe)
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			ccxt.AddElementToObject(ohlcvsForSymbol, timeframe, stored)
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:"+*symbol+":", timeframeId))

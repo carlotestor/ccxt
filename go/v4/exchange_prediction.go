@@ -1908,16 +1908,18 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	// trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
 	var orderType *string = this.SafeString(outcomeOrder, "type")
 	var timeInForce *string = this.SafeString(outcomeOrder, "timeInForce")
-	var postOnly any = DerefScalar(this.SafeBool(outcomeOrder, "postOnly"))
+	// the venue flag and the derived one are each written once, so neither local widens
+	var postOnlyValue *bool = this.SafeBool(outcomeOrder, "postOnly")
+	var derivedPostOnly any = nil
 	if timeInForce == nil {
 		if orderType != nil && *orderType == "market" {
 			timeInForce = SafeStringPtr("IOC")
 		}
-		if IsEqual(postOnly, true) {
+		if postOnlyValue != nil && *postOnlyValue == true {
 			timeInForce = SafeStringPtr("PO")
 		}
-	} else if IsEqual(postOnly, nil) {
-		postOnly = (timeInForce != nil && *timeInForce == "PO")
+	} else if postOnlyValue == nil {
+		derivedPostOnly = (timeInForce != nil && *timeInForce == "PO")
 	}
 	var timestamp *int64 = this.SafeInteger(outcomeOrder, "timestamp")
 	var datetime *string = this.SafeString(outcomeOrder, "datetime")
@@ -1943,14 +1945,19 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 		"cost":                this.ParseNumber(cost),
 		"fee":                 fee,
 		"reduceOnly":          this.SafeBool(outcomeOrder, "reduceOnly"),
-		"postOnly":            postOnly,
-		"trades":              trades,
-		"outcome":             this.SafeString(outcomeOrder, "outcome"),
-		"outcomeId":           this.SafeString(outcomeOrder, "outcomeId"),
-		"label":               this.SafeString(outcomeOrder, "label"),
-		"market":              this.SafeString(outcomeOrder, "market"),
-		"event":               this.SafeString(outcomeOrder, "event"),
-		"info":                this.SafeValue(outcomeOrder, "info", outcomeOrder),
+		"postOnly": func() any {
+			if postOnlyValue != nil {
+				return postOnlyValue
+			}
+			return derivedPostOnly
+		}(),
+		"trades":    trades,
+		"outcome":   this.SafeString(outcomeOrder, "outcome"),
+		"outcomeId": this.SafeString(outcomeOrder, "outcomeId"),
+		"label":     this.SafeString(outcomeOrder, "label"),
+		"market":    this.SafeString(outcomeOrder, "market"),
+		"event":     this.SafeString(outcomeOrder, "event"),
+		"info":      this.SafeValue(outcomeOrder, "info", outcomeOrder),
 	}
 	return result
 }

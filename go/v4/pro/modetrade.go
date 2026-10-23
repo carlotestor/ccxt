@@ -1734,7 +1734,10 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {
-			account = ccxt.GetValue(this.Balance, code)
+			var cachedAccount any = this.SafeDict(this.Balance, code)
+			if cachedAccount != nil {
+				account = cachedAccount
+			}
 		}
 		var total *string = this.SafeString(value, "holding")
 		var used *string = this.SafeString(value, "frozen")

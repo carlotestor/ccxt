@@ -106,7 +106,7 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "private")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -178,7 +178,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name any,
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var isBatch bool = (ccxt.GetIndexOf(name, "batch") >= 0)
 	var resolvedPerSymbol bool = !isBatch || (messageHashPrefix == "orderbooks") // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "public")
 	var messageHashes []any = []any{}
 	if (symbolsNormalized != nil) && resolvedPerSymbol {
 		for i := 0; i < len(symbolsNormalized); i++ {
@@ -237,7 +237,7 @@ func (this *Hitbtc) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name any
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "private")
 	var splitName []string = ccxt.Split(name, "_subscribe")
 	var messageHash any
 	if derefPtr := this.SafeString(splitName, 0, ""); derefPtr != nil {
@@ -292,7 +292,7 @@ func (this *Hitbtc) tradeRequestBody(ch chan ccxt.AsyncResult[any], name string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = this.SafeString(this.SafeDict(this.Urls["api"], "ws"), "private")
 	var messageHash string = ccxt.ToString(this.IncrementingNonce())
 	var subscribe map[string]any = map[string]any{
 		"method": name,

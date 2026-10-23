@@ -895,7 +895,8 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+	var symbolOhlcvs any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	ccxt.AddElementToObject(this.Ohlcvs, symbol, symbolOhlcvs)
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
 	var isUta bool
@@ -910,11 +911,11 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	if timeframe == nil {
 		return
 	}
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(symbolOhlcvs, timeframe)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		ccxt.AddElementToObject(symbolOhlcvs, timeframe, stored)
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {

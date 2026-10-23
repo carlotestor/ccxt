@@ -2624,15 +2624,25 @@ func (this *Bitfinex) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 	var results []any = []any{}
 	var data []any = SafeListTyped(response, 4)
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
+		var entry []any = ArrayTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return DerefScalar(data[i])
 			}
 			return nil
-		}()
-		var individualOrder any = GetValue(entry, 4)
+		}())
+		var individualOrder []any = ArrayTyped(func() any {
+			if 4 >= 0 && 4 < len(entry) {
+				return DerefScalar(entry[4])
+			}
+			return nil
+		}())
 		results = append(results, map[string]any{
-			"result": GetValue(individualOrder, 0),
+			"result": func() any {
+				if 0 >= 0 && 0 < len(individualOrder) {
+					return DerefScalar(individualOrder[0])
+				}
+				return nil
+			}(),
 		})
 	}
 
@@ -5137,11 +5147,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4883 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4883.Err != nil {
-		panic(listEp4883.Err)
+	listEp4893 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4893.Err != nil {
+		panic(listEp4893.Err)
 	}
-	var response []any = listEp4883.Value
+	var response []any = listEp4893.Value
 
 	//
 	//     [

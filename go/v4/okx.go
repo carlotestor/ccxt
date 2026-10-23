@@ -4684,8 +4684,8 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			return nil
 		}()
 	}
-	var spot *bool = SafeBoolPtr(market["spot"])
-	var contract *bool = SafeBoolPtr(market["contract"])
+	var spot *bool = this.SafeBool(market, "spot")
+	var contract *bool = this.SafeBool(market, "contract")
 	var triggerPrice any = this.SafeValueN(params, []any{"triggerPrice", "stopPrice", "triggerPx"})
 	var timeInForce *string = this.SafeString(params, "timeInForce", "GTC")
 	// const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');

@@ -1073,8 +1073,8 @@ func (this *Gate) HandleBidAsks(bookSide any, bidAsks []any) {
 		if ccxt.IsArray(bidAsk) {
 			bookSide.(ccxt.IOrderBookSide).StoreArray(this.ParseOrderBookBidAsk(bidAsk))
 		} else {
-			var price *float64 = this.SafeFloat(bidAsk, "p")
-			var amount *float64 = this.SafeFloat(bidAsk, "s")
+			var price *float64 = this.SafeNumber(bidAsk, "p")
+			var amount *float64 = this.SafeNumber(bidAsk, "s")
 			bookSide.(ccxt.IOrderBookSide).Store(price, amount)
 		}
 	}

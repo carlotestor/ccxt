@@ -2233,8 +2233,8 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var seqId *int64 = this.SafeInteger(message, "seqId")
 	var prevSeqId *int64 = this.SafeInteger(message, "prevSeqId")
-	var nonce any = ccxt.GetValue(orderbook, "nonce")
-	if (prevSeqId != nil) && !ccxt.IsEqual(prevSeqId, int64(-1)) && !ccxt.IsEqual(nonce, prevSeqId) {
+	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
+	if (prevSeqId != nil) && !ccxt.IsEqual(prevSeqId, int64(-1)) && (nonce != prevSeqId && (nonce == nil || prevSeqId == nil || *nonce != *prevSeqId)) {
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		if symbol != nil {

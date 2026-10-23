@@ -5513,16 +5513,11 @@ func (this *Htx) ParseMarginBalanceHelper(balance any, code *string, result map[
 		_, ok := result[*code]
 		return ok
 	}() {
-		account = func() any {
-			if code == nil {
-				return nil
-			}
-			return result[*code]
-		}()
+		account = this.SafeDict(result, code)
 	} else {
 		account = this.Account()
 	}
-	if IsEqual(account, nil) {
+	if account == nil {
 		panic(ExchangeError(this.Id + " parseMarginBalanceHelper() could not resolve account"))
 	}
 	if this.SafeString(balance, "type") != nil && *this.SafeString(balance, "type") == "trade" {
@@ -5971,8 +5966,8 @@ func (this *Htx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5583, _ := OrdersToList(r2.Value), r2.Value != nil
-		var retRes421119 []any = listRecv5583
+		listRecv5578, _ := OrdersToList(r2.Value), r2.Value != nil
+		var retRes421119 []any = listRecv5578
 		if retRes421119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -6158,8 +6153,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5743, _ := OrdersToList(r2.Value), r2.Value != nil
-		var retRes430419 []any = listRecv5743
+		listRecv5738, _ := OrdersToList(r2.Value), r2.Value != nil
+		var retRes430419 []any = listRecv5738
 		if retRes430419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -6172,8 +6167,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		listRecv5752, _ := OrdersToList(r3.Value), r3.Value != nil
-		var retRes430619 []any = listRecv5752
+		listRecv5747, _ := OrdersToList(r3.Value), r3.Value != nil
+		var retRes430619 []any = listRecv5747
 		if retRes430619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {

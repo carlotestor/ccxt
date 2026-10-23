@@ -1690,14 +1690,16 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 		}
 		// Build comprehensive funding limits
 		var currencyLimits map[string]any = SafeMapTyped(currency, "limits")
+		var depositLimits map[string]any = SafeMapTyped(currencyLimits, "deposit")
+		var withdrawLimits map[string]any = SafeMapTyped(currencyLimits, "withdraw")
 		var limits map[string]any = map[string]any{
 			"deposit": map[string]any{
-				"min": GetValue(currencyLimits["deposit"], "min"),
-				"max": GetValue(currencyLimits["deposit"], "max"),
+				"min": depositLimits["min"],
+				"max": depositLimits["max"],
 			},
 			"withdraw": map[string]any{
-				"min": GetValue(currencyLimits["withdraw"], "min"),
-				"max": GetValue(currencyLimits["withdraw"], "max"),
+				"min": withdrawLimits["min"],
+				"max": withdrawLimits["max"],
 			},
 		}
 		// Add fee information if available
@@ -2334,11 +2336,11 @@ func (this *Whitebit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		"market": market["id"],
 	}
 
-	listEp2253 := <-this.V4PublicGetTradesMarket(this.Extend(request, params))
-	if listEp2253.Err != nil {
-		panic(listEp2253.Err)
+	listEp2255 := <-this.V4PublicGetTradesMarket(this.Extend(request, params))
+	if listEp2255.Err != nil {
+		panic(listEp2255.Err)
 	}
-	var response []any = listEp2253.Value
+	var response []any = listEp2255.Value
 
 	//
 	//      [
@@ -2755,12 +2757,12 @@ func (this *Whitebit) createMarketOrderWithCostBody(ch chan AsyncResult[Order], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes200215 map[string]any = StructResultMap(r.Value, OrderToMap)
+	var retRes200415 map[string]any = StructResultMap(r.Value, OrderToMap)
 	// only buy side is supported
-	if retRes200215 == nil {
+	if retRes200415 == nil {
 		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes200215)}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes200415)}
 	}
 	return nil
 }
@@ -2789,11 +2791,11 @@ func (this *Whitebit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes201515 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes201515 == nil {
+	var retRes201715 map[string]any = StructResultMap(r.Value, OrderToMap)
+	if retRes201715 == nil {
 		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes201515)}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes201715)}
 	}
 	return nil
 }
@@ -3198,11 +3200,11 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	request["type"] = requestType
 
-	listEp3028 := <-this.V4PrivatePostOrderCancelAll(this.Extend(request, requestParams))
-	if listEp3028.Err != nil {
-		panic(listEp3028.Err)
+	listEp3030 := <-this.V4PrivatePostOrderCancelAll(this.Extend(request, requestParams))
+	if listEp3030.Err != nil {
+		panic(listEp3030.Err)
 	}
-	var response []any = listEp3028.Value
+	var response []any = listEp3030.Value
 
 	//
 	// []
@@ -3491,11 +3493,11 @@ func (this *Whitebit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["limit"] = mathMin(limit, 100)
 	}
 
-	listEp3280 := <-this.V4PrivatePostOrders(this.Extend(request, params))
-	if listEp3280.Err != nil {
-		panic(listEp3280.Err)
+	listEp3282 := <-this.V4PrivatePostOrders(this.Extend(request, params))
+	if listEp3282.Err != nil {
+		panic(listEp3282.Err)
 	}
-	var response []any = listEp3280.Value
+	var response []any = listEp3282.Value
 
 	//
 	//     [
@@ -4337,11 +4339,11 @@ func (this *Whitebit) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		"to":     toAccountId,
 	}
 
-	listEp4059 := <-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))
-	if listEp4059.Err != nil {
-		panic(listEp4059.Err)
+	listEp4061 := <-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))
+	if listEp4061.Err != nil {
+		panic(listEp4061.Err)
 	}
-	var response []any = listEp4059.Value
+	var response []any = listEp4061.Value
 
 	//
 	//    []
@@ -4779,11 +4781,11 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowIntere
 		request["market"] = market["id"]
 	}
 
-	listEp4473 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
-	if listEp4473.Err != nil {
-		panic(listEp4473.Err)
+	listEp4475 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
+	if listEp4475.Err != nil {
+		panic(listEp4475.Err)
 	}
-	var response []any = listEp4473.Value
+	var response []any = listEp4475.Value
 	//
 	//     [
 	//         {
@@ -5565,11 +5567,11 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
-	listEp5203 := <-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp5203.Err != nil {
-		panic(listEp5203.Err)
+	listEp5205 := <-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp5205.Err != nil {
+		panic(listEp5205.Err)
 	}
-	var response []any = listEp5203.Value
+	var response []any = listEp5205.Value
 	//
 	//     [
 	//         {
@@ -5629,11 +5631,11 @@ func (this *Whitebit) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5260 := <-this.V4PrivatePostCollateralAccountPositionsOpen(params)
-	if listEp5260.Err != nil {
-		panic(listEp5260.Err)
+	listEp5262 := <-this.V4PrivatePostCollateralAccountPositionsOpen(params)
+	if listEp5262.Err != nil {
+		panic(listEp5262.Err)
 	}
-	var response []any = listEp5260.Value
+	var response []any = listEp5262.Value
 
 	//
 	//     [
@@ -5691,11 +5693,11 @@ func (this *Whitebit) fetchPositionBody(ch chan AsyncResult[Position], symbol an
 		"symbol": market["id"],
 	}
 
-	listEp5315 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
-	if listEp5315.Err != nil {
-		panic(listEp5315.Err)
+	listEp5317 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
+	if listEp5317.Err != nil {
+		panic(listEp5317.Err)
 	}
-	var response []any = listEp5315.Value
+	var response []any = listEp5317.Value
 	//
 	//     [
 	//         {
@@ -5847,11 +5849,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes421419 []any = r.Value
-		if retRes421419 == nil {
+		var retRes421619 []any = r.Value
+		if retRes421619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes421419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes421619)}
 		}
 		return nil
 	}
@@ -5874,11 +5876,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		requestUntil["limit"] = *limit
 	}
 
-	listEp5487 := <-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))
-	if listEp5487.Err != nil {
-		panic(listEp5487.Err)
+	listEp5489 := <-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))
+	if listEp5489.Err != nil {
+		panic(listEp5489.Err)
 	}
-	var response []any = listEp5487.Value
+	var response []any = listEp5489.Value
 
 	//
 	//     [

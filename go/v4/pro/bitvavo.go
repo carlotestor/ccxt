@@ -102,7 +102,7 @@ func (this *Bitvavo) watchPublicBody(ch chan ccxt.AsyncResult[any], name string,
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -143,7 +143,7 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[map[string
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		args = append(args, market["id"])
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -516,7 +516,7 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(name+"@", market["id"]))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -661,7 +661,7 @@ func (this *Bitvavo) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(name+"@", marketId), "_"), interval))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -833,7 +833,7 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 			"markets":  marketIdsByInterval[interval],
 		})
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action":   "subscribe",
 		"channels": channels,
@@ -1022,7 +1022,7 @@ func (this *Bitvavo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "book"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -1089,7 +1089,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(name+"@", market["id"]))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -1292,7 +1292,7 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var name string = "getBook"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", marketId))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action": name,
 		"market": marketId,
@@ -1403,7 +1403,7 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic s
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action":   "unsubscribe",
 		"channels": channels,
@@ -1515,7 +1515,7 @@ func (this *Bitvavo) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var name string = "account"
 	var messageHash string = "order:" + *symbolValue
 	var request map[string]any = map[string]any{
@@ -1584,7 +1584,7 @@ func (this *Bitvavo) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var name string = "account"
 	var messageHash string = "myTrades:" + *symbolValue
 	var request map[string]any = map[string]any{
@@ -2009,7 +2009,7 @@ func (this *Bitvavo) watchRequestBody(ch chan ccxt.AsyncResult[any], action stri
 	var messageHashStr string = strconv.FormatInt(messageHash, 10)
 	ccxt.AddElementToObject(request, "action", action)
 	ccxt.AddElementToObject(request, "requestId", messageHash)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	r := <-this.Watch(url, messageHashStr, request, messageHashStr)
 	if r.Err != nil {
@@ -2871,7 +2871,7 @@ func (this *Bitvavo) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
