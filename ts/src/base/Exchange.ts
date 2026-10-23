@@ -241,7 +241,7 @@ export class BaseExchange {
 
     isSandboxModeEnabled: boolean = false;
 
-    api!: Dictionary<any>;
+    api!: Dictionary<Dict>;
     certified: boolean = false;
     pro: boolean = false;
     countries: Strings = undefined;
@@ -355,7 +355,7 @@ export class BaseExchange {
     positions: any;
     urls!: {
         logo?: string;
-        api: NestedDictionary;
+        api: Dict;
         test: NestedDictionary;
         www?: string;
         doc?: string[];
@@ -378,7 +378,7 @@ export class BaseExchange {
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
     last_http_response: string | undefined = undefined;
-    last_json_response: any = undefined;
+    last_json_response: Dict | undefined = undefined;
     last_response_headers: Dictionary<string> | undefined = undefined;
     last_request_headers: Dictionary<string> | undefined = undefined;
     last_request_body: any = undefined;
@@ -469,7 +469,7 @@ export class BaseExchange {
 
     // nested by design: exchanges declare { 'exact': {...}, 'broad': {...} }
     // and pro subclasses add a 'ws' sub-tree, with error classes as values
-    exceptions: Dict = {};
+    exceptions: Dictionary<Dict> = {};
     timeframes: Dictionary<number | string> = {};
 
     version: Str = undefined;
@@ -492,7 +492,7 @@ export class BaseExchange {
     // WS/PRO options
     clients: Dictionary<WsClient> = {};
     newUpdates: boolean = true;
-    streaming: Dictionary<any> = {};
+    streaming: Dictionary<Dict> = {};
 
     // INTERNAL METHODS
     sleep = sleep;
@@ -1514,7 +1514,7 @@ export class BaseExchange {
             }
             return this.markets;
         }
-        let currencies: any = undefined;
+        let currencies: Currencies | undefined = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ();
@@ -1524,7 +1524,7 @@ export class BaseExchange {
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
-        return this.setMarkets (markets, currencies as any);
+        return this.setMarkets (markets, currencies);
     }
 
     /**
