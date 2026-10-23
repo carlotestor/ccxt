@@ -18397,7 +18397,7 @@ function hx4C10LeftIsNonNull (csharp, plus, left) {
     if (value?.kind === ts.SyntaxKind.CallExpression) {
         const callee = value.expression;
         if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && CSHARP_NULLABLE_CALL_CONCAT_VETO.has (callee.name?.text)) {
-            return true;
+            return false;
         }
     }
     if (value?.kind === ts.SyntaxKind.Identifier) {
