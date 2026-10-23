@@ -1510,7 +1510,7 @@ public partial class bitteam : Exchange
             return null;
         }
         string? precisionString = this.parsePrecision(precisionRawString);
-        return Precise.stringMul(valueRawString, precisionString);
+        return ((string?)((object)(Precise.stringMul(valueRawString, precisionString))));
     }
 
     /**

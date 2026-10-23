@@ -2948,7 +2948,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublic(object uta, object messageHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = isTrue((uta)) ? getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public");
+        object url = isTrue((uta)) ? getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "utaPublic") : getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -2957,10 +2957,10 @@ public partial class bitget : ccxt.bitget
             {
                 if (isTrue(uta))
                 {
-                    url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "utaPublic");
+                    url = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "utaPublic");
                 } else
                 {
-                    url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "public");
+                    url = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "public");
                 }
             }
         }
@@ -2975,7 +2975,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> unWatchPublic(object uta, object messageHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = isTrue((uta)) ? getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public");
+        object url = isTrue((uta)) ? getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "utaPublic") : getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -2984,10 +2984,10 @@ public partial class bitget : ccxt.bitget
             {
                 if (isTrue(uta))
                 {
-                    url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "utaPublic");
+                    url = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "utaPublic");
                 } else
                 {
-                    url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "public");
+                    url = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "public");
                 }
             }
         }
@@ -3003,7 +3003,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         bool isUta = ((uta is true));
-        object url = isUta ? getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "utaPrivate") : getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private");
+        object url = isUta ? getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "utaPrivate") : getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -3012,10 +3012,10 @@ public partial class bitget : ccxt.bitget
             {
                 if (isUta)
                 {
-                    url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "utaPrivate");
+                    url = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "utaPrivate");
                 } else
                 {
-                    url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "private");
+                    url = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "private");
                 }
             }
         }
@@ -3033,7 +3033,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublicMultiple(object uta, object messageHashes, object argsArray, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = isTrue((uta)) ? getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public");
+        object url = isTrue((uta)) ? getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "utaPublic") : getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -3041,7 +3041,7 @@ public partial class bitget : ccxt.bitget
             string? instType = this.safeString(argsArrayFirst, "instType");
             if ((instType != "SCOIN-FUTURES") && (instType != "SUSDT-FUTURES") && (instType != "SUSDC-FUTURES"))
             {
-                url = isTrue((uta)) ? getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "utaPublic") : getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "public");
+                url = isTrue((uta)) ? getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "utaPublic") : getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "public");
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3085,7 +3085,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPrivate(object uta, object messageHash, object subscriptionHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = isTrue((uta)) ? getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "utaPrivate") : getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private");
+        object url = isTrue((uta)) ? getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "utaPrivate") : getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -3094,10 +3094,10 @@ public partial class bitget : ccxt.bitget
             {
                 if (isTrue(uta))
                 {
-                    url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "utaPrivate");
+                    url = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "utaPrivate");
                 } else
                 {
-                    url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "demo"), "private");
+                    url = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("demo") ? this.urlsApi["demo"] : null), "private");
                 }
             }
         }

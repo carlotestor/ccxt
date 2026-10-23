@@ -299,7 +299,7 @@ public partial class apex : ccxt.apex
         if ((url == null))
         {
             string timeStamp = this.milliseconds().ToString();
-            url = ((this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public") + "&timestamp=") + timeStamp);
+            url = ((this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public") + "&timestamp=") + timeStamp);
             this.options["wsPublicUrl"] = url;
         }
         return url;
@@ -311,7 +311,7 @@ public partial class apex : ccxt.apex
         if ((url == null))
         {
             string timeStamp = this.milliseconds().ToString();
-            url = ((this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private") + "&timestamp=") + timeStamp);
+            url = ((this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private") + "&timestamp=") + timeStamp);
             this.options["wsPrivateUrl"] = url;
         }
         return url;

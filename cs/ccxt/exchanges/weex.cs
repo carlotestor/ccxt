@@ -5004,7 +5004,7 @@ public partial class weex : Exchange
         if (marketId.EndsWith("SUSDT"))
         {
             int baseLength = (marketId.Length - 5);
-            return (slice(marketId, 0, baseLength) + "USDT");
+            return ((string?)((object)((slice(marketId, 0, baseLength) + "USDT"))));
         }
         return ((string?)((object)(marketId)));
     }

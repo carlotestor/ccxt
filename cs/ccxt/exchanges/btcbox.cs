@@ -405,7 +405,7 @@ public partial class btcbox : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(this.currenciesDict.Keys);
         for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)codes[i]);

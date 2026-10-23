@@ -2579,21 +2579,21 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual object getUrlByMarketType(object type, object isInverse = null)
+    public virtual string? getUrlByMarketType(object type, bool? isInverse = null)
     {
         isInverse ??= false;
         object api = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object url = this.safeValue(api, type);
         if (((type is "swap")) || ((type is "future")))
         {
-            return isTrue(isInverse) ? getValue(url, "btc") : getValue(url, "usdt");
+            return ((string?)((object)(isInverse == true ? getValue(url, "btc") : getValue(url, "usdt"))));
         } else
         {
-            return url;
+            return ((string?)((object)(url)));
         }
     }
 
-    public virtual object getMarketTypeByUrl(object url)
+    public virtual string? getMarketTypeByUrl(object url)
     {
         Dictionary<string, object> findBy = new Dictionary<string, object>() {
             { "op-", "option" },
@@ -2609,7 +2609,7 @@ public partial class gate : ccxt.gate
             object value = (key != null && findBy.ContainsKey(key) ? findBy[key] : null);
             if (((string)url).IndexOf(key, StringComparison.Ordinal) >= 0)
             {
-                return value;
+                return ((string?)((object)(value)));
             }
         }
         return "spot";
@@ -2745,12 +2745,12 @@ public partial class gate : ccxt.gate
         return await this.watch(url, messageHash, request, messageHash, requestIdResolved);
     }
 
-    public async virtual Task<object> subscribePrivate(object url, object messageHash, object payload, object channel, object parameters, object requiresUid = null)
+    public async virtual Task<object> subscribePrivate(object url, object messageHash, object payload, object channel, object parameters, bool? requiresUid = null)
     {
         requiresUid ??= false;
         this.checkRequiredCredentials();
         // uid is required for some subscriptions only so it's not a part of required credentials
-        if (isTrue(requiresUid))
+        if (requiresUid == true)
         {
             if ((this.uid == null) || (this.uid.Length == 0))
             {
@@ -2760,7 +2760,7 @@ public partial class gate : ccxt.gate
         List<object> idArray = new List<object>() {this.uid};
         List<object> payloadWithUid = ((payload == null)) ? idArray : this.arrayConcat(idArray, payload);
         object payloadValue = payload;
-        if (isTrue(requiresUid))
+        if (requiresUid == true)
         {
             payloadValue = payloadWithUid;
         }

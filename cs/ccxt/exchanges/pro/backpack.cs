@@ -93,7 +93,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} params local parameters
      * @returns {string} venue market id
      */
-    public virtual object wsVenueMarketId(object methodName, object market, object parameters)
+    public virtual string? wsVenueMarketId(object methodName, object market, object parameters)
     {
         if ((market == null))
         {
@@ -109,7 +109,7 @@ public partial class backpack : ccxt.backpack
         {
             throw new BadRequest ((((this.id + " ") + (methodName)) + "() source must be Venue")) ;
         }
-        return getValue(market, "id");
+        return ((string?)((object)(getValue(market, "id"))));
     }
 
     /**
@@ -137,7 +137,7 @@ public partial class backpack : ccxt.backpack
         List<object> symbolsResolved = new List<object>() {};
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public"));
+        string? url = ((string)getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public"));
         var client = this.client(url);
         string kind = bidAsk == true ? "bidask" : "ticker";
         for (int i = 0; i < (normalized?.Count ?? 0); i++)
@@ -268,7 +268,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public"));
+        string? url = ((string)getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public"));
         string method = "SUBSCRIBE";
         if (unwatch == true)
         {
@@ -292,7 +292,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
         this.checkRequiredCredentials();
-        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private"));
         string instruction = "subscribe";
         string ts = this.nonce().ToString();
         string method = "SUBSCRIBE";

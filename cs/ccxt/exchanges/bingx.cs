@@ -7344,7 +7344,7 @@ public partial class bingx : Exchange
         object version = getValue(section, 1);
         object access = getValue(section, 2);
         bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
-        object url = this.implodeHostname(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), type));
+        object url = this.implodeHostname((this.urlsApi != null && type != null && this.urlsApi.ContainsKey((string)type) ? this.urlsApi[(string)type] : null));
         if ((isSandbox == true) && (url == null))
         {
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (type)) + " endpoints")) ;

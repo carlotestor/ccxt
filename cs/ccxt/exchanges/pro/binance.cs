@@ -256,15 +256,15 @@ public partial class binance : ccxt.binance
         return stream;
     }
 
-    public virtual object getWsUrl(object type, string? category)
+    public virtual string? getWsUrl(object type, string? category)
     {
         if (((type is "option")) || ((type is "optionMarket")) || ((type is "optionPrivate")))
         {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type);
+            return ((string?)((object)(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), type))));
         }
-        object baseUrl = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type);
+        object baseUrl = getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), type);
         if ((type is "linear"))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -276,21 +276,21 @@ public partial class binance : ccxt.binance
             int baseUrlSplitLength = baseUrlSplit.Count;
             if (baseUrlSplitLength > 2)
             {
-                return baseUrl;
+                return ((string?)((object)(baseUrl)));
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
             if (((string)baseUrl).EndsWith("/ws"))
             {
                 object prefix = slice(baseUrl, 0, (((string)baseUrl).Length - 3));
-                return add(add(add(prefix, "/"), category), "/ws");
+                return ((string?)((object)(add(add(add(prefix, "/"), category), "/ws"))));
             }
-            return baseUrl;
+            return ((string?)((object)(baseUrl)));
         }
-        return baseUrl;
+        return ((string?)((object)(baseUrl)));
     }
 
-    public virtual string getFutureWsCategory(object channel)
+    public virtual string? getFutureWsCategory(object channel)
     {
         if ((channel is "depth") || (channel is "rpiDepth") || (channel is "bookTicker") || (channel is "trade"))
         {
@@ -307,20 +307,20 @@ public partial class binance : ccxt.binance
         }
         if ((type is "linear"))
         {
-            return ((string?)((object)(add(add(this.getWsUrl(type, "private"), "?listenKey="), listenKey))));
+            return ((string?)((object)(((this.getWsUrl(type, "private") + "?listenKey=") + listenKey))));
         }
-        string? wsUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type);
+        string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), type);
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " getPrivateWsUrl() has no websocket url for this market type")) ;
         }
-        return ((wsUrl + "/") + (listenKey));
+        return ((string?)((object)(((wsUrl + "/") + (listenKey)))));
     }
 
     public virtual string? getStockWsUrl(string? streamType = null)
     {
         streamType ??= "market";
-        string? baseUrl = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "stock"));
+        string? baseUrl = ((string)getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "stock"));
         if ((streamType == "combined"))
         {
             return ((string?)((object)(baseUrl.Replace("/ws", (string)"/stream"))));
@@ -332,7 +332,7 @@ public partial class binance : ccxt.binance
     {
         Dictionary<string, object> market = this.market(symbol);
         string? bs = this.safeString2(market, "base", "id");
-        return ((bs == null)) ? null : bs.ToLower();
+        return ((string?)((object)(((bs == null)) ? null : bs.ToLower())));
     }
 
     public virtual string? getStockUnifiedSymbol(object stockSymbol, string? quote = null)
@@ -459,7 +459,7 @@ public partial class binance : ccxt.binance
             throw new NotSupported ((this.id + " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")) ;
         }
         int numSubscriptions = (subscriptionHashes?.Count ?? 0);
-        string? url = ((string)add(add(this.getWsUrl(type, this.getFutureWsCategory("forceOrder")), "/"), this.stream(type, streamHash, numSubscriptions)));
+        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory("forceOrder")) + "/") + this.stream(type, streamHash, numSubscriptions)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -879,7 +879,7 @@ public partial class binance : ccxt.binance
             subParams.Add(symbolHash);
         }
         int messageHashesLength = (messageHashes?.Count ?? 0);
-        string? url = ((string)add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, messageHashesLength)));
+        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, messageHashesLength)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -956,7 +956,7 @@ public partial class binance : ccxt.binance
             subParams.Add(symbolHash);
         }
         int messageHashesLength = (subMessageHashes?.Count ?? 0);
-        string? url = ((string)add(add(this.getWsUrl(type, this.getFutureWsCategory("depth")), "/"), this.stream(type, streamHash, messageHashesLength)));
+        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory("depth")) + "/") + this.stream(type, streamHash, messageHashesLength)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -1029,7 +1029,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOrderBookWs only supports swap markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), marketType);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), marketType);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -1486,7 +1486,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> query = this.omit(paramsOmitted, "type");
         int subParamsLength = (subParams?.Count ?? 0);
-        string? url = ((string)add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength)));
+        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, subParamsLength)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -1591,7 +1591,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> query = this.omit(paramsOmitted, "type");
         int subParamsLength = (subParams?.Count ?? 0);
-        string? url = ((string)add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength)));
+        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, subParamsLength)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -2020,7 +2020,7 @@ public partial class binance : ccxt.binance
             rawHashes.Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
             messageHashes.Add(((("ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + (timeframeString)));
         }
-        string? url = ((string)add(add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream(wsUrlType, "multipleOHLCV")));
+        string? url = ((string)((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV")));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -2119,7 +2119,7 @@ public partial class binance : ccxt.binance
             subMessageHashes.Add(((("ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + (timeframeString)));
             messageHashes.Add(((("unsubscribe::ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + (timeframeString)));
         }
-        string? url = ((string)add(add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream(wsUrlType, "multipleOHLCV")));
+        string? url = ((string)((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV")));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -2266,7 +2266,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchTickerWs only supports swap markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -2324,7 +2324,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), marketType);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), marketType);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -2874,7 +2874,7 @@ public partial class binance : ccxt.binance
         {
             streamHash = add(add(channelName, "::"), String.Join(",", symbolsNormalized.ToArray()));
         }
-        string? url = ((string)add(add(this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)), "/"), this.stream(rawMarketType, streamHash)));
+        string? url = ((string)((this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)) + "/") + this.stream(rawMarketType, streamHash)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", isUnsubscribe == true ? "UNSUBSCRIBE" : "SUBSCRIBE" },
@@ -3296,7 +3296,7 @@ public partial class binance : ccxt.binance
     {
         object marketTypeVar = marketType;
         marketTypeVar ??= "spot";
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), marketTypeVar);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), marketTypeVar);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -3391,7 +3391,7 @@ public partial class binance : ccxt.binance
         string? marketTypeVar = marketType;
         marketTypeVar ??= "margin";
         parameters ??= new Dictionary<string, object>();
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), "spot");
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), "spot");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -3863,7 +3863,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -4021,7 +4021,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchPositionsWs only supports swap markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -4127,7 +4127,7 @@ public partial class binance : ccxt.binance
         if ((type is "spot") || (type is "margin"))
         {
             // route to WebSocket API connection where the user data stream is subscribed
-            url = getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), "spot");
+            url = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), "spot");
         } else
         {
             if ((isPortfolioMargin == true))
@@ -4388,7 +4388,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " createOrderWs only supports spot or swap markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), marketType);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), marketType);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -4570,7 +4570,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " editOrderWs only supports spot or swap markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), marketType);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), marketType);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -4743,7 +4743,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = this.getMarketType("cancelOrderWs", market, parameters);
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -4821,7 +4821,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " cancelAllOrdersWs only supports spot markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -4875,7 +4875,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOrderWs only supports spot or swap markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -4940,7 +4940,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOrdersWs only supports spot markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -5017,7 +5017,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOpenOrdersWs only supports spot markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -5145,7 +5145,7 @@ public partial class binance : ccxt.binance
         if ((type == "spot") || (type == "margin"))
         {
             // route orders to ws-api user data stream
-            url = getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), "spot");
+            url = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), "spot");
         } else
         {
             if ((isPortfolioMargin == true))
@@ -6133,7 +6133,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -6199,7 +6199,7 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
         }
-        string? url = this.safeString(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), type);
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -6335,7 +6335,7 @@ public partial class binance : ccxt.binance
         object url = "";
         if ((type == "spot") || (type == "margin"))
         {
-            url = getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "ws-api"), "spot");
+            url = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "ws-api"), "spot");
         } else
         {
             if ((isPortfolioMargin == true))

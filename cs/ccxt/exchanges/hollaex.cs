@@ -1097,12 +1097,12 @@ public partial class hollaex : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object currenciesById = this.currencies_by_id;
+        IDictionary<string, object> currenciesById = this.currencies_by_id;
         if ((currenciesById == null))
         {
             throw new ExchangeError ((this.id + " currencies not loaded")) ;
         }
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+        List<object> currencyIds = new List<object>(currenciesById.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             object currencyId = currencyIds[i];

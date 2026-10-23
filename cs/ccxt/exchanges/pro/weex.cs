@@ -78,7 +78,7 @@ public partial class weex : ccxt.weex
         });
     }
 
-    public virtual object requestId()
+    public virtual string? requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
@@ -92,7 +92,7 @@ public partial class weex : ccxt.weex
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
-        string id = ((string)this.requestId());
+        string id = this.requestId();
         string method = "SUBSCRIBE";
         bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if ((unsubscribe == true))
@@ -112,21 +112,21 @@ public partial class weex : ccxt.weex
         {
             type = "contract";
         }
-        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type) + "/public");
+        string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), type) + "/public");
         return await this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscriptionExtended);
     }
 
-    public async virtual Task<object> subscribePrivate(object messageHash, object subscribeHash, string? channel, object isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<object> subscribePrivate(object messageHash, object subscribeHash, string? channel, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
         string type = "spot";
-        if (isTrue(isContract))
+        if (isContract == true)
         {
             type = "contract";
         }
-        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), type) + "/private");
+        string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), type) + "/private");
         this.authenticate(url);
         string method = "SUBSCRIBE";
         bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
@@ -134,7 +134,7 @@ public partial class weex : ccxt.weex
         {
             method = "UNSUBSCRIBE";
         }
-        string id = ((string)this.requestId());
+        string id = this.requestId();
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", id },
             { "method", method },
@@ -1829,7 +1829,7 @@ public partial class weex : ccxt.weex
         {
             urlType = "contract";
         }
-        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), urlType) + "/private");
+        string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), urlType) + "/private");
         this.authenticate(url);
         var client = this.client(url);
         this.setBalanceCache(client, type);
@@ -1994,7 +1994,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "contract") + "/private");
+        string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "contract") + "/private");
         this.authenticate(url);
         var client = this.client(url);
         IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true);

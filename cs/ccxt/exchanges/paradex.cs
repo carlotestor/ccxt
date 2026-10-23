@@ -1723,16 +1723,16 @@ public partial class paradex : Exchange
         return ((string?)((object)(("0x" + hashed))));
     }
 
-    public virtual string signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
         string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
-        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
+        return ((string?)((object)(((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v))));
     }
 
-    public virtual string signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
@@ -2016,7 +2016,7 @@ public partial class paradex : Exchange
 
     public virtual string? scaleNumber(object num)
     {
-        return Precise.stringMul(num, "100000000");
+        return ((string?)((object)(Precise.stringMul(num, "100000000"))));
     }
 
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
@@ -2127,7 +2127,7 @@ public partial class paradex : Exchange
         return this.extend(request, paramsOmitted);
     }
 
-    public async virtual Task<object> signOrderRequest(object request, object modify = null)
+    public async virtual Task<object> signOrderRequest(object request, bool? modify = null)
     {
         modify ??= false;
         object account = await this.retrieveAccount();
@@ -2166,7 +2166,7 @@ public partial class paradex : Exchange
     { "type", "felt" },
 }};
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {};
-        if (isTrue(modify))
+        if (modify == true)
         {
             orderReq["id"] = getValue(request, "id");
             orderFields.Add(new Dictionary<string, object>() {

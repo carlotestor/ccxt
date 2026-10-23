@@ -655,7 +655,7 @@ public partial class BaseExchange
         return null;
     }
 
-    public virtual object checkProxyUrlSettings(object url = null, object method = null, object headers = null, object body = null)
+    public virtual string? checkProxyUrlSettings(object url = null, object method = null, object headers = null, object body = null)
     {
         List<object> usedProxies = new List<object>() {};
         object proxyUrl = null;
@@ -697,15 +697,15 @@ public partial class BaseExchange
             string joinedProxyNames = String.Join(",", usedProxies.ToArray());
             throw new InvalidProxySettings ((((this.id + " you have multiple conflicting proxy settings (") + joinedProxyNames) + "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
         }
-        return proxyUrl;
+        return ((string?)((object)(proxyUrl)));
     }
 
-    public virtual object urlEncoderForProxyUrl(object targetUrl)
+    public virtual string? urlEncoderForProxyUrl(object targetUrl)
     {
         // to be overriden
         bool includesQuery = ((string)targetUrl).IndexOf("?", StringComparison.Ordinal) >= 0;
         object finalUrl = includesQuery ? this.encodeURIComponent(targetUrl) : targetUrl;
-        return finalUrl;
+        return ((string?)((object)(finalUrl)));
     }
 
     public virtual List<object> checkProxySettings(string? url = null, string? method = null, object headers = null, object body = null)
@@ -3757,7 +3757,7 @@ public partial class BaseExchange
         List<object> currenciesToCheck = new List<object>() {};
         if ((currencyCode == null))
         {
-            currenciesToCheck = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+            currenciesToCheck = new List<object>(this.currenciesDict.Keys);
         } else
         {
             currenciesToCheck = new List<object> {this.safeDict(this.currencies, currencyCode)};
@@ -3802,7 +3802,7 @@ public partial class BaseExchange
         return (networkCodeInParams, paramsOmitted);
     }
 
-    public virtual object selectNetworkKeyFromNetworks(object currencyCode, object networkCode, object indexedNetworkEntries, bool? isIndexedByUnifiedNetworkCode = null)
+    public virtual string? selectNetworkKeyFromNetworks(object currencyCode, object networkCode, object indexedNetworkEntries, bool? isIndexedByUnifiedNetworkCode = null)
     {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         isIndexedByUnifiedNetworkCode ??= false;
@@ -3851,7 +3851,7 @@ public partial class BaseExchange
                 throw new NotSupported (((this.id + " - can not determine the default network, please pass param[\"network\"] one from : ") + String.Join(", ", availableNetworkIds.ToArray()))) ;
             }
         }
-        return chosenNetworkId;
+        return ((string?)((object)(chosenNetworkId)));
     }
 
     public virtual double? safeNumber2(object dictionary, object key1, object key2, object d = null)
@@ -4568,23 +4568,23 @@ public partial class BaseExchange
         return headers;
     }
 
-    public virtual object currencyId(string code)
+    public virtual string? currencyId(string code)
     {
         if ((code == null))
         {
-            return code;
+            return ((string?)((object)(code)));
         }
         IDictionary<string, object> currencyById = this.safeDict(this.currencies, code);
         if ((currencyById != null))
         {
-            return (currencyById != null && currencyById.ContainsKey("id") ? currencyById["id"] : null);
+            return ((string?)((object)((currencyById != null && currencyById.ContainsKey("id") ? currencyById["id"] : null))));
         }
         Dictionary<string, object> currency = this.safeCurrency(code);
         if ((currency != null))
         {
-            return (currency.ContainsKey("id") ? currency["id"] : null);
+            return ((string?)((object)((currency.ContainsKey("id") ? currency["id"] : null))));
         }
-        return code;
+        return ((string?)((object)(code)));
     }
 
     public virtual string? marketId(object symbol)
@@ -5134,7 +5134,7 @@ public partial class BaseExchange
         * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
         */
         error ??= true;
-        List<object> keys = new List<object>(((IDictionary<string,object>)this.requiredCredentials).Keys);
+        List<object> keys = new List<object>(this.requiredCredentials.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -5154,11 +5154,11 @@ public partial class BaseExchange
         return true;
     }
 
-    public virtual string oath()
+    public virtual string? oath()
     {
         if ((this.twofa != null))
         {
-            return totp(this.twofa);
+            return ((string?)((object)(totp(this.twofa))));
         } else
         {
             throw new ExchangeError ((this.id + " exchange.twofa has not been set for 2FA Two-Factor Authentication")) ;
@@ -5980,7 +5980,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " currency() requires a code argument")) ;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> keys = new List<object>(this.currenciesDict.Keys);
         int numCurrencies = keys.Count;
         if ((numCurrencies == 0))
         {
@@ -5989,13 +5989,13 @@ public partial class BaseExchange
         if ((code is string))
         {
             object currencies = this.currencies;
-            object currenciesById = this.currencies_by_id;
+            IDictionary<string, object> currenciesById = this.currencies_by_id;
             if (inOp(currencies, code))
             {
                 return ccxt.BaseExchange.ToDict(getValue(currencies, code));
-            } else if (((currenciesById != null)) && (inOp(currenciesById, code)))
+            } else if (((currenciesById != null)) && ((currenciesById != null && code != null && currenciesById.ContainsKey(code))))
             {
-                return ccxt.BaseExchange.ToDict(getValue(currenciesById, code));
+                return ccxt.BaseExchange.ToDict((currenciesById != null && code != null && currenciesById.ContainsKey(code) ? currenciesById[code] : null));
             }
         }
         throw new ExchangeError (((this.id + " does not have currency code ") + code)) ;
@@ -6134,7 +6134,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " currencyToPrecision() requires a code argument")) ;
         }
-        object currency = (((IDictionary<string,object>)this.currencies) != null && code != null && ((IDictionary<string,object>)this.currencies).ContainsKey(code) ? ((IDictionary<string,object>)this.currencies)[code] : null);
+        object currency = (this.currenciesDict != null && code != null && this.currenciesDict.ContainsKey(code) ? this.currenciesDict[code] : null);
         object precision = this.safeValue(currency, "precision");
         if ((networkCode != null))
         {
@@ -6265,7 +6265,7 @@ public partial class BaseExchange
         return this.parseToInt((this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null));
     }
 
-    public virtual string implodeHostname(object url)
+    public virtual string? implodeHostname(object url)
     {
         return this.implodeParams(url, new Dictionary<string, object>() {
             { "hostname", this.hostname },

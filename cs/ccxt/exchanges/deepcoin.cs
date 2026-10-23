@@ -1044,7 +1044,7 @@ public partial class deepcoin : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public virtual string getProductGroupFromMarket(IDictionary<string, object> market)
+    public virtual string? getProductGroupFromMarket(IDictionary<string, object> market)
     {
         string productGroup = "Spot";
         if ((this.safeBool(market, "swap", false) == true))

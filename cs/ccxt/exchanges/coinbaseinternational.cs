@@ -2482,7 +2482,7 @@ public partial class coinbaseinternational : Exchange
      * @param {float} amount unified order quantity
      * @returns {string} precision-formatted exchange order amount
      */
-    public virtual object getOrderAmount(object market, object amount)
+    public virtual string? getOrderAmount(object market, object amount)
     {
         string? exchangeAmount = this.numberToString(amount);
         if (this.isNativeDeribitCredentials() && ((getValue(market, "contract") is true)))
@@ -3734,7 +3734,7 @@ public partial class coinbaseinternational : Exchange
      * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
      * @returns {string|undefined} the access token
      */
-    public virtual object getV2AccessToken()
+    public virtual string? getV2AccessToken()
     {
         string? token = this.safeString(this.options, "v2AccessToken");
         if (((token != null)) && (token != ""))
@@ -3745,7 +3745,7 @@ public partial class coinbaseinternational : Exchange
         {
             return null;
         }
-        return this.token;
+        return ((string?)((object)(this.token)));
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)

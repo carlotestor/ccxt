@@ -1432,9 +1432,9 @@ public partial class bitbns : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object urls = this.urls;
+        IDictionary<string, object> urls = this.urls;
         object apiName = getValue(api, 0);
-        if (!(inOp(getValue(urls, "api"), apiName)))
+        if (!(inOp((urls != null && urls.ContainsKey("api") ? urls["api"] : null), apiName)))
         {
             throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }

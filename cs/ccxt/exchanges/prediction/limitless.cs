@@ -2292,10 +2292,10 @@ public partial class limitless : PredictionExchange
         string? scale = this.numberToString(Math.Pow(Convert.ToDouble(10), Convert.ToDouble(decimals)));
         if (multiply == true)
         {
-            return Precise.stringMul(amount, scale);
+            return ((string?)((object)(Precise.stringMul(amount, scale))));
         } else
         {
-            return Precise.stringDiv(amount, scale);
+            return ((string?)((object)(Precise.stringDiv(amount, scale))));
         }
     }
 
@@ -2499,7 +2499,7 @@ public partial class limitless : PredictionExchange
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
         signRequest["makerAmount"] = this.parseToInt(this.applyScale(makerAmount, true));
         signRequest["takerAmount"] = isMarket ? 1 : this.parseToInt(this.applyScale(takerAmount, true));
-        string? signature = ((string)this.signOrderRequest(signRequest, marketSymbol));
+        string? signature = this.signOrderRequest(signRequest, marketSymbol);
         signRequest["signature"] = signature;
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
         if (!isMarket && ((price != null)))
@@ -2528,7 +2528,7 @@ public partial class limitless : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOrder(parsedOrder);
     }
 
-    public virtual object signOrderRequest(IDictionary<string, object> signRequest, object marketSymbol)
+    public virtual string? signOrderRequest(IDictionary<string, object> signRequest, object marketSymbol)
     {
         this.checkRequiredCredentials();
         if ((this.privateKey == null))
@@ -2593,7 +2593,7 @@ public partial class limitless : PredictionExchange
         return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
-    public virtual string signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
@@ -2605,7 +2605,7 @@ public partial class limitless : PredictionExchange
         return result.ToLower();
     }
 
-    public virtual string signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
@@ -2631,7 +2631,7 @@ public partial class limitless : PredictionExchange
         signedFields.Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         signedFields.Add(this.rlpEncodeBytes(rHex));
         signedFields.Add(this.rlpEncodeBytes(sHex));
-        return ("0x02" + this.rlpEncodeList(signedFields));
+        return ((string?)((object)(("0x02" + this.rlpEncodeList(signedFields)))));
     }
 
     /**

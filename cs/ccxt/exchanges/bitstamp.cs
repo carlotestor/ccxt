@@ -3318,7 +3318,7 @@ public partial class bitstamp : Exchange
         return this.parseOrders(response, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },             { "type", "limit" },         });
     }
 
-    public virtual object getCurrencyName(string? code)
+    public virtual string? getCurrencyName(string? code)
     {
         /**
          * @ignore

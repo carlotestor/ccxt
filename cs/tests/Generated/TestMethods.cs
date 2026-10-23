@@ -524,7 +524,7 @@ public partial class testMainClass
         return true;
     }
 
-    public virtual object getLastRequestUrl(BaseExchange exchange)
+    public virtual string? getLastRequestUrl(BaseExchange exchange)
     {
         object fetchCache = exchange.getFetchCache();
         object url = "";
@@ -537,7 +537,7 @@ public partial class testMainClass
                 url = exchange.safeString(lastRequest, "url", "");
             }
         }
-        return url;
+        return ((string?)((object)(url)));
     }
 
     public async virtual Task<object> runPublicTests(BaseExchange exchange, object symbols)
@@ -594,7 +594,7 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> runTests(BaseExchange exchange, object tests, object isPublicTest)
+    public async virtual Task<object> runTests(BaseExchange exchange, object tests, bool? isPublicTest)
     {
         List<object> testNames = new List<object>(((IDictionary<string,object>)tests).Keys);
         List<object> promises = new List<object>() {};
@@ -618,7 +618,7 @@ public partial class testMainClass
                 failedMethods.Add(testName);
             }
         }
-        string testPrefixString = isTrue(isPublicTest) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+        string testPrefixString = isPublicTest == true ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
         if ((failedMethods?.Count ?? 0) > 0)
         {
             string errorsString = String.Join(", ", ((IList<object>)failedMethods).ToArray());
@@ -1592,7 +1592,7 @@ public partial class testMainClass
         }
     }
 
-    public virtual void assertStaticError(object cond, object message, object calculatedOutput, object storedOutput, object key = null)
+    public virtual void assertStaticError(bool? cond, object message, object calculatedOutput, object storedOutput, object key = null)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -1603,7 +1603,7 @@ public partial class testMainClass
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        if (isTrue(cond))
+        if (cond == true)
         {
             return;
         }
@@ -2601,7 +2601,7 @@ public partial class testMainClass
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
-    public virtual BaseExchange initOfflineExchange(object exchangeName, object isWs = null)
+    public virtual BaseExchange initOfflineExchange(object exchangeName, bool? isWs = null)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the

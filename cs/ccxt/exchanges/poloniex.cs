@@ -3347,7 +3347,7 @@ public partial class poloniex : Exchange
     public virtual List<object> prepareRequestForDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!((((IDictionary<string,object>)this.currencies) != null && code != null && ((IDictionary<string,object>)this.currencies).ContainsKey(code))))
+        if (!((this.currenciesDict != null && code != null && this.currenciesDict.ContainsKey(code))))
         {
             throw new BadSymbol ((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
@@ -4493,10 +4493,10 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "spot");
+        object url = (this.urlsApi != null && this.urlsApi.ContainsKey("spot") ? this.urlsApi["spot"] : null);
         if (this.inArray(apiName, new List<object>() {"swapPublic", "swapPrivate"}))
         {
-            url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "swap");
+            url = (this.urlsApi != null && this.urlsApi.ContainsKey("swap") ? this.urlsApi["swap"] : null);
         }
         if ((method == "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
         {

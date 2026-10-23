@@ -1845,7 +1845,7 @@ public partial class bitvavo : ccxt.bitvavo
         client.resolve(markets, messageHash);
     }
 
-    public virtual object buildMessageHash(string? action, object parameters = null)
+    public virtual string? buildMessageHash(string? action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> methods = new Dictionary<string, object>() {
@@ -1861,7 +1861,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             messageHash = DynamicInvoker.InvokeMethod(method, new object[] { action, parameters});
         }
-        return messageHash;
+        return ((string?)((object)(messageHash)));
     }
 
     public virtual string? actionAndMarketMessageHash(object action, IDictionary<string, object>? parameters = null)

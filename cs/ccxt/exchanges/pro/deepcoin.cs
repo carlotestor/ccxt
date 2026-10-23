@@ -138,7 +138,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         suffix ??= "";
-        object url = getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public"), (market != null && market.ContainsKey("type") ? market["type"] : null));
+        object url = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public"), (market != null && market.ContainsKey("type") ? market["type"] : null));
         Int64 requestId = this.requestId();
         Dictionary<string, object> request = this.createPublicRequest(market, requestId, topicID, suffix);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -153,7 +153,7 @@ public partial class deepcoin : ccxt.deepcoin
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
         suffix ??= "";
-        object url = getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "public"), (market != null && market.ContainsKey("type") ? market["type"] : null));
+        object url = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public"), (market != null && market.ContainsKey("type") ? market["type"] : null));
         Int64 requestId = this.requestId();
         var client = this.client(url);
         IDictionary<string, object> existingSubscription = this.safeDict(client.subscriptions, messageHash);
@@ -177,7 +177,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = await this.authenticate();
-        string url = ((this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private") + "?listenKey=") + listenKey);
+        string url = ((this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private") + "?listenKey=") + listenKey);
         return await this.watch(url, messageHash, null, "private", parameters);
     }
 
@@ -1225,7 +1225,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             messageHashes.Add(messageHash);
         }
-        string url = ((this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private") + "?listenKey=") + listenKey);
+        string url = ((this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private") + "?listenKey=") + listenKey);
         object positions = await this.watchMultiple(url, messageHashes, parameters, new List<object>() {"private"});
         if (this.newUpdates)
         {

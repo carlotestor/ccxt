@@ -5802,7 +5802,7 @@ public partial class coinbase : Exchange
         return parsedPositions;
     }
 
-    public virtual string createAuthToken(object seconds, object method = null, string? url = null, bool? useEddsa = null)
+    public virtual string? createAuthToken(object seconds, object method = null, string? url = null, bool? useEddsa = null)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
@@ -5853,19 +5853,19 @@ public partial class coinbase : Exchange
         {
             byte[] byteArray = this.base64ToBinary(this.secret);
             object seed = this.arraySlice(byteArray, 0, 32);
-            return jwt(request, seed, sha256, false, new Dictionary<string, object>() {
+            return ((string?)((object)(jwt(request, seed, sha256, false, new Dictionary<string, object>() {
                 { "kid", this.apiKey },
                 { "nonce", nonce },
                 { "alg", "EdDSA" },
-            });
+            }))));
         } else
         {
             // ecdsa with p256
-            return jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+            return ((string?)((object)(jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
                 { "kid", this.apiKey },
                 { "nonce", nonce },
                 { "alg", "ES256" },
-            });
+            }))));
         }
     }
 

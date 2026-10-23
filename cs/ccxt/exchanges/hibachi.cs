@@ -1444,7 +1444,7 @@ public partial class hibachi : Exchange
         return this.milliseconds();
     }
 
-    public virtual string signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, object privateKey)
     {
         if ((((string)privateKey).Length == 44))
         {
@@ -1458,7 +1458,7 @@ public partial class hibachi : Exchange
             string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
             string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
             string v = this.intToBase16((signature != null && signature.ContainsKey("v") ? signature["v"] : null));
-            return ((((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0"))));
+            return ((string?)((object)(((((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")))))));
         }
     }
 

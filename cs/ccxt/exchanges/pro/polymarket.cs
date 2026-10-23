@@ -86,7 +86,7 @@ public partial class polymarket : ccxt.polymarket
     {
         context ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         var client = this.client(url);
         // the base watch only sends the request when one of the hashes is not
         // subscribed yet, so a pending entry is registered under the same
@@ -141,7 +141,7 @@ public partial class polymarket : ccxt.polymarket
         string messageHash = ("orderbook:" + symbolResolved);
         string channel = ("book::" + ((market.ContainsKey("id") ? market["id"] : null)));
         object request = this.sendSubscription("sub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -169,7 +169,7 @@ public partial class polymarket : ccxt.polymarket
             { "symbol", symbolResolved },
         };
         object request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -227,7 +227,7 @@ public partial class polymarket : ccxt.polymarket
         string messageHash = ("ticker:" + symbolResolved);
         string channel = ("tickers::" + ((market.ContainsKey("id") ? market["id"] : null)));
         object request = this.sendSubscription("sub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
@@ -254,7 +254,7 @@ public partial class polymarket : ccxt.polymarket
             { "symbol", symbolResolved },
         };
         object request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -272,7 +272,7 @@ public partial class polymarket : ccxt.polymarket
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         if ((symbolsNormalized == null))
@@ -353,7 +353,7 @@ public partial class polymarket : ccxt.polymarket
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -429,7 +429,7 @@ public partial class polymarket : ccxt.polymarket
         string messageHash = ("trade:" + symbolResolved);
         string channel = ("trades::" + ((market.ContainsKey("id") ? market["id"] : null)));
         object request = this.sendSubscription("sub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         object trades = await this.watch(url, messageHash, request, messageHash);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -462,7 +462,7 @@ public partial class polymarket : ccxt.polymarket
             { "symbol", symbolResolved },
         };
         object request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -593,7 +593,7 @@ public partial class polymarket : ccxt.polymarket
         string messageHash = ((("candles:" + (timeframeVar)) + ":") + symbolResolved);
         string channel = ((("klines::" + ((market.ContainsKey("id") ? market["id"] : null))) + "::") + interval);
         object request = this.sendSubscription("sub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -632,7 +632,7 @@ public partial class polymarket : ccxt.polymarket
             { "timeframe", timeframeVar },
         };
         object request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -700,7 +700,7 @@ public partial class polymarket : ccxt.polymarket
     {
         parameters ??= new Dictionary<string, object>();
         object credentials = await this.loadProxyCredentials();
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
@@ -756,7 +756,7 @@ public partial class polymarket : ccxt.polymarket
         }
         List<object> subscribeHashes = new List<object>() {"orders"};
         object request = this.sendSubscription("sub", new List<object>() {"orders"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         object orders = await this.watch(url, messageHash, request, "orders");
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -857,7 +857,7 @@ public partial class polymarket : ccxt.polymarket
         }
         List<object> subscribeHashes = new List<object>() {"fills"};
         object request = this.sendSubscription("sub", new List<object>() {"fills"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         object trades = await this.watch(url, messageHash, request, "fills");
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -953,7 +953,7 @@ public partial class polymarket : ccxt.polymarket
         await this.loadMarkets();
         await this.authenticate();
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         var client = this.client(url);
         this.setPositionsCache(client, symbolsNormalized);
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
@@ -1028,7 +1028,7 @@ public partial class polymarket : ccxt.polymarket
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         var client = this.client(url);
         this.setBalanceCache(client);
         bool fetchBalanceSnapshot = ((bool)this.handleOption("watchBalance", "fetchBalanceSnapshot", true));

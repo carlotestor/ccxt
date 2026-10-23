@@ -131,7 +131,7 @@ public partial class htx : ccxt.htx
         });
     }
 
-    public virtual object requestId()
+    public virtual string? requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
@@ -691,7 +691,7 @@ public partial class htx : ccxt.htx
         Int64? attempts = this.safeInteger(subscription, "numAttempts", 0);
         Dictionary<string, object> market = this.market(symbol);
         object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
-        string requestId = ((string)this.requestId());
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "req", messageHash },
             { "id", requestId },
@@ -3165,7 +3165,7 @@ public partial class htx : ccxt.htx
         }, marketResolved);
     }
 
-    public virtual object getUrlByMarketType(object type, object isLinear = null, bool? isPrivate = null, bool? isFeed = null, bool? isV5 = null)
+    public virtual string? getUrlByMarketType(object type, object isLinear = null, bool? isPrivate = null, bool? isFeed = null, bool? isV5 = null)
     {
         isLinear ??= true;
         isPrivate ??= false;
@@ -3181,21 +3181,21 @@ public partial class htx : ccxt.htx
         {
             if (isPrivate == true)
             {
-                hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "spot"), "private");
+                hostnameURL = getValue(getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), api), "spot"), "private");
             } else
             {
                 if (isFeed == true)
                 {
-                    hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "spot"), "feed");
+                    hostnameURL = getValue(getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), api), "spot"), "feed");
                 } else
                 {
-                    hostnameURL = getValue(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), "spot"), "public");
+                    hostnameURL = getValue(getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), api), "spot"), "public");
                 }
             }
             url = this.implodeParams(hostnameURL, hostname);
         } else
         {
-            object baseUrl = getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), api), type);
+            object baseUrl = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), api), type);
             object subTypeUrl = isTrue(isLinear) ? getValue(baseUrl, "linear") : getValue(baseUrl, "inverse");
             if (isPrivate == true)
             {
@@ -3211,13 +3211,13 @@ public partial class htx : ccxt.htx
                 url = getValue(subTypeUrl, "public");
             }
         }
-        return url;
+        return ((string?)((object)(url)));
     }
 
     public async virtual Task<object> subscribePublic(object url, object symbol, object messageHash, object method = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string requestId = ((string)this.requestId());
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -3238,7 +3238,7 @@ public partial class htx : ccxt.htx
     public async virtual Task<object> unsubscribePublic(IDictionary<string, object> market, string? subMessageHash, string? topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string requestId = ((string)this.requestId());
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "unsub", subMessageHash },
             { "id", requestId },
@@ -3271,7 +3271,7 @@ public partial class htx : ccxt.htx
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
-        string requestId = ((string)this.requestId());
+        string requestId = this.requestId();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", requestId },
             { "messageHash", messageHash },
@@ -3375,7 +3375,7 @@ public partial class htx : ccxt.htx
                     { "Signature", signature },
                 };
             }
-            string requestId = ((string)this.requestId());
+            string requestId = this.requestId();
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
                 { "id", requestId },
                 { "messageHash", messageHash },

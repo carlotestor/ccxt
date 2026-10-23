@@ -109,7 +109,7 @@ public partial class okx : ccxt.okx
         }
         bool isBusiness = ((access is "business"));
         bool isPublic = ((access is "public"));
-        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
+        object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
         if (isBusiness || (((string)channel).IndexOf("candle", StringComparison.Ordinal) > -1) || ((channel is "orders-algo")))
         {
             return ((string?)((object)(add(add(url, "/business"), sandboxSuffix))));
@@ -2528,7 +2528,7 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual object requestId()
+    public virtual string? requestId()
     {
         string ts = this.milliseconds().ToString();
         int randomNumber = this.randNumber(4);
@@ -2559,7 +2559,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         string? url = this.getUrl("private", "private");
-        string messageHash = ((string)this.requestId());
+        string messageHash = this.requestId();
         (string?, object) opparamsOpVariable = this.handleOptionStringAndParams(parameters, "createOrderWs", "op", "batch-orders");
         string? op = opparamsOpVariable.Item1;
         IDictionary<string, object> paramsOp = ((IDictionary<string, object>)opparamsOpVariable.Item2);
@@ -2648,7 +2648,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         string? url = this.getUrl("private", "private");
-        string messageHash = ((string)this.requestId());
+        string messageHash = this.requestId();
         (string?, object) opparamsOpVariable = this.handleOptionStringAndParams(parameters, "editOrderWs", "op", "amend-order");
         string? op = opparamsOpVariable.Item1;
         IDictionary<string, object> paramsOp = ((IDictionary<string, object>)opparamsOpVariable.Item2);
@@ -2692,7 +2692,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         string? url = this.getUrl("private", "private");
-        string messageHash = ((string)this.requestId());
+        string messageHash = this.requestId();
         string? clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"}));
         Dictionary<string, object> market = this.market(symbol);
@@ -2743,7 +2743,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         string? url = this.getUrl("private", "private");
-        string messageHash = ((string)this.requestId());
+        string messageHash = this.requestId();
         List<object> args = new List<object>() {};
         Dictionary<string, object> market = this.market(symbol);
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
@@ -2792,7 +2792,7 @@ public partial class okx : ccxt.okx
             throw new BadRequest ((this.id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
         }
         string? url = this.getUrl("private", "private");
-        string messageHash = ((string)this.requestId());
+        string messageHash = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", messageHash },
             { "op", "mass-cancel" },

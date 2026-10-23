@@ -4843,7 +4843,7 @@ public partial class kucoin : Exchange
         return this.extend(request, paramsOmitted);
     }
 
-    public virtual string marketOrderAmountToPrecision(object symbol, object amount)
+    public virtual string? marketOrderAmountToPrecision(object symbol, object amount)
     {
         Dictionary<string, object> market = this.market(symbol);
         string result = this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("info") ? market["info"] : null), "quoteIncrement"), this.precisionMode, this.paddingMode);

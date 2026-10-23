@@ -215,7 +215,7 @@ public partial class kucoin : ccxt.kucoin
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        string? url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), urlType);
+        string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), urlType);
         var client = this.client(url);
         if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
         {
@@ -258,7 +258,7 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<string?> getUtaUrl()
     {
         string? utaToken = await this.authenticateUta();
-        string? wsUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private");
+        string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " getUtaUrl() has no private websocket url")) ;
@@ -275,7 +275,7 @@ public partial class kucoin : ccxt.kucoin
         Int64 now = this.milliseconds();
         bool expired = (((now - lastUpdate)) >= refreshInterval);
         string messageHash = "utaToken";
-        string? url = ((string)getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"));
+        string? url = ((string)getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private"));
         var client = this.client(url);
         if (((utaToken == null)) || expired)
         {
@@ -574,7 +574,7 @@ public partial class kucoin : ccxt.kucoin
             { "symbols", this.marketIds(symbols) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        string? url = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), urlType);
+        string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), urlType);
         var client = this.client(url);
         object messageHashWithSymbols = add(add(channel, ":"), String.Join(",", symbols.ToArray()));
         if (!((client.subscriptions != null && messageHashWithSymbols is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))))
@@ -2275,7 +2275,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual string getOrdersMessageHashSuffix(string? topic)
+    public virtual string? getOrdersMessageHashSuffix(string? topic)
     {
         string suffix = "-spot";
         if ((topic == "/spotMarket/advancedOrders"))
@@ -2741,7 +2741,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual string getMyTradesMessageHashSuffix(object topic)
+    public virtual string? getMyTradesMessageHashSuffix(object topic)
     {
         string suffix = "-spot";
         if (getIndexOf(topic, "contractMarket") >= 0)

@@ -5748,12 +5748,12 @@ public partial class gate : Exchange
         return (isSwap == true) && (enableDecimal == true);
     }
 
-    public virtual object getGateFuturesSignedAmount(object symbol, object side, object amount)
+    public virtual string? getGateFuturesSignedAmount(object symbol, object side, object amount)
     {
         string? amountString = this.amountToPrecision(symbol, amount);
         if ((side is "sell"))
         {
-            return Precise.stringNeg(amountString);
+            return ((string?)((object)(Precise.stringNeg(amountString))));
         }
         return amountString;
     }
@@ -6142,7 +6142,7 @@ public partial class gate : Exchange
                 request["amount"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                string? signedAmount = ((string)this.getGateFuturesSignedAmount(symbol, side, amount));
+                string? signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
                 if (this.isGateFuturesContractWithDecimalSize(market))
                 {
                     request["size"] = signedAmount;
@@ -8639,7 +8639,7 @@ public partial class gate : Exchange
         {
             entirePath = endPart;
         }
-        object url = getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), authentication), type);
+        object url = getValue((this.urlsApi != null && authentication != null && this.urlsApi.ContainsKey((string)authentication) ? this.urlsApi[(string)authentication] : null), type);
         if ((url == null))
         {
             throw new NotSupported ((((this.id + " does not have a testnet for the ") + (type)) + " market type.")) ;

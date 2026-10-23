@@ -2386,7 +2386,7 @@ public partial class blofin : Exchange
         return unifiedCode;
     }
 
-    public virtual object chainIdToNetworkCode(string? chainId)
+    public virtual string? chainIdToNetworkCode(string? chainId)
     {
         // live history rows and the currencies registry carry display-name
         // chain ids like Tron with a parenthesized TRC20 suffix (verified
@@ -2419,12 +2419,12 @@ public partial class blofin : Exchange
             // the suffix is not always a chain: 'Optimism (USDT0)' carries
             // the token name (verified live 2026-09-30), resolve by prefix
             string? head = this.safeString(parts, 0, "");
-            return this.networkIdToCode(head.Trim());
+            return ((string?)((object)(this.networkIdToCode(head.Trim()))));
         }
         // delegate the paren-free branch to the base resolver so the
         // currency-scoped networks and the deprecated-network-code aliases
         // keep applying alongside options['networksById']
-        return this.networkIdToCode(chainId);
+        return ((string?)((object)(this.networkIdToCode(chainId))));
     }
 
     /**
@@ -2489,7 +2489,7 @@ public partial class blofin : Exchange
         {
             IDictionary<string, object> chain = this.safeDict(chains, i);
             string? networkId = this.safeString(chain, "chain");
-            string? networkCode = ((string)this.chainIdToNetworkCode(networkId));
+            string? networkCode = this.chainIdToNetworkCode(networkId);
             if ((networkCode == null))
             {
                 continue;
@@ -2655,7 +2655,7 @@ public partial class blofin : Exchange
         for (int i = 0; i < chainsLength; i++)
         {
             IDictionary<string, object> chain = this.safeDict(fee, i);
-            string? networkCode = ((string)this.chainIdToNetworkCode(this.safeString(chain, "chain")));
+            string? networkCode = this.chainIdToNetworkCode(this.safeString(chain, "chain"));
             if ((networkCode == null))
             {
                 continue;
@@ -2989,7 +2989,7 @@ public partial class blofin : Exchange
         // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
         // amount 29 + fee 1
         string? networkId = this.safeString(transaction, "chain");
-        string? networkCode = ((string)this.chainIdToNetworkCode(networkId));
+        string? networkCode = this.chainIdToNetworkCode(networkId);
         string? txid = this.safeString(transaction, "txId");
         Int64? timestamp = this.safeInteger(transaction, "ts");
         string? feeCurrencyId = this.safeString(transaction, "feeCurrency");

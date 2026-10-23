@@ -2240,7 +2240,7 @@ public partial class derive : Exchange
      * @description returns a unique nanosecond-scale action nonce as a decimal string; v3 requires UTC timestamps in nanoseconds (~19 digits), which overflow double precision, so the millisecond timestamp from incrementingNonce is concatenated with a random 6-digit suffix (the venue accepts string nonces)
      * @returns {string} a nanosecond-scale nonce as a decimal string
      */
-    public virtual object nonceString()
+    public virtual string? nonceString()
     {
         // incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
         // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
@@ -2249,7 +2249,7 @@ public partial class derive : Exchange
         object milliseconds = this.numberToString(rawNonce);
         string? suffix = this.numberToString(randomPart);
         string padded = (suffix as String).PadLeft(Convert.ToInt32(6), Convert.ToChar("0"));
-        return ((object)(milliseconds == null ? null : milliseconds + padded));
+        return ((string?)((object)(((object)(milliseconds == null ? null : milliseconds + padded)))));
     }
 
     public virtual string? hashMessage(object message)
@@ -2262,17 +2262,17 @@ public partial class derive : Exchange
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
-    public virtual string signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
         string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
-        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
+        return ((string?)((object)(((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v))));
     }
 
-    public virtual string signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
@@ -2280,7 +2280,7 @@ public partial class derive : Exchange
     public virtual string? parseUnits(string? num, string? dec = null)
     {
         dec ??= "1000000000000000000";
-        return Precise.stringMul(num, dec);
+        return ((string?)((object)(Precise.stringMul(num, dec))));
     }
 
     /**

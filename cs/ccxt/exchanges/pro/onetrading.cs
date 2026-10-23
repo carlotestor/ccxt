@@ -85,7 +85,7 @@ public partial class onetrading : ccxt.onetrading
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string messageHash = "balance";
         string subscribeHash = "ACCOUNT_HISTORY";
         Int64? bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
@@ -296,7 +296,7 @@ public partial class onetrading : ccxt.onetrading
             messageHash = messageHash + (":" + symbolResolved);
         }
         await this.authenticate(parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string subscribeHash = "ACCOUNT_HISTORY";
         Int64? bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -482,7 +482,7 @@ public partial class onetrading : ccxt.onetrading
             messageHash = messageHash + (":" + symbolResolved);
         }
         await this.authenticate(parameters);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string? subscribeHash = this.safeString(parameters, "channel", "ACCOUNT_HISTORY");
         Int64? bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -1132,7 +1132,7 @@ public partial class onetrading : ccxt.onetrading
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframeId = this.safeDict(timeframes, timeframeVar);
         if ((timeframeId == null))
@@ -1417,7 +1417,7 @@ public partial class onetrading : ccxt.onetrading
         {
             marketIds = this.marketIds(symbols);
         }
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
         string type = "SUBSCRIBE";
         IDictionary<string, object> subscription = new Dictionary<string, object>() {};
@@ -1454,7 +1454,7 @@ public partial class onetrading : ccxt.onetrading
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");

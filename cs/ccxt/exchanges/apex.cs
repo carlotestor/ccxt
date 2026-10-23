@@ -1432,7 +1432,7 @@ public partial class apex : Exchange
         {
             accountId = this.randNumber(12).ToString();
         }
-        return ((((("apexomni-" + (accountId)) + "-") + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString());
+        return ((string?)((object)(((((("apexomni-" + (accountId)) + "-") + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString()))));
     }
 
     public virtual string? addHyphenBeforeUsdt(object symbol)
@@ -1442,7 +1442,7 @@ public partial class apex : Exchange
         string? symbolChar = this.safeString(symbol, (index - 1));
         if (index > 0 && symbolChar != "-")
         {
-            return ((slice(symbol, 0, index) + "-") + slice(symbol, index, null));
+            return ((string?)((object)(((slice(symbol, 0, index) + "-") + slice(symbol, index, null)))));
         }
         return ((string?)((object)(symbol)));
     }

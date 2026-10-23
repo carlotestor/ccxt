@@ -3316,7 +3316,7 @@ public partial class kraken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseNetwork(object network)
+    public virtual string? parseNetwork(object network)
     {
         IDictionary<string, object> withdrawMethods = this.safeDict(this.options, "withdrawMethods", new Dictionary<string, object>() {});
         return this.safeString(withdrawMethods, network, network);

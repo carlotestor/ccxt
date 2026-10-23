@@ -177,12 +177,12 @@ public partial class bybit : ccxt.bybit
         return requestId;
     }
 
-    public async virtual Task<string?> getUrlByMarketType(object symbol = null, object isPrivate = null, object method = null, object parameters = null)
+    public async virtual Task<string?> getUrlByMarketType(object symbol = null, bool? isPrivate = null, object method = null, object parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         string accessibility = "public";
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             accessibility = "private";
         }
@@ -191,7 +191,7 @@ public partial class bybit : ccxt.bybit
         bool? isSpot = null;
         string? type = null;
         IDictionary<string, object> market = null;
-        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
+        object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -208,7 +208,7 @@ public partial class bybit : ccxt.bybit
             isUsdcSettled = (defaultSettle == "USDC");
         }
         isSpot = (type == "spot");
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             List<object> unified = await this.isUnifiedEnabled();
             bool? isUnifiedMargin = this.safeBool(unified, 0, false);
@@ -284,7 +284,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
-        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"), "trade"));
+        string? url = this.implodeHostname(getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private"), "trade"));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -332,7 +332,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
-        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"), "trade"));
+        string? url = this.implodeHostname(getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private"), "trade"));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -372,7 +372,7 @@ public partial class bybit : ccxt.bybit
             throw new ArgumentsRequired ((this.id + " cancelOrderWs() requires a symbol argument")) ;
         }
         Dictionary<string, object> orderRequest = this.cancelOrderRequest(id, symbol, parameters);
-        string? url = this.implodeHostname(getValue(getValue(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "private"), "trade"));
+        string? url = this.implodeHostname(getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private"), "trade"));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         if (orderRequest.ContainsKey("orderFilter"))
@@ -1428,7 +1428,7 @@ public partial class bybit : ccxt.bybit
         }, marketResolved);
     }
 
-    public virtual string getPrivateType(string? url)
+    public virtual string? getPrivateType(string? url)
     {
         if (url.IndexOf("spot", StringComparison.Ordinal) >= 0)
         {

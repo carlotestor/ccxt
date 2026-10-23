@@ -749,7 +749,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} oddsLadderStepSize the raw oddsLadderStepSize from /metadata/obv3 (e.g. '125')
      * @returns {string} the probability rounded to the nearest ladder step, in decimal-string form
      */
-    public virtual object roundOddsToLadder(string? probability, string? oddsLadderStepSize)
+    public virtual string? roundOddsToLadder(string? probability, string? oddsLadderStepSize)
     {
         string? tickSize = Precise.stringDiv(oddsLadderStepSize, "100000", 10);
         return this.decimalToPrecision(probability, ROUND, tickSize, TICK_SIZE);
@@ -763,9 +763,9 @@ public partial class sxbet : PredictionExchange
      * @param {Uint8Array} encoded the output of this.ethEncodeStructuredData (domain, types, message)
      * @returns {string} the 32-byte digest to ecdsa-sign, in '0x'-prefixed hex form
      */
-    public virtual object hashEip712Digest(object encoded)
+    public virtual string? hashEip712Digest(object encoded)
     {
-        return ("0x" + (this.hash(encoded, keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(encoded, keccak, "hex"))))));
     }
 
     /**
@@ -777,7 +777,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} privateKey the signer's private key
      * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
      */
-    public virtual object signDigest(string? digest, object privateKey)
+    public virtual string? signDigest(string? digest, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((digest == null) ? null : digest.Substring(Math.Max(digest.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
@@ -961,8 +961,8 @@ public partial class sxbet : PredictionExchange
             { "deadline", deadline },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
-        string? digest = ((string)this.hashEip712Digest(encoded));
-        string? signature = ((string)this.signDigest(digest, this.privateKey));
+        string? digest = this.hashEip712Digest(encoded);
+        string? signature = this.signDigest(digest, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "owner", owner },
             { "spender", spender },
@@ -1040,7 +1040,7 @@ public partial class sxbet : PredictionExchange
         IDictionary<string, object> activeAsset = this.safeDict(obv3, "activeAsset", new Dictionary<string, object>() {});
         string? baseToken = this.safeString(activeAsset, "baseToken");
         string? oddsLadderStepSize = this.numberToString(this.safeInteger(obv3, "oddsLadderStepSize", 125));
-        string? roundedProbability = ((string)this.roundOddsToLadder(probability, oddsLadderStepSize));
+        string? roundedProbability = this.roundOddsToLadder(probability, oddsLadderStepSize);
         string percentageOdds = this.decimalToPrecision(Precise.stringMul(roundedProbability, "100000000000000000000"), ROUND, 0, DECIMAL_PLACES);
         string? amountStr = this.numberToString(amount);
         string totalBetSize = this.decimalToPrecision(Precise.stringMul(amountStr, "1000000"), ROUND, 0, DECIMAL_PLACES);
@@ -1107,8 +1107,8 @@ public partial class sxbet : PredictionExchange
             { "isMakerBettingOutcomeOne", isMakerBettingOutcomeOne },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
-        string? digest = ((string)this.hashEip712Digest(encoded));
-        string? orderSignature = ((string)this.signDigest(digest, this.privateKey));
+        string? digest = this.hashEip712Digest(encoded);
+        string? orderSignature = this.signDigest(digest, this.privateKey);
         Dictionary<string, object> orderItem = new Dictionary<string, object>() {
             { "marketHash", marketHash },
             { "maker", maker },

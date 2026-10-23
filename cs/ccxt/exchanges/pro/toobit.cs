@@ -214,7 +214,7 @@ public partial class toobit : ccxt.toobit
             subParams.Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbolsNormalized);
-        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "common") + "/quote/ws/v1");
+        string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "common") + "/quote/ws/v1");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", marketIds.ToArray()) },
             { "topic", "trade" },
@@ -324,7 +324,7 @@ public partial class toobit : ccxt.toobit
         {
             await this.loadMarkets();
         }
-        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "common") + "/quote/ws/v1");
+        string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "common") + "/quote/ws/v1");
         List<object> messageHashes = new List<object>() {};
         IDictionary<string, object> timeframes = this.safeDict((this.options.ContainsKey("ws") ? this.options["ws"] : null), "timeframes", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>() {};
@@ -493,7 +493,7 @@ public partial class toobit : ccxt.toobit
             subParams.Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbolsNormalized);
-        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "common") + "/quote/ws/v1");
+        string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "common") + "/quote/ws/v1");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", marketIds.ToArray()) },
             { "topic", "realtimes" },
@@ -634,7 +634,7 @@ public partial class toobit : ccxt.toobit
             subParams.Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbolsNormalized);
-        string url = (this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "common") + "/quote/ws/v1");
+        string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "common") + "/quote/ws/v1");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", marketIds.ToArray()) },
             { "topic", channel },
@@ -1434,7 +1434,7 @@ public partial class toobit : ccxt.toobit
 
     public virtual string? getUserStreamUrl()
     {
-        return ((this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "common") + "/api/v1/ws/") + this.safeString((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKey"));
+        return ((this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "common") + "/api/v1/ws/") + this.safeString((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKey"));
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)

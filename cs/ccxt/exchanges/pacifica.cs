@@ -4300,7 +4300,7 @@ public partial class pacifica : Exchange
         return this.json(sorted);
     }
 
-    public virtual string signMessage(IDictionary<string, object> header, IDictionary<string, object> payload, object privateKey)
+    public virtual string? signMessage(IDictionary<string, object> header, IDictionary<string, object> payload, object privateKey)
     {
         string? message = this.prepareMessage(header, payload);
         string? messageBytes = this.encode(message);

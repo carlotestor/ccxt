@@ -803,7 +803,7 @@ public partial class blofin : ccxt.blofin
         client.resolve(fundingRate, messageHash);
     }
 
-    public async virtual Task<object> watchMultipleWrapper(object isPublic, object channelName, object callerMethodName, object symbolsArray = null, object parameters = null)
+    public async virtual Task<object> watchMultipleWrapper(bool? isPublic, object channelName, object callerMethodName, object symbolsArray = null, object parameters = null)
     {
         // underlier method for all watch-multiple symbols
         parameters ??= new Dictionary<string, object>();
@@ -879,7 +879,7 @@ public partial class blofin : ccxt.blofin
         }
         Dictionary<string, object> request = this.getSubscriptionRequest(rawSubscriptions);
         string privateOrPublic = "private";
-        if (isTrue(isPublic))
+        if (isPublic == true)
         {
             privateOrPublic = "public";
         }

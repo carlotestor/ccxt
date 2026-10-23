@@ -557,7 +557,7 @@ public partial class PredictionExchange : BaseExchange
         return ((string?)((object)((outcomeObjValue != null && outcomeObjValue.ContainsKey("outcome") ? outcomeObjValue["outcome"] : null))));
     }
 
-    public virtual string shortenSlug(object slug)
+    public virtual string? shortenSlug(object slug)
     {
         Dictionary<string, object> replacements = new Dictionary<string, object>() {
             { "federal-reserve", "fed" },
@@ -1949,7 +1949,7 @@ public partial class PredictionExchange : BaseExchange
         int hexLength = hex.Length;
         if (!isEqual((((Int64)hexLength % 2L)), 0))
         {
-            return ("0" + hex);
+            return ((string?)((object)(("0" + hex))));
         }
         return ((string?)((object)(hex)));
     }
@@ -1983,12 +1983,12 @@ public partial class PredictionExchange : BaseExchange
         }
         if (((byteLength == null || byteLength < 56)))
         {
-            return (this.intToBase16(add(128, byteLength)) + hex);
+            return ((string?)((object)((this.intToBase16(add(128, byteLength)) + hex))));
         }
         string? lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
-        return ((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + hex);
+        return ((string?)((object)(((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + hex))));
     }
 
     public virtual string? rlpEncodeList(IList<object> items)
@@ -2001,12 +2001,12 @@ public partial class PredictionExchange : BaseExchange
         Int64? byteLength = this.parseToInt(((double)((string)concatenated).Length / 2));
         if (((byteLength == null || byteLength < 56)))
         {
-            return (this.intToBase16(add(192, byteLength)) + (concatenated));
+            return ((string?)((object)((this.intToBase16(add(192, byteLength)) + (concatenated)))));
         }
         string? lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
-        return ((this.intToBase16(add(247, lengthOfLength)) + lengthHex) + (concatenated));
+        return ((string?)((object)(((this.intToBase16(add(247, lengthOfLength)) + lengthHex) + (concatenated)))));
     }
 
     public virtual string? intToRlpHex(object value)

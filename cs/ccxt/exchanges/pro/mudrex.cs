@@ -77,7 +77,7 @@ public partial class mudrex : ccxt.mudrex
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ticker:" + symbolValue);
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         this.setBrokerHeaders();
         object baseIdString = (!((market.ContainsKey("baseId") ? market["baseId"] : null) == null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
         object quoteIdString = (!((market.ContainsKey("quoteId") ? market["quoteId"] : null) == null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
@@ -113,7 +113,7 @@ public partial class mudrex : ccxt.mudrex
                 assets.Add((((string)baseIdString).ToLower() + ((string)quoteIdString).ToLower()));
             }
         }
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         this.setBrokerHeaders();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },
@@ -163,7 +163,7 @@ public partial class mudrex : ccxt.mudrex
         string? streamQuoteId = this.safeString(market, "quoteId", "");
         string stream = (((((prefix + "@") + interval) + "@") + streamBaseId.ToLower()) + streamQuoteId.ToLower());
         string messageHash = stream;
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         this.setBrokerHeaders();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },

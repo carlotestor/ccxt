@@ -253,14 +253,14 @@ public partial class independentreserve : ccxt.independentreserve
             {
                 if (i < bidsLength)
                 {
-                    payload = add(((object)(payload + (string)(object)(this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 0))))), this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 1)));
+                    payload = ((payload + this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 0))) + this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 1)));
                 }
             }
             for (int i = 0; i < 10; i++)
             {
                 if (i < asksLength)
                 {
-                    payload = add(add(payload, this.valueToChecksum(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 0))), this.valueToChecksum(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 1)));
+                    payload = ((payload + this.valueToChecksum(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 0))) + this.valueToChecksum(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 1)));
                 }
             }
             Int64 calculatedChecksum = this.crc32(payload, false);
@@ -280,7 +280,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
     }
 
-    public virtual object valueToChecksum(object value)
+    public virtual string? valueToChecksum(object value)
     {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
@@ -290,7 +290,7 @@ public partial class independentreserve : ccxt.independentreserve
         // remove leading zeros
         result = this.parseNumber(result);
         result = this.numberToString(result);
-        return result;
+        return ((string?)((object)(result)));
     }
 
     public override void handleDelta(object bookside, object delta)

@@ -6953,7 +6953,7 @@ public partial class mexc : Exchange
         {
             if (section == "broker")
             {
-                string? apiUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), section), access);
+                string? apiUrl = this.safeString((this.urlsApi != null && section != null && this.urlsApi.ContainsKey(section) ? this.urlsApi[section] : null), access);
                 if ((apiUrl == null))
                 {
                     throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -6961,7 +6961,7 @@ public partial class mexc : Exchange
                 url = ((apiUrl + "/") + pathValue);
             } else
             {
-                string? apiUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), section), access);
+                string? apiUrl = this.safeString((this.urlsApi != null && section != null && this.urlsApi.ContainsKey(section) ? this.urlsApi[section] : null), access);
                 if ((apiUrl == null))
                 {
                     throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -7010,7 +7010,7 @@ public partial class mexc : Exchange
             }
         } else if (section == "contract" || section == "spot2")
         {
-            string? apiUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), section), access);
+            string? apiUrl = this.safeString((this.urlsApi != null && section != null && this.urlsApi.ContainsKey(section) ? this.urlsApi[section] : null), access);
             if ((apiUrl == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

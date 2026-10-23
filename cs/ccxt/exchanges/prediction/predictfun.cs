@@ -1029,7 +1029,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [text] the raw title or outcome label
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
-    public virtual object stripPriceFormatting(string? text)
+    public virtual string? stripPriceFormatting(string? text)
     {
         if ((text == null))
         {
@@ -1072,7 +1072,7 @@ public partial class predictfun : PredictionExchange
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    public virtual object titleForMarketSymbol(string? topicSlug, string? title, object marketCount = null)
+    public virtual string? titleForMarketSymbol(string? topicSlug, string? title, object marketCount = null)
     {
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
@@ -1081,7 +1081,7 @@ public partial class predictfun : PredictionExchange
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
         if ((isEqual(marketCount, 1)) && ((topicSlug != null)))
         {
-            return topicSlug;
+            return ((string?)((object)(topicSlug)));
         }
         return this.stripPriceFormatting(title);
     }
@@ -1223,7 +1223,7 @@ public partial class predictfun : PredictionExchange
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             string? rawLabel = this.safeStringUpper(rawOutcome, "name");
-            string? label = ((string)this.stripPriceFormatting(rawLabel));
+            string? label = this.stripPriceFormatting(rawLabel);
             string? tokenId = this.safeString(rawOutcome, "onChainId");
             string? outcomeHandle = ((string)add(add(marketSymbol, ":"), label));
             bool? winner = null;
@@ -1840,7 +1840,7 @@ public partial class predictfun : PredictionExchange
         // change with it - and the venue serves the testnet without an api key
         this.options["sandboxMode"] = enable;
         this.options["chainId"] = enable == true ? 97 : 56;
-        ((IDictionary<string,object>)this.requiredCredentials)["apiKey"] = enable != true;
+        this.requiredCredentials["apiKey"] = enable != true;
         if (!(wasSandbox == enable))
         {
             // a token minted for one host is not valid on the other, so the live one is set aside
@@ -1889,7 +1889,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} privateKey the wallet private key
      * @returns {string} the 65 byte signature, 0x prefixed
      */
-    public virtual string signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
@@ -1979,7 +1979,7 @@ public partial class predictfun : PredictionExchange
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
         Int64? chainIdValue = this.safeInteger(this.options, "chainId", 56);
-        string? verifyingContract = ((string)this.exchangeAddress(isNegRisk, isYieldBearing));
+        string? verifyingContract = this.exchangeAddress(isNegRisk, isYieldBearing);
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "predict.fun CTF Exchange" },
             { "version", "1" },
@@ -2906,7 +2906,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {string} the contract address on the active chain
      */
-    public virtual object exchangeAddress(bool? isNegRisk, bool? isYieldBearing)
+    public virtual string? exchangeAddress(bool? isNegRisk, bool? isYieldBearing)
     {
         Int64? chainIdValue = this.safeInteger(this.options, "chainId", 56);
         IDictionary<string, object> exchanges = this.safeDict(this.options, "exchanges", new Dictionary<string, object>() {});
@@ -2934,7 +2934,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {string} the contract address on the active chain
      */
-    public virtual object conditionalTokensAddress(bool? isNegRisk, bool? isYieldBearing)
+    public virtual string? conditionalTokensAddress(bool? isNegRisk, bool? isYieldBearing)
     {
         Int64? chainIdValue = this.safeInteger(this.options, "chainId", 56);
         IDictionary<string, object> tokens = this.safeDict(this.options, "conditionalTokens", new Dictionary<string, object>() {});
@@ -2961,7 +2961,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {string} the contract address on the active chain
      */
-    public virtual object adapterAddress(bool? isYieldBearing)
+    public virtual string? adapterAddress(bool? isYieldBearing)
     {
         Int64? chainIdValue = this.safeInteger(this.options, "chainId", 56);
         IDictionary<string, object> adapters = this.safeDict(this.options, "adapters", new Dictionary<string, object>() {});
@@ -3003,7 +3003,7 @@ public partial class predictfun : PredictionExchange
         signedFields.Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         signedFields.Add(this.rlpEncodeBytes(rHex));
         signedFields.Add(this.rlpEncodeBytes(sHex));
-        return ("0x02" + this.rlpEncodeList(signedFields));
+        return ((string?)((object)(("0x02" + this.rlpEncodeList(signedFields)))));
     }
 
     /**
@@ -3179,7 +3179,7 @@ public partial class predictfun : PredictionExchange
             { "subscribeHash", topic },
             { "messageHashes", this.orderBookMessageHashes(marketId) },
         };
-        string? url = ((string)this.socketUrl());
+        string? url = this.socketUrl();
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), topic, subscription));
         return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -3238,7 +3238,7 @@ public partial class predictfun : PredictionExchange
             { "subscribeHash", topic },
         };
         string messageHash = ("unsubscribe::orderbook::" + this.safeOutcomeSymbol(null, outcomeObj));
-        string? url = ((string)this.socketUrl());
+        string? url = this.socketUrl();
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
@@ -3502,7 +3502,7 @@ public partial class predictfun : PredictionExchange
             { "requestId", requestId },
             { "params", new List<object>() {topic} },
         };
-        string? url = ((string)this.socketUrl());
+        string? url = this.socketUrl();
         var client = this.client(url);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", this.numberToString(requestId) },
@@ -3575,7 +3575,7 @@ public partial class predictfun : PredictionExchange
             { "subscribeHash", "walletEvents" },
         };
         string messageHash = ("unsubscribe::" + channel);
-        string? url = ((string)this.socketUrl());
+        string? url = this.socketUrl();
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
@@ -3586,7 +3586,7 @@ public partial class predictfun : PredictionExchange
      * @description the socket endpoint carrying the api key the venue demands on the handshake
      * @returns {string} the url to connect to
      */
-    public virtual object socketUrl()
+    public virtual string? socketUrl()
     {
         object urls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         string? bs = this.safeString(urls, "ws");
@@ -3600,7 +3600,7 @@ public partial class predictfun : PredictionExchange
         }
         // the key rides in the query string rather than a header: a browser cannot set headers on
         // a websocket handshake, and the venue documents both forms
-        return ((bs + "?apiKey=") + this.apiKey);
+        return ((string?)((object)(((bs + "?apiKey=") + this.apiKey))));
     }
 
     /**
@@ -3937,7 +3937,7 @@ public partial class predictfun : PredictionExchange
         {
             eventHandle = this.shortenSlug(topicSlug);
         }
-        string? label = ((string)this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName")));
+        string? label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
         return new Dictionary<string, object>() {
             { "outcome", null },
             { "outcomeId", null },

@@ -2279,7 +2279,7 @@ public partial class extended : Exchange
         };
     }
 
-    public virtual object getExtendedCurrencyCodeById(string? assetId, object currency = null)
+    public virtual string? getExtendedCurrencyCodeById(string? assetId, object currency = null)
     {
         if ((assetId == null))
         {
@@ -2293,7 +2293,7 @@ public partial class extended : Exchange
         }
         if ((currency != null))
         {
-            return getValue(currency, "code");
+            return ((string?)((object)(getValue(currency, "code"))));
         }
         string? code = this.safeCurrencyCode(assetId);
         if (code == "USD")
@@ -2786,7 +2786,7 @@ public partial class extended : Exchange
         });
     }
 
-    public virtual string getExtendedStarkAmount(object amount, object resolution, object roundUp = null)
+    public virtual string? getExtendedStarkAmount(object amount, object resolution, object roundUp = null)
     {
         roundUp ??= false;
         string? resolutionString = this.numberToString(resolution);

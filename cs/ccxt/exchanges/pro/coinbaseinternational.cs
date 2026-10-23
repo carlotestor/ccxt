@@ -104,18 +104,18 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return requestId;
     }
 
-    public virtual object getWsUrl(object isPrivate = null)
+    public virtual string? getWsUrl(bool? isPrivate = null)
     {
         isPrivate ??= false;
         if (this.isNativeDeribitCredentials())
         {
             return "wss://www.deribit.com/ws/api/v2";
         }
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
-            return getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "wsPrivate");
+            return ((string?)((object)((this.urlsApi != null && this.urlsApi.ContainsKey("wsPrivate") ? this.urlsApi["wsPrivate"] : null))));
         }
-        return getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
+        return ((string?)((object)((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null))));
     }
 
     public override object ping(WebSocketClient client)
@@ -171,14 +171,14 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the subscription result
      */
-    public async virtual Task<object> subscribe(object channels, object messageHashes, object isPrivate = null, object parameters = null)
+    public async virtual Task<object> subscribe(object channels, object messageHashes, bool? isPrivate = null, object parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("subscribe", parameters);
         object url = this.getWsUrl(false);
         string method = "public/subscribe";
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             url = this.getWsUrl(true);
             method = "private/subscribe";
@@ -218,14 +218,14 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {boolean} true when unsubscription has been requested
      */
-    public async virtual Task<object> unSubscribe(object channels, object isPrivate = null, object parameters = null)
+    public async virtual Task<object> unSubscribe(object channels, bool? isPrivate = null, object parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("unSubscribe", parameters);
         object url = this.getWsUrl(false);
         string method = "public/unsubscribe";
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             url = this.getWsUrl(true);
             method = "private/unsubscribe";

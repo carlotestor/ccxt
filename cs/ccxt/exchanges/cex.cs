@@ -965,7 +965,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(fees, true));
     }
 
-    public virtual Dictionary<string, object> parseTradingFees(IDictionary<string, object> response, object useKeyAsId = null)
+    public virtual Dictionary<string, object> parseTradingFees(IDictionary<string, object> response, bool? useKeyAsId = null)
     {
         useKeyAsId ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -974,7 +974,7 @@ public partial class cex : Exchange
         {
             string? key = ((string)keys[i]);
             IDictionary<string, object> market = null;
-            if (isTrue(useKeyAsId))
+            if (useKeyAsId == true)
             {
                 market = this.safeMarket(key);
             }

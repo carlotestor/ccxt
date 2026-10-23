@@ -4017,7 +4017,7 @@ public partial class backpack : Exchange
         };
     }
 
-    public virtual string generateBatchPayload(object parameters, string? ts, string? recvWindow, string? instruction)
+    public virtual string? generateBatchPayload(object parameters, string? ts, string? recvWindow, string? instruction)
     {
         string payload = "";
         for (int i = 0; i < getArrayLength(parameters); i++)

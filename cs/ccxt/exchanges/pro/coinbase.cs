@@ -65,7 +65,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> subscribe(object name, object isPrivate, object symbol = null, object parameters = null)
+    public async virtual Task<object> subscribe(object name, bool? isPrivate, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -93,13 +93,13 @@ public partial class coinbase : ccxt.coinbase
             messageHash = add(add(name, "::"), symbol);
             productIds = new List<object> {this.safeString(market, "id")};
         }
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
             { "channel", name },
         };
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
         }
@@ -117,7 +117,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> unSubscribe(object topic, object name, object isPrivate, object symbol = null)
+    public async virtual Task<object> unSubscribe(object topic, object name, bool? isPrivate, object symbol = null)
     {
         if ((this.markets == null))
         {
@@ -152,7 +152,7 @@ public partial class coinbase : ccxt.coinbase
             unWatchMessageHash = ((unWatchMessageHash + "::") + (symbol));
             productIds = new List<object> {this.safeString(market, "id")};
         }
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
@@ -166,7 +166,7 @@ public partial class coinbase : ccxt.coinbase
             { "unsubscribe", true },
             { "symbols", new List<object>() {symbol} },
         };
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             message = this.extend(message, this.createWSAuth(name, productIds));
         }
@@ -188,7 +188,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> subscribeMultiple(object name, object isPrivate, object symbols = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(object name, bool? isPrivate, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -206,13 +206,13 @@ public partial class coinbase : ccxt.coinbase
             productIds.Add(marketId);
             messageHashes.Add(add(add(name, "::"), symbol));
         }
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
             { "channel", name },
         };
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
         }
@@ -231,7 +231,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> unSubscribeMultiple(object topic, object name, object isPrivate, IList<object> symbols = null, object parameters = null)
+    public async virtual Task<object> unSubscribeMultiple(object topic, object name, bool? isPrivate, IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(this.options, "unSubscriptionPending", false) == true))
@@ -256,13 +256,13 @@ public partial class coinbase : ccxt.coinbase
             watchMessageHashes.Add(add(add(name, "::"), symbol));
             unWatchMessageHashes.Add(((("unsubscribe:" + (name)) + "::") + symbol));
         }
-        string? url = ((string)getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "product_ids", productIds },
             { "channel", name },
         };
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             message = this.extend(message, this.createWSAuth(name, productIds));
         }

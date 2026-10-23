@@ -188,7 +188,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} encoding outcome side encoding
      * @returns {string} the coin name
      */
-    public virtual string outcomeCoin(object encoding)
+    public virtual string? outcomeCoin(object encoding)
     {
         return ("#" + encoding.ToString());
     }
@@ -201,7 +201,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} encoding outcome side encoding
      * @returns {string} the token name
      */
-    public virtual string outcomeToken(object encoding)
+    public virtual string? outcomeToken(object encoding)
     {
         return ("+" + encoding.ToString());
     }
@@ -408,7 +408,7 @@ public partial class hyperliquid : PredictionExchange
         // Fallback: use name slugified, or OUTCOME-<id>
         if (((name != null)) && (!(name is "")))
         {
-            return ((this.shortenSlug(name) + "_") + outcomeId.ToString());
+            return ((string?)((object)(((this.shortenSlug(name) + "_") + outcomeId.ToString()))));
         }
         return ("OUTCOME_" + outcomeId.ToString());
     }

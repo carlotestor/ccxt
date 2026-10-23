@@ -939,11 +939,11 @@ public partial class zaif : Exchange
         };
     }
 
-    public virtual object customNonce()
+    public virtual string? customNonce()
     {
         string? num = this.numberToString(((double)this.milliseconds() / 1000));
         object nonce = parseFloat(num);
-        return toFixed(nonce, 8);
+        return ((string?)((object)(toFixed(nonce, 8))));
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)

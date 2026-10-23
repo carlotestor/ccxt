@@ -3989,7 +3989,7 @@ public partial class cryptocom : Exchange
         return this.milliseconds();
     }
 
-    public virtual object paramsToString(object obj, object level)
+    public virtual string? paramsToString(object obj, object level)
     {
         int maxLevel = 3;
         Int64? depth = this.parseToInt(level);
@@ -3999,7 +3999,7 @@ public partial class cryptocom : Exchange
         }
         if ((obj is string))
         {
-            return obj;
+            return ((string?)((object)(obj)));
         }
         object returnString = "";
         object paramsKeys = null;
@@ -4030,7 +4030,7 @@ public partial class cryptocom : Exchange
                 returnString = (returnString + (((object)value).ToString()));
             }
         }
-        return returnString;
+        return ((string?)((object)(returnString)));
     }
 
     /**

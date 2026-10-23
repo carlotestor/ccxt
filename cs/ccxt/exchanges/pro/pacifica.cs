@@ -1711,7 +1711,7 @@ public partial class pacifica : ccxt.pacifica
         return message;
     }
 
-    public virtual object requestId()
+    public virtual string? requestId()
     {
         return this.uuid();  // uuid v4
     }
@@ -1722,7 +1722,7 @@ public partial class pacifica : ccxt.pacifica
         {
             throw new ArgumentsRequired ((this.id + "postAction() requires a \"operationType\" argument!")) ;
         }
-        string requestId = ((string)this.requestId());
+        string requestId = this.requestId();
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "id", requestId },
             { "params", new Dictionary<string, object>() {} },

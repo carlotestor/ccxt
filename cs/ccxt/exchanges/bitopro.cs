@@ -1127,7 +1127,7 @@ public partial class bitopro : Exchange
             { "4", "canceled" },
             { "6", "canceled" },
         };
-        return ((status == null)) ? null : this.safeString(statuses, status);
+        return ((string?)((object)(((status == null)) ? null : this.safeString(statuses, status))));
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)

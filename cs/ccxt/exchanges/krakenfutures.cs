@@ -3981,7 +3981,7 @@ public partial class krakenfutures : Exchange
         };
     }
 
-    public virtual object parseKrakenAccountName(object account)
+    public virtual string? parseKrakenAccountName(object account)
     {
         Dictionary<string, object> accountByType = new Dictionary<string, object>() {
             { "main", "cash" },
@@ -3995,7 +3995,7 @@ public partial class krakenfutures : Exchange
         };
         if ((account is string inOpKey1 && accountByType.ContainsKey(inOpKey1)))
         {
-            return (accountByType != null && account != null && accountByType.ContainsKey((string)account) ? accountByType[(string)account] : null);
+            return ((string?)((object)((accountByType != null && account != null && accountByType.ContainsKey((string)account) ? accountByType[(string)account] : null))));
         } else if (((this.markets != null)) && ((this.markets != null && account is string inOpKey2 && this.markets.ContainsKey(inOpKey2))))
         {
             Dictionary<string, object> market = this.market(account);
@@ -4010,7 +4010,7 @@ public partial class krakenfutures : Exchange
             }
         } else
         {
-            return account;
+            return ((string?)((object)(account)));
         }
     }
 
@@ -4060,7 +4060,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> response = null;
         if ((toAccount == "spot"))
         {
-            if (!(this.parseKrakenAccountName(fromAccount) is "cash"))
+            if (!(this.parseKrakenAccountName(fromAccount) == "cash"))
             {
                 throw new BadRequest (((((this.id + " transfer cannot transfer from ") + fromAccount) + " to ") + toAccount)) ;
             }

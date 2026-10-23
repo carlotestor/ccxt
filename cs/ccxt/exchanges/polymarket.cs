@@ -3123,7 +3123,7 @@ public partial class polymarket : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiType = getValue(api, 0);
-        object url = add(add(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiType), "/"), this.implodeParams(path, parameters));
+        object url = add(add((this.urlsApi != null && apiType != null && this.urlsApi.ContainsKey((string)apiType) ? this.urlsApi[(string)apiType] : null), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersResolved = new Dictionary<string, object>() {
             { "Accept", "application/json" },

@@ -762,7 +762,7 @@ public partial class nado : Exchange
         {
             throw new ExchangeError ((this.id + " editOrder() requires endpoint_addr from contracts query")) ;
         }
-        string? cancelSignature = ((string)this.signCancellation(cancelTx, chainId, endpointAddress));
+        string? cancelSignature = this.signCancellation(cancelTx, chainId, endpointAddress);
         string? orderSignature = this.signOrder(order, productId, chainId);
         Dictionary<string, object> placeOrder = new Dictionary<string, object>() {
             { "product_id", productId },
@@ -893,7 +893,7 @@ public partial class nado : Exchange
         {
             throw new ExchangeError ((this.id + " cancelAllOrders() requires endpoint_addr from contracts query")) ;
         }
-        string? signature = ((string)this.signCancellationProducts(tx, chainId, endpointAddress));
+        string? signature = this.signCancellationProducts(tx, chainId, endpointAddress);
         Int64? requestId = this.safeInteger(paramsRecvWindow, "id");
         Dictionary<string, object> paramsOmitted = this.omit(paramsRecvWindow, new List<object>() {"id"});
         Dictionary<string, object> cancelProductOrders = new Dictionary<string, object>() {
@@ -998,7 +998,7 @@ public partial class nado : Exchange
         {
             throw new ExchangeError ((this.id + " cancelOrders() requires endpoint_addr from contracts query")) ;
         }
-        string? signature = ((string)this.signCancellation(tx, chainId, endpointAddress));
+        string? signature = this.signCancellation(tx, chainId, endpointAddress);
         Int64? requestId = this.safeInteger(paramsRecvWindow, "id");
         string? requiredUnfilledAmountRaw = this.safeString(paramsRecvWindow, "required_unfilled_amount");
         string? requiredUnfilledAmount = this.safeString(paramsRecvWindow, "requiredUnfilledAmount");
@@ -1125,7 +1125,7 @@ public partial class nado : Exchange
         IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
-        string? signature = ((string)this.signFetchTriggerOrders(tx, chainId, endpointAddress));
+        string? signature = this.signFetchTriggerOrders(tx, chainId, endpointAddress);
         request["signature"] = signature;
         Dictionary<string, object> response = await this.triggerPrivatePostQuery(this.extend(request, paramsRecvWindow));
         //
@@ -3239,7 +3239,7 @@ public partial class nado : Exchange
         // plus a random value on the low bits, otherwise two orders created
         // during the same millisecond would collide on the same nonce and get rejected
         int entropy = this.randNumber(6);
-        return Precise.stringAdd(highBits, this.numberToString(entropy));
+        return ((string?)((object)(Precise.stringAdd(highBits, this.numberToString(entropy)))));
     }
 
     public virtual string? createOrderAppendix(bool isTriggerOrder, object parameters = null)
@@ -3289,7 +3289,7 @@ public partial class nado : Exchange
         return appendix;
     }
 
-    public virtual string createSubaccount(object walletAddress, string? subaccount = null)
+    public virtual string? createSubaccount(object walletAddress, string? subaccount = null)
     {
         subaccount ??= "default";
         if ((walletAddress == null))
@@ -3324,12 +3324,12 @@ public partial class nado : Exchange
         return this.safeDict(this.options, "gatewayContracts", new Dictionary<string, object>() {});
     }
 
-    public virtual string orderVerifyingContract(object productId)
+    public virtual string? orderVerifyingContract(object productId)
     {
         return ("0x" + this.padHex(this.intToBase16(productId), 40));
     }
 
-    public virtual string padHex(object value, object length, bool? left = null)
+    public virtual string? padHex(object value, object length, bool? left = null)
     {
         left ??= true;
         if ((length == null))
@@ -3341,10 +3341,10 @@ public partial class nado : Exchange
         {
             string? paddedLeft = ((string)(zeros + (value)));
             object start = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(paddedLeft.Length, this.parseToInt(length));
-            return slice(paddedLeft, start, paddedLeft.Length);
+            return ((string?)((object)(slice(paddedLeft, start, paddedLeft.Length))));
         }
         object paddedRight = add(value, zeros);
-        return slice(paddedRight, 0, length);
+        return ((string?)((object)(slice(paddedRight, 0, length))));
     }
 
     public virtual string? signOrder(IDictionary<string, object> order, object productId, object chainId)
@@ -3381,7 +3381,7 @@ public partial class nado : Exchange
         return ((string?)((object)(this.signHash(hash, this.privateKey))));
     }
 
-    public virtual object signCancellation(IDictionary<string, object> cancellation, string? chainId, string? endpointAddress)
+    public virtual string? signCancellation(IDictionary<string, object> cancellation, string? chainId, string? endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3409,7 +3409,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signCancellationProducts(IDictionary<string, object> cancellation, string? chainId, string? endpointAddress)
+    public virtual string? signCancellationProducts(IDictionary<string, object> cancellation, string? chainId, string? endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3434,7 +3434,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signFetchTriggerOrders(IDictionary<string, object> tx, string? chainId, string? endpointAddress)
+    public virtual string? signFetchTriggerOrders(IDictionary<string, object> tx, string? chainId, string? endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3456,7 +3456,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual string signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, object privateKey)
     {
         if ((privateKey == null))
         {
@@ -3477,7 +3477,7 @@ public partial class nado : Exchange
         }
         if (marketId.EndsWith("-PERP"))
         {
-            return ((marketId == null) ? null : marketId.Substring(0, Math.Max(marketId.Length - 5, 0)));
+            return ((string?)((object)(((marketId == null) ? null : marketId.Substring(0, Math.Max(marketId.Length - 5, 0))))));
         }
         return ((string?)((object)(marketId)));
     }

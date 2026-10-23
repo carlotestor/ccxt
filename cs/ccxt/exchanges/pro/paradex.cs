@@ -47,20 +47,20 @@ public partial class paradex : ccxt.paradex
         });
     }
 
-    public virtual object getWsUrl()
+    public virtual string? getWsUrl()
     {
-        object url = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
+        object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
         if (!(this.safeBool(this.options, "sbe", true) == true))
         {
-            return url;
+            return ((string?)((object)(url)));
         }
         string? schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
-        return add(add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion);
+        return ((string?)((object)(add(add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion))));
     }
 
-    public virtual object getOrderBookChannel(object marketId)
+    public virtual string? getOrderBookChannel(object marketId)
     {
-        return (("order_book." + (marketId)) + ".snapshot@15@100ms");
+        return ((string?)((object)((("order_book." + (marketId)) + ".snapshot@15@100ms"))));
     }
 
     public virtual Int64 requestId()
@@ -220,7 +220,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? messageHash = ((string)this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null)));
+        string? messageHash = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null));
         object url = this.getWsUrl();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -1092,7 +1092,7 @@ public partial class paradex : ccxt.paradex
         return this.parseToInt(result);
     }
 
-    public virtual object sbeReadInt64(object frameHex, object offset)
+    public virtual string? sbeReadInt64(object frameHex, object offset)
     {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
         Int64? low = this.parseToInt(this.sbeReadUint(frameHex, offset, 4));
@@ -1113,22 +1113,22 @@ public partial class paradex : ccxt.paradex
         return result;
     }
 
-    public virtual object sbeReadDecimal(object frameHex, object offset)
+    public virtual string? sbeReadDecimal(object frameHex, object offset)
     {
         // prices, sizes and rates are int64 mantissas with a fixed exponent of -8
-        string? mantissa = ((string)this.sbeReadInt64(frameHex, offset));
+        string? mantissa = this.sbeReadInt64(frameHex, offset);
         if ((mantissa == null))
         {
             return null;
         }
-        return Precise.stringDiv(mantissa, "100000000", 8);
+        return ((string?)((object)(Precise.stringDiv(mantissa, "100000000", 8))));
     }
 
     public virtual object sbeReadTimestamp(object frameHex, object offset)
     {
         // timestamps are microseconds, truncated to milliseconds with Precise: a float
         // quotient like 1791906071000.999 is rounded up when php converts it to an int
-        string? microseconds = ((string)this.sbeReadInt64(frameHex, offset));
+        string? microseconds = this.sbeReadInt64(frameHex, offset);
         if ((microseconds == null))
         {
             return null;
@@ -1136,22 +1136,22 @@ public partial class paradex : ccxt.paradex
         return this.parseToInt(Precise.stringDiv(microseconds, "1000", 0));
     }
 
-    public virtual object sbeReadEnum(object frameHex, object offset, IDictionary<string, object> values)
+    public virtual string? sbeReadEnum(object frameHex, object offset, IDictionary<string, object> values)
     {
         Int64? value = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         return this.safeString(values, this.numberToString(value));
     }
 
-    public virtual object sbeReadString(object frameHex, object offset, object length)
+    public virtual string? sbeReadString(object frameHex, object offset, object length)
     {
         Int64? first = this.parseToInt(offset);
         Int64? size = this.parseToInt(length);
         Int64? start = (first * 2);
         Int64 end = this.sum(start, (size * 2));
-        return this.binaryToString(this.base16ToBinary(slice(frameHex, start, end)));
+        return ((string?)((object)(this.binaryToString(this.base16ToBinary(slice(frameHex, start, end))))));
     }
 
-    public virtual object sbeReadAddress(object frameHex, object offset)
+    public virtual string? sbeReadAddress(object frameHex, object offset)
     {
         // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
         Int64? first = this.parseToInt(offset);
@@ -1168,7 +1168,7 @@ public partial class paradex : ccxt.paradex
                 break;
             }
         }
-        return ("0x" + slice(raw, start, 64));
+        return ((string?)((object)(("0x" + slice(raw, start, 64)))));
     }
 
     public virtual List<object> sbeReadVarStrings(object frameHex, object offset, object count, object frameLength)
@@ -1572,10 +1572,10 @@ public partial class paradex : ccxt.paradex
             { "1", "OPEN" },
             { "2", "CLOSED" },
         };
-        string? side = ((string)this.sbeReadEnum(frameHex, 24, sides));
+        string? side = this.sbeReadEnum(frameHex, 24, sides);
         object account = this.sbeReadAddress(frameHex, 89);
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
-        string? size = ((string)this.sbeReadDecimal(frameHex, 25));
+        string? size = this.sbeReadDecimal(frameHex, 25);
         if ((side == "SHORT") && (size != "0"))
         {
             size = Precise.stringNeg(size);

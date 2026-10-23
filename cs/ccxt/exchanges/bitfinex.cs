@@ -802,12 +802,12 @@ public partial class bitfinex : Exchange
         return ((fiat != null && code != null && fiat.ContainsKey(code)));
     }
 
-    public virtual object getCurrencyName(string? code)
+    public virtual string? getCurrencyName(string? code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (inOp((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))
         {
-            return getValue((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code);
+            return ((string?)((object)(getValue((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))));
         }
         throw new NotSupported ((((this.id + " ") + code) + " not supported for withdrawal")) ;
     }

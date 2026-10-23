@@ -4224,7 +4224,7 @@ public partial class btse : Exchange
         return this.safeString((market != null && market.ContainsKey("info") ? market["info"] : null), "tradeCurrency", (market != null && market.ContainsKey("id") ? market["id"] : null));
     }
 
-    public virtual string cleanPath(string? path)
+    public virtual string? cleanPath(string? path)
     {
         string result = path.Replace("spot", (string)"");
         result = result.Replace("futures", (string)"");

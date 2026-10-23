@@ -5225,7 +5225,7 @@ public partial class woo : Exchange
         };
     }
 
-    public virtual object defaultNetworkCodeForCurrency(string? code)
+    public virtual string? defaultNetworkCodeForCurrency(string? code)
     {
         Dictionary<string, object> currencyItem = this.currency(code);
         object networks = (currencyItem != null && currencyItem.ContainsKey("networks") ? currencyItem["networks"] : null);
@@ -5235,7 +5235,7 @@ public partial class woo : Exchange
             object network = networkKeys[i];
             if ((network is "ERC20"))
             {
-                return network;
+                return ((string?)((object)(network)));
             }
         }
         // if it was not returned according to above options, then return the first network of currency

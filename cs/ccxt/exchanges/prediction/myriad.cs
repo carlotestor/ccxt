@@ -883,7 +883,7 @@ public partial class myriad : PredictionExchange
         signedFields.Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         signedFields.Add(this.rlpEncodeBytes(rHex));
         signedFields.Add(this.rlpEncodeBytes(sHex));
-        return ("0x02" + this.rlpEncodeList(signedFields));
+        return ((string?)((object)(("0x02" + this.rlpEncodeList(signedFields)))));
     }
 
     public async override Task<object> ethRpc(string? rpcUrl, string method, IList<object> rpcParams)
@@ -1296,7 +1296,7 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs an order-book typed-data message with the wallet private key (returns a 65-byte 0x signature)
      * @returns {string} the hex signature
      */
-    public virtual string signOrderbookTypedData(IDictionary<string, object> types, IDictionary<string, object> message, object networkId)
+    public virtual string? signOrderbookTypedData(IDictionary<string, object> types, IDictionary<string, object> message, object networkId)
     {
         IDictionary<string, object> chains = this.safeDict(this.options, "chains", new Dictionary<string, object>() {});
         IDictionary<string, object> chainConfig = this.safeDict(chains, networkId, new Dictionary<string, object>() {});
@@ -1332,7 +1332,7 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs the order-book Order struct
      * @returns {string} the hex signature
      */
-    public virtual string signClobOrder(IDictionary<string, object> message, object networkId)
+    public virtual string? signClobOrder(IDictionary<string, object> message, object networkId)
     {
         List<object> orderStruct = new List<object>() {new Dictionary<string, object>() {
     { "name", "trader" },
@@ -1374,7 +1374,7 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs the order-book CancelAll struct
      * @returns {string} the hex signature
      */
-    public virtual string signCancelAll(IDictionary<string, object> message, string? networkId)
+    public virtual string? signCancelAll(IDictionary<string, object> message, string? networkId)
     {
         List<object> cancelStruct = new List<object>() {new Dictionary<string, object>() {
     { "name", "trader" },
@@ -1495,7 +1495,7 @@ public partial class myriad : PredictionExchange
         }
         if (dotIndex > -1)
         {
-            return slice(scaled, 0, dotIndex);
+            return ((string?)((object)(slice(scaled, 0, dotIndex))));
         }
         return scaled;
     }
@@ -2328,7 +2328,7 @@ public partial class myriad : PredictionExchange
         {
             scale = (scale + "0");
         }
-        return Precise.stringDiv(decimalString, scale);
+        return ((string?)((object)(Precise.stringDiv(decimalString, scale))));
     }
 
     public virtual object parseTradeTx(object txHash, object quote, IDictionary<string, object> market, string? side)
@@ -4353,7 +4353,7 @@ public partial class myriad : PredictionExchange
         client.resolve(stored, "positions");
     }
 
-    public virtual string walletAddressFromKeys()
+    public virtual string? walletAddressFromKeys()
     {
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.

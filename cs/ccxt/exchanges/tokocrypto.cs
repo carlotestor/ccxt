@@ -2902,11 +2902,11 @@ public partial class tokocrypto : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
-        if (!(inOp(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest"), apiName)))
+        if (!(inOp((this.urlsApi != null && this.urlsApi.ContainsKey("rest") ? this.urlsApi["rest"] : null), apiName)))
         {
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
-        string? baseApiUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest"), apiName);
+        string? baseApiUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("rest") ? this.urlsApi["rest"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
