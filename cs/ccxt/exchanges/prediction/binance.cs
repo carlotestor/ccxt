@@ -192,8 +192,8 @@ public partial class binance : PredictionExchange
             List<object> queryMarkets = new List<object>() {};
             for (int ei = 0; ei < eventsLength; ei++)
             {
-                IList<object> eventMarkets = (IList<object>)(this.safeList((events != null && ei < events.Count ? events[ei] : null), "markets", new List<object>() {}));
-                int eventMarketsLength = (eventMarkets?.Count ?? 0);
+                List<object> eventMarkets = this.safeList((events != null && ei < events.Count ? events[ei] : null), "markets", new List<object>() {});
+                int eventMarketsLength = eventMarkets.Count;
                 for (int mi = 0; mi < eventMarketsLength; mi++)
                 {
                     queryMarkets.Add((eventMarkets != null && mi < eventMarkets.Count ? eventMarkets[mi] : null));
@@ -211,8 +211,8 @@ public partial class binance : PredictionExchange
         {
             Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
             parsedEvents.Add(parsedEvent);
-            IList<object> eventMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
-            int eventMarketsLength = (eventMarkets?.Count ?? 0);
+            List<object> eventMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
+            int eventMarketsLength = eventMarkets.Count;
             for (int mi = 0; mi < eventMarketsLength; mi++)
             {
                 flatMarkets.Add((eventMarkets != null && mi < eventMarkets.Count ? eventMarkets[mi] : null));
@@ -287,8 +287,8 @@ public partial class binance : PredictionExchange
             //         "hasMore": true
             //     }
             //
-            IList<object> pageTopics = (IList<object>)(this.safeList(response, "marketTopics", new List<object>() {}));
-            int pageTopicsLength = (pageTopics?.Count ?? 0);
+            List<object> pageTopics = this.safeList(response, "marketTopics", new List<object>() {});
+            int pageTopicsLength = pageTopics.Count;
             for (int i = 0; i < pageTopicsLength; i++)
             {
                 collected.Add((pageTopics != null && i < pageTopics.Count ? pageTopics[i] : null));
@@ -336,14 +336,14 @@ public partial class binance : PredictionExchange
         for (int i = 0; i < rawTopicsLength; i++)
         {
             object rawTopic = getValue(rawTopics, i);
-            IList<object> rawMarkets = (IList<object>)(this.safeList(rawTopic, "markets", new List<object>() {}));
-            int rawMarketsLength = (rawMarkets?.Count ?? 0);
+            List<object> rawMarkets = this.safeList(rawTopic, "markets", new List<object>() {});
+            int rawMarketsLength = rawMarkets.Count;
             bool hasOutcomes = false;
             if (rawMarketsLength > 0)
             {
                 IDictionary<string, object> firstMarket = this.safeDict(rawMarkets, 0, new Dictionary<string, object>() {});
-                IList<object> firstOutcomes = (IList<object>)(this.safeList(firstMarket, "outcomes", new List<object>() {}));
-                int firstOutcomesLength = (firstOutcomes?.Count ?? 0);
+                List<object> firstOutcomes = this.safeList(firstMarket, "outcomes", new List<object>() {});
+                int firstOutcomesLength = firstOutcomes.Count;
                 hasOutcomes = (firstOutcomesLength > 0);
             }
             if (hasOutcomes)
@@ -469,8 +469,8 @@ public partial class binance : PredictionExchange
         {
             Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
             result.Add(parsedEvent);
-            IList<object> parsedMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
-            int parsedMarketsLength = (parsedMarkets?.Count ?? 0);
+            List<object> parsedMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
+            int parsedMarketsLength = parsedMarkets.Count;
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
                 object m = (parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null);
@@ -607,10 +607,10 @@ public partial class binance : PredictionExchange
         //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
-        IList<object> rawMarkets = (IList<object>)(this.safeList(rawTopic, "markets", new List<object>() {}));
+        List<object> rawMarkets = this.safeList(rawTopic, "markets", new List<object>() {});
         List<object> marketsList = new List<object>() {};
         bool anyActive = false;
-        int rawMarketsLength = (rawMarkets?.Count ?? 0);
+        int rawMarketsLength = rawMarkets.Count;
         for (int i = 0; i < rawMarketsLength; i++)
         {
             Dictionary<string, object> parsed = this.parseTopicMarket((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null), rawTopic);

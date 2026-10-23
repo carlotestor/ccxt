@@ -951,7 +951,7 @@ public partial class lighter : Exchange
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */
         if ((price == null))
         {
@@ -1083,11 +1083,12 @@ public partial class lighter : Exchange
             request["integrator_maker_fee"] = (this.options.ContainsKey("integratorMakerFee") ? this.options["integratorMakerFee"] : null);
         }
         List<object> orders = new List<object>() {};
-        orders.Add(this.extend(request, paramsRequest));
+        Dictionary<string, object> firstOrder = this.extend(request, paramsRequest);
+        orders.Add(firstOrder);
         if (hasStopLoss || hasTakeProfit)
         {
             // group order
-            ((IDictionary<string,object>)(orders != null && 0 < orders.Count ? orders[0] : null))["client_order_index"] = 0; // client order index should be 0
+            firstOrder["client_order_index"] = 0; // client order index should be 0
             string triggerOrderSide = "";
             if (orderSide == "BUY")
             {

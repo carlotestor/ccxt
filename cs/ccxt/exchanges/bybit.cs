@@ -3957,11 +3957,12 @@ public partial class bybit : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            Dictionary<string, object> symbolMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            market = symbolMarket;
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+                request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
             }
         }
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
@@ -6397,8 +6398,9 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("cancelAllOrders", market, parameters);
         string? type = (string)typeparamsValueVariable[0];
@@ -6658,8 +6660,9 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchOrdersClassic", market, paramsPaginate);
         string? type = (string)typeparamsValueVariable[0];
@@ -6865,8 +6868,9 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchCanceledAndClosedOrders", market, paramsPaginate);
         string? type = (string)typeparamsValueVariable[0];
@@ -7061,8 +7065,9 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchOpenOrders", market, paramsPaginate);
         string? type = (string)typeparamsValueVariable[0];
@@ -7219,8 +7224,9 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchMyTrades", market, paramsPaginate);
         string? type = (string)typeparamsValueVariable[0];
@@ -8157,9 +8163,10 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            symbol = (symbolMarket != null && symbolMarket.ContainsKey("symbol") ? symbolMarket["symbol"] : null);
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchPositions", market, paramsPaginate);
         string? type = (string)typeparamsValueVariable[0];
@@ -9609,8 +9616,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IDictionary<string, object> market = null;
-        market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true)))
         {
             throw new BadRequest (((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + symbol)) ;
@@ -9893,8 +9899,9 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchSettlementHistory", market, parameters);
         string? type = (string)typeparamsValueVariable[0];
@@ -9959,8 +9966,9 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchMySettlementHistory", market, parameters);
         string? type = (string)typeparamsValueVariable[0];
@@ -10234,14 +10242,13 @@ public partial class bybit : Exchange
             { "category", "option" },
             { "baseCoin", baseCoin },
         };
-        IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-                request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+                Dictionary<string, object> symbolMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+                request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
             }
         }
         Dictionary<string, object> response = await this.publicGetV5MarketTickers(this.extend(request, parameters));
@@ -10380,8 +10387,9 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchMyLiquidations", market, paramsPaginate);
         string? type = (string)typeparamsValueVariable[0];
@@ -10550,11 +10558,10 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        IDictionary<string, object> market = null;
         string? symbol = null;
         if ((symbols != null))
         {
-            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
+            Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
                 throw new NotSupported ((this.id + " fetchLeverageTiers() is not supported for spot market")) ;
@@ -10678,8 +10685,9 @@ public partial class bybit : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         var typeparamsValueVariable = this.getBybitType("fetchFundingHistory", market, paramsPaginate);
         string? type = (string)typeparamsValueVariable[0];

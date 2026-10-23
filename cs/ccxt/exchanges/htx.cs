@@ -4975,10 +4975,10 @@ public partial class htx : Exchange
 
     public virtual object parseMarginBalanceHelper(IDictionary<string, object> balance, string? code, IDictionary<string, object> result)
     {
-        object account = null;
+        IDictionary<string, object> account = null;
         if ((result != null && code != null && result.ContainsKey(code)))
         {
-            account = (result != null && code != null && result.ContainsKey(code) ? result[code] : null);
+            account = this.safeDict(result, code);
         } else
         {
             account = this.account();
@@ -4989,11 +4989,11 @@ public partial class htx : Exchange
         }
         if ((this.safeString(balance, "type") == "trade"))
         {
-            ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "balance");
+            account["free"] = this.safeString(balance, "balance");
         }
         if ((this.safeString(balance, "type") == "frozen"))
         {
-            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "balance");
+            account["used"] = this.safeString(balance, "balance");
         }
         return account;
     }

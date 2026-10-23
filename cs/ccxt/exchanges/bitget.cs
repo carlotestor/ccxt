@@ -13041,17 +13041,19 @@ public partial class bitget : Exchange
         //
         List<object> chains = this.safeList(fee, "chains", new List<object>() {});
         int chainsLength = chains.Count;
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
+        Dictionary<string, object> withdraw = new Dictionary<string, object>() {
+            { "fee", null },
+            { "percentage", null },
+        };
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fee },
-            { "withdraw", new Dictionary<string, object>() {
-                { "fee", null },
-                { "percentage", null },
-            } },
+            { "withdraw", withdraw },
             { "deposit", new Dictionary<string, object>() {
                 { "fee", null },
                 { "percentage", null },
             } },
-            { "networks", new Dictionary<string, object>() {} },
+            { "networks", networks },
         };
         for (int i = 0; i < chainsLength; i++)
         {
@@ -13061,7 +13063,7 @@ public partial class bitget : Exchange
             string? networkCode = this.networkIdToCode(networkId, currencyCode);
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                networks[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
@@ -13074,8 +13076,8 @@ public partial class bitget : Exchange
             }
             if ((chainsLength == 1))
             {
-                ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(chain, "withdrawFee");
-                ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
+                withdraw["fee"] = this.safeNumber(chain, "withdrawFee");
+                withdraw["percentage"] = false;
             }
         }
         return result;

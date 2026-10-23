@@ -1582,20 +1582,22 @@ public partial class PredictionExchange : BaseExchange
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         string? orderType = this.safeString(outcomeOrder, "type");
         string? timeInForce = this.safeString(outcomeOrder, "timeInForce");
-        bool? postOnly = this.safeBool(outcomeOrder, "postOnly");
+        // the venue flag and the derived one are each written once, so neither local widens
+        bool? postOnlyValue = this.safeBool(outcomeOrder, "postOnly");
+        bool? derivedPostOnly = null;
         if ((timeInForce == null))
         {
             if (orderType == "market")
             {
                 timeInForce = "IOC";
             }
-            if ((postOnly == true))
+            if ((postOnlyValue == true))
             {
                 timeInForce = "PO";
             }
-        } else if ((postOnly == null))
+        } else if ((postOnlyValue == null))
         {
-            postOnly = (timeInForce == "PO");
+            derivedPostOnly = (timeInForce == "PO");
         }
         Int64? timestamp = this.safeInteger(outcomeOrder, "timestamp");
         string? datetime = this.safeString(outcomeOrder, "datetime");
@@ -1622,7 +1624,7 @@ public partial class PredictionExchange : BaseExchange
             { "cost", this.parseNumber(cost) },
             { "fee", fee },
             { "reduceOnly", this.safeBool(outcomeOrder, "reduceOnly") },
-            { "postOnly", postOnly },
+            { "postOnly", ((postOnlyValue != null)) ? postOnlyValue : derivedPostOnly },
             { "trades", trades },
             { "outcome", this.safeString(outcomeOrder, "outcome") },
             { "outcomeId", this.safeString(outcomeOrder, "outcomeId") },

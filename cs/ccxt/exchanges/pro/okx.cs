@@ -1643,8 +1643,8 @@ public partial class okx : ccxt.okx
         string? symbol = this.safeSymbol(marketId, market);
         Int64? seqId = this.safeInteger(message, "seqId");
         Int64? prevSeqId = this.safeInteger(message, "prevSeqId");
-        object nonce = (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null);
-        if ((prevSeqId != null) && !(prevSeqId == -1) && !isEqual(nonce, prevSeqId))
+        Int64? nonce = this.safeInteger(orderbook, "nonce");
+        if ((prevSeqId != null) && !(prevSeqId == -1) && (nonce != prevSeqId))
         {
             var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);

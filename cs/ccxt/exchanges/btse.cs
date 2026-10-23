@@ -1791,10 +1791,10 @@ public partial class btse : Exchange
         {
             request["count"] = limit;
         }
-        object paramsUntil = null;
+        Dictionary<string, object> paramsUntil = null;
         IList<object> requestparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)requestparamsUntilVariable[0];
-        paramsUntil = requestparamsUntilVariable[1];
+        paramsUntil = (Dictionary<string, object>)requestparamsUntilVariable[1];
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot");
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);

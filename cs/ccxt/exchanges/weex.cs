@@ -5038,7 +5038,7 @@ public partial class weex : Exchange
         {
             requestBody = this.json(query);
         }
-        Dictionary<string, object> requestHeaders = null;
+        Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
         if (isPrivate)
         {
             bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);

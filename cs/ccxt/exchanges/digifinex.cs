@@ -5094,13 +5094,14 @@ public partial class digifinex : Exchange
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && (((codesValue == null)) || (this.inArray(code, codesValue))))
             {
-                IDictionary<string, object> depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
-                if ((depositWithdrawFee == null))
+                if ((this.safeDict(depositWithdrawFees, code) == null))
                 {
-                    depositWithdrawFees[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
-                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["info"] = new List<object>() {};
+                    Dictionary<string, object> feeStructure = this.depositWithdrawFee(new Dictionary<string, object>() {});
+                    feeStructure["info"] = new List<object>() {};
+                    depositWithdrawFees[(string)code] = feeStructure;
                 }
-                object depositWithdrawInfo = getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "info");
+                object depositWithdrawFee = (depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null);
+                object depositWithdrawInfo = getValue(depositWithdrawFee, "info");
                 ((IList<object>)depositWithdrawInfo).Add(entry);
                 string? networkId = this.safeString(entry, "chain");
                 object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
@@ -5117,15 +5118,15 @@ public partial class digifinex : Exchange
                     string? networkCode = this.networkIdToCode(networkId, code);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        ((IDictionary<string,object>)getValue(depositWithdrawFee, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                             { "withdraw", withdrawResult },
                             { "deposit", depositResult },
                         };
                     }
                 } else
                 {
-                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["withdraw"] = withdrawResult;
-                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["deposit"] = depositResult;
+                    ((IDictionary<string,object>)depositWithdrawFee)["withdraw"] = withdrawResult;
+                    ((IDictionary<string,object>)depositWithdrawFee)["deposit"] = depositResult;
                 }
             }
         }

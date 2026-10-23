@@ -323,8 +323,8 @@ public partial class cryptocom : ccxt.cryptocom
         {
             books = this.safeDict(data, "update", new Dictionary<string, object>() {});
             Int64? previousNonce = this.safeInteger(data, "pu");
-            object currentNonce = (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null);
-            if (!isEqual(currentNonce, previousNonce))
+            Int64? currentNonce = this.safeInteger(orderbook, "nonce");
+            if ((currentNonce != previousNonce))
             {
                 bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
                 if ((checksum == true))

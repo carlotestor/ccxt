@@ -162,18 +162,17 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
-        IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
-        string? type = this.safeString(firstMarket, "type", "swap");
-        int symbolsLength = (symbolsList?.Count ?? 0);
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchTickers");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
-        Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
-        if ((symbolsLength == 0))
+        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
+        IList<object> symbolsList = symbolsNormalized;
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        string? type = this.safeString(firstMarket, "type", "swap");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
         string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         if ((url == null))
         {
@@ -226,18 +225,17 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
-        IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
-        string? type = this.safeString(firstMarket, "type", "swap");
-        int symbolsLength = (symbolsList?.Count ?? 0);
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
-        Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
-        if ((symbolsLength == 0))
+        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
+        IList<object> symbolsList = symbolsNormalized;
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        string? type = this.safeString(firstMarket, "type", "swap");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
         string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         if ((url == null))
         {
@@ -320,18 +318,17 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
-        IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
-        string? type = this.safeString(firstMarket, "type", "swap");
-        int symbolsLength = (symbolsList?.Count ?? 0);
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
-        Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
-        if ((symbolsLength == 0))
+        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
+        IList<object> symbolsList = symbolsNormalized;
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        string? type = this.safeString(firstMarket, "type", "swap");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
         string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         if ((url == null))
         {
@@ -389,18 +386,17 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
-        IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
-        string? type = this.safeString(firstMarket, "type", "swap");
-        int symbolsLength = (symbolsList?.Count ?? 0);
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
-        Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
-        if ((symbolsLength == 0))
+        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
+        IList<object> symbolsList = symbolsNormalized;
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        string? type = this.safeString(firstMarket, "type", "swap");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
         string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         if ((url == null))
         {
@@ -536,14 +532,13 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
-        IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
-        string? type = this.safeString(firstMarket, "type", "swap");
-        int symbolsLength = (symbolsList?.Count ?? 0);
-        if ((symbolsLength == 0))
+        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks() requires a non-empty array of symbols")) ;
         }
+        IList<object> symbolsList = symbolsNormalized;
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        string? type = this.safeString(firstMarket, "type", "swap");
         string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         if ((url == null))
         {
@@ -596,14 +591,13 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
-        IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
-        string? type = this.safeString(firstMarket, "type", "swap");
-        int symbolsLength = (symbolsList?.Count ?? 0);
-        if ((symbolsLength == 0))
+        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
         {
             throw new ArgumentsRequired ((this.id + " unWatchBidsAsks() requires a non-empty array of symbols")) ;
         }
+        IList<object> symbolsList = symbolsNormalized;
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        string? type = this.safeString(firstMarket, "type", "swap");
         string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         if ((url == null))
         {

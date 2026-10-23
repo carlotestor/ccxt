@@ -221,11 +221,12 @@ public partial class onetrading : ccxt.onetrading
             object ticker = tickers[i];
             string? marketId = this.safeString(ticker, "instrument");
             string? symbol = this.safeSymbol(marketId);
-            this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseWSTicker(ticker));
+            Dictionary<string, object> parsedTicker = ccxt.BaseExchange.FromTicker(this.parseWSTicker(ticker));
+            this.tickers[(string)symbol] = parsedTicker;
             Int64? timestamp = this.parse8601(datetime);
-            ((IDictionary<string,object>)(this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null))["timestamp"] = timestamp;
-            ((IDictionary<string,object>)(this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null))["datetime"] = this.iso8601(timestamp);
-            client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), ("ticker." + symbol));
+            parsedTicker["timestamp"] = timestamp;
+            parsedTicker["datetime"] = this.iso8601(timestamp);
+            client.resolve(parsedTicker, ("ticker." + symbol));
         }
         client.resolve(this.tickers, "tickers");
     }
@@ -1247,17 +1248,18 @@ public partial class onetrading : ccxt.onetrading
         string? timeframe = this.findTimeframe(timeframeId, timeframes);
         string channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<object> parsed = new List<object> {this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")};
-        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
+        IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = symbolOhlcvs;
+        object stored = this.safeValue(symbolOhlcvs, timeframe);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
         }
-        stored.append(parsed);
+        ccxt.pro.BaseCache.appendTo(stored, parsed);
         if ((symbol != null) && (timeframe != null))
         {
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            symbolOhlcvs[timeframe] = stored;
         }
         client.resolve(stored, channel);
     }

@@ -79,7 +79,8 @@ public partial class xt : ccxt.xt
         {
             tradeType = "contract";
         }
-        object url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType);
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        object url = this.safeString(apiUrls, tradeType);
         if (!isContract)
         {
             url = add(url, "/private");
@@ -259,7 +260,8 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", id },
         };
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType) + "/") + (tail));
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        string url = ((this.safeString(apiUrls, tradeType) + "/") + (tail));
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
 
@@ -322,7 +324,8 @@ public partial class xt : ccxt.xt
         {
             tail = privateAccess ? "user" : "market";
         }
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType) + "/") + (tail));
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        string url = ((this.safeString(apiUrls, tradeType) + "/") + (tail));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
             { "id", id },
@@ -742,7 +745,8 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "contract") + "/") + "user");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        string url = ((this.safeString(apiUrls, "contract") + "/") + "user");
         var client = this.client(url);
         this.setPositionsCache(client);
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));

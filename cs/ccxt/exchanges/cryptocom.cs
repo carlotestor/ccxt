@@ -1881,8 +1881,8 @@ public partial class cryptocom : Exchange
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.Add(orderRequest);
@@ -4178,7 +4178,7 @@ public partial class cryptocom : Exchange
         {
             object symbol = (this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null);
             Dictionary<string, object> market = this.market(symbol);
-            bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
+            bool? isSwap = this.safeBool(market, "swap");
             string takerFeeKey = "effective_spot_taker_rate_bps";
             if ((isSwap == true))
             {

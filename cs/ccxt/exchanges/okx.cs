@@ -4266,8 +4266,8 @@ public partial class okx : Exchange
         {
             request["sz"] = this.amountToPrecision(symbol, amount);
         }
-        bool? spot = ((bool?)(market.ContainsKey("spot") ? market["spot"] : null));
-        bool? contract = ((bool?)(market.ContainsKey("contract") ? market["contract"] : null));
+        bool? spot = this.safeBool(market, "spot");
+        bool? contract = this.safeBool(market, "contract");
         object triggerPrice = this.safeValueN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerPx"});
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');

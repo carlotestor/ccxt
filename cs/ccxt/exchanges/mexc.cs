@@ -2757,7 +2757,7 @@ public partial class mexc : Exchange
     public virtual Dictionary<string, object> createSpotOrderRequest(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, object marginMode = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         if (((type == null)) || ((side == null)))
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires a type and a side argument")) ;
@@ -2931,7 +2931,7 @@ public partial class mexc : Exchange
         {
             await this.loadMarkets();
         }
-        object symbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? openType = this.safeInteger(parameters, "openType", 2); // defaulting to cross margin
         if ((marginMode != null))
         {

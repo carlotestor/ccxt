@@ -1540,14 +1540,16 @@ public partial class whitebit : Exchange
             }
             // Build comprehensive funding limits
             IDictionary<string, object> currencyLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
+            IDictionary<string, object> depositLimits = this.safeDict(currencyLimits, "deposit", new Dictionary<string, object>() {});
+            IDictionary<string, object> withdrawLimits = this.safeDict(currencyLimits, "withdraw", new Dictionary<string, object>() {});
             Dictionary<string, object> limits = new Dictionary<string, object>() {
                 { "deposit", new Dictionary<string, object>() {
-                    { "min", getValue((currencyLimits != null && currencyLimits.ContainsKey("deposit") ? currencyLimits["deposit"] : null), "min") },
-                    { "max", getValue((currencyLimits != null && currencyLimits.ContainsKey("deposit") ? currencyLimits["deposit"] : null), "max") },
+                    { "min", (depositLimits != null && depositLimits.ContainsKey("min") ? depositLimits["min"] : null) },
+                    { "max", (depositLimits != null && depositLimits.ContainsKey("max") ? depositLimits["max"] : null) },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", getValue((currencyLimits != null && currencyLimits.ContainsKey("withdraw") ? currencyLimits["withdraw"] : null), "min") },
-                    { "max", getValue((currencyLimits != null && currencyLimits.ContainsKey("withdraw") ? currencyLimits["withdraw"] : null), "max") },
+                    { "min", (withdrawLimits != null && withdrawLimits.ContainsKey("min") ? withdrawLimits["min"] : null) },
+                    { "max", (withdrawLimits != null && withdrawLimits.ContainsKey("max") ? withdrawLimits["max"] : null) },
                 } },
             };
             // Add fee information if available

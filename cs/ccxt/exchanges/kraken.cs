@@ -2277,13 +2277,21 @@ public partial class kraken : Exchange
                 price = this.safeString(parts, 5);
             }
         }
-        side = this.safeString(description, "type", side);
+        string? descriptionSide = this.safeString(description, "type");
+        if ((descriptionSide != null))
+        {
+            side = descriptionSide;
+        }
         rawType = this.safeString(description, "ordertype", rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, "pair", marketId);
         object marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         string? symbol = null;
         Int64? timestamp = this.safeTimestamp(orderOmitted, "opentm");
-        amount = this.safeString(orderOmitted, "vol", amount);
+        string? orderAmount = this.safeString(orderOmitted, "vol");
+        if ((orderAmount != null))
+        {
+            amount = orderAmount;
+        }
         string? filled = this.safeString(orderOmitted, "vol_exec");
         Dictionary<string, object> fee = null;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -4185,14 +4193,15 @@ public partial class kraken : Exchange
             if (!(response is string))
             {
                 string message = ((this.id + " ") + (body));
-                if (inOp(response, "error"))
+                List<object> errors = this.safeList(response, "error");
+                if ((errors != null))
                 {
-                    int numErrors = getArrayLength(getValue(response, "error"));
+                    int numErrors = errors.Count;
                     if (numErrors > 0)
                     {
-                        for (int i = 0; i < getArrayLength(getValue(response, "error")); i++)
+                        for (int i = 0; i < numErrors; i++)
                         {
-                            object error = getValue(getValue(response, "error"), i);
+                            object error = (errors != null && i < errors.Count ? errors[i] : null);
                             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, message);
                             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, message);
                         }

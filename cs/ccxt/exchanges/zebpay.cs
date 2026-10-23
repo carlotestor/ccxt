@@ -1216,7 +1216,7 @@ public partial class zebpay : Exchange
         string upperCaseType = type.ToUpper();
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
-        object query = this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"});
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"}));
         this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1225,10 +1225,8 @@ public partial class zebpay : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            var requestqueryVariable = this.orderRequest(symbol, type, amount, request, price, query);
-            request = (Dictionary<string, object>)requestqueryVariable[0];
-            query = requestqueryVariable[1];
-            response = await this.privateSpotPostV2ExOrders(this.extend(request, query));
+            List<object> orderRequestResult = this.orderRequest(symbol, type, amount, request, price, query);
+            response = await this.privateSpotPostV2ExOrders(this.extend((orderRequestResult != null && 0 < orderRequestResult.Count ? orderRequestResult[0] : null), (orderRequestResult != null && 1 < orderRequestResult.Count ? orderRequestResult[1] : null)));
         } else
         {
             string? marginAsset = this.safeString(query, "marginAsset", "INR");
@@ -1274,7 +1272,7 @@ public partial class zebpay : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual List<object> orderRequest(string? symbol, string? type, object amount, IDictionary<string, object> request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, string? type, object amount, IDictionary<string, object> request, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string upperCaseType = type.ToUpper();

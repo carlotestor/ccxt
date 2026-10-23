@@ -1700,7 +1700,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the authentication response
      */
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("authenticate", parameters);
@@ -2197,7 +2197,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> setHeartbeat(object interval = null, object parameters = null)
+    public async virtual Task<object> setHeartbeat(object interval = null, IDictionary<string, object>? parameters = null)
     {
         interval ??= 30;
         parameters ??= new Dictionary<string, object>();
@@ -2219,7 +2219,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> disableHeartbeat(object parameters = null)
+    public async virtual Task<object> disableHeartbeat(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("disableHeartbeat", parameters);
@@ -2241,7 +2241,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> setCancelOnDisconnect(object enabled, object parameters = null)
+    public async virtual Task<object> setCancelOnDisconnect(object enabled, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("setCancelOnDisconnect", parameters);
@@ -2261,7 +2261,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> getCancelOnDisconnect(object parameters = null)
+    public async virtual Task<object> getCancelOnDisconnect(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("getCancelOnDisconnect", parameters);
@@ -2282,7 +2282,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> unsubscribeAllWs(object isPrivate = null, object parameters = null)
+    public async virtual Task<object> unsubscribeAllWs(object isPrivate = null, IDictionary<string, object>? parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -2303,7 +2303,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> logoutWs(object parameters = null)
+    public async virtual Task<object> logoutWs(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("logoutWs", parameters);

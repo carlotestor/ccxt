@@ -1400,7 +1400,11 @@ public partial class woofipro : ccxt.woofipro
             object account = this.account();
             if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
             {
-                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
+                IDictionary<string, object> cachedAccount = this.safeDict(this.balance, code);
+                if ((cachedAccount != null))
+                {
+                    account = cachedAccount;
+                }
             }
             string? total = this.safeString(value, "holding");
             string? used = this.safeString(value, "frozen");

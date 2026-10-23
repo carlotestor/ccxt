@@ -673,8 +673,8 @@ public partial class polymarket : PredictionExchange
             };
             firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
             Dictionary<string, object> first = await this.gammaPublicGetPublicSearch(firstRequest);
-            IList<object> firstEvents = (IList<object>)(this.safeList(first, "events", new List<object>() {}));
-            int firstEventsLength = (firstEvents?.Count ?? 0);
+            List<object> firstEvents = this.safeList(first, "events", new List<object>() {});
+            int firstEventsLength = firstEvents.Count;
             IDictionary<string, object> pagination = this.safeDict(first, "pagination", new Dictionary<string, object>() {});
             Int64? totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
             Int64? totalPages = this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)totalResults / pageSize))));
@@ -712,14 +712,14 @@ public partial class polymarket : PredictionExchange
             }
             List<object> restResponses = await promiseAll(restPromises);
             List<object> allEvents = new List<object>() {};
-            for (int fi = 0; fi < (firstEvents?.Count ?? 0); fi++)
+            for (int fi = 0; fi < firstEvents.Count; fi++)
             {
                 allEvents.Add(firstEvents[fi]);
             }
             for (int ri = 0; ri < (restResponses?.Count ?? 0); ri++)
             {
-                IList<object> pageEvents = (IList<object>)(this.safeList(restResponses[ri], "events", new List<object>() {}));
-                for (int ei = 0; ei < (pageEvents?.Count ?? 0); ei++)
+                List<object> pageEvents = this.safeList(restResponses[ri], "events", new List<object>() {});
+                for (int ei = 0; ei < pageEvents.Count; ei++)
                 {
                     allEvents.Add(pageEvents[ei]);
                 }
@@ -911,7 +911,7 @@ public partial class polymarket : PredictionExchange
     public virtual List<object> parseEventToMarkets(object eventVar)
     {
         string? eventSlug = this.safeString(eventVar, "slug", this.safeString(eventVar, "id"));
-        IList<object> rawMarkets = (IList<object>)(this.safeList(eventVar, "markets", new List<object>() {}));
+        List<object> rawMarkets = this.safeList(eventVar, "markets", new List<object>() {});
         List<object> result = new List<object>() {};
         //
         // {
@@ -999,7 +999,7 @@ public partial class polymarket : PredictionExchange
         //    "feeType":null
         // }
         //
-        for (int mi = 0; mi < (rawMarkets?.Count ?? 0); mi++)
+        for (int mi = 0; mi < rawMarkets.Count; mi++)
         {
             object market = rawMarkets[mi];
             string? conditionId = this.safeString(market, "conditionId");

@@ -159,9 +159,9 @@ public partial class mudrex : ccxt.mudrex
         {
             prefix = "markKline";
         }
-        object streamBaseId = (!((market.ContainsKey("baseId") ? market["baseId"] : null) == null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-        object streamQuoteId = (!((market.ContainsKey("quoteId") ? market["quoteId"] : null) == null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
-        string stream = (((((prefix + "@") + interval) + "@") + ((string)streamBaseId).ToLower()) + ((string)streamQuoteId).ToLower());
+        string? streamBaseId = this.safeString(market, "baseId", "");
+        string? streamQuoteId = this.safeString(market, "quoteId", "");
+        string stream = (((((prefix + "@") + interval) + "@") + streamBaseId.ToLower()) + streamQuoteId.ToLower());
         string messageHash = stream;
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         this.setBrokerHeaders();

@@ -943,8 +943,8 @@ public partial class bitrue : Exchange
         }
         List<object> promises = await promiseAll(promisesRaw);
         List<object> spotMarkets = this.safeList(this.safeDict(promises, 0), "symbols", new List<object>() {});
-        object futureMarkets = this.safeValue(promises, 1);
-        object deliveryMarkets = this.safeValue(promises, 2);
+        List<object> futureMarkets = this.safeList(promises, 1, new List<object>() {});
+        List<object> deliveryMarkets = this.safeList(promises, 2, new List<object>() {});
         List<object> markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
@@ -2246,7 +2246,7 @@ public partial class bitrue : Exchange
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             request["quantity"] = this.amountToPrecision(symbol, amount);
-            object validOrderTypes = this.safeValue((market.ContainsKey("info") ? market["info"] : null), "orderTypes");
+            List<object> validOrderTypes = this.safeList((market.ContainsKey("info") ? market["info"] : null), "orderTypes", new List<object>() {});
             if (!this.inArray(uppercaseType, validOrderTypes))
             {
                 throw new InvalidOrder (((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;

@@ -2210,7 +2210,11 @@ public partial class kucoin : Exchange
             promises.Add(this.loadMigrationStatus());
         }
         List<object> responses = await promiseAll(promises);
-        List<object> symbolsData = fetchSpotMarkets ? this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {}) : new List<object>() {};
+        List<object> symbolsData = new List<object>() {};
+        if (fetchSpotMarkets)
+        {
+            symbolsData = this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {});
+        }
         object crossIndex = 0;
         object isolatedIndex = 0;
         object tickersIndex = 0;
@@ -4897,7 +4901,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? testOrder = this.safeBool(parameters, "test", false);
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "test"));
-        bool hasTpOrSlOrder = (!(this.safeValue(paramsOmitted, "stopLoss") == null)) || (!(this.safeValue(paramsOmitted, "takeProfit") == null));
+        bool hasTpOrSlOrder = ((this.safeDict(paramsOmitted, "stopLoss") != null)) || ((this.safeDict(paramsOmitted, "takeProfit") != null));
         Dictionary<string, object> orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         Dictionary<string, object> response = null;
         if ((testOrder == true))

@@ -1942,7 +1942,7 @@ public partial class BaseExchange
             for (int i = 0; i < length; i++)
             {
                 string? key = ((string)(keys != null && i < keys.Count ? keys[i] : null));
-                object network = (key != null && networks.ContainsKey(key) ? networks[key] : null);
+                IDictionary<string, object> network = this.safeDict(networks, key, new Dictionary<string, object>() {});
                 bool? deposit = this.safeBool(network, "deposit");
                 bool? currencyDeposit = this.safeBool(currency, "deposit");
                 if ((currencyDeposit == null) || ((deposit == true)))
@@ -2152,27 +2152,27 @@ public partial class BaseExchange
         List<object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
-            object value = marketValues[i];
-            if ((marketsById != null && getValue(value, "id") is string inOpKey15 && marketsById.ContainsKey(inOpKey15)))
+            IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey15 && marketsById.ContainsKey(inOpKey15)))
             {
-                object marketsByIdArray = ((object)getValue(marketsById, getValue(value, "id")));
+                object marketsByIdArray = ((object)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
                 ((IList<object>)marketsByIdArray).Add(value);
-                marketsById[(string)getValue(value, "id")] = marketsByIdArray;
+                marketsById[(string)(value != null && value.ContainsKey("id") ? value["id"] : null)] = marketsByIdArray;
             } else
             {
-                marketsById[(string)getValue(value, "id")] = new List<object>() {value};
+                marketsById[(string)(value != null && value.ContainsKey("id") ? value["id"] : null)] = new List<object>() {value};
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
             Dictionary<string, object> valueDefined = new Dictionary<string, object>() {};
-            List<object> valueKeys = new List<object>(((IDictionary<string,object>)value).Keys);
+            List<object> valueKeys = new List<object>(value.Keys);
             for (int j = 0; j < valueKeys.Count; j++)
             {
                 string? valueKey = ((string)valueKeys[j]);
-                if (!(getValue(value, valueKey) == null))
+                if (!((value != null && valueKey != null && value.ContainsKey(valueKey) ? value[valueKey] : null) == null))
                 {
-                    valueDefined[(string)valueKey] = getValue(value, valueKey);
+                    valueDefined[(string)valueKey] = (value != null && valueKey != null && value.ContainsKey(valueKey) ? value[valueKey] : null);
                 }
             }
             Dictionary<string, object> market = this.deepExtend(this.safeMarketStructure(), new Dictionary<string, object>() {
@@ -2491,12 +2491,12 @@ public partial class BaseExchange
                     }
                     if (shouldParseFees)
                     {
-                        object tradeFees = this.safeValue(trade, "fees");
+                        List<object> tradeFees = this.safeList(trade, "fees");
                         if ((tradeFees != null))
                         {
-                            for (int j = 0; j < getArrayLength(tradeFees); j++)
+                            for (int j = 0; j < tradeFees.Count; j++)
                             {
-                                object tradeFee = getValue(tradeFees, j);
+                                object tradeFee = tradeFees[j];
                                 fees.Add(this.extend(new Dictionary<string, object>() {}, tradeFee));
                             }
                         } else
@@ -2783,7 +2783,7 @@ public partial class BaseExchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        object market = (markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null);
+        IDictionary<string, object> market = this.safeDict(markets, symbol, new Dictionary<string, object>() {});
         string? feeSide = this.safeString(market, "feeSide", "quote");
         bool? useQuote = null;
         if (feeSide == "get")
@@ -2811,7 +2811,7 @@ public partial class BaseExchange
             key = "base";
         }
         // for derivatives, the fee is in 'settle' currency
-        if (!(getValue(market, "spot") is true))
+        if (!((market.ContainsKey("spot") ? market["spot"] : null) is true))
         {
             key = "settle";
         }
@@ -2821,7 +2821,7 @@ public partial class BaseExchange
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMakerResolved },
-            { "currency", getValue(market, key) },
+            { "currency", (market != null && key != null && market.ContainsKey(key) ? market[key] : null) },
             { "rate", this.parseNumber(rate) },
             { "cost", this.parseNumber(cost) },
         };
@@ -4574,11 +4574,12 @@ public partial class BaseExchange
         {
             return code;
         }
-        IDictionary<string, object> currency = this.safeDict(this.currencies, code);
-        if ((currency == null))
+        IDictionary<string, object> currencyById = this.safeDict(this.currencies, code);
+        if ((currencyById != null))
         {
-            currency = this.safeCurrency(code);
+            return (currencyById != null && currencyById.ContainsKey("id") ? currencyById["id"] : null);
         }
+        Dictionary<string, object> currency = this.safeCurrency(code);
         if ((currency != null))
         {
             return (currency.ContainsKey("id") ? currency["id"] : null);
@@ -4659,15 +4660,11 @@ public partial class BaseExchange
 
     public virtual List<object> getListFromObjectValues(object objects, object key)
     {
-        object newArray = objects;
-        if (!((objects is IList<object>) || (objects.GetType().IsGenericType && objects.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            newArray = this.toArray(objects);
-        }
+        IList<object> newArray = this.toArray(objects);
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(newArray); i++)
+        for (int i = 0; i < (newArray?.Count ?? 0); i++)
         {
-            results.Add(getValue(getValue(newArray, i), key));
+            results.Add(getValue(newArray[i], key));
         }
         return results;
     }
@@ -4900,7 +4897,7 @@ public partial class BaseExchange
         bool? skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (int i = 0; isLessThan(i, oldest); i++)
         {
-            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
+            IDictionary<string, object> trade = this.safeDict(trades, i, new Dictionary<string, object>() {});
             Int64? ts = this.safeInteger(trade, "timestamp");
             object price = (trade != null && trade.ContainsKey("price") ? trade["price"] : null);
             if (((ts == null)) || ((price == null)))
@@ -5047,11 +5044,11 @@ public partial class BaseExchange
         {
             if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
             {
-                object markets = (this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey((string)marketId) ? this.markets_by_id[(string)marketId] : null);
-                int numMarkets = getArrayLength(markets);
+                List<object> markets = this.safeList(this.markets_by_id, marketId, new List<object>() {});
+                int numMarkets = (markets?.Count ?? 0);
                 if ((numMarkets == 1))
                 {
-                    return ((Dictionary<string, object>)((object)(getValue(markets, 0))));
+                    return ((Dictionary<string, object>)((object)((markets != null && 0 < markets.Count ? markets[0] : null))));
                 } else
                 {
                     if (((marketType == null)) && ((market == null)))
@@ -5059,9 +5056,9 @@ public partial class BaseExchange
                         throw new ArgumentsRequired ((((this.id + " safeMarket() requires a fourth argument for ") + (marketId)) + " to disambiguate between different markets with the same market id")) ;
                     }
                     object marketTypeResolved = ((marketType == null)) ? this.safeString(market, "type", "") : marketType;
-                    for (int i = 0; i < getArrayLength(markets); i++)
+                    for (int i = 0; i < (markets?.Count ?? 0); i++)
                     {
-                        object currentMarket = getValue(markets, i);
+                        object currentMarket = markets[i];
                         if ((getValue(currentMarket, marketTypeResolved) is true))
                         {
                             return ((Dictionary<string, object>)((object)(currentMarket)));
@@ -6685,7 +6682,7 @@ public partial class BaseExchange
                 throw new InvalidOrder ((this.id + " market orders cannot be postOnly")) ;
             } else
             {
-                List<object> keysToOmit = null;
+                List<object> keysToOmit = new List<object>() {};
                 if (po)
                 {
                     keysToOmit = new List<object>() {"timeInForce", "postOnly"};
@@ -7278,7 +7275,7 @@ public partial class BaseExchange
                     }
                     errors = 0;
                     result = this.arrayConcat(result, response);
-                    object firstElement = this.safeValue(response, 0);
+                    IDictionary<string, object> firstElement = this.safeDict(response, 0);
                     paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
                     if ((paginationTimestamp == null))
                     {
@@ -7311,7 +7308,7 @@ public partial class BaseExchange
                     }
                     errors = 0;
                     result = this.arrayConcat(result, response);
-                    object last = this.safeValue(response, (responseLength - 1));
+                    IDictionary<string, object> last = this.safeDict(response, (responseLength - 1));
                     Int64? lastTimestamp = this.safeInteger(last, "timestamp", 0);
                     if ((lastTimestamp == null))
                     {

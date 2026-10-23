@@ -3208,7 +3208,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(this.extend(data, new Dictionary<string, object>() {             { "network", this.safeString(request, "network") },         }), currency));
     }
 
-    public virtual List<object> getDedicatedNetworkId(Dictionary<string, object> currency, IDictionary<string, object> parameters)
+    public virtual List<object> getDedicatedNetworkId(IDictionary<string, object> currency, IDictionary<string, object> parameters)
     {
         (string?, object) networkCodeRawparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
         string? networkCodeRaw = networkCodeRawparamsNetworkCodeVariable.Item1;

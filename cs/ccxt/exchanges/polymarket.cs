@@ -2974,7 +2974,7 @@ public partial class polymarket : Exchange
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    public async virtual Task<object> signPerpsOp(object signable, object bodyOp, object parameters = null)
+    public async virtual Task<object> signPerpsOp(object signable, IDictionary<string, object> bodyOp, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object credentials = await this.loadProxyCredentials();

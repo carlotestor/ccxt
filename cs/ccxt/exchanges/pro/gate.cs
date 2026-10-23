@@ -849,8 +849,8 @@ public partial class gate : ccxt.gate
                 (bookSide as IOrderBookSide).storeArray(this.parseOrderBookBidAsk(bidAsk));
             } else
             {
-                double? price = this.safeFloat(bidAsk, "p");
-                double? amount = this.safeFloat(bidAsk, "s");
+                double? price = this.safeNumber(bidAsk, "p");
+                double? amount = this.safeNumber(bidAsk, "s");
                 (bookSide as IOrderBookSide).store(price, amount);
             }
         }

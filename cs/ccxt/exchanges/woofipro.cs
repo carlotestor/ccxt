@@ -2242,7 +2242,8 @@ public partial class woofipro : Exchange
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
         string? algoType = this.safeString(parameters, "algoType");
-        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || (!(this.safeValue(parameters, "childOrders") == null));
+        List<object> paramsChildOrders = ((List<object>)this.safeValue(parameters, "childOrders"));
+        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((paramsChildOrders != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -2362,7 +2363,8 @@ public partial class woofipro : Exchange
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
         IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
-        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((this.safeList(parameters, "childOrders") != null));
+        List<object> paramsChildOrders = this.safeList(parameters, "childOrders");
+        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((paramsChildOrders != null));
         Dictionary<string, object> response = null;
         if (isConditional)
         {
@@ -2407,7 +2409,8 @@ public partial class woofipro : Exchange
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
             IDictionary<string, object> takeProfit = this.safeDict(orderParams, "takeProfit");
-            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((this.safeList(orderParams, "childOrders") != null));
+            List<object> paramsChildOrders = this.safeList(orderParams, "childOrders");
+            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((paramsChildOrders != null));
             if (isConditional)
             {
                 throw new NotSupported ((this.id + " createOrders() only support non-stop order")) ;
@@ -2475,7 +2478,8 @@ public partial class woofipro : Exchange
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        bool isConditional = ((triggerPrice != null)) || (!(this.safeValue(parameters, "childOrders") == null));
+        List<object> paramsChildOrders = ((List<object>)this.safeValue(parameters, "childOrders"));
+        bool isConditional = ((triggerPrice != null)) || ((paramsChildOrders != null));
         string orderQtyKey = isConditional ? "quantity" : "order_quantity";
         string priceKey = isConditional ? "price" : "order_price";
         if ((price != null))

@@ -1004,6 +1004,7 @@ public partial class bullish : Exchange
                 }
             }
         }
+        IDictionary<string, object> tradingFees = this.safeDict(this.fees, "trading", new Dictionary<string, object>() {});
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1022,8 +1023,8 @@ public partial class bullish : Exchange
             { "contract", contract },
             { "linear", linear },
             { "inverse", inverse },
-            { "taker", getValue(getValue(this.fees, "trading"), "taker") },
-            { "maker", getValue(getValue(this.fees, "trading"), "maker") },
+            { "taker", (tradingFees != null && tradingFees.ContainsKey("taker") ? tradingFees["taker"] : null) },
+            { "maker", (tradingFees != null && tradingFees.ContainsKey("maker") ? tradingFees["maker"] : null) },
             { "contractSize", contractSize },
             { "expiry", this.parse8601(expiryDatetime) },
             { "expiryDatetime", expiryDatetime },

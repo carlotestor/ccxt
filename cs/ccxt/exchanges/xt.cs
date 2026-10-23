@@ -2176,11 +2176,12 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeValue(response, "result");
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            return this.parseTicker(getValue(ticker, 0), market);
+            List<object> tickers = this.safeList(response, "result", new List<object>() {});
+            return this.parseTicker((tickers != null && 0 < tickers.Count ? tickers[0] : null), market);
         }
+        IDictionary<string, object> ticker = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
 
