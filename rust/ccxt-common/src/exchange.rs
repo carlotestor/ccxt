@@ -189,6 +189,7 @@ impl Default for Internals {
 //
 // Every transpiler-visible field is `Value`. Both camelCase and snake_case
 // names appear because the TS source uses both interchangeably.
+// Plain-map state below is single-owner (no lock, no tag): build/hx10w2-R08.ts emits native reads.
 
 #[derive(Clone)]
 pub struct Exchange {

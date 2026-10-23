@@ -382,7 +382,7 @@ public partial class BaseExchange
     // back unchanged, or null for a numeric zero, so the box is exactly a string or null.
     public string? omitZero(string? value) => (string?)omitZero((object)value);
 
-    public virtual object isDictionary(object value)
+    public virtual bool isDictionary(object value)
     {
         return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
     }

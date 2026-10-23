@@ -13400,7 +13400,7 @@ export default class binance extends Exchange {
                     }
                     if (origclientorderidlistLength > 0) {
                         // wrap clientOrderids around ""
-                        const newClientOrderIds: List = [];
+                        const newClientOrderIds: string[] = [];
                         for (let i = 0; i < origclientorderidlistLength; i++) {
                             newClientOrderIds.push ('%22' + origclientorderidlist[i] + '%22');
                         }

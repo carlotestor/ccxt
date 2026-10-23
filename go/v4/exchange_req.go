@@ -84,7 +84,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			panic("headers must be a map[string]any")
 		}
 
-		headersOptions, ok := this.Options.Load("headers")
+		headersOptions, ok := this.Options["headers"]
 		if ok {
 			if headersOptions != nil {
 				for key, value := range headersOptions.(map[string]any) {

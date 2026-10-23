@@ -42,7 +42,7 @@ type BaseExchange struct {
 	Version                string
 	Id                     string
 	Name                   string
-	Options                *sync.Map
+	Options                map[string]any
 	Has                    map[string]any
 	Api                    map[string]any
 	TransformedApi         map[string]any
@@ -166,15 +166,15 @@ type BaseExchange struct {
 
 	SubstituteCommonCurrencyCodes bool
 
-	// WS - updated to use thread-safe sync.Map (except cache objects)
-	Ohlcvs         *sync.Map
-	Trades         any // map[string]*ArrayCache
+	// WS - plain string-keyed caches, one per exchange instance (cache objects stay boxed)
+	Ohlcvs         map[string]any
+	Trades         map[string]any
 	Tickers        *TickerCache
 	Orders         any // *ArrayCache  // cache object, not a map
 	MyTrades       any // *ArrayCache  // cache object, not a map
-	Orderbooks     *sync.Map
+	Orderbooks     map[string]any
 	Liquidations   any // *ArrayCacheBySymbolBySide
-	FundingRates   *sync.Map
+	FundingRates   map[string]any
 	Bidsasks       *TickerCache
 	TriggerOrders  any // *ArrayCache
 	Transactions   *sync.Map
@@ -241,7 +241,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// this = &Exchange{}
 	this.FetchHistoryCache = &ConcurrentListForRequests{}
 	if this.Options == nil {
-		this.Options = &sync.Map{} // by default sync.map is nil
+		this.Options = map[string]any{}
 	}
 	if this.MarketsMutex == nil {
 		this.MarketsMutex = &sync.Mutex{}
@@ -261,13 +261,11 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// warmup itf cache
 
 	limit := 10000
-	// Initialize WebSocket data structures with thread-safe sync.Map
-	// this.Trades = make(map[string]*ArrayCache)
-	this.Trades = &sync.Map{}
+	// Initialize WebSocket data structures: plain maps, mutated by the exchange's own ws loop
+	this.Trades = map[string]any{}
 	this.Tickers = &TickerCache{}
-	this.Orderbooks = &sync.Map{}
-	// this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
-	this.Ohlcvs = &sync.Map{}
+	this.Orderbooks = map[string]any{}
+	this.Ohlcvs = map[string]any{}
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)
@@ -284,8 +282,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
 	this.Currencies = &sync.Map{}
-	// this.FundingRates = make(map[string]any)
-	this.FundingRates = &sync.Map{}
+	this.FundingRates = map[string]any{}
 	this.Bidsasks = &TickerCache{}
 	this.ProxyDictionaries = make(map[string]any)
 	this.AccountsById = make(map[string]any)
@@ -309,7 +306,7 @@ func (this *BaseExchange) Init(userConfig map[string]any) {
 		this.FetchHistoryCache = &ConcurrentListForRequests{}
 	}
 	if this.Options == nil {
-		this.Options = &sync.Map{} // by default sync.map is nil
+		this.Options = map[string]any{}
 	}
 
 	if this.MarketsMutex == nil {
@@ -481,8 +478,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 				currencies = fetchedCurrencies
 			}
 			// this.cachedCurrenciesMutex.Lock()
-			// this.Options["cachedCurrencies"] = currencies
-			this.Options.Store("cachedCurrencies", currencies)
+			this.Options["cachedCurrencies"] = currencies
 			// this.cachedCurrenciesMutex.Unlock()
 		}
 
@@ -493,9 +489,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		markets := MarketInterfacesToList(fetched.Value)
 
 		// this.cachedCurrenciesMutex.Lock()
-		// delete(this.Options, "cachedCurrencies")
-		// this.Options.Del
-		this.Options.Delete("cachedCurrencies")
+		delete(this.Options, "cachedCurrencies")
 		// this.cachedCurrenciesMutex.Unlock()
 
 		// Lock only for writing
@@ -1316,7 +1310,7 @@ func (this *BaseExchange) SetProperty(obj any, property any, defaultValue any) {
 	// Check if the field exists and is settable
 	if field.IsValid() && field.CanSet() {
 		// only set when the value is assignable to the field type — the test harness can pass a
-		// plain map for a typed field (e.g. Options *sync.Map) and reflect.Set panics on a mismatch
+		// plain value for a typed field and reflect.Set panics on a mismatch
 		valueReflect := reflect.ValueOf(defaultValue)
 		if valueReflect.IsValid() && valueReflect.Type().AssignableTo(field.Type()) {
 			field.Set(valueReflect)
@@ -1567,8 +1561,7 @@ func (this *BaseExchange) EncodeDydxTxRaw(signDoc any, signature any) any {
 
 func (this *BaseExchange) ExtendExchangeOptions(options2 any) {
 	options := options2.(map[string]any)
-	extended := this.Extend(this.SafeMapToMap(this.Options), options)
-	this.Options = this.MapToSafeMap(extended)
+	this.Options = this.Extend(this.Options, options)
 }
 
 // func (this *BaseExchange) Init(userConfig map[string]any) {
@@ -2192,7 +2185,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
-	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
+	if stored, exists := this.Orderbooks[symbol.(string)]; exists {
 		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
 			fetched := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
@@ -2229,7 +2222,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 		}
 		this.WsClientsMu.Unlock()
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
-		this.Orderbooks.Store(symbol.(string), this.OrderBook())
+		this.Orderbooks[symbol.(string)] = this.OrderBook()
 	} else {
 		client.(ClientInterface).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil

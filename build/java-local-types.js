@@ -19762,3 +19762,14 @@ function x21BaseOnlyDispatch (call) {
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
 }
+
+// hx10 J04: a native print of a receiver method carries the same type the helper's entry names,
+// so `String x = <native>` keeps its local typing (see build/hx10w2-J04.js)
+export function registerJavaReceiverMethodMatch (name, match) {
+    const entry = RECEIVER_METHOD_LOCAL_ENTRIES[name];
+    if (entry === undefined || match === undefined) {
+        return;
+    }
+    const previous = entry.match;
+    entry.match = previous === undefined ? match : { test: (value) => previous.test (value) || match.test (value) };
+}

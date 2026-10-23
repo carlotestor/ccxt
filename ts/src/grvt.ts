@@ -3316,7 +3316,7 @@ export default class grvt extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        let requestPath: any = path;
+        let requestPath: string = path;
         const query = this.omit (params, this.extractParams (requestPath));
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);

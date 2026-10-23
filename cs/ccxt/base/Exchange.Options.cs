@@ -62,7 +62,7 @@ public partial class BaseExchange
 
     public IDictionary<string, object> currencies_by_id { get; set; } = null;
 
-    public object accounts { get; set; } = new dict();
+    public List<object> accounts { get; set; } = new List<object>();
 
     public object accountsById { get; set; } = null;
 
@@ -78,11 +78,11 @@ public partial class BaseExchange
 
     public IDictionary<string, object> markets { get; set; } = null;
     public object currencies { get; set; } = new dict();
-    public object fees { get; set; } = new dict();
-    public object requiredCredentials { get; set; } = new dict();
+    public IDictionary<string, object> fees { get; set; } = new dict();
+    public IDictionary<string, object> requiredCredentials { get; set; } = new dict();
     public Dictionary<string, object> timeframes { get; set; } = null;
     public double rateLimit { get; set; } = 2000;
-    public object exceptions { get; set; } = new dict();
+    public IDictionary<string, object> exceptions { get; set; } = new dict();
     public object urls { get; set; } = new dict();
     public Dictionary<string, object> precision { get; set; } = null;
 

@@ -7,6 +7,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -80,11 +81,11 @@ public class WsClient {
         }, "ccxt-ws-shutdown"));
     }
 
-    // State — typed as Object for compatibility with transpiled code that casts these
+    // State — typed maps; transpiled code reads/writes them directly
     public String url;
-    public Object futures = new ConcurrentHashMap<String, Future>();
-    public Object subscriptions = new ConcurrentHashMap<String, Object>();
-    public Object rejections = new ConcurrentHashMap<String, Object>();
+    public Map<String, Object> futures = new ConcurrentHashMap<>();
+    public Map<String, Object> subscriptions = new ConcurrentHashMap<>();
+    public Map<String, Object> rejections = new ConcurrentHashMap<>();
     public volatile boolean isConnected = false;
     public final AtomicBoolean startedConnecting = new AtomicBoolean(false);
     public volatile long connectionEstablished = 0;
@@ -115,11 +116,9 @@ public class WsClient {
 
     // Typed accessors for internal use
     @SuppressWarnings("unchecked")
-    private ConcurrentHashMap<String, Future> futuresMap() { return (ConcurrentHashMap<String, Future>) futures; }
-    @SuppressWarnings("unchecked")
-    public ConcurrentHashMap<String, Object> subscriptionsMap() { return (ConcurrentHashMap<String, Object>) subscriptions; }
-    @SuppressWarnings("unchecked")
-    private ConcurrentHashMap<String, Object> rejectionsMap() { return (ConcurrentHashMap<String, Object>) rejections; }
+    private Map<String, Future> futuresMap() { return (Map<String, Future>)(Map<?, ?>) futures; }
+    public Map<String, Object> subscriptionsMap() { return subscriptions; }
+    private Map<String, Object> rejectionsMap() { return rejections; }
 
     // Config
     public long keepAlive = 30000;

@@ -2094,7 +2094,7 @@ export default class hollaex extends Exchange {
             this.checkRequiredCredentials ();
             const timeoutMs = this.parseToInt (this.timeout);
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (timeoutMs / 1000));
-            const expires = this.sum (this.seconds (), defaultExpires);
+            const expires: number = this.sum (this.seconds (), defaultExpires);
             const expiresString = expires.toString ();
             let auth = method + requestPath + expiresString;
             requestHeaders = {

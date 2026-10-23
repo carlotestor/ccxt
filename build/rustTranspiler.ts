@@ -8,7 +8,14 @@ import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
+import { nativeGetValue } from './hx10w2-R01.js';
+import { r07TypedLocals } from "./hx10w2-R07.js";
+import { hx10w2R08 } from './hx10w2-R08.js';
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
+import { r02NativeInserts } from './hx10w2-R02.js';
+import { hx10w2R03 } from './hx10w2-R03.js';
+import { r04Scalars } from './hx10w2-R04.js'; // hx10 R04
+import { r06Push } from './hx10w2-r06.js';
 
 ansi.nice;
 
@@ -9001,6 +9008,9 @@ impl std::ops::DerefMut for ${coreName} {
                 // write-back pass appends `set_value(&mut X, ..)` lines those
                 // locals must keep the box for).
                 rustContent = this.typeSafeListLocals(rustContent);
+                // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
+                rustContent = r06Push(rustContent);
+                rustContent = r07TypedLocals(rustContent); // hx10 W2 R07
                 // And `instanceof <errorClass>` whose class has no subclass.
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
                 // Last: a `.clone()` in a by-value slot whose local is dead
@@ -9011,10 +9021,17 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.whileTrueToLoop(rustContent);
                 rustContent = this.x45Native(rustContent); // hx5 X45
                 rustContent = this.r28Truth(rustContent); // hx4 R28
+                rustContent = r04Scalars(rustContent); // hx10 R04
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
                 rustContent = this.r31Str(rustContent); // hx4 R31
                 rustContent = this.r32Native(rustContent); // hx4 R32
                 rustContent = this.x46Incr(rustContent); // hx5 X46
+                // Last of all: native get_value on a receiver whose container shape
+                // the final text pins (needs the clone/write passes to be done).
+                rustContent = nativeGetValue(rustContent); // hx10 R01
+                rustContent = r02NativeInserts(rustContent); // hx10 R02
+                rustContent = hx10w2R03(rustContent); // hx10w2 R03
+                rustContent = hx10w2R08(rustContent); // hx10 wave-2 R08
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9733,6 +9750,9 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
+        // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
+        finalFile = r06Push(finalFile);
+        finalFile = r07TypedLocals(finalFile); // hx10 W2 R07
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
@@ -9741,10 +9761,16 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.whileTrueToLoop(finalFile);
         finalFile = this.x45Native(finalFile); // hx5 X45
         finalFile = this.r28Truth(finalFile); // hx4 R28
+        finalFile = r04Scalars(finalFile); // hx10 R04
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
         finalFile = this.r31Str(finalFile); // hx4 R31
         finalFile = this.r32Native(finalFile); // hx4 R32
         finalFile = this.x46Incr(finalFile); // hx5 X46
+        // Last of all: native get_value on a pinned receiver (hx10 R01).
+        finalFile = nativeGetValue(finalFile);
+        finalFile = r02NativeInserts(finalFile); // hx10 R02
+        finalFile = hx10w2R03(finalFile); // hx10w2 R03
+        finalFile = hx10w2R08(finalFile); // hx10 wave-2 R08
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -11037,6 +11063,7 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapAssertInIsTrue(content);
         content = this.dropRedundantIsTrue(content);
         content = this.rewriteNativeErrorClassChecks(content);
+        content = hx10w2R08(content); // hx10 wave-2 R08
         return content;
     }
 

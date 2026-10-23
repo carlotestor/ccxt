@@ -35,11 +35,10 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
 	this.Urls = SafeValue(extendedProperties, "urls", map[string]any{}).(map[string]any)
 
-	this.Options = this.MapToSafeMap(this.GetDefaultOptions().(map[string]any))
+	this.Options = derefScalar(this.GetDefaultOptions()).(map[string]any)
 	extendedOptions := SafeValue(extendedProperties, "options", map[string]any{}).(map[string]any)
 	for k, v := range extendedOptions {
-		// this.Options[k] = v
-		this.Options.Store(k, v)
+		this.Options[k] = v
 	}
 
 	this.Verbose = SafeValue(extendedProperties, "verbose", false).(bool)

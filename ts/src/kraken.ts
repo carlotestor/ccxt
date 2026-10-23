@@ -1129,7 +1129,7 @@ export default class kraken extends Exchange {
         const request: Dict = {};
         const symbolsNormalized = this.marketSymbols (symbols);
         if (symbolsNormalized !== undefined) {
-            const marketIds: List = [];
+            const marketIds: Str[] = [];
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);

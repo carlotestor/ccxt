@@ -84,7 +84,7 @@ func (this *BaseExchange) GetHas() map[string]any {
 	return this.Has
 }
 
-func (this *BaseExchange) GetOptions() *sync.Map {
+func (this *BaseExchange) GetOptions() map[string]any {
 	return this.Options
 }
 
@@ -205,7 +205,7 @@ func (this *BaseExchange) SetAccounts(accounts any) {
 
 func (this *BaseExchange) SetOptions(options any) {
 	options = derefScalar(options) // generated callers may pass typed pointers; a typed nil is an absent value
-	this.Options = this.MapToSafeMap(options.(map[string]any))
+	this.Options = options.(map[string]any)
 }
 
 func (this *BaseExchange) SetWssProxy(wssProxy any) {

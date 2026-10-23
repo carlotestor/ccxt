@@ -193,7 +193,7 @@ type IBaseExchange interface {
 	GetHostname() string
 	GetUrls() any
 	GetApi() map[string]any
-	GetOptions() *sync.Map
+	GetOptions() map[string]any
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
 	GetNetworkAliases() map[string]any
@@ -253,7 +253,7 @@ type ICoreExchange interface {
 	GetHostname() string
 	GetUrls() any
 	GetApi() map[string]any
-	GetOptions() *sync.Map
+	GetOptions() map[string]any
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
 	GetNetworkAliases() map[string]any

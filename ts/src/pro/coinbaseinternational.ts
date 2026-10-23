@@ -1523,7 +1523,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (isPrivate) {
             await this.authenticate ();
         }
-        const requestId = this.requestId ();
+        const requestId: number = this.requestId ();
         const messageHash = requestId.toString ();
         const request: Dict = {
             'jsonrpc': '2.0',

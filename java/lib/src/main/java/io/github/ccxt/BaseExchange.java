@@ -223,7 +223,7 @@ public class BaseExchange {
     public Map<String, Object> options = new java.util.concurrent.ConcurrentHashMap<>();
     public boolean isSandboxModeEnabled = false;
 
-    public volatile Object markets = null;
+    public volatile Map<String, Object> markets = null;
     public volatile Object currencies = new HashMap<String, Object>();
     public Object fees = new HashMap<String, Object>();
     public Object requiredCredentials = new HashMap<String, Object>();
@@ -302,16 +302,16 @@ public class BaseExchange {
     public Object proxy_url = null;
     public Object proxyUrlCallBack = null;
 
-    // concurrent maps
-    public Object tickers = new ConcurrentHashMap<String, Object>();
-    public Object fundingRates = new ConcurrentHashMap<String, Object>();
-    public Object bidsasks = new ConcurrentHashMap<String, Object>();
+    // per-symbol ws caches: plain maps, one writer (the client's reader thread), readers after the future settles
+    public Map<String, Object> tickers = new HashMap<>();
+    public Map<String, Object> fundingRates = new HashMap<>();
+    public Map<String, Object> bidsasks = new HashMap<>();
     public Object balance = new ConcurrentHashMap<String, Object>();
     public Object liquidations = new ConcurrentHashMap<String, Object>();
     public Object myLiquidations = new ConcurrentHashMap<String, Object>();
-    public Object trades = new ConcurrentHashMap<String, Object>();
-    public Object orderbooks = new ConcurrentHashMap<String, Object>();
-    public Object ohlcvs = new ConcurrentHashMap<String, Object>();
+    public Map<String, Object> trades = new HashMap<>();
+    public Map<String, Object> orderbooks = new HashMap<>();
+    public Map<String, Object> ohlcvs = new HashMap<>();
     public Object clients = new ConcurrentHashMap<String, Object>();
 
     // regular maps / misc
@@ -1396,8 +1396,8 @@ public class BaseExchange {
         return new HashMap<>();
     }
 
-    public ConcurrentHashMap<String, Object> createSafeDictionary(boolean isWs) {
-        return new ConcurrentHashMap<>();
+    public HashMap<String, Object> createSafeDictionary(boolean isWs) {
+        return new HashMap<>();
     }
 
     public Map<String, Object> convertToSafeDictionary(Object obj) {
