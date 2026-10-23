@@ -19,6 +19,7 @@ import { hx10w3R03 } from './hx10w3-R03.js'; // hx10 wave-3 R03
 import { r04Scalars } from './hx10w2-R04.js'; // hx10 R04
 import { r04Callee } from './hx10w3-R04.js'; // hx10w3 R04
 import { r06Push } from './hx10w2-r06.js';
+import { r06w3Push } from './hx10w3-R06.js'; // hx10 W3 R06
 
 ansi.nice;
 
@@ -9013,6 +9014,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.typeSafeListLocals(rustContent);
                 // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
                 rustContent = r06Push(rustContent);
+                // hx10 W3 R06: append_to_array on a marker-free local receiver is a plain Vec push.
+                rustContent = r06w3Push(rustContent);
                 // And `instanceof <errorClass>` whose class has no subclass.
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
                 // Last: a `.clone()` in a by-value slot whose local is dead
@@ -9759,6 +9762,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.typeSafeListLocals(finalFile);
         // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
         finalFile = r06Push(finalFile);
+        finalFile = r06w3Push(finalFile); // hx10 W3 R06
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
