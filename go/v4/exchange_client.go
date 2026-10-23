@@ -35,7 +35,15 @@ type ClientInterface interface {
 	GetError() error
 	SetError(err error)
 	GetUrl() string
-	GetSubscriptions() any
+	SubscriptionHas(key any) bool
+	SubscriptionGet(key any) any
+	SubscriptionDict(key any) map[string]any
+	SubscriptionSet(key any, value any)
+	SubscriptionDel(key any)
+	SubscriptionLoadOrStore(key any, value any) (any, bool)
+	SubscriptionKeys() []string
+	SubscriptionValues() []any
+	SubscriptionsSnapshot() map[string]any
 	GetRejections() map[string]any
 	GetLastPong() any
 	SetLastPong(lastPong any)
@@ -57,7 +65,9 @@ type Client struct {
 
 	PongSetMu sync.RWMutex // protects LastPong set
 
-	Subscriptions  *sync.Map    // map[string]chan any - concurrency-safe, no external mutex required
+	subscriptions *subscriptionMap // map[string]any, owned by its own goroutine
+	subsOnce      sync.Once
+
 	ConnectMu      sync.RWMutex // protects Connect calls
 	ReadLoopClosed chan struct{}
 
@@ -199,7 +209,6 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		"Protocols":             nil,
 		"Options":               nil,
 		"Futures":               make(map[string]any),
-		"Subscriptions":         &sync.Map{}, // map[string]chan any
 		"Rejections":            make(map[string]any),
 		"Connected":             nil,
 		"Error":                 nil,
@@ -233,7 +242,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 	c := &Client{
 		Url:                 url,
 		Futures:             finalConfig["Futures"].(map[string]any),
-		Subscriptions:       finalConfig["Subscriptions"].(*sync.Map), // map[string]chan any
+		subscriptions:       newSubscriptionMap(),
 		Rejections:          finalConfig["Rejections"].(map[string]any),
 		Verbose:             derefScalar(finalConfig["Verbose"]).(bool),
 		KeepAlive:           ParseInt(finalConfig["keepAlive"]),
@@ -562,11 +571,182 @@ func (this *Client) GetUrl() string {
 	return this.Url
 }
 
-// GetSubscriptions returns the live *sync.Map of subscriptions (by reference), so callers
-// (and the *sync.Map-aware helpers like Remove/AddElementToObject/ObjectKeys) mutate the
-// real subscriptions. It is concurrency-safe: sync.Map handles concurrent access internally.
-func (this *Client) GetSubscriptions() any {
-	return this.Subscriptions
+// subscriptionMap is the client's subscription table: a plain map[string]any that only the
+// goroutine below ever touches, so concurrent subscribe/handler/enqueue paths hand off a
+// request instead of sharing the map.
+type subscriptionMap struct {
+	req chan subsOp
+}
+
+type subsKind int
+
+const (
+	subsHas subsKind = iota
+	subsGet
+	subsSet
+	subsDel
+	subsLoadOrStore
+	subsKeys
+	subsValues
+	subsSnapshot
+)
+
+type subsOp struct {
+	kind  subsKind
+	key   string
+	value any
+	reply chan subsReply
+}
+
+type subsReply struct {
+	value any
+	ok    bool
+}
+
+func newSubscriptionMap() *subscriptionMap {
+	subs := &subscriptionMap{req: make(chan subsOp)}
+	go subs.own()
+	return subs
+}
+
+// own is the only function that reads or writes the table; it never calls back out.
+func (this *subscriptionMap) own() {
+	data := map[string]any{}
+	for op := range this.req {
+		switch op.kind {
+		case subsHas:
+			_, ok := data[op.key]
+			op.reply <- subsReply{ok: ok}
+		case subsGet:
+			op.reply <- subsReply{value: derefScalar(data[op.key])}
+		case subsSet:
+			data[op.key] = op.value
+			op.reply <- subsReply{}
+		case subsDel:
+			delete(data, op.key)
+			op.reply <- subsReply{}
+		case subsLoadOrStore:
+			if existing, ok := data[op.key]; ok {
+				op.reply <- subsReply{value: existing, ok: true}
+			} else {
+				data[op.key] = op.value
+				op.reply <- subsReply{value: op.value}
+			}
+		case subsKeys:
+			keys := make([]string, 0, len(data))
+			for key := range data {
+				keys = append(keys, key)
+			}
+			op.reply <- subsReply{value: keys}
+		case subsValues:
+			values := make([]any, 0, len(data))
+			for _, value := range data {
+				values = append(values, value)
+			}
+			op.reply <- subsReply{value: values}
+		case subsSnapshot:
+			snapshot := make(map[string]any, len(data))
+			for key, value := range data {
+				snapshot[key] = value
+			}
+			op.reply <- subsReply{value: snapshot}
+		}
+	}
+}
+
+func (this *subscriptionMap) call(kind subsKind, key string, value any) subsReply {
+	reply := make(chan subsReply)
+	this.req <- subsOp{kind: kind, key: key, value: value, reply: reply}
+	return <-reply
+}
+
+// subsTable lazily creates the table for a Client built as a struct literal.
+func (this *Client) subsTable() *subscriptionMap {
+	this.subsOnce.Do(func() {
+		if this.subscriptions == nil {
+			this.subscriptions = newSubscriptionMap()
+		}
+	})
+	return this.subscriptions
+}
+
+// subsKey normalizes a subscription key like the table helpers did: pointers are unwrapped
+// and anything but a string cannot address the table.
+func subsKey(key any) (string, bool) {
+	keyStr, ok := derefScalar(key).(string)
+	return keyStr, ok
+}
+
+// SubscriptionHas reports membership; a nil or non-string key is never a member.
+func (this *Client) SubscriptionHas(key any) bool {
+	keyStr, ok := subsKey(key)
+	if !ok {
+		return false
+	}
+	return this.subsTable().call(subsHas, keyStr, nil).ok
+}
+
+// SubscriptionGet reads a subscription, unwrapping a pointer-carried value like GetValue.
+func (this *Client) SubscriptionGet(key any) any {
+	keyStr, ok := subsKey(key)
+	if !ok {
+		return nil
+	}
+	return this.subsTable().call(subsGet, keyStr, nil).value
+}
+
+// SubscriptionDict reads a subscription that holds a dictionary, nil otherwise.
+func (this *Client) SubscriptionDict(key any) map[string]any {
+	if asMap, ok := this.SubscriptionGet(key).(map[string]any); ok {
+		return asMap
+	}
+	return nil
+}
+
+// SubscriptionSet stores a subscription; a nil or non-string key stores nothing.
+func (this *Client) SubscriptionSet(key any, value any) {
+	keyStr, ok := subsKey(key)
+	if !ok {
+		return
+	}
+	this.subsTable().call(subsSet, keyStr, value)
+}
+
+// SubscriptionDel removes a subscription, panicking on a non-string key like Remove.
+func (this *Client) SubscriptionDel(key any) {
+	keyStr, ok := derefScalar(key).(string)
+	if !ok {
+		panic("provided key is not a string")
+	}
+	this.subsTable().call(subsDel, keyStr, nil)
+}
+
+// SubscriptionLoadOrStore registers a subscription, reporting whether it was already there.
+func (this *Client) SubscriptionLoadOrStore(key any, value any) (any, bool) {
+	keyStr, ok := derefScalar(key).(string)
+	if !ok {
+		panic("provided key is not a string")
+	}
+	reply := this.subsTable().call(subsLoadOrStore, keyStr, value)
+	return reply.value, reply.ok
+}
+
+// SubscriptionKeys lists the subscription hashes.
+func (this *Client) SubscriptionKeys() []string {
+	keys, _ := this.subsTable().call(subsKeys, "", nil).value.([]string)
+	return keys
+}
+
+// SubscriptionValues lists the stored subscriptions.
+func (this *Client) SubscriptionValues() []any {
+	values, _ := this.subsTable().call(subsValues, "", nil).value.([]any)
+	return values
+}
+
+// SubscriptionsSnapshot copies the table for read-only iteration.
+func (this *Client) SubscriptionsSnapshot() map[string]any {
+	snapshot, _ := this.subsTable().call(subsSnapshot, "", nil).value.(map[string]any)
+	return snapshot
 }
 
 func (this *Client) GetRejections() map[string]any {

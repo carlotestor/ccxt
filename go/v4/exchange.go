@@ -1704,7 +1704,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 		subValue = subscription
 	}
 	// atomically register the subscription; alreadySubscribed is true if it existed before
-	existing, alreadySubscribed := client.Subscriptions.LoadOrStore(subscribeHash.(string), subValue)
+	existing, alreadySubscribed := client.SubscriptionLoadOrStore(subscribeHash.(string), subValue)
 	var clientSubscription any
 	if alreadySubscribed {
 		clientSubscription = existing
@@ -1721,7 +1721,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
-		client.Subscriptions.Delete(subscribeHash.(string))
+		client.SubscriptionDel(subscribeHash.(string))
 		future.Reject(err)
 		return future.Await()
 	}
@@ -1731,7 +1731,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	if clientSubscription == nil {
 		go func() {
 			if err := (<-connected.Await()).Err; err != nil {
-				client.Subscriptions.Delete(subscribeHash.(string))
+				client.SubscriptionDel(subscribeHash.(string))
 				future.Reject(err)
 				return
 			}
@@ -1751,7 +1751,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 				}
 				if err := (<-client.SendAsync(message)).Err; err != nil {
 					client.OnError(err)
-					client.Subscriptions.Delete(subscribeHash.(string))
+					client.SubscriptionDel(subscribeHash.(string))
 				}
 			}
 		}()
@@ -2030,7 +2030,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 					subValue = make(chan AsyncResult[any])
 				}
 				// atomically register the subscription; only track it as missing if it was newly added
-				if _, loaded := client.Subscriptions.LoadOrStore(hashStr, subValue); !loaded {
+				if _, loaded := client.SubscriptionLoadOrStore(hashStr, subValue); !loaded {
 					missingSubscriptions = append(missingSubscriptions, hashStr)
 				}
 			}
@@ -2050,7 +2050,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 	if err != nil {
 		future.Reject(err)
 		for _, h := range missingSubscriptions {
-			client.Subscriptions.Delete(h)
+			client.SubscriptionDel(h)
 		}
 		return future.Await()
 	}
@@ -2061,7 +2061,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 		go func() {
 			if err := (<-connected.Await()).Err; err != nil {
 				for _, subscribeHash := range missingSubscriptions {
-					client.Subscriptions.Delete(subscribeHash)
+					client.SubscriptionDel(subscribeHash)
 				}
 				future.Reject(err)
 				return
@@ -2081,7 +2081,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 				}
 				if err := (<-client.SendAsync(message)).Err; err != nil {
 					for _, subscribeHash := range missingSubscriptions {
-						client.Subscriptions.Delete(subscribeHash)
+						client.SubscriptionDel(subscribeHash)
 					}
 					future.Reject(err)
 				}
