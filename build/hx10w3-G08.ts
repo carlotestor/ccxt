@@ -45,10 +45,26 @@ function g08UsesNullish (go: any, body: any, param: any): boolean {
     return found;
 }
 
-// a `this['name'](...)` / `x['name'](...)` call the call-site index cannot resolve
+// a `this['name'](...)` / `x['name'](...)` call the call-site index cannot resolve; the per-file set
+// is built once because the check runs for every parameter of every exchange method
+const G08_DYNAMIC_CACHE = new WeakMap<any, Set<string>> ();
+
+function g08DynamicCallees (fn: any): Set<string> {
+    const file = fn.getSourceFile ();
+    let names = G08_DYNAMIC_CACHE.get (file);
+    if (names === undefined) {
+        names = new Set<string> ();
+        const rx = /\[\s*['"]([A-Za-z_$][\w$]*)['"]\s*\]\s*\(/g;
+        const text = file.getFullText ();
+        let m: RegExpExecArray | null;
+        while ((m = rx.exec (text)) !== null) { names.add (m[1]); }
+        G08_DYNAMIC_CACHE.set (file, names);
+    }
+    return names;
+}
+
 function g08HasDynamicCall (fn: any, name: string): boolean {
-    const text = fn.getSourceFile ().getFullText ();
-    return new RegExp ('\\[\\s*[\'"]' + name + '[\'"]\\s*\\]\\s*\\(').test (text);
+    return g08DynamicCallees (fn).has (name);
 }
 
 // `x as Trade[]` / `x!` print as bare `x` in Go: the assertion adds no conversion, so the argument's
