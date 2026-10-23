@@ -1694,7 +1694,7 @@ class grvt(Exchange, ImplicitAPI):
         filteredResults = self.filter_transfers_by_type(transfers, 'internal', False)
         return self.to_array(filteredResults[1])
 
-    def filter_transfers_by_type(self, transfers: object, transferType: str, onlyMainAccount=True) -> list[list]:
+    def filter_transfers_by_type(self, transfers: list[dict], transferType: str, onlyMainAccount=True) -> list[list]:
         matchedResults = []
         nonMatchedResults = []
         for i in range(0, len(transfers)):

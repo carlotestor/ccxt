@@ -1466,8 +1466,8 @@ class cryptocom(Exchange, ImplicitAPI):
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_advanced_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
@@ -2520,7 +2520,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def custom_handle_margin_mode_and_params(self, methodName: object, params: dict = {}) -> list:
+    def custom_handle_margin_mode_and_params(self, methodName: str, params: dict = {}) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -3360,7 +3360,7 @@ class cryptocom(Exchange, ImplicitAPI):
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
-            isSwap = market['swap']
+            isSwap = self.safe_bool(market, 'swap')
             takerFeeKey = 'effective_spot_taker_rate_bps'
             if isSwap is True:
                 takerFeeKey = 'effective_deriv_taker_rate_bps'

@@ -900,7 +900,7 @@ class bitfinex(Exchange, ImplicitAPI):
             result[code] = parsed
         return result
 
-    def parse_currency_custom(self, id: object, indexed: dict, indexedNetworks: dict) -> Currency:
+    def parse_currency_custom(self, id: str, indexed: dict, indexedNetworks: dict) -> Currency:
         code = self.safe_currency_code(id)
         label = self.safe_list(indexed['label'], id, [])
         name = self.safe_string(label, 1)

@@ -866,8 +866,8 @@ class bitrue(Exchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promisesRaw)
         spotMarkets = self.safe_list(self.safe_dict(promises, 0), 'symbols', [])
-        futureMarkets = self.safe_value(promises, 1)
-        deliveryMarkets = self.safe_value(promises, 2)
+        futureMarkets = self.safe_list(promises, 1, [])
+        deliveryMarkets = self.safe_list(promises, 2, [])
         markets = spotMarkets
         markets = self.array_concat(markets, futureMarkets)
         markets = self.array_concat(markets, deliveryMarkets)
@@ -2059,7 +2059,7 @@ class bitrue(Exchange, ImplicitAPI):
         elif market['spot'] is True:
             request['symbol'] = market['id']
             request['quantity'] = self.amount_to_precision(symbol, amount)
-            validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+            validOrderTypes = self.safe_list(market['info'], 'orderTypes', [])
             if not self.in_array(uppercaseType, validOrderTypes):
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in market ' + symbol)
             clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')

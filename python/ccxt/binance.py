@@ -3191,7 +3191,7 @@ class binance(Exchange, ImplicitAPI):
             marginablesById = self.index_by(responseMarginables, 'assetName')
         return self.parse_currencies_custom(responseCurrencies, marginablesById)
 
-    def parse_currencies_custom(self, responseCurrencies: object, marginablesById: dict) -> Currencies:
+    def parse_currencies_custom(self, responseCurrencies: list[dict], marginablesById: dict) -> Currencies:
         result = {}
         for i in range(0, len(responseCurrencies)):
             parsed = self.parse_currency(responseCurrencies[i])
@@ -5914,7 +5914,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -9270,7 +9270,7 @@ class binance(Exchange, ImplicitAPI):
             responseList[i]['type'] = 'withdrawal'
         return self.parse_transactions(responseList, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: Str, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None) -> Str:
         if type is None:
             return status
         statusesByType = {
@@ -10405,7 +10405,7 @@ class binance(Exchange, ImplicitAPI):
             return inverseFees
         raise NotSupported(self.id + ' fetchTradingFees() is not supported for ' + type + ' markets')
 
-    def futures_transfer(self, code: str, amount: object, type: float, params: dict = {}) -> TransferEntry:
+    def futures_transfer(self, code: str, amount: float, type: float, params: dict = {}) -> TransferEntry:
         """
  @ignore
         transfer between futures account
@@ -12189,7 +12189,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: list[object], market: Market):
+    def parse_settlements(self, settlements: list[dict], market: Market) -> list:
         #
         # fetchSettlementHistory
         #
@@ -12415,7 +12415,7 @@ class binance(Exchange, ImplicitAPI):
             'fee': None,
         }, currencyResolved)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
@@ -12687,7 +12687,7 @@ class binance(Exchange, ImplicitAPI):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
-    def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params: dict = {}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: float, addOrReduce: float, params: dict = {}) -> MarginModification:
         # used to modify isolated positions
         defaultType = self.safe_string(self.options, 'defaultType', 'swap')
         if defaultType == 'spot':
@@ -12992,7 +12992,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def create_gift_code(self, code: str, amount: object, params: dict = {}) -> dict:
+    def create_gift_code(self, code: str, amount: Num, params: dict = {}) -> dict:
         """
         create gift code
 
@@ -13031,7 +13031,7 @@ class binance(Exchange, ImplicitAPI):
             'amount': amount,
         }
 
-    def redeem_gift_code(self, giftcardCode: object, params: dict = {}):
+    def redeem_gift_code(self, giftcardCode: str, params: dict = {}) -> dict:
         """
         redeem gift code
 
@@ -13058,7 +13058,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return response
 
-    def verify_gift_code(self, id: str, params: dict = {}):
+    def verify_gift_code(self, id: str, params: dict = {}) -> dict:
         """
         verify gift code
 

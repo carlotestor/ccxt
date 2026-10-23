@@ -3139,8 +3139,8 @@ class okx(Exchange, ImplicitAPI):
         shouldOmitSize = isConditionalOrOCO and closeFraction is not None
         if not shouldOmitSize:
             request['sz'] = self.amount_to_precision(symbol, amount)
-        spot = market['spot']
-        contract = market['contract']
+        spot = self.safe_bool(market, 'spot')
+        contract = self.safe_bool(market, 'contract')
         triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         # const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');

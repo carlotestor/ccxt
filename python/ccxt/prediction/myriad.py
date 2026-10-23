@@ -243,7 +243,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         self.events = eventsDict
         return flatMarkets
 
-    async def fetch_raw_markets_by_search(self, queries: list[object], params: dict = {}) -> list[object]:
+    async def fetch_raw_markets_by_search(self, queries: list[str], params: dict = {}) -> list[dict]:
         """
  @ignore
         fetches raw myriad market objects matching the given search terms via the markets keyword filter
@@ -280,7 +280,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                     rawMarkets.append(raw)
         return rawMarkets
 
-    async def fetch_raw_markets_list(self, params: dict = {}) -> list[object]:
+    async def fetch_raw_markets_list(self, params: dict = {}) -> list[dict]:
         """
  @ignore
         fetches raw myriad market objects from the paginated markets listing
@@ -346,7 +346,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         self.index_event_outcomes(event)
         return event
 
-    async def fetch_raw_market_by_id(self, id: str, params: dict = {}) -> object:
+    async def fetch_raw_market_by_id(self, id: str, params: dict = {}) -> dict:
         """
  @ignore
         fetches a single raw myriad market object by its unified event id(a composite networkId:marketId)
@@ -365,7 +365,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             request['id'] = id
         return await self.myriadPublicGetMarketsId(self.extend(request, params))
 
-    async def fetch_raw_question_by_id(self, id: str, params: dict = {}) -> object:
+    async def fetch_raw_question_by_id(self, id: str, params: dict = {}) -> dict:
         """
  @ignore
         fetches a single raw myriad question object by question id; falls back to keyword search by id/slug/title when direct lookup is unavailable
@@ -401,7 +401,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             raise e
         return result
 
-    async def fetch_raw_questions_by_search(self, queries: list[str], params: dict = {}) -> list[object]:
+    async def fetch_raw_questions_by_search(self, queries: list[str], params: dict = {}) -> list[dict]:
         """
  @ignore
         fetches raw myriad question objects matching the given search terms via the questions keyword filter
@@ -429,7 +429,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                     rawQuestions.append(raw)
         return rawQuestions
 
-    async def fetch_raw_questions_list(self, params: dict = {}) -> list[object]:
+    async def fetch_raw_questions_list(self, params: dict = {}) -> list[dict]:
         """
  @ignore
         fetches raw myriad question objects from the paginated questions listing
@@ -634,7 +634,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #
         return self.parse_trade_quote(self.extend(response, {'action': sideStr}), outcomeObj)
 
-    def parse_trade_quote(self, quote: dict, market: object = None) -> dict:
+    def parse_trade_quote(self, quote: dict, market: dict = None) -> dict:
         """
  @ignore
         parses a raw myriad quote response into a unified-ish quote object
@@ -1816,7 +1816,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             scale = scale + '0'
         return Precise.string_div(decimalString, scale)
 
-    def parse_trade_tx(self, txHash: Str, quote: dict, market: object, side: Str) -> PredictionOrder:
+    def parse_trade_tx(self, txHash: Str, quote: dict, market: dict, side: Str) -> PredictionOrder:
         return self.safe_prediction_order({
             'id': txHash,
             'clientOrderId': None,
@@ -2531,7 +2531,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                     break
         else:
             chartsDict = self.safe_dict(selectedOutcome, 'price_charts', {})
-            chart = self.safe_value(chartsDict, bucketKey)
+            chart = self.safe_dict(chartsDict, bucketKey)
         pointsList = self.safe_list(chart, 'prices', self.safe_list(chart, 'data', chart))
         points = pointsList if (pointsList is not None) else []
         pointsLength = len(points)
@@ -2925,7 +2925,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
         return await client.future('centrifugoConnected')
 
-    async def pong(self, client: Client, message: object = None):
+    async def pong(self, client: Client, message: dict = None):
         # Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send('{}')
 

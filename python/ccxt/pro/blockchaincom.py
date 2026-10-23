@@ -709,7 +709,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         channel = self.safe_string(message, 'channel')
         handlers = {
             'ticker': self.handle_ticker,

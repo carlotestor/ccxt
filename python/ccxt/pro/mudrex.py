@@ -127,8 +127,8 @@ class mudrex(ccxt.async_support.mudrex):
         prefix = 'kline'
         if priceType == 'mark':
             prefix = 'markKline'
-        streamBaseId = market['baseId'] if (market['baseId'] is not None) else ''
-        streamQuoteId = market['quoteId'] if (market['quoteId'] is not None) else ''
+        streamBaseId = self.safe_string(market, 'baseId', '')
+        streamQuoteId = self.safe_string(market, 'quoteId', '')
         stream = prefix + '@' + interval + '@' + streamBaseId.lower() + streamQuoteId.lower()
         messageHash = stream
         url = self.urls['api']['ws']

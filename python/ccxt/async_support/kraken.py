@@ -1764,7 +1764,7 @@ class kraken(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_orders(self.safe_list(result, 'orders'))
 
-    def find_market_by_altname_or_id(self, id: object):
+    def find_market_by_altname_or_id(self, id: object) -> MarketInterface:
         marketsByAltname = self.safe_dict(self.options, 'marketsByAltname', {})
         if id in marketsByAltname:
             return marketsByAltname[id]
@@ -1970,13 +1970,17 @@ class kraken(Exchange, ImplicitAPI):
                 price = self.safe_string(parts, 9)
             elif rawType == 'limit':
                 price = self.safe_string(parts, 5)
-        side = self.safe_string(description, 'type', side)
+        descriptionSide = self.safe_string(description, 'type')
+        if descriptionSide is not None:
+            side = descriptionSide
         rawType = self.safe_string(description, 'ordertype', rawType)  # orderType has dash, e.g. trailing-stop
         marketId = self.safe_string(description, 'pair', marketId)
         marketResolved = self.resolve_market_by_altname_or_id(marketId, market)
         symbol = None
         timestamp = self.safe_timestamp(orderOmitted, 'opentm')
-        amount = self.safe_string(orderOmitted, 'vol', amount)
+        orderAmount = self.safe_string(orderOmitted, 'vol')
+        if orderAmount is not None:
+            amount = orderAmount
         filled = self.safe_string(orderOmitted, 'vol_exec')
         fee = None
         # kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -2897,7 +2901,7 @@ class kraken(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transactions_by_type(self, type: str, transactions: object, code: Str = None, since: Int = None, limit: Int = None):
+    def parse_transactions_by_type(self, type: str, transactions: object, code: Str = None, since: Int = None, limit: Int = None) -> list[Transaction]:
         result = []
         for i in range(0, len(transactions)):
             transaction = self.parse_transaction(self.extend({
@@ -3511,11 +3515,12 @@ class kraken(Exchange, ImplicitAPI):
         if body[0] == '{':
             if not isinstance(response, str):
                 message = self.id + ' ' + body
-                if 'error' in response:
-                    numErrors = len(response['error'])
+                errors = self.safe_list(response, 'error')
+                if errors is not None:
+                    numErrors = len(errors)
                     if numErrors > 0:
-                        for i in range(0, len(response['error'])):
-                            error = response['error'][i]
+                        for i in range(0, numErrors):
+                            error = errors[i]
                             self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
                             self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
                         raise ExchangeError(message)

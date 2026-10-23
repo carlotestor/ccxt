@@ -2926,10 +2926,11 @@ class bybit(Exchange, ImplicitAPI):
         request = {}
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            symbolMarket = self.market(symbolsNormalized[0])
+            market = symbolMarket
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                request['symbol'] = market['id']
+                request['symbol'] = symbolMarket['id']
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchFundingRates', market, params)
         if marketType != 'swap':
             raise NotSupported(self.id + ' fetchFundingRates() does not support ' + marketType + ' markets')
@@ -4931,8 +4932,9 @@ class bybit(Exchange, ImplicitAPI):
         market = None
         request = {}
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('cancelAllOrders', market, params)
         request['category'] = type
         if (type == 'option') and not isUnifiedAccount:
@@ -5133,8 +5135,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchOrdersClassic', market, paramsPaginate)
         if type == 'spot':
             raise NotSupported(self.id + ' fetchOrdersClassic() is not supported for spot markets')
@@ -5299,8 +5302,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchCanceledAndClosedOrders', market, paramsPaginate)
         request['category'] = type
         isTrigger = self.safe_bool_2(paramsValue, 'trigger', 'stop', False)
@@ -5464,8 +5468,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchOpenOrders', market, paramsPaginate)
         if type == 'linear' or type == 'inverse':
             baseCoin = self.safe_string(paramsValue, 'baseCoin')
@@ -5595,8 +5600,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchMyTrades', market, paramsPaginate)
         request['category'] = type
         if limit is not None:
@@ -6412,9 +6418,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            symbol = symbolMarket['symbol']
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchPositions', market, paramsPaginate)
         if type == 'linear' or type == 'inverse':
             baseCoin = self.safe_string(paramsValue, 'baseCoin')
@@ -7620,7 +7627,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         request = {}
-        market = None
         market = self.market(symbol)
         if (market['spot'] is True) or (market['option'] is True):
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol)
@@ -7851,8 +7857,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchSettlementHistory', market, params)
         if type == 'spot':
             raise NotSupported(self.id + ' fetchSettlementHistory() is not supported for spot market')
@@ -7904,8 +7911,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchMySettlementHistory', market, params)
         if type == 'spot':
             raise NotSupported(self.id + ' fetchMySettlementHistory() is not supported for spot market')
@@ -8150,12 +8158,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'category': 'option',
             'baseCoin': baseCoin,
         }
-        market = None
         if symbolsNormalized is not None:
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                market = self.market(symbolsNormalized[0])
-                request['symbol'] = market['id']
+                symbolMarket = self.market(symbolsNormalized[0])
+                request['symbol'] = symbolMarket['id']
         response = await self.publicGetV5MarketTickers(self.extend(request, params))
         #
         #     {
@@ -8280,8 +8287,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchMyLiquidations', market, paramsPaginate)
         request['category'] = type
         if limit is not None:
@@ -8421,7 +8429,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             await self.load_markets()
-        market = None
         symbol = None
         if symbols is not None:
             market = self.market(symbols[0])
@@ -8520,8 +8527,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchFundingHistory', market, paramsPaginate)
         request['category'] = type
         if symbol is not None:

@@ -98,7 +98,7 @@ class backpack(ccxt.async_support.backpack):
             raise BadRequest(self.id + ' ' + methodName + '() source must be Venue')
         return market['id']
 
-    async def subscribe_ws_tickers(self, methodName: str, symbols: Strings = None, params: dict = {}, bidAsk=False, unwatch=False) -> Tickers:
+    async def subscribe_ws_tickers(self, methodName: str, symbols: Strings = None, params: dict = {}, bidAsk: bool = False, unwatch: bool = False) -> Tickers:
         """
  @ignore
         subscribes to venue statistics or stock provider streams with explicit symbol routing
@@ -306,7 +306,7 @@ class backpack(ccxt.async_support.backpack):
         tickers = await self.subscribe_ws_tickers('watchTicker', [symbol], params)
         return tickers[self.symbol(symbol)]
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> object:
+    async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -587,7 +587,7 @@ class backpack(ccxt.async_support.backpack):
             'info': ticker,
         }, marketResolved)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -606,7 +606,7 @@ class backpack(ccxt.async_support.backpack):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, query)
         return result[symbol][timeframe]
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -771,7 +771,7 @@ class backpack(ccxt.async_support.backpack):
         query = await self.prepare_ws_stock_params('watchTrades', params)
         return await self.watch_trades_for_symbols([symbol], since, limit, query)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches from the stream channel
 
@@ -986,7 +986,7 @@ class backpack(ccxt.async_support.backpack):
         orderbook = await self.watch_public(topics, messageHashes, self.omit(query, ['stock', 'source']))
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified array of symbols

@@ -1084,14 +1084,16 @@ class PredictionExchange(BaseExchange):
         # trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         orderType = self.safe_string(outcomeOrder, 'type')
         timeInForce = self.safe_string(outcomeOrder, 'timeInForce')
-        postOnly = self.safe_bool(outcomeOrder, 'postOnly')
+        # the venue flag and the derived one are each written once, so neither local widens
+        postOnlyValue = self.safe_bool(outcomeOrder, 'postOnly')
+        derivedPostOnly = None
         if timeInForce is None:
             if orderType == 'market':
                 timeInForce = 'IOC'
-            if postOnly is True:
+            if postOnlyValue is True:
                 timeInForce = 'PO'
-        elif postOnly is None:
-            postOnly = (timeInForce == 'PO')
+        elif postOnlyValue is None:
+            derivedPostOnly = (timeInForce == 'PO')
         timestamp = self.safe_integer(outcomeOrder, 'timestamp')
         datetime = self.safe_string(outcomeOrder, 'datetime')
         if datetime is None:
@@ -1115,7 +1117,7 @@ class PredictionExchange(BaseExchange):
             'cost': self.parse_number(cost),
             'fee': fee,
             'reduceOnly': self.safe_bool(outcomeOrder, 'reduceOnly'),
-            'postOnly': postOnly,
+            'postOnly': postOnlyValue if (postOnlyValue is not None) else derivedPostOnly,
             'trades': trades,
             'outcome': self.safe_string(outcomeOrder, 'outcome'),
             'outcomeId': self.safe_string(outcomeOrder, 'outcomeId'),

@@ -218,11 +218,12 @@ class onetrading(ccxt.async_support.onetrading):
             ticker = tickers[i]
             marketId = self.safe_string(ticker, 'instrument')
             symbol = self.safe_symbol(marketId)
-            self.tickers[symbol] = self.parse_ws_ticker(ticker)
+            parsedTicker = self.parse_ws_ticker(ticker)
+            self.tickers[symbol] = parsedTicker
             timestamp = self.parse8601(datetime)
-            self.tickers[symbol]['timestamp'] = timestamp
-            self.tickers[symbol]['datetime'] = self.iso8601(timestamp)
-            client.resolve(self.tickers[symbol], 'ticker.' + symbol)
+            parsedTicker['timestamp'] = timestamp
+            parsedTicker['datetime'] = self.iso8601(timestamp)
+            client.resolve(parsedTicker, 'ticker.' + symbol)
         client.resolve(self.tickers, 'tickers')
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1136,14 +1137,15 @@ class onetrading(ccxt.async_support.onetrading):
             self.safe_number(message, 'close'),
             self.safe_number(message, 'volume'),
         ]
-        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
+        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = symbolOhlcvs
+        stored = self.safe_value(symbolOhlcvs, timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
         stored.append(parsed)
         if symbol is not None and timeframe is not None:
-            self.ohlcvs[symbol][timeframe] = stored
+            symbolOhlcvs[timeframe] = stored
         client.resolve(stored, channel)
 
     def find_timeframe(self, timeframe: object, timeframes: object = None) -> Str:

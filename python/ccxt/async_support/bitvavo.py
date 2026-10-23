@@ -1115,7 +1115,7 @@ class bitvavo(Exchange, ImplicitAPI):
             requestUntil['limit'] = 1440
         return self.extend(requestUntil, paramsUntil)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/

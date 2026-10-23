@@ -107,7 +107,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         self.options['requestId'] = requestId
         return requestId
 
-    def get_ws_url(self, isPrivate=False) -> str:
+    def get_ws_url(self, isPrivate: bool = False) -> str:
         if self.isNativeDeribitCredentials():
             return 'wss://www.deribit.com/ws/api/v2'
         if isPrivate:
@@ -147,7 +147,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'params': {},
         }
 
-    async def subscribe(self, channels: list[str], messageHashes: list[str], isPrivate=False, params={}):
+    async def subscribe(self, channels: list[str], messageHashes: list[str], isPrivate: bool = False, params: dict = {}):
         """
  @ignore
         subscribes to websocket channels
@@ -185,7 +185,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             return await self.watch(url, messageHashes[0], extendedRequest, channels[0], extendedRequest)
         return await self.watch_multiple(url, messageHashes, extendedRequest, channels, extendedRequest)
 
-    async def un_subscribe(self, channels: list[str], isPrivate=False, params={}):
+    async def un_subscribe(self, channels: list[str], isPrivate: bool = False, params: dict = {}):
         """
  @ignore
         unsubscribes from websocket channels
@@ -1306,7 +1306,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client.lastPong = now
         client.resolve(result, 'authenticated')
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         """
  @ignore
         authenticates the private websocket session
@@ -1353,7 +1353,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             client.subscriptions[messageHash] = future
         return await future
 
-    async def request_ws(self, method: str, params={}, isPrivate=False):
+    async def request_ws(self, method: str, params: dict = {}, isPrivate: bool = False):
         """
  @ignore
         sends a websocket JSON-RPC request
@@ -1671,7 +1671,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         positions = self.parse_positions(result)
         return self.filter_by_array_positions(positions, 'symbol', symbolsResolved)
 
-    async def set_heartbeat(self, interval: Int = 30, params={}):
+    async def set_heartbeat(self, interval: Int = 30, params: dict = {}):
         """
  @ignore
         enables heartbeat messages for the private websocket connection
@@ -1688,7 +1688,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         request = self.extend({'interval': interval}, paramsResolved)
         return await self.request_ws('public/set_heartbeat', request)
 
-    async def disable_heartbeat(self, params={}):
+    async def disable_heartbeat(self, params: dict = {}):
         """
  @ignore
         disables heartbeat messages for the private websocket connection
@@ -1703,7 +1703,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         paramsResolved = self.handleRouteAndParams('disableHeartbeat', params)
         return await self.request_ws('public/disable_heartbeat', paramsResolved)
 
-    async def set_cancel_on_disconnect(self, enabled: Bool, params={}):
+    async def set_cancel_on_disconnect(self, enabled: Bool, params: dict = {}):
         """
  @ignore
         enables or disables cancel on disconnect
@@ -1723,7 +1723,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         method = 'private/enable_cancel_on_disconnect' if (enabled is True) else 'private/disable_cancel_on_disconnect'
         return await self.request_ws(method, paramsResolved, True)
 
-    async def get_cancel_on_disconnect(self, params={}):
+    async def get_cancel_on_disconnect(self, params: dict = {}):
         """
  @ignore
         gets the cancel on disconnect configuration
@@ -1739,7 +1739,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         paramsResolved = self.handleRouteAndParams('getCancelOnDisconnect', params)
         return await self.request_ws('private/get_cancel_on_disconnect', paramsResolved, True)
 
-    async def unsubscribe_all_ws(self, isPrivate=False, params={}):
+    async def unsubscribe_all_ws(self, isPrivate: bool = False, params: dict = {}):
         """
  @ignore
         unsubscribes from all websocket channels
@@ -1758,7 +1758,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         method = 'private/unsubscribe_all' if isPrivate else 'public/unsubscribe_all'
         return await self.request_ws(method, paramsResolved, isPrivate)
 
-    async def logout_ws(self, params={}):
+    async def logout_ws(self, params: dict = {}):
         """
  @ignore
         gracefully logs out of the private websocket session

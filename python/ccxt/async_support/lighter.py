@@ -592,7 +592,7 @@ class lighter(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: str) -> str:
+    def sign_l1_and_prepare_tx_info(self, txInfo: str, message: str, privateKey: str) -> str:
         hashMessage = self.hash_message(message)
         signature = self.sign_hash(hashMessage, privateKey)
         decTxInfo = self.parse_json(txInfo)
@@ -710,7 +710,7 @@ class lighter(Exchange, ImplicitAPI):
         self.options['sandboxMode'] = enable
         self.options['chainId'] = 300 if enable else 304
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[dict]:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -728,7 +728,7 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.apiKeyIndex]: apiKeyIndex
         :param int [params.accountIndex]: accountIndex
         :param int [params.orderExpiry]: orderExpiry
-        :returns any[]: request to be sent to the exchange
+        :returns dict[]: request to be sent to the exchange
         """
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
@@ -820,10 +820,11 @@ class lighter(Exchange, ImplicitAPI):
             request['integrator_taker_fee'] = self.options['integratorTakerFee']
             request['integrator_maker_fee'] = self.options['integratorMakerFee']
         orders = []
-        orders.append(self.extend(request, paramsRequest))
+        firstOrder = self.extend(request, paramsRequest)
+        orders.append(firstOrder)
         if hasStopLoss or hasTakeProfit:
             # group order
-            orders[0]['client_order_index'] = 0  # client order index should be 0
+            firstOrder['client_order_index'] = 0  # client order index should be 0
             triggerOrderSide = ''
             if orderSide == 'BUY':
                 triggerOrderSide = 'sell'

@@ -46,7 +46,7 @@ class upbit(ccxt.async_support.upbit):
         symbolsMarket = self.market_symbols(symbolsRequested)
         symbolsNormalized = [] if (symbolsMarket is None) else symbolsMarket
         marketIds = self.market_ids(symbolsNormalized)
-        url = self.implode_params(self.urls['api']['ws'], {
+        url = self.implode_params(self.safe_string(self.urls['api'], 'ws'), {
             'hostname': self.hostname,
         })
         client = self.client(url)
@@ -352,7 +352,7 @@ class upbit(ccxt.async_support.upbit):
         messageHashResolved = messageHash
         if symbolResolved is not None:
             messageHashResolved = messageHash + ':' + symbolResolved
-        url = self.implode_params(self.urls['api']['ws'], {
+        url = self.implode_params(self.safe_string(self.urls['api'], 'ws'), {
             'hostname': self.hostname,
         })
         url += '/private'

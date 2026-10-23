@@ -3705,7 +3705,7 @@ class htx(Exchange, ImplicitAPI):
     def parse_margin_balance_helper(self, balance: dict, code: str, result: dict) -> dict:
         account = None
         if code in result:
-            account = result[code]
+            account = self.safe_dict(result, code)
         else:
             account = self.account()
         if account is None:

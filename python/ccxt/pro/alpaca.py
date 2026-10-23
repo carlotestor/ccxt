@@ -78,7 +78,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        url = self.urls['api']['ws']['crypto']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'crypto')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
@@ -159,7 +159,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        url = self.urls['api']['ws']['crypto']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'crypto')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
@@ -214,7 +214,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        url = self.urls['api']['ws']['crypto']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'crypto')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
@@ -292,7 +292,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        url = self.urls['api']['ws']['crypto']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'crypto')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
@@ -346,7 +346,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param boolean [params.unifiedMargin]: use unified margin account
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        url = self.urls['api']['ws']['trading']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'trading')
         await self.authenticate(url)
         messageHash = 'myTrades'
         if self.markets is None:
@@ -375,7 +375,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        url = self.urls['api']['ws']['trading']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'trading')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
@@ -586,7 +586,7 @@ class alpaca(ccxt.async_support.alpaca):
             'fee': None,
         }, market)
 
-    async def authenticate(self, url: str, params: dict = {}):
+    async def authenticate(self, url: Str, params: dict = {}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
@@ -598,7 +598,7 @@ class alpaca(ccxt.async_support.alpaca):
                 'key': self.apiKey,
                 'secret': self.secret,
             }
-            if url == self.safe_string(self.urls['api']['ws'], 'trading'):
+            if url == self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'trading'):
                 # this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',

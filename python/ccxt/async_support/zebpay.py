@@ -1005,8 +1005,8 @@ class zebpay(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot'] is True:
-            request, query = self.order_request(symbol, type, amount, request, price, query)
-            response = await self.privateSpotPostV2ExOrders(self.extend(request, query))
+            orderRequestResult = self.order_request(symbol, type, amount, request, price, query)
+            response = await self.privateSpotPostV2ExOrders(self.extend(orderRequestResult[0], orderRequestResult[1]))
         else:
             marginAsset = self.safe_string(query, 'marginAsset', 'INR')
             formType = self.safe_string_upper(query, 'formType', 'ORDER_FORM')

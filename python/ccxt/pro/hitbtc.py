@@ -93,7 +93,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :returns dict: response from exchange
         """
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'private')
         messageHash = 'authenticated'
         client = self.client(url)
         future = client.reusableFuture(messageHash)
@@ -147,7 +147,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         symbolsNormalized = self.market_symbols(symbols)
         isBatch = name.find('batch') >= 0
         resolvedPerSymbol = not isBatch or (messageHashPrefix == 'orderbooks')  # handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        url = self.urls['api']['ws']['public']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'public')
         messageHashes = []
         if symbolsNormalized is not None and resolvedPerSymbol:
             for i in range(0, len(symbolsNormalized)):
@@ -176,7 +176,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'private')
         splitName = name.split('_subscribe')
         messageHash = self.safe_string(splitName, 0, '')
         if symbol is not None:
@@ -201,7 +201,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'private')
         messageHash = str(self.incrementing_nonce())
         subscribe = {
             'method': name,

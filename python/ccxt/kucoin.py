@@ -1757,7 +1757,9 @@ class kucoin(Exchange, ImplicitAPI):
             # load migration status for account
             promises.append(self.load_migration_status())
         responses = promises
-        symbolsData = self.safe_list(responses[0], 'data', []) if fetchSpotMarkets else []
+        symbolsData = []
+        if fetchSpotMarkets:
+            symbolsData = self.safe_list(responses[0], 'data', [])
         crossIndex = 0
         isolatedIndex = 0
         tickersIndex = 0
@@ -4096,7 +4098,7 @@ class kucoin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         testOrder = self.safe_bool(params, 'test', False)
         paramsOmitted = self.omit(params, 'test')
-        hasTpOrSlOrder = (self.safe_value(paramsOmitted, 'stopLoss') is not None) or (self.safe_value(paramsOmitted, 'takeProfit') is not None)
+        hasTpOrSlOrder = (self.safe_dict(paramsOmitted, 'stopLoss') is not None) or (self.safe_dict(paramsOmitted, 'takeProfit') is not None)
         orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, paramsOmitted)
         response: dict
         if testOrder:

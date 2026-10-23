@@ -1426,7 +1426,7 @@ class paradex(Exchange, ImplicitAPI):
             self.options['paradexAccount'] = account
         return self.safe_dict(self.options, 'paradexAccount', {})
 
-    def onboarding(self, params: dict = {}):
+    def onboarding(self, params: dict = {}) -> dict:
         account = self.retrieve_account()
         req = {
             'action': 'Onboarding',

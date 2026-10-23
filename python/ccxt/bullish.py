@@ -855,6 +855,7 @@ class bullish(Exchange, ImplicitAPI):
                     optionType = self.safe_string_lower(market, 'optionType')
                     strike = self.parse_to_numeric(self.safe_string(market, 'optionStrikePrice'))
                     symbol += '-' + self.number_to_string(strike) + '-' + self.safe_string(idParts, 4)
+        tradingFees = self.safe_dict(self.fees, 'trading', {})
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -873,8 +874,8 @@ class bullish(Exchange, ImplicitAPI):
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': self.fees['trading']['taker'],
-            'maker': self.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': self.parse8601(expiryDatetime),
             'expiryDatetime': expiryDatetime,

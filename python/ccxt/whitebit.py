@@ -1202,14 +1202,16 @@ class whitebit(Exchange, ImplicitAPI):
                     break
             # Build comprehensive funding limits
             currencyLimits = self.safe_dict(currency, 'limits', {})
+            depositLimits = self.safe_dict(currencyLimits, 'deposit', {})
+            withdrawLimits = self.safe_dict(currencyLimits, 'withdraw', {})
             limits = {
                 'deposit': {
-                    'min': currencyLimits['deposit']['min'],
-                    'max': currencyLimits['deposit']['max'],
+                    'min': depositLimits['min'],
+                    'max': depositLimits['max'],
                 },
                 'withdraw': {
-                    'min': currencyLimits['withdraw']['min'],
-                    'max': currencyLimits['withdraw']['max'],
+                    'min': withdrawLimits['min'],
+                    'max': withdrawLimits['max'],
                 },
             }
             # Add fee information if available

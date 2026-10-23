@@ -1339,7 +1339,7 @@ class okx(ccxt.async_support.okx):
         symbol = self.safe_symbol(marketId, market)
         seqId = self.safe_integer(message, 'seqId')
         prevSeqId = self.safe_integer(message, 'prevSeqId')
-        nonce = orderbook['nonce']
+        nonce = self.safe_integer(orderbook, 'nonce')
         if prevSeqId is not None and prevSeqId != -1 and nonce != prevSeqId:
             error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
             del client.subscriptions[messageHash]

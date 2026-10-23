@@ -4174,11 +4174,12 @@ class digifinex(Exchange, ImplicitAPI):
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
             if (code is not None) and ((codesValue is None) or (self.in_array(code, codesValue))):
-                depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
-                if depositWithdrawFee is None:
-                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
-                    depositWithdrawFees[code]['info'] = []
-                depositWithdrawInfo = depositWithdrawFees[code]['info']
+                if self.safe_dict(depositWithdrawFees, code) is None:
+                    feeStructure = self.deposit_withdraw_fee({})
+                    feeStructure['info'] = []
+                    depositWithdrawFees[code] = feeStructure
+                depositWithdrawFee = depositWithdrawFees[code]
+                depositWithdrawInfo = depositWithdrawFee['info']
                 depositWithdrawInfo.append(entry)
                 networkId = self.safe_string(entry, 'chain')
                 withdrawFee = self.safe_value(entry, 'min_withdraw_fee')
@@ -4193,13 +4194,13 @@ class digifinex(Exchange, ImplicitAPI):
                 if networkId is not None:
                     networkCode = self.network_id_to_code(networkId, code)
                     if networkCode is not None:
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        depositWithdrawFee['networks'][networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult,
                         }
                 else:
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult
-                    depositWithdrawFees[code]['deposit'] = depositResult
+                    depositWithdrawFee['withdraw'] = withdrawResult
+                    depositWithdrawFee['deposit'] = depositResult
         depositWithdrawCodes = list(depositWithdrawFees.keys())
         for i in range(0, len(depositWithdrawCodes)):
             code = depositWithdrawCodes[i]

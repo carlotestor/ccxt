@@ -272,7 +272,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         else:
             books = self.safe_dict(data, 'update', {})
             previousNonce = self.safe_integer(data, 'pu')
-            currentNonce = orderbook['nonce']
+            currentNonce = self.safe_integer(orderbook, 'nonce')
             if currentNonce != previousNonce:
                 checksum = self.handle_option('watchOrderBook', 'checksum', True)
                 if checksum is True:

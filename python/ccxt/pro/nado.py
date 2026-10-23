@@ -917,12 +917,12 @@ class nado(ccxt.async_support.nado):
         # request id and its response is correlated by the echoed id
         if requestIdString is None:
             raise ArgumentsRequired(self.id + ' watchExecuteRequest() requires requestIdString')
-        url = self.urls['api']['ws']['gateway']
+        url = self.safe_string(self.urls['api']['ws'], 'gateway')
         messageHash = 'execute:' + requestIdString
         return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_public(self, streamType: Str, market: object, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         stream = {
             'type': streamType,
         }
@@ -949,7 +949,7 @@ class nado(ccxt.async_support.nado):
         return await self.watch(url, messageHash)
 
     async def watch_private(self, streamType: Str, stream: dict, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         client = self.client(url)
         clientSubscription = self.safe_value(client.subscriptions, messageHash)
         if clientSubscription is not None:
@@ -971,7 +971,7 @@ class nado(ccxt.async_support.nado):
         return await self.watch(url, messageHash)
 
     async def un_watch_private(self, stream: dict, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         id = self.request_id()
         unsubscribeHash = 'unsubscribe:' + messageHash
         request = {
@@ -992,7 +992,7 @@ class nado(ccxt.async_support.nado):
 
     async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         client = self.client(url)
         messageHash = 'authenticated'
         authenticated = self.safe_value(client.subscriptions, messageHash)
@@ -1055,7 +1055,7 @@ class nado(ccxt.async_support.nado):
         }
 
     async def watch_public_multiple(self, streamType: Str, markets: list[Market], messageHashes: list[str], params: dict = {}, subscriptionParams: list[dict] | None = None):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         client = self.client(url)
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -1079,7 +1079,7 @@ class nado(ccxt.async_support.nado):
         return await self.watch_multiple(url, messageHashes, None, messageHashes)
 
     async def un_watch_public(self, streamType: Str, market: Market, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         id = self.request_id()
         request = self.create_public_subscription_request('unsubscribe', streamType, market, id, params)
         subscription = {
@@ -1095,7 +1095,7 @@ class nado(ccxt.async_support.nado):
         return await self.watch(url, unsubscribeHash, request, unsubscribeHash, subscription)
 
     async def un_watch_public_multiple(self, streamType: Str, markets: list[Market], messageHashes: list[str], params: dict = {}, subscriptionParams: list[dict] | None = None) -> bool:
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         client = self.client(url)
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -1671,7 +1671,7 @@ class nado(ccxt.async_support.nado):
             self.positions = None
 
     def ping(self, client: Client):
-        gatewayUrl = self.urls['api']['ws']['gateway']
+        gatewayUrl = self.safe_string(self.urls['api']['ws'], 'gateway')
         if client.url == gatewayUrl:
             # the v2 gateway is kept alive with protocol-level ping frames,
             # returning undefined makes the client send one instead of a message

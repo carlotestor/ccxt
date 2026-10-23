@@ -101,7 +101,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             # prevent automatic disconnects on private channel
         return 'ping'
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: str):
         client.lastPong = self.milliseconds()
         return message
 
@@ -113,7 +113,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.unlock_id()
         return newValue
 
-    def create_public_request(self, market: object, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False) -> dict:
+    def create_public_request(self, market: dict, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False) -> dict:
         marketId = self.safe_string(market, 'symbol')  # spot markets use symbol with slash
         if self.safe_string(market, 'type') == 'swap':
             marketId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')  # swap markets use symbol without slash
@@ -131,7 +131,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return request
 
-    async def watch_public(self, market: object, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> object:
+    async def watch_public(self, market: dict, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> object:
         url = self.urls['api']['ws']['public'][market['type']]
         requestId = self.request_id()
         request = self.create_public_request(market, requestId, topicID, suffix)
@@ -141,7 +141,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
-    async def un_watch_public(self, market: object, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> object:
+    async def un_watch_public(self, market: dict, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> object:
         url = self.urls['api']['ws']['public'][market['type']]
         requestId = self.request_id()
         client = self.client(url)

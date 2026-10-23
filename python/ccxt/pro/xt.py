@@ -82,7 +82,8 @@ class xt(ccxt.async_support.xt):
         tradeType = 'spot'
         if isContract:
             tradeType = 'contract'
-        url = self.safe_string(self.urls['api']['ws'], tradeType)
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, tradeType)
         if not isContract:
             url = url + '/private'
         client = self.client(url)
@@ -223,7 +224,8 @@ class xt(ccxt.async_support.xt):
         subscription = {
             'id': id,
         }
-        url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, tradeType) + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params: dict = {}, subscriptionParams={}) -> object:
@@ -271,7 +273,8 @@ class xt(ccxt.async_support.xt):
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
-        url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, tradeType) + '/' + tail
         subscription = {
             'unsubscribe': True,
             'id': id,
@@ -591,7 +594,8 @@ class xt(ccxt.async_support.xt):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.safe_string(self.urls['api']['ws'], 'contract') + '/' + 'user'
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, 'contract') + '/' + 'user'
         client = self.client(url)
         self.set_positions_cache(client)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)

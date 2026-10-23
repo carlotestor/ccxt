@@ -462,7 +462,7 @@ class bittrade(Exchange, ImplicitAPI):
             result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
         return result
 
-    def fetch_trading_limits_by_id(self, id: Str, params: dict = {}):
+    def fetch_trading_limits_by_id(self, id: Str, params: dict = {}) -> dict:
         request = {
             'symbol': id,
         }
@@ -485,7 +485,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_trading_limits(self.safe_dict(response, 'data', {}))
 
-    def parse_trading_limits(self, limits: dict, symbol: Str = None, params: dict = {}):
+    def parse_trading_limits(self, limits: dict, symbol: Str = None, params: dict = {}) -> dict:
         #
         #   {                                  symbol: "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,

@@ -152,14 +152,13 @@ class aster(ccxt.async_support.aster):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'watchTickers')
+        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
+        symbolsList = symbolsNormalized
         firstMarket = self.get_market_from_symbols(symbolsList)
         type = self.safe_string(firstMarket, 'type', 'swap')
-        symbolsLength = len(symbolsList)
-        methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'watchTickers')
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
-        if symbolsLength == 0:
-            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.safe_string(self.urls['api']['ws']['public'], type)
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
@@ -199,14 +198,13 @@ class aster(ccxt.async_support.aster):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'unWatchTickers')
+        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
+        symbolsList = symbolsNormalized
         firstMarket = self.get_market_from_symbols(symbolsList)
         type = self.safe_string(firstMarket, 'type', 'swap')
-        symbolsLength = len(symbolsList)
-        methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'unWatchTickers')
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
-        if symbolsLength == 0:
-            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.safe_string(self.urls['api']['ws']['public'], type)
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
@@ -272,14 +270,13 @@ class aster(ccxt.async_support.aster):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'watchMarkPrices')
+        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
+        symbolsList = symbolsNormalized
         firstMarket = self.get_market_from_symbols(symbolsList)
         type = self.safe_string(firstMarket, 'type', 'swap')
-        symbolsLength = len(symbolsList)
-        methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'watchMarkPrices')
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
-        if symbolsLength == 0:
-            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.safe_string(self.urls['api']['ws']['public'], type)
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
@@ -322,14 +319,13 @@ class aster(ccxt.async_support.aster):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'unWatchMarkPrices')
+        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
+        symbolsList = symbolsNormalized
         firstMarket = self.get_market_from_symbols(symbolsList)
         type = self.safe_string(firstMarket, 'type', 'swap')
-        symbolsLength = len(symbolsList)
-        methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'unWatchMarkPrices')
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
-        if symbolsLength == 0:
-            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.safe_string(self.urls['api']['ws']['public'], type)
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
@@ -446,12 +442,11 @@ class aster(ccxt.async_support.aster):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+            raise ArgumentsRequired(self.id + ' watchBidsAsks() requires a non-empty array of symbols')
+        symbolsList = symbolsNormalized
         firstMarket = self.get_market_from_symbols(symbolsList)
         type = self.safe_string(firstMarket, 'type', 'swap')
-        symbolsLength = len(symbolsList)
-        if symbolsLength == 0:
-            raise ArgumentsRequired(self.id + ' watchBidsAsks() requires a non-empty array of symbols')
         url = self.safe_string(self.urls['api']['ws']['public'], type)
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
@@ -491,12 +486,11 @@ class aster(ccxt.async_support.aster):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+            raise ArgumentsRequired(self.id + ' unWatchBidsAsks() requires a non-empty array of symbols')
+        symbolsList = symbolsNormalized
         firstMarket = self.get_market_from_symbols(symbolsList)
         type = self.safe_string(firstMarket, 'type', 'swap')
-        symbolsLength = len(symbolsList)
-        if symbolsLength == 0:
-            raise ArgumentsRequired(self.id + ' unWatchBidsAsks() requires a non-empty array of symbols')
         url = self.safe_string(self.urls['api']['ws']['public'], type)
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')

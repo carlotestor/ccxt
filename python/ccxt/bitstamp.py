@@ -1521,7 +1521,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_transaction_fees(response)
 
-    def parse_transaction_fees(self, response: object, codes: Strings = None):
+    def parse_transaction_fees(self, response: object, codes: Strings = None) -> dict:
         result = {}
         currencies = self.index_by(response, 'currency')
         ids = list(currencies.keys())

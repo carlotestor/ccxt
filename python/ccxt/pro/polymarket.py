@@ -73,7 +73,7 @@ class polymarket(ccxt.async_support.polymarket):
         self.options['requestId'] = requestId
         return requestId
 
-    def send_subscription(self, action: str, channels: list[str], messageHashes: list[str], subMessageHashes: list[str], context: dict = {}, params: dict = {}, checkHashes: Strings = None):
+    def send_subscription(self, action: str, channels: list[str], messageHashes: list[str], subMessageHashes: list[str], context: dict = {}, params: dict = {}, checkHashes: Strings = None) -> dict:
         """
  @ignore
         sends a subscribe or unsubscribe request and records the request id so the ack can be matched back
@@ -114,7 +114,7 @@ class polymarket(ccxt.async_support.polymarket):
         client.subscriptions['req:' + str(id)] = pending
         return self.extend(request, params)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -135,7 +135,7 @@ class polymarket(ccxt.async_support.polymarket):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -191,7 +191,7 @@ class polymarket(ccxt.async_support.polymarket):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, which carries the last, mark and index prices, the mid price, the open interest and the funding rate stay available on the raw frame under the info field
 
@@ -210,7 +210,7 @@ class polymarket(ccxt.async_support.polymarket):
         url = self.urls['api']['ws']
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> object:
+    async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches the price ticker
 
@@ -234,7 +234,7 @@ class polymarket(ccxt.async_support.polymarket):
         url = self.urls['api']['ws']
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches price tickers for multiple markets, the venue fans the all-instruments channel out into one frame per instrument
 
@@ -303,7 +303,7 @@ class polymarket(ccxt.async_support.polymarket):
         client.resolve(ticker, 'ticker:' + symbol)
         client.resolve(ticker, 'tickers')
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bids and asks for multiple markets
 
@@ -364,7 +364,7 @@ class polymarket(ccxt.async_support.polymarket):
         self.bidsasks[symbol] = ticker
         client.resolve(ticker, 'bidask:' + symbol)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -389,7 +389,7 @@ class polymarket(ccxt.async_support.polymarket):
             limitResolved = trades.getLimit(symbolResolved, limitResolved)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches the trades stream
 
@@ -495,7 +495,7 @@ class polymarket(ccxt.async_support.polymarket):
             'fee': None,
         }, marketResolved)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -525,7 +525,7 @@ class polymarket(ccxt.async_support.polymarket):
             limitResolved = ohlcv.getLimit(symbolResolved, limitResolved)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
         unWatches the candlestick stream
 
@@ -628,7 +628,7 @@ class polymarket(ccxt.async_support.polymarket):
             self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await future
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on the orders made by the user
 
@@ -707,7 +707,7 @@ class polymarket(ccxt.async_support.polymarket):
             symbol = symbolKeys[i]
             client.resolve(stored, 'orders:' + symbol)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on the trades made by the user
 
@@ -790,7 +790,7 @@ class polymarket(ccxt.async_support.polymarket):
             symbol = symbolKeys[i]
             client.resolve(stored, 'myTrades:' + symbol)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         watches information on the open positions of the account, the venue pushes a full portfolio snapshot roughly every five seconds
 
@@ -847,7 +847,7 @@ class polymarket(ccxt.async_support.polymarket):
             future.resolve(cache)
         client.resolve(cache, 'positions')
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watches the account margin summary, the venue pushes a full portfolio snapshot roughly every five seconds
 

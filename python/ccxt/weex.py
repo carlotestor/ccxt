@@ -4055,7 +4055,7 @@ class weex(Exchange, ImplicitAPI):
         requestBody = None
         if hasJsonBody:
             requestBody = self.json(query)
-        requestHeaders = None
+        requestHeaders = {}
         if isPrivate:
             sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
             if (sandboxMode) and (path.find('capi/v3/sim/') != 0):

@@ -2699,7 +2699,7 @@ class gate(Exchange, ImplicitAPI):
             request['from'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['limit'] = limit
-        response: dict
+        response: List
         if type == 'swap':
             response = await self.privateFuturesGetSettleAccountBook(self.extend(request, requestParams))
         elif type == 'future':
@@ -2720,7 +2720,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_histories(response, symbolResolved, since, limit)
 
-    def parse_funding_histories(self, response: object, symbol: Str, since: Int, limit: Int) -> list[FundingHistory]:
+    def parse_funding_histories(self, response: list, symbol: Str, since: Int, limit: Int) -> list[FundingHistory]:
         result = []
         for i in range(0, len(response)):
             entry = self.safe_dict(response, i)
@@ -3399,9 +3399,10 @@ class gate(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsRequest, 'until')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = self.parse_to_int(since / 1000)
+            fromTimestamp = self.parse_to_int(since / 1000)
+            request['from'] = fromTimestamp
             distance = (limitValue - 1) * duration
-            toTimestamp = self.sum(request['from'], distance)
+            toTimestamp = self.sum(fromTimestamp, distance)
             currentTimestamp = self.seconds()
             to = min(toTimestamp, currentTimestamp)
             if until is not None:
@@ -4477,7 +4478,7 @@ class gate(Exchange, ImplicitAPI):
         sizeRequest = amountResolved
         if useGateFuturesDecimalSize:
             sizeRequest = signedAmount
-        request = None
+        request = {}
         nonTriggerOrder = not isTpsl and (trigger is None)
         if nonTriggerOrder:
             if contract is True:

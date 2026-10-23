@@ -697,8 +697,8 @@ class gate(ccxt.async_support.gate):
             if isinstance(bidAsk, list):
                 bookSide.storeArray(self.parse_order_book_bid_ask(bidAsk))
             else:
-                price = self.safe_float(bidAsk, 'p')
-                amount = self.safe_float(bidAsk, 's')
+                price = self.safe_number(bidAsk, 'p')
+                amount = self.safe_number(bidAsk, 's')
                 bookSide.store(price, amount)
 
     def handle_book_delta(self, orderbook: object, delta: object):
@@ -1913,7 +1913,7 @@ class gate(ccxt.async_support.gate):
                     self.clean_unsubscription(client, subHash, unsubHash)
                 self.clean_cache(subscription)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         # subscribe
         #    {

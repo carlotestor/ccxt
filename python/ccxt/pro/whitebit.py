@@ -125,10 +125,8 @@ class whitebit(ccxt.async_support.whitebit):
             symbol = market['symbol']
             messageHash = 'candles' + ':' + symbol
             parsed = self.parse_ohlcv(data, market)
-            # this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if not (symbol in self.ohlcvs):
                 self.ohlcvs[symbol] = {}
-            # let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if not ('unknown' in self.ohlcvs[symbol]):
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -272,7 +270,8 @@ class whitebit(ccxt.async_support.whitebit):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
         method = 'market_subscribe'
-        url = self.urls['api']['ws']
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, 'ws')
         id = self.incrementing_nonce()
         messageHashes = []
         args = []
@@ -717,7 +716,8 @@ class whitebit(ccxt.async_support.whitebit):
         else:
             method = 'balanceMargin_subscribe'
             messageHash += 'margin'
-        url = self.urls['api']['ws']
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, 'ws')
         client = self.client(url)
         self.set_balance_cache(client, type, messageHash)
         fetchBalanceSnapshot, paramsFetchBalanceSnapshot = self.handle_option_bool_and_params(paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', True)
@@ -821,7 +821,8 @@ class whitebit(ccxt.async_support.whitebit):
         client.resolve(self.balance, messageHash)
 
     async def watch_public(self, messageHash: str, method: str, reqParams: list[object] = [], params: dict = {}):
-        url = self.urls['api']['ws']
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, 'ws')
         id = self.incrementing_nonce()
         request = {
             'id': id,
@@ -834,7 +835,8 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_multiple_subscription(self, messageHash: str, method: str, symbol: Str, isNested: bool = False, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, 'ws')
         id = self.incrementing_nonce()
         client = self.safe_value(self.clients, url)
         request = None
@@ -886,7 +888,8 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_private(self, messageHash: str, method: str, reqParams: list[object] = [], params: dict = {}):
         self.check_required_credentials()
         await self.authenticate()
-        url = self.urls['api']['ws']
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, 'ws')
         id = self.incrementing_nonce()
         request = {
             'id': id,
@@ -898,7 +901,8 @@ class whitebit(ccxt.async_support.whitebit):
 
     async def authenticate(self, params: dict = {}) -> float:
         self.check_required_credentials()
-        url = self.urls['api']['ws']
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, 'ws')
         client = self.client(url)
         subscribeHash = 'authenticated'
         # handleAuthenticate () resolves the handshake future with 1, so 1 is

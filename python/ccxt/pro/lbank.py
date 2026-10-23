@@ -213,12 +213,13 @@ class lbank(ccxt.async_support.lbank):
             ]
             timeframeId = self.safe_string(message, 'kbar')
             timeframe = self.find_timeframe(timeframeId, timeframes)
-            self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            ohlcvsForSymbol = self.safe_dict(self.ohlcvs, symbol, {})
+            self.ohlcvs[symbol] = ohlcvsForSymbol
+            stored = self.safe_value(ohlcvsForSymbol, timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframe] = stored
+                ohlcvsForSymbol[timeframe] = stored
             stored.append(parsed)
             messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)
@@ -235,12 +236,13 @@ class lbank(ccxt.async_support.lbank):
                 self.safe_number(rawOHLCV, 'v'),
             ]
             timeframe = self.find_timeframe(timeframeId, timeframes)
-            self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            ohlcvsForSymbol = self.safe_dict(self.ohlcvs, symbol, {})
+            self.ohlcvs[symbol] = ohlcvsForSymbol
+            stored = self.safe_value(ohlcvsForSymbol, timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframe] = stored
+                ohlcvsForSymbol[timeframe] = stored
             stored.append(parsed)
             messageHash = 'ohlcv:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)

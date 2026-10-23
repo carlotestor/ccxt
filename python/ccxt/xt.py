@@ -1748,9 +1748,10 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'result')
         if market['spot'] is True:
-            return self.parse_ticker(ticker[0], market)
+            tickers = self.safe_list(response, 'result', [])
+            return self.parse_ticker(tickers[0], market)
+        ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -5522,7 +5523,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params={}):
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)

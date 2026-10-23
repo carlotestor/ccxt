@@ -2750,7 +2750,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(self.extend(data, {'network': self.safe_string(request, 'network')}), currency)
 
-    def get_dedicated_network_id(self, currency: object, params: dict) -> list:
+    def get_dedicated_network_id(self, currency: dict, params: dict) -> list:
         networkCodeRaw, paramsNetworkCode = self.handle_network_code_and_params(params)
         networkCode = self.network_id_to_code(networkCodeRaw, currency['code'])
         networkEntry = None if (networkCode is None) else self.safe_dict(currency['networks'], networkCode)
