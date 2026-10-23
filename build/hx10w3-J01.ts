@@ -151,6 +151,58 @@ function stripReceiverCasts (content: string): string {
     return applyEdits (content, edits);
 }
 
+// Helpers.GetValue(client, "futures") reads a public field through reflection: the field access is the
+// same read, and it types the result (Map<String, Future> / Map<String, Object>)
+const FIELD_READ = /Helpers\.GetValue\(/g;
+
+function nativeFieldReads (content: string): string {
+    if (!content.includes ('Helpers.GetValue(client')) return content;
+    if (!/(?:^|[(,])\s*(?:final\s+)?(?:io\.github\.ccxt\.)?(?:Ws)?Client client\b/.test (content)) return content;
+
+    const masked = maskOpaque (content);
+    const edits: [ number, number, string ][] = [];
+    for (const m of masked.matchAll (FIELD_READ)) {
+        if (m.index! > 0 && /[\w.]/.test (masked[m.index! - 1])) continue;
+        const open = m.index! + m[0].length - 1;
+        const close = closeOf (masked, open);
+        if (close === -1) continue;
+        const args = argRanges (content, masked, open, close);
+        if (args.length !== 2) continue;
+        if (!/^client$/.test (normSpace (args[0].value))) continue;
+        const key = normSpace (args[1].value);
+        const literal = /^"([A-Za-z_]\w*)"$/.exec (key);
+        if (literal === null || !WS_FIELDS.includes (literal[1])) continue;
+        edits.push ([ m.index!, close + 1, 'client.' + literal[1] ]);
+    }
+    return applyEdits (content, edits);
+}
+
+// Helpers.GetValue(<ws map>, key) -> the null-guarded get (the helper answers null for either null)
+function nativeMapReads (content: string): string {
+    if (!content.includes ('Helpers.GetValue(')) return content;
+    if (!/(?:^|[(,])\s*(?:final\s+)?(?:io\.github\.ccxt\.)?(?:Ws)?Client client\b/.test (content)) return content;
+
+    const masked = maskOpaque (content);
+    const edits: [ number, number, string ][] = [];
+    for (const m of masked.matchAll (FIELD_READ)) {
+        if (m.index! > 0 && /[\w.]/.test (masked[m.index! - 1])) continue;
+        const open = m.index! + m[0].length - 1;
+        const close = closeOf (masked, open);
+        if (close === -1) continue;
+        const args = argRanges (content, masked, open, close);
+        if (args.length !== 2) continue;
+        const receiver = normSpace (args[0].value);
+        if (wsFieldOf (receiver) === undefined) continue;
+        const key = normSpace (args[1].value);
+        if (STRING_LITERAL.test (key)) {
+            edits.push ([ m.index!, close + 1, '(' + receiver + ' == null ? null : ' + receiver + '.get(' + key + '))' ]);
+        } else if (/^[A-Za-z_]\w*$/.test (key) && printsStringKey (content, key)) {
+            edits.push ([ m.index!, close + 1, '(' + receiver + ' == null || ' + key + ' == null ? null : ' + receiver + '.get(' + key + '))' ]);
+        }
+    }
+    return applyEdits (content, edits);
+}
+
 // `Object.keys(client.f)` replayed as a J39 pattern switch is the plain keySet copy
 function stripKeySetBlobs (content: string, sp: Spell): string {
     const NEEDLE = 'switch ((Object)(client.';
@@ -356,10 +408,12 @@ function membersOf (content: string): string[] {
 }
 
 export function j01wsNativeOps (content: string): string {
-    if (typeof content !== 'string' || !content.includes ('client.')) return content;
-    if (!WS_FIELDS.some ((f) => content.includes ('client.' + f))) return content;
+    if (typeof content !== 'string') return content;
+    if (!WS_FIELDS.some ((f) => content.includes ('client.' + f)) && !content.includes ('Helpers.GetValue(client')) return content;
     const sp = spelling (content);
     let out = content;
+    out = nativeFieldReads (out);
+    out = nativeMapReads (out);
     out = stripReceiverCasts (out);
     out = stripKeySetBlobs (out, sp);
     out = nativeElementWrites (out);
@@ -383,6 +437,8 @@ export function j01wsSelfTest (): string[] {
         [ 'cast receiver remove', '        ((Map<String,Object>)client.subscriptions).remove(s);', '        client.subscriptions.remove(s);' ],
         [ 'raw cast Future local', '        Object promise = ((Map)client.futures).get("authenticated");\n        ((io.github.ccxt.ws.Future)promise).resolve(o);', '        io.github.ccxt.ws.Future promise = client.futures.get("authenticated");\n        promise.resolve(o);' ],
         [ 'future ternary cast', '        io.github.ccxt.ws.Future f = (io.github.ccxt.ws.Future)(client.futures == null || s == null ? null : client.futures.get(s));', '        io.github.ccxt.ws.Future f = (client.futures == null || s == null ? null : client.futures.get(s));' ],
+        [ 'reflected field read', '        Object futs = Helpers.GetValue(client, "futures");', '        Map<String, io.github.ccxt.ws.Future> futs = client.futures;' ],
+        [ 'reflected map read', '        Object v = Helpers.GetValue(client.subscriptions, "authenticated");', '        Object v = (client.subscriptions == null ? null : client.subscriptions.get("authenticated"));' ],
         [ 'put helper non-null', '        Helpers.addElementToObject(client.subscriptions, s, this.extend(o, o));', '        client.subscriptions.put(s, this.extend(o, o));' ],
         [ 'put helper live future', '        Helpers.addElementToObject(client.subscriptions, s, client.reusableFuture(s));', '        client.subscriptions.put(s, client.reusableFuture(s));' ],
         [ 'alias local', '        Object subs = client.subscriptions;\n        List<String> keys = new ArrayList<String>(((Map<String, Object>)subs).keySet());', '        Map<String, Object> subs = client.subscriptions;\n        List<String> keys = new ArrayList<String>(subs.keySet());' ],
