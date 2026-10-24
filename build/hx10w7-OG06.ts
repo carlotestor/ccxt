@@ -1,20 +1,10 @@
-// hx10 wave-7 OG06 (Go printer): the `resolved` map coercion the ws path prints -
-//   var v map[string]any
-//   switch vBox := <producer>.(type) { case map[string]any: v = vBox; case *sync.Map: v = SafeMapToMap(vBox); case nil:; default: panic(...) }
-// - carries a `case *sync.Map:` arm calling SafeMapToMap on every site, because the boxed value
-// is an `any`. A *sync.Map only reaches such a box from a base field or a market table, so the
-// arm is dead whenever the producer's Go body can only yield a map, a slice or nil. Proven
-// producers (evidence in the runtime at this commit):
-//   this.CreateOHLCVObject(...)   exchange_generated.go: `var res map[string]any = map[string]any{}` ... `return res`
-//   this.FilterByArray(...)       exchange_generated.go: returns this.ToArray(...) ([]any), a []any, or this.IndexBy(...)
-//   this.FilterOutByArray(...)    same body as FilterByArray
-//   any(this.WsCacheSnapshot(..)) exchange_ws_cache.go: `func (...) WsCacheSnapshot(field string) map[string]any`
-// this.IndexBy returns map[string]any (exchange_generic.go), so FilterByArray tops out at
-// map[string]any / []any / nil. Every other producer (rN.Value off an AsyncResult[any],
-// GetValue, SafeValue, SafeBalance, SafeDict, an unproven local) keeps its arm byte for byte.
-// A file that loses its last `sync.` reference also loses the standalone `import "sync"` line
-// the go-chan3 emitter added for the arm, so the generated file still compiles.
-// No helper body is pasted and no other helper family is called: the arm and its call are gone.
+// hx10 w7 OG06: the ws path's `resolved` map coercion prints a `case *sync.Map:` arm that boxes
+// through SafeMapToMap. Where the producer's own Go body can only yield map[string]any, []any or
+// nil, that arm is unreachable, so it goes and the helper call goes with it.
+// Proven at this base (go/v4/exchange_generated.go, BaseExchange, no venue override): FilterByArray
+// and FilterOutByArray return this.IndexBy(..) (map[string]any) or []any; CreateOHLCVObject returns
+// a map[string]any local; WsCacheSnapshot is declared map[string]any. Every other producer keeps its
+// arm byte for byte, because IndexBySafe (*sync.Map) or a boxed field can still reach it.
 
 const SWITCH_HEAD = /^(\s*)switch (\w+) := (.+)\.\(type\) \{$/;
 const VAR_HEAD = /^(\s*)var (\w+) map\[string\]any$/;
@@ -23,26 +13,23 @@ const PROVEN_CALL = /^(?:ccxt\.)?this\.(?:CreateOHLCVObject|FilterByArray|Filter
 // WsCacheSnapshot is declared to return map[string]any, so this box holds a map
 const PROVEN_SNAPSHOT = /^any\((?:ccxt\.)?this\.WsCacheSnapshot\([^\n]*\)\)$/;
 
-// index of the emitted `case *sync.Map:` arm for the resolved local `v`, or -1
-function og06ArmAt (lines: string[], i: number, ind: string, box: string, v: string): number {
-    if (lines[i] !== ind + 'case *sync.Map:') {
-        return -1;
+// one `case *sync.Map:` arm of the resolved map coercion: its body, its sibling cases, its panic
+function og06ArmAt (lines: string[], i: number, ind: string, box: string, v: string): boolean {
+    const at = (k: number): string => lines[k] ?? '';
+    if (at (i) !== ind + 'case *sync.Map:') {
+        return false;
     }
-    const call = lines[i + 1] ?? '';
-    if ((call !== ind + '\t' + v + ' = SafeMapToMap(' + box + ')') && (call !== ind + '\t' + v + ' = ccxt.SafeMapToMap(' + box + ')')) {
-        return -1;
+    const body = at (i + 1);
+    if ((body !== ind + '\t' + v + ' = SafeMapToMap(' + box + ')') && (body !== ind + '\t' + v + ' = ccxt.SafeMapToMap(' + box + ')')) {
+        return false;
     }
-    if (lines[i - 2] !== ind + 'case map[string]any:' || lines[i - 1] !== ind + '\t' + v + ' = ' + box) {
-        return -1;
+    if ((at (i - 2) !== ind + 'case map[string]any:') || (at (i - 1) !== ind + '\t' + v + ' = ' + box)) {
+        return false;
     }
-    if (lines[i + 2] !== ind + 'case nil:' || lines[i + 3] !== ind + 'default:') {
-        return -1;
+    if ((at (i + 2) !== ind + 'case nil:') || (at (i + 3) !== ind + 'default:')) {
+        return false;
     }
-    const panicLine = lines[i + 4] ?? '';
-    if (!/^\s+panic\((?:ccxt\.)?ExchangeError\("resolved value is not map\[string\]any"\)\)$/.test (panicLine)) {
-        return -1;
-    }
-    return i;
+    return /^\s+panic\((?:ccxt\.)?ExchangeError\("resolved value is not map\[string\]any"\)\)$/.test (at (i + 4));
 }
 
 // drop the `case *sync.Map:` arm of every resolved map coercion whose producer is proven
@@ -53,7 +40,7 @@ export function og06SyncMapArmsPass (content: string): string {
     let i = 0;
     while (i < lines.length) {
         const head = SWITCH_HEAD.exec (lines[i]);
-        const decl = (head !== null && i > 0) ? VAR_HEAD.exec (lines[i - 1]) : null;
+        const decl = ((head !== null) && (i > 0)) ? VAR_HEAD.exec (lines[i - 1]) : null;
         if ((head !== null) && (decl !== null)) {
             const ind = head[1];
             const box = head[2];
@@ -65,17 +52,18 @@ export function og06SyncMapArmsPass (content: string): string {
                 while ((end < lines.length) && (lines[end] !== ind + '}')) {
                     end++;
                 }
-                for (let k = i + 1; (k < end) && (k < lines.length); k++) {
-                    if (og06ArmAt (lines, k, ind, box, v) >= 0) {
-                        out.push (lines[i - 1]);
-                        out.push (...lines.slice (i, k));
-                        out.push (...lines.slice (k + 2, end + 1));
-                        i = end + 1;
-                        dropped++;
-                        break;
+                let arm = -1;
+                for (let k = i + 1; (arm < 0) && (k < end) && (k < lines.length); k++) {
+                    if (og06ArmAt (lines, k, ind, box, v)) {
+                        arm = k;
                     }
                 }
-                if ((i === end + 1) && (dropped > 0)) {
+                if (arm >= 0) {
+                    out.push (lines[i - 1]);
+                    out.push (...lines.slice (i, arm));
+                    out.push (...lines.slice (arm + 2, end + 1));
+                    dropped++;
+                    i = end + 1;
                     continue;
                 }
             }
@@ -86,36 +74,38 @@ export function og06SyncMapArmsPass (content: string): string {
     if (dropped === 0) {
         return content;
     }
-    let text = out.join ('\n');
-    if (!/\bsync\./.test (text)) {
-        text = text.replace (/^import "sync"\n/m, '');
+    const text = out.join ('\n');
+    const code = text.replace (/\/\*[\s\S]*?\*\//g, ' ').replace (/\/\/[^\n]*/g, ' ');
+    if (/\bsync\./.test (code)) {
+        return text;
     }
-    return text;
+    // the chan3 emitter only added the standalone import for the arm that just went
+    return text.replace (/^import "sync"\n/m, '');
 }
 
-function og06Block (q: string, expr: string, want: string, arm: string): string {
+// a map coercion of the shape the printer emits, so the self-test reads like the generated file
+function og06Block (q: string, expr: string, tail: string, opts: { ind?: string, arm?: string, want?: string, panic?: string } = {}): string {
+    const ind = opts.ind ?? '\t';
+    const want = opts.want ?? 'map[string]any';
+    const arm = opts.arm ?? (ind + 'case *sync.Map:\n' + ind + '\tresolved = ' + q + 'SafeMapToMap(resolvedBox)\n');
+    const panic = opts.panic ?? 'resolved value is not ' + want;
     return 'package ccxt\n\nimport ccxt "x"\nimport "sync"\n\n'
         + 'func (this *X) F() any {\n'
-        + '\tvar resolved ' + want + '\n'
-        + '\tswitch resolvedBox := ' + expr + '.(type) {\n'
-        + '\tcase ' + want + ':\n'
-        + '\t\tresolved = resolvedBox\n'
+        + ind + 'var resolved ' + want + '\n'
+        + ind + 'switch resolvedBox := ' + expr + '.(type) {\n'
+        + ind + 'case ' + want + ':\n'
+        + ind + '\tresolved = resolvedBox\n'
         + arm
-        + '\tcase nil:\n'
-        + '\tdefault:\n'
-        + '\t\tpanic(' + q + 'ExchangeError("resolved value is not ' + want + '"))\n'
-        + '\t}\n'
-        + '\treturn resolved\n'
+        + ind + 'case nil:\n'
+        + ind + 'default:\n'
+        + ind + '\tpanic(' + q + 'ExchangeError("' + panic + '"))\n'
+        + ind + '}\n'
+        + ind + 'return resolved\n'
+        + tail
         + '}\n';
 }
 
-const GO06_MAP_ARM = '\tcase *sync.Map:\n\t\tresolved = ';
-
-function og06MapBlock (q: string, expr: string, tail: string, extra = ''): string {
-    return og06Block (q, expr, 'map[string]any', extra + GO06_MAP_ARM + q + 'SafeMapToMap(resolvedBox)\n' + tail);
-}
-
-export function og06SyncMapArmsCheck (): string[] {
+export function og06SelfCheck (): string[] {
     const problems: string[] = [];
     const ok = (cond: boolean, message: string): void => {
         if (!cond) {
@@ -133,16 +123,22 @@ export function og06SyncMapArmsCheck (): string[] {
     ok (typeof og06SyncMapArmsPass ('') === 'string', 'the pass is total');
     const keptOrder = '\tcase map[string]any:\n\t\tresolved = resolvedBox\n\tcase nil:\n\tdefault:\n';
     for (const q of [ 'ccxt.', '' ]) {
-        const filter = run (og06MapBlock (q, 'this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized)', ''));
+        const filter = run (og06Block (q, 'this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized)', ''));
         ok (filter.indexOf ('sync.Map') < 0, 'a FilterByArray producer drops the arm (q=' + q + ')');
         ok (filter.indexOf ('SafeMapToMap') < 0, 'the dropped arm leaves no SafeMapToMap call (q=' + q + ')');
+        ok (filter.indexOf ('panic(' + q + 'ExchangeError("resolved value is not map[string]any"))') >= 0, 'the panic case survives (q=' + q + ')');
         ok (filter.indexOf (keptOrder) >= 0, 'the map/nil/default cases stay in order (q=' + q + ')');
         ok (filter.indexOf ('import "sync"') < 0, 'the arm was the only sync reference: the import goes too (q=' + q + ')');
         ok (run (filter) === filter, 'the rewrite is idempotent (q=' + q + ')');
-        const ohlcv = run (og06MapBlock (q, 'this.CreateOHLCVObject(symbol, timeframe, filtered)', ''));
+        const ohlcv = run (og06Block (q, 'this.CreateOHLCVObject(symbol, timeframe, filtered)', ''));
         ok (ohlcv.indexOf ('sync.Map') < 0, 'a CreateOHLCVObject producer drops the arm (q=' + q + ')');
-        const snapshot = run (og06MapBlock (q, 'any(this.WsCacheSnapshot("Tickers"))', ''));
+        const snapshot = run (og06Block (q, 'any(this.WsCacheSnapshot("Tickers"))', ''));
         ok (snapshot.indexOf ('sync.Map') < 0, 'a bare WsCacheSnapshot map box drops the arm (q=' + q + ')');
+        const filteredOut = run (og06Block (q, 'this.FilterOutByArray(tickers, "symbol", symbols)', ''));
+        ok (filteredOut.indexOf ('sync.Map') < 0, 'a FilterOutByArray producer drops the arm (q=' + q + ')');
+        const nested = run (og06Block (q, 'this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbols)', '', { ind: '\t\t' }));
+        ok (nested.indexOf ('sync.Map') < 0, 'a nested coercion drops the arm (q=' + q + ')');
+        ok (nested.indexOf ('\t\tcase map[string]any:\n\t\t\tresolved = resolvedBox\n\t\tcase nil:') >= 0, 'the nested cases keep their indent (q=' + q + ')');
     }
     const keep = [
         'ccxt.GetValue(tickers, symbolValue)',
@@ -152,25 +148,33 @@ export function og06SyncMapArmsCheck (): string[] {
         'this.SafeDict(response, "data", map[string]any{})',
         'this.Sub.FilterByArray(tickers, "symbol", symbols)',
         'this.FilterByArrayLater(tickers, "symbol", symbols)',
+        'this.IndexBySafe(tickers, symbol)',
+        'this.FilterByArrayTickers(tickers, "symbol", symbols)',
     ];
     for (const expr of keep) {
-        const body = og06MapBlock ('ccxt.', expr, '');
+        const body = og06Block ('ccxt.', expr, '');
         ok (run (body) === body, 'an unproven producer keeps the arm: ' + expr);
     }
-    const mutex = og06MapBlock ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '').replace ('\treturn resolved\n', '\tvar mu sync.Mutex\n\t_ = mu\n\treturn resolved\n');
+    const mutex = og06Block ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '\tvar mu sync.Mutex\n\t_ = mu\n');
     ok (run (mutex).indexOf ('import "sync"') >= 0, 'another sync reference keeps the import');
     ok (run (mutex).indexOf ('case *sync.Map:') < 0, 'the arm still goes in a file that reads sync elsewhere');
-    const foreign = og06MapBlock ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '').replace ('ccxt.SafeMapToMap(resolvedBox)', 'ccxt.SafeMapToMap(otherBox)');
+    const commented = og06Block ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '\t// sync.Map is handled above\n');
+    ok (run (commented).indexOf ('import "sync"') < 0, 'a sync mention in a comment is not a sync reference');
+    const foreign = og06Block ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '').replace ('ccxt.SafeMapToMap(resolvedBox)', 'ccxt.SafeMapToMap(otherBox)');
     ok (run (foreign) === foreign, 'a foreign arm body is untouched');
-    const list = og06Block ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '[]any', '\tcase ccxt.IArrayCache:\n\t\tresolved = resolvedBox.ToArray()\n');
-    ok (run (list) === list, 'the []any coercion keeps its IArrayCache arm');
-    const otherBox = og06MapBlock ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '').replace ('switch resolvedBox :=', 'switch foreignBox :=');
+    const list = og06Block ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '', { want: '[]any', arm: '\tcase ccxt.IArrayCache:\n\t\tresolved = resolvedBox.ToArray()\n' });
+    ok (run (list) === list, 'a []any coercion is not this emitter and keeps its arms');
+    const otherBox = og06Block ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '').replace ('switch resolvedBox :=', 'switch foreignBox :=');
     ok (run (otherBox) === otherBox, 'a switch over a foreign box is untouched');
+    const otherPanic = og06Block ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '', { panic: 'resolved value is not a dict' });
+    ok (run (otherPanic) === otherPanic, 'a coercion with another panic text is untouched');
+    const noDecl = og06Block ('ccxt.', 'this.FilterByArray(tickers, "symbol", symbols)', '').replace ('\tvar resolved map[string]any\n', '');
+    ok (run (noDecl) === noDecl, 'a switch with no resolved declaration is untouched');
     return problems;
 }
 
 if (process.argv[1]?.endsWith ('hx10w7-OG06.ts') === true) {
-    const problems = og06SyncMapArmsCheck ();
+    const problems = og06SelfCheck ();
     if (problems.length > 0) {
         console.log (problems.join ('\n'));
         process.exit (1);
