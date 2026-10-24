@@ -575,7 +575,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(newTickers, "tickers");
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         return this.parseTicker(ticker, market);
     }
@@ -1116,7 +1116,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(myTrades, messageHash);
     }
 
-    public virtual object parseMyTrade(object trade, IDictionary<string, object>? market = null)
+    public virtual object parseMyTrade(object trade, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(trade, "s");
         string? ts = this.safeString(trade, "t");
@@ -1193,7 +1193,7 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null)
     {
         if ((this.positions == null))
         {
@@ -1313,7 +1313,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(newPositions, (accountType + ":positions"));
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(position, "s");
         return this.safePosition(new Dictionary<string, object>() {

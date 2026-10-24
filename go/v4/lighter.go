@@ -795,7 +795,7 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 	if (cachedDeadline != nil) && (*cachedDeadline-minimumRemaining >= this.Seconds()) {
 		return this.SafeString(cachedAuth, "token")
 	}
-	var deadline int64 = this.Seconds() + *this.SafeInteger(this.Options, "authDeadlineExpiry", 28800)
+	var deadline any = (this.Seconds() + (*this.SafeInteger(this.Options, "authDeadlineExpiry", 28800)))
 	var request map[string]any = map[string]any{
 		"deadline":      deadline,
 		"api_key_index": this.ParseToInt(apiKeyIndex),
@@ -3729,7 +3729,7 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//
 	var rows []any = SafeListTypedDefault(response, "transfers", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
-	var first map[string]any = SafeMapTyped(rows, 0)
+	var first any = this.SafeDict(rows, 0)
 	if (first != nil) && (cursor != nil) {
 		AddElementToObject(GetValue(rows, 0), "cursor", cursor)
 	}
@@ -3882,7 +3882,7 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	//
 	var data []any = SafeListTypedDefault(response, "deposits", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first any = this.SafeDict(data, 0)
 	if (first != nil) && (cursor != nil) {
 		AddElementToObject(GetValue(data, 0), "cursor", cursor)
 	}
@@ -3993,7 +3993,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	//
 	var data []any = SafeListTypedDefault(response, "withdraws", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first any = this.SafeDict(data, 0)
 	if (first != nil) && (cursor != nil) {
 		AddElementToObject(GetValue(data, 0), "cursor", cursor)
 	}
@@ -4367,7 +4367,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		AddElementToObject(GetValue(data, i), "account_index", accountIndex)
 	}
 	var nextCursor *string = this.SafeString(response, "next_cursor")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first any = this.SafeDict(data, 0)
 	if (first != nil) && (nextCursor != nil) {
 		AddElementToObject(GetValue(data, 0), "next_cursor", nextCursor)
 	}

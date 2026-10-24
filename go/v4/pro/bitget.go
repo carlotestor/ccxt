@@ -1331,8 +1331,8 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		// so only validate the checksum when the exchange actually sends one
 		var responseChecksum *int64 = this.SafeInteger(rawOrderBook, "checksum")
 		if !isSnapshot && (checksum == true) && (responseChecksum != nil) {
-			var storedAsks any = storedOrderBook.GetAsks()
-			var storedBids any = storedOrderBook.GetBids()
+			var storedAsks ccxt.IOrderBookSide = storedOrderBook.GetAsks()
+			var storedBids ccxt.IOrderBookSide = storedOrderBook.GetBids()
 			var asksLength int = ccxt.GetArrayLength(storedAsks)
 			var bidsLength int = ccxt.GetArrayLength(storedBids)
 			var payloadArray []any = []any{}
@@ -3247,7 +3247,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 	// REST parseBalance sets info, keep the ws structure at parity,
 	// see https://github.com/ccxt/ccxt/issues/21973
 	ccxt.AddElementToObject(this.Balance, "info", message)
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("balance:", instType))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -3403,12 +3403,12 @@ func (this *Bitget) unWatchPrivateBody(ch chan ccxt.AsyncResult[bool], uta any, 
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Bitget) WatchPublicMultipleAsync(uta any, messageHashes any, argsArray []any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bitget) WatchPublicMultipleAsync(uta any, messageHashes any, argsArray any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicMultipleBody(ch, uta, messageHashes, argsArray, optionalArgs...)
 	return ch
 }
-func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta any, messageHashes any, argsArray []any, optionalArgs ...any) any {
+func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta any, messageHashes any, argsArray any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

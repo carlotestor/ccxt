@@ -55,7 +55,10 @@ func (this *Bittrade) Describe() any {
 	})
 }
 func (this *Bittrade) RequestId() string {
-	var requestId int64 = this.NextRequestId("requestId")
+	this.LockId()
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	this.Options["requestId"] = requestId
+	this.UnlockId()
 	return strconv.FormatInt(requestId, 10)
 }
 
@@ -806,7 +809,7 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 			return false
 		}
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, id)
+		var subscription any = this.SafeDict(subscriptionsById, id)
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
 			var errorMessage *string = this.SafeString(message, "err-msg")

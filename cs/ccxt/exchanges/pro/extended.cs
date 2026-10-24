@@ -120,7 +120,7 @@ public partial class extended : ccxt.extended
             return;
         }
         Int64? previousNonce = this.safeInteger(orderbook, "nonce");
-        if (((previousNonce != null)) && ((previousNonce + 1 != nonce)))
+        if (((previousNonce != null)) && (!(nonce == (previousNonce + 1))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
@@ -634,7 +634,7 @@ public partial class extended : ccxt.extended
         client.resolve(fundingRate, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsFundingRate(IDictionary<string, object> fundingRate, IDictionary<string, object>? market = null, object message = null)
+    public virtual Dictionary<string, object> parseWsFundingRate(IDictionary<string, object> fundingRate, IDictionary<string, object> market = null, object message = null)
     {
         string? marketId = this.safeString(fundingRate, "m");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);

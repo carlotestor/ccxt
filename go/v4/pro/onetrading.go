@@ -166,7 +166,7 @@ func (this *Onetrading) HandleBalanceSnapshot(client any, message map[string]any
 	//         ]
 	//     }
 	//
-	this.WsBalanceReplace(this.ParseBalance(message))
+	this.Balance = this.ParseBalance(message)
 	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -1281,9 +1281,9 @@ func (this *Onetrading) UpdateBalance(balance map[string]any) {
 	account["free"] = this.SafeString(balance, "new_available")
 	account["used"] = this.SafeString(balance, "new_locked")
 	if code != nil {
-		this.Balance[*code] = account
+		ccxt.AddElementToObject(this.Balance, code, account)
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 }
 
 /**
@@ -1326,13 +1326,13 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
-	var timeframeId map[string]any = ccxt.SafeMapTyped(timeframes, timeframe)
+	var timeframeId any = this.SafeDict(timeframes, timeframe)
 	if timeframeId == nil {
 		panic(ccxt.NotSupported(this.Id + " this interval is not supported, please provide one of the supported timeframes"))
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbolValue+".", timeframe))
 	var subscriptionHash string = "CANDLESTICKS"
-	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
+	var client any = this.SafeValue(this.Clients, url)
 	var typeVar string = "SUBSCRIBE"
 	var subscription any = map[string]any{}
 	if client != nil {
@@ -1348,7 +1348,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 			subscription = map[string]any{}
 		}
 	}
-	var subscriptionMarketId map[string]any = ccxt.SafeMapTyped(subscription, marketId)
+	var subscriptionMarketId any = this.SafeDict(subscription, marketId)
 	if subscriptionMarketId == nil {
 		if marketId != nil {
 			ccxt.AddElementToObject(subscription, marketId, map[string]any{})
@@ -1601,7 +1601,7 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 		marketIds = this.MarketIds(symbols)
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
-	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
+	var client any = this.SafeValue(this.Clients, url)
 	var typeVar string = "SUBSCRIBE"
 	var subscription any = map[string]any{}
 	if client != nil {
@@ -1647,7 +1647,7 @@ func (this *Onetrading) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
 		this.CheckRequiredCredentials()
 		var request map[string]any = map[string]any{

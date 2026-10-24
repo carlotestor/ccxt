@@ -526,7 +526,7 @@ func (this *Bitteam) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 func (this *Bitteam) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "name")
 	var numericId *int64 = this.SafeInteger(market, "id")
-	var parts []string = strings.Split(*id, "_")
+	var parts []string = Split(id, "_")
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)

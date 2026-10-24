@@ -307,7 +307,7 @@ public partial class kucoin : ccxt.kucoin
         return this.safeString(this.options, "utaToken");
     }
 
-    public async virtual Task<object> unSubscribe(object url, object messageHash, object topic, object subscriptionHash, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<object> unSubscribe(object url, object messageHash, object topic, object subscriptionHash, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unSubscribeMultiple(url, new List<object>() {messageHash}, topic, new List<object>() {subscriptionHash}, parameters, subscription);
@@ -794,7 +794,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(ticker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsUtaTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsUtaTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeString(market, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(symbol, market);
@@ -939,7 +939,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
         string? topic = this.safeString(ticker, "topic");
         if (topic.IndexOf("contractMarket", StringComparison.Ordinal) < 0)
@@ -1481,7 +1481,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(cache, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsUtaTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsUtaTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         // trades
         //     {
@@ -2412,7 +2412,7 @@ public partial class kucoin : ccxt.kucoin
         }, marketResolved);
     }
 
-    public virtual Dictionary<string, object> parseWsUtaOrder(IDictionary<string, object> order, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsUtaOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3562,7 +3562,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(this.positions, symbolMessageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsUtaPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsUtaPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3707,7 +3707,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(fundingRate, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsFundingRate(IDictionary<string, object> data, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsFundingRate(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         //     {

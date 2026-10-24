@@ -2883,7 +2883,7 @@ func (this *Bybit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	var promisesUnresolved []any = []any{}
 	var types []any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse", "option"}
-	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	if fetchMarketsOptions != nil {
 		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultTypes))
 	} else {
@@ -9111,7 +9111,7 @@ func (this *Bybit) fetchPositionBody(ch chan AsyncResult[Position], symbol any, 
 	var positions []any = SafeList2Typed(result, "list", "dataList")
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	var first map[string]any = this.SafeDictMap(positions, 0, map[string]any{})
-	var position map[string]any = PositionToMap(this.ParsePosition(first, market))
+	var position map[string]any = MapTyped(PositionToMap(this.ParsePosition(first, market)))
 	position["timestamp"] = timestamp
 	position["datetime"] = this.Iso8601(timestamp)
 
@@ -12701,7 +12701,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], op
 	//    }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var rawPositions []any = SafeListTyped(result, "list")
+	var rawPositions any = this.SafeList(result, "list")
 	var rawPositionsList []any = []any{}
 	if rawPositions != nil {
 		rawPositionsList = ArrayTyped(rawPositions)

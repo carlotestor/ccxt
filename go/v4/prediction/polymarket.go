@@ -3125,7 +3125,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 	_ = params
 	var outcomeObj map[string]any = this.Outcome(outcome)
 	var tokenId *string = ccxt.SafeStringPtr(outcomeObj["outcomeId"])
-	var sideStr string = strings.ToUpper(*side)
+	var sideStr string = ccxt.ToUpper(side)
 	var isMarket bool = (typeVar != nil && *typeVar == "market")
 	// CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
 	// native override: params.orderType (GTC, GTD, FOK or FAK)
@@ -5038,7 +5038,7 @@ func (this *Polymarket) TokenIdToSymbol(tokenId *string) any {
 	}
 	// outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets)
 	// fall back to markets_by_id for the standard market lookup
-	var outcomeObj map[string]any = ccxt.SafeMapTyped(this.Outcomes_by_id, tokenId)
+	var outcomeObj any = this.SafeDict(this.Outcomes_by_id, tokenId)
 	if outcomeObj != nil {
 		return this.SafeString(outcomeObj, "outcome")
 	}

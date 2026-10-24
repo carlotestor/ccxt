@@ -4650,7 +4650,7 @@ func (this *Bingx) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		result = data
 	}
 	// when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
-	var stopLossDict map[string]any = SafeMapTyped(result, "stopLoss")
+	var stopLossDict any = this.SafeDict(result, "stopLoss")
 	var stopLoss *string = this.SafeString(result, "stopLoss")
 	// for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
 	// so we need trick to check if it's non-parsed string yet
@@ -5557,7 +5557,7 @@ func (this *Bingx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
+	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
 	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderIds")
 	var idsToParse any = ids
 	var areClientOrderIds bool = (clientOrderIds != nil)
@@ -8037,14 +8037,14 @@ func (this *Bingx) closeAllPositionsBody(ch chan AsyncResult[[]Position], option
 	var success []any = SafeListTyped(data, "success")
 	var positions []any = []any{}
 	for i := 0; i < len(success); i++ {
-		var position map[string]any = PositionToMap(this.ParsePosition(map[string]any{
+		var position map[string]any = MapTyped(PositionToMap(this.ParsePosition(map[string]any{
 			"positionId": func() any {
 				if i >= 0 && i < len(success) {
 					return DerefScalar(success[i])
 				}
 				return nil
 			}(),
-		}))
+		})))
 		positions = append(positions, position)
 	}
 

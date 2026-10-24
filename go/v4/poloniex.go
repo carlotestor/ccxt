@@ -1000,7 +1000,7 @@ func (this *Poloniex) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 		panic(r.Err)
 	}
 	markets := r.Value
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies(), "numericId")
 	}
@@ -2322,7 +2322,7 @@ func (this *Poloniex) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Poloniex) ParseOpenOrders(orders any, market map[string]any, result []any) any {
+func (this *Poloniex) ParseOpenOrders(orders any, market map[string]any, result any) any {
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order any = GetValue(orders, i)
 		var extended map[string]any = this.Extend(order, map[string]any{
@@ -2331,7 +2331,7 @@ func (this *Poloniex) ParseOpenOrders(orders any, market map[string]any, result 
 			"side":   GetValue(order, "type"),
 			"price":  GetValue(order, "rate"),
 		})
-		result = append(result, OrderToMap(this.ParseOrder(extended, market)))
+		AppendToArray(&result, OrderToMap(this.ParseOrder(extended, market)))
 	}
 	return result
 }

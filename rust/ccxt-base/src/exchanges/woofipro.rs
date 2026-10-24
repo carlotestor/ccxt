@@ -1654,14 +1654,14 @@ impl WoofiproCore {
         // }
         //
         let mut chainPromise: Value = self.v1_public_get_public_chain_info(&[params]).await;
-        let tokenResponsechainResponseVariable: Vec<Value> = promise_all(&Value::from(vec![tokenPromise, chainPromise])).await.as_array().cloned().unwrap_or_default();
-        let mut tokenResponse: Value = tokenResponsechainResponseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut chainResponse: Value = tokenResponsechainResponseVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut tokenResponsechainResponseVariable = promise_all(&Value::from(vec![tokenPromise, chainPromise])).await;
+        let mut tokenResponse: Value = tokenResponsechainResponseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut chainResponse: Value = tokenResponsechainResponseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut tokenData: Value = self.safe_dict_k(tokenResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut tokenRows: Vec<Value> = self.safe_list_k(tokenData, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tokenRows: Value = self.safe_list_k(tokenData, "rows", &[Value::from(vec![])]);
         let mut chainData: Value = self.safe_dict_k(chainResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1672,7 +1672,7 @@ impl WoofiproCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1163: bool = true;
             while { if !__for_first_1163 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1163 = false; i.as_f64().unwrap_or(f64::NAN) < ((tokenRows.len() as i64) as f64) } {
-            let mut token: Value = tokenRows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut token: Value = tokenRows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_token".to_string(), token);
@@ -1698,13 +1698,13 @@ impl WoofiproCore {
     m
 }) });
         let mut currencyId: Value = self.safe_string_k(token.clone(), "token", &[]);
-        let mut networks: Vec<Value> = self.safe_list_k(token.clone(), "chain_details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networks: Value = self.safe_list_k(token.clone(), "chain_details", &[Value::from(vec![])]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut indexedChains: Value = (match rawCurrency.get("_indexedChains") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut resultingNetworks: indexmap::IndexMap<String, Value> = ({
+        let mut resultingNetworks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1712,13 +1712,13 @@ impl WoofiproCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1164: bool = true;
             while { if !__for_first_1164 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1164 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
-            let mut networkEntry: Value = networks.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut networkEntry: Value = networks.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain_id", &[]);
             let mut networkRow: Value = self.safe_dict(indexedChains.clone(), networkId.clone(), &[]);
             let mut networkName: Value = self.safe_string_k(networkRow.clone(), "name", &[networkId.clone()]);
             let mut networkCode: Value = self.network_id_to_code(&[networkName, code.clone()]);
             if (networkCode != Value::Null) {
-                resultingNetworks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+                if let Value::Dict(__d) = &mut resultingNetworks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
@@ -1750,7 +1750,7 @@ impl WoofiproCore {
     m
 }));
     m
-}));
+})); }
             }
         }
         }
@@ -1762,7 +1762,7 @@ impl WoofiproCore {
         m.insert("precision".to_string(), Value::Null);
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("networks".to_string(), Value::Map(resultingNetworks));
+        m.insert("networks".to_string(), resultingNetworks);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -2263,14 +2263,14 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Vec<Value> = self.safe_list_k(data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response, "timestamp", &[]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1165: bool = true;
             while { if !__for_first_1165 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1165 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
             if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
@@ -2411,14 +2411,14 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Vec<Value> = self.safe_list_k(data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response, "timestamp", &[]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1166: bool = true;
             while { if !__for_first_1166 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1166 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
             if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
@@ -2460,9 +2460,9 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(25)]).await;
         }
@@ -2479,9 +2479,9 @@ impl WoofiproCore {
         if (since != Value::Null) {
             request.insert("start_t".into(), since.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), paramsPaginate, &[Value::Float(0.001)]);
+        let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_4 = self.extend(requestUntil, &[paramsUntil]);
         let mut response: Value = self.v1_public_get_public_funding_rate_history(&[__ws_arg_4]).await;
         //
@@ -2507,13 +2507,13 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Vec<Value> = self.safe_list_k(data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut result: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1167: bool = true;
             while { if !__for_first_1167 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1167 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-            let mut entry: Value = result.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "funding_rate_timestamp", &[]);
             rates.push(Value::Map({
@@ -2594,9 +2594,9 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
@@ -2751,10 +2751,10 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
@@ -3056,11 +3056,11 @@ impl WoofiproCore {
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrderRequest() requires a side argument".into()))));
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol.clone());
         let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), orderSide.clone());
             m
         });
@@ -3138,7 +3138,7 @@ impl WoofiproCore {
             }
             let mut outterOrder: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                    m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                     m.insert("reduce_only".to_string(), Value::Bool(false));
                     m.insert("algo_type".to_string(), Value::Str("POSITIONAL_TP_SL".into()));
                     m.insert("child_orders".to_string(), Value::from(childOrders));
@@ -3315,55 +3315,55 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
             m
         });
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]);
         if (triggerPrice != Value::Null) {
-            request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
         let mut paramsChildOrders: Value = self.safe_value_k(params.clone(), "childOrders", &[]);
         let mut isConditional: bool = (triggerPrice != Value::Null) || (paramsChildOrders != Value::Null);
         let mut orderQtyKey: Value = (if isConditional { Value::Str("quantity".into()) } else { Value::Str("order_quantity".into()) });
         let mut priceKey: Value = (if isConditional { Value::Str("price".into()) } else { Value::Str("order_price".into()) });
         if (price != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&priceKey), self.price_to_precision(symbol.clone(), price));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&priceKey), self.price_to_precision(symbol.clone(), price)); }
         }
         if (amount != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&orderQtyKey), self.amount_to_precision(symbol, amount));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&orderQtyKey), self.amount_to_precision(symbol, amount)); }
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into())]), &[]);
         let mut response: Value = Value::Null;
         self.check_required_argument(Value::Str("editOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         if isConditional {
-            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_9 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.v1_private_put_algo_order(&[__ws_arg_9]).await;
         }  else {
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            request.insert("side".into(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)); }
             let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOmitted.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
             let mut postOnly: Value = self.is_post_only(isMarket, Value::Null, &[paramsOmitted.clone()]);
             if postOnly.as_bool() == Some(true) {
-                request.insert("order_type".into(), Value::Str("POST_ONLY".into()));
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), Value::Str("POST_ONLY".into())); }
             }  else if (timeInForce.as_deref() == Some("fok")) {
-                request.insert("order_type".into(), Value::Str("FOK".into()));
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), Value::Str("FOK".into())); }
             }  else if (timeInForce.as_deref() == Some("ioc")) {
-                request.insert("order_type".into(), Value::Str("IOC".into()));
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), Value::Str("IOC".into())); }
             }  else {
-                request.insert("order_type".into(), orderType);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), orderType); }
             }
             let mut clientOrderId: Value = self.safe_string_n(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
             let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]);
             if (clientOrderId != Value::Null) {
-                request.insert("client_order_id".into(), clientOrderId);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId); }
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted2]);
+            let __ws_arg_10 = self.extend(request, &[paramsOmitted2]);
             response = self.v1_private_put_order(&[__ws_arg_10]).await;
         }
         //
@@ -3418,7 +3418,7 @@ impl WoofiproCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(market, "id", &[]));
             m
@@ -3429,24 +3429,24 @@ impl WoofiproCore {
         let mut response: Value = Value::Null;
         if trigger.as_bool() == Some(true) {
             if isByClientOrder {
-                request.insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone());
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone()); }
                 let mut paramsOmitted2: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
-                let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsOmitted2]);
+                let __ws_arg_11 = self.extend(request.clone(), &[paramsOmitted2]);
                 response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await;
             }  else {
-                request.insert("order_id".into(), id.clone());
-                let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id.clone()); }
+                let __ws_arg_12 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.v1_private_delete_algo_order(&[__ws_arg_12]).await;
             }
         }  else {
             if isByClientOrder {
-                request.insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone());
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone()); }
                 let mut paramsOmitted3: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
-                let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsOmitted3]);
+                let __ws_arg_13 = self.extend(request.clone(), &[paramsOmitted3]);
                 response = self.v1_private_delete_client_order(&[__ws_arg_13]).await;
             }  else {
-                request.insert("order_id".into(), id.clone());
-                let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id.clone()); }
+                let __ws_arg_14 = self.extend(request, &[paramsOmitted]);
                 response = self.v1_private_delete_order(&[__ws_arg_14]).await;
             }
         }
@@ -3465,15 +3465,15 @@ impl WoofiproCore {
         //     "status": "CANCEL_SENT"
         // }
         //
-        let mut extendParams: indexmap::IndexMap<String, Value> = ({
+        let mut extendParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol);
             m
         });
         if isByClientOrder {
-            extendParams.insert("client_order_id".into(), clientOrderIdExchangeSpecific);
+            if let Value::Dict(__d) = &mut extendParams { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderIdExchangeSpecific); }
         }  else {
-            extendParams.insert("id".into(), id);
+            if let Value::Dict(__d) = &mut extendParams { std::sync::Arc::make_mut(__d).insert("id".into(), id); }
         }
         if trigger.as_bool() == Some(true) {
             let mut parsedResponse: Value = (if (response == Value::Null) { Value::Map({
@@ -3481,14 +3481,14 @@ impl WoofiproCore {
     m
 }) } else { response.clone() });
             let __ws_arg_15 = self.parse_order(parsedResponse, &[]);
-            return self.extend(__ws_arg_15, &[Value::Map(extendParams.clone())]);
+            return self.extend(__ws_arg_15, &[extendParams.clone()]);
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let __ws_arg_16 = self.parse_order(data, &[]);
-        return self.extend(__ws_arg_16, &[Value::Map(extendParams)]);
+        return self.extend(__ws_arg_16, &[extendParams]);
 
     Value::Null
 }
@@ -3516,18 +3516,18 @@ impl WoofiproCore {
         }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
         if (clientOrderIds != Value::Null) {
-            request.insert("client_order_ids".into(), join(&clientOrderIds, &Value::Str(",".into())));
-            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_ids".into(), join(&clientOrderIds, &Value::Str(",".into()))); }
+            let __ws_arg_17 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await;
         }  else {
-            request.insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
-            let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
+            let __ws_arg_18 = self.extend(request, &[paramsOmitted]);
             response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await;
         }
         return Value::from(vec![self.safe_order(Value::Map({
@@ -3561,20 +3561,20 @@ impl WoofiproCore {
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-            request.insert("symbol".into(), market.get("id").cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbol);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let mut response: Value = Value::Null;
         if (trigger.as_bool() == Some(true)) {
-            let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_19 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.v1_private_delete_algo_orders(&[__ws_arg_19]).await;
         }  else {
-            let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_20 = self.extend(request, &[paramsOmitted]);
             response = self.v1_private_delete_orders(&[__ws_arg_20]).await;
         }
         return Value::from(vec![self.safe_order(Value::Map({
@@ -3615,7 +3615,7 @@ impl WoofiproCore {
             market = self.market(symbol);
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3624,22 +3624,22 @@ impl WoofiproCore {
         let mut response: Value = Value::Null;
         if trigger.as_bool() == Some(true) {
             if (clientOrderId != Value::Null) && (clientOrderId.as_str() != Some("")) {
-                request.insert("client_order_id".into(), clientOrderId.clone());
-                let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId.clone()); }
+                let __ws_arg_21 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.v1_private_get_algo_client_order_client_order_id(&[__ws_arg_21]).await;
             }  else {
-                request.insert("oid".into(), id.clone());
-                let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".into(), id.clone()); }
+                let __ws_arg_22 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.v1_private_get_algo_order_oid(&[__ws_arg_22]).await;
             }
         }  else {
             if (clientOrderId != Value::Null) && (clientOrderId.as_str() != Some("")) {
-                request.insert("client_order_id".into(), clientOrderId);
-                let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId); }
+                let __ws_arg_23 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.v1_private_get_client_order_client_order_id(&[__ws_arg_23]).await;
             }  else {
-                request.insert("oid".into(), id);
-                let __ws_arg_24 = self.extend(Value::Map(request), &[paramsOmitted]);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".into(), id); }
+                let __ws_arg_24 = self.extend(request, &[paramsOmitted]);
                 response = self.v1_private_get_order_oid(&[__ws_arg_24]).await;
             }
         }
@@ -3710,9 +3710,9 @@ impl WoofiproCore {
         }
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut maxLimit: Value = (if isTrigger.as_bool() == Some(true) { Value::Int(100) } else { Value::Int(500) });
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), maxLimit.clone()]).await;
         }
@@ -3737,9 +3737,9 @@ impl WoofiproCore {
         if isTrigger.as_bool() == Some(true) {
             request.insert("algo_type".into(), Value::Str("STOP".into()));
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), paramsOmitted, &[]);
+        let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if isTrigger.as_bool() == Some(true) {
             let __ws_arg_25 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
@@ -3954,9 +3954,9 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
@@ -3977,9 +3977,9 @@ impl WoofiproCore {
         }  else {
             request.insert("size".into(), Value::Int(500));
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), paramsPaginate, &[]);
+        let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_28 = self.extend(requestUntil, &[paramsUntil.clone()]);
         let mut response: Value = self.v1_private_get_trades(&[__ws_arg_28]).await;
         //
@@ -4510,7 +4510,7 @@ impl WoofiproCore {
 })]));
             m
         });
-        let mut withdrawRequest: indexmap::IndexMap<String, Value> = ({
+        let mut withdrawRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "keyBrokerId", &[Value::Str("woofi_pro".into())]));
                 m.insert("chainId".to_string(), self.parse_to_int(chainId));
@@ -4521,14 +4521,14 @@ impl WoofiproCore {
                 m.insert("timestamp".to_string(), nonce);
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(withdrawRequest.clone()));
+        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), withdrawRequest.clone());
         let mut signature: Value = self.sign_message(msg, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signature".to_string(), signature);
                 m.insert("userAddress".to_string(), address);
                 m.insert("verifyingContract".to_string(), verifyingContractAddress);
-                m.insert("message".to_string(), Value::Map(withdrawRequest));
+                m.insert("message".to_string(), withdrawRequest);
             m
         });
         let mut paramsOmitted: Value = self.omit(params, Value::Str("chainId".into()), &[]);
@@ -4669,10 +4669,10 @@ impl WoofiproCore {
         if (marginModeValue.as_str() != Some("cross")) && (marginModeValue.as_str() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".into()))));
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("default_margin_mode".to_string(), marginModeValue.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
             m
         });
@@ -5138,7 +5138,7 @@ impl WoofiproCore {
                 if !(isSandboxMode.as_bool() == Some(true)) {
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".into())]);
                     if (path.as_str() == Some("batch-order")) {
-                        let mut ordersList: Vec<Value> = self.safe_list_k(requestParams.clone(), "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                        let mut ordersList: Value = self.safe_list_k(requestParams.clone(), "orders", &[Value::from(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_1171: bool = true;
@@ -5184,8 +5184,8 @@ impl WoofiproCore {
             let mut secret: Value = self.secret.clone();
             let mut rawSecret: Value = self.secret.clone();
             if Value::Int(rawSecret.as_str().and_then(|__s| __s.find("ed25519:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                let mut parts: Vec<Value> = Value::Array(rawSecret.as_str().map(|__s| __s.split("ed25519:").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-                secret = parts.get(1).cloned().unwrap_or(Value::Null);
+                let mut parts: Value = Value::Array(rawSecret.as_str().map(|__s| __s.split("ed25519:").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+                secret = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
             let mut signature: Value = eddsa(self.encode(auth), self.base58_to_binary(secret, &[]), Value::Str("ed25519".into()));
             if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("orderly-signature".into(), self.urlencode_base64(self.base64_to_binary(signature, &[]), &[])); }

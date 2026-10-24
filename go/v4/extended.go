@@ -508,7 +508,7 @@ func (this *Extended) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 		panic(r.Err)
 	}
 	markets := r.Value
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies())
 	}
@@ -3537,7 +3537,7 @@ func (this *Extended) fetchExtendedAccountBody(ch chan AsyncResult[map[string]an
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var cachedAccount map[string]any = SafeMapTyped(this.Options, "account")
+	var cachedAccount any = this.SafeDict(this.Options, "account")
 	if cachedAccount != nil {
 
 		ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "account", map[string]any{})}
@@ -3736,7 +3736,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 	var expiryEpochMillis *int64 = this.SafeInteger(paramsBuilder, "expiryEpochMillis", now+3600000)
 	var settlementDefault *int64 = func() *int64 {
 		if expiryEpochMillis != nil {
-			return Int64PtrTyped(this.ParseToInt(float64(*expiryEpochMillis+999)/1000) + 1209600)
+			return Int64PtrTyped(this.ParseToInt(Divide((Add(expiryEpochMillis, 999)), 1000)) + 1209600)
 		}
 		return nil
 	}()

@@ -591,14 +591,14 @@ impl CoincheckCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut codes: Value = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_560: bool = true;
             while { if !__for_first_560 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_560 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
-            let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
-            let mut currencyId: Value = currency.get("id").cloned().unwrap_or(Value::Null);
+            let mut code: Value = codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut currency: Value = self.currency(code.clone());
+            let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             if (in_op(&response, &currencyId)) {
                 let mut account: Value = self.account();
                 let mut reserved: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_reserved".into())).into());
@@ -1157,8 +1157,8 @@ impl CoincheckCore {
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_563 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-            let mut fee: Value = self.safe_dict(fees.clone(), market.get("id").cloned().unwrap_or(Value::Null), &[Value::Map({
+            let mut market: Value = self.market(symbol.clone());
+            let mut fee: Value = self.safe_dict(fees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

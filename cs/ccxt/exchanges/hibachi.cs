@@ -2375,7 +2375,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.filterBySinceLimit(withdrawals, since, limit, "timestamp"));
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2399,7 +2399,7 @@ public partial class hibachi : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)

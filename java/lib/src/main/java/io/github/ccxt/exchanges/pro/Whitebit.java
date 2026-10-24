@@ -1005,7 +1005,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> balanceDict = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            this.balance.put("info", balanceDict);
+            Helpers.addElementToObject(this.balance, "info", balanceDict);
             if (Boolean.TRUE.equals(isMargin))
             {
                 String currencyId = this.safeString(balanceDict, "a");

@@ -736,7 +736,7 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 			return nil
 		}()
 		var marketId *string = this.SafeString(market, "symbol")
-		var parts []string = strings.Split(*marketId, "_")
+		var parts []string = Split(marketId, "_")
 		var baseId *string = SafeStringPtr(func() any {
 			if 0 >= 0 && 0 < len(parts) {
 				return parts[0]
@@ -2401,7 +2401,7 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) Order {
 	var postOnly bool = false
 	var typeVar string = "limit"
 	var rawType *string = this.SafeString2(order, "type", "tradeType") // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-	var parts []string = strings.Split(*rawType, "_")
+	var parts []string = Split(rawType, "_")
 	var side *string = this.SafeString(parts, 0)
 	var typePart *string = this.SafeString(parts, 1) // market, maker, ioc, fok or undefined (limit)
 	if typePart != nil && *typePart == "market" {

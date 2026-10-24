@@ -670,8 +670,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         for (int i = 0; i < tickerSymbolsLength; i++)
         {
             string? symbol = ((string)(tickerSymbols != null && i < tickerSymbols.Count ? tickerSymbols[i] : null));
-            IDictionary<string, object> ticker = ((IDictionary<string, object>)(tickers != null && symbol != null && tickers.ContainsKey(symbol) ? tickers[symbol] : null));
-            result[(string)symbol] = this.parseFundingRate((ticker != null && ticker.ContainsKey("info") ? ticker["info"] : null), this.market(symbol));
+            object ticker = (tickers != null && symbol != null && tickers.ContainsKey(symbol) ? tickers[symbol] : null);
+            result[(string)symbol] = this.parseFundingRate(getValue(ticker, "info"), this.market(symbol));
         }
         return ccxt.BaseExchange.ToFundingRates(result);
     }
@@ -999,7 +999,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         client.resolve(ticker, channel);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "instrument_name");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);

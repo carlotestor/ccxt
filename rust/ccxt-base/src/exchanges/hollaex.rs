@@ -687,13 +687,13 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut keys: Vec<Value> = Value::Array(pairs.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = Value::Array(pairs.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_756: bool = true;
             while { if !__for_first_756 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_756 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_dict(pairs.clone(), key, &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "pair_base", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "pair_2", &[]);
@@ -872,20 +872,20 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut networks: indexmap::IndexMap<String, Value> = ({
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networkIds: Vec<Value> = Value::Array(rawNetworks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut networkIds: Value = Value::Array(rawNetworks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_757: bool = true;
             while { if !__for_first_757 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_757 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkIds.len() as i64) as f64) } {
-            let mut networkId: Value = networkIds.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut networkId: Value = networkIds.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkEntry: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+                if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
@@ -906,7 +906,7 @@ impl HollaexCore {
 }));
         m.insert("info".to_string(), networkEntry);
     m
-}));
+})); }
             }
         }
         }
@@ -938,7 +938,7 @@ impl HollaexCore {
 }));
     m
 }));
-        m.insert("networks".to_string(), Value::Map(networks));
+        m.insert("networks".to_string(), networks);
         m.insert("type".to_string(), type_var);
     m
 }));
@@ -971,12 +971,12 @@ impl HollaexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut marketIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut marketIds: Value = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_758: bool = true;
             while { if !__for_first_758 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_758 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let mut marketId: Value = marketIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut orderbook: Value = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1109,12 +1109,12 @@ impl HollaexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut keys: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_759: bool = true;
             while { if !__for_first_759 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_759 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = get_value(&tickers, &key);
             let mut ticker: Value = get_value(&tickers, &key);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[key]);
@@ -1373,9 +1373,9 @@ impl HollaexCore {
             let mut __for_first_760: bool = true;
             while { if !__for_first_760 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_760 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
             let mut symbol: Value = self.symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-            let mut makerString: Value = self.safe_string(makerFees.clone(), market.get("id").cloned().unwrap_or(Value::Null), &[]);
-            let mut takerString: Value = self.safe_string(takerFees.clone(), market.get("id").cloned().unwrap_or(Value::Null), &[]);
+            let mut market: Value = self.market(symbol.clone());
+            let mut makerString: Value = self.safe_string(makerFees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
+            let mut takerString: Value = self.safe_string(takerFees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fees.clone());
@@ -1426,9 +1426,9 @@ impl HollaexCore {
         });
         let mut paginate: Value = Value::Bool(false);
         let mut maxLimit: Value = Value::Int(500);
-        let paginateOptionparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[paginate]).as_array().cloned().unwrap_or_default();
-        let mut paginateOption: Value = paginateOptionparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateOptionparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateOptionparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[paginate]);
+        let mut paginateOption: Value = paginateOptionparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateOptionparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginateOption.as_bool() == Some(true) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
         }
@@ -1470,12 +1470,12 @@ impl HollaexCore {
         if (currenciesById == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".into()))));
         }
-        let mut currencyIds: Vec<Value> = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyIds: Value = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_761: bool = true;
             while { if !__for_first_761 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_761 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
-            let mut currencyId: Value = currencyIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".into())).into()), &[])); }
@@ -2029,13 +2029,13 @@ impl HollaexCore {
         }
         self.check_address(&[address.clone()]);
         let mut currencyId: Value = self.safe_string_k(depositAddress.clone(), "currency", &[]);
-        let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(currencyId, &[currency]).as_map().cloned().unwrap_or_default();
+        let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
         let mut networkId: Value = self.safe_string_k(depositAddress.clone(), "network", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
-        m.insert("currency".to_string(), currencyResolved.get("code").cloned().unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId, currencyResolved.get("code").cloned().unwrap_or(Value::Null)]));
+        m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId, currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), tag);
     m
@@ -2446,9 +2446,9 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
+        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2542,13 +2542,13 @@ impl HollaexCore {
         }
         let mut withdrawalFees: Value = self.safe_dict_k(fee, "withdrawal_fees", &[]);
         if (withdrawalFees != Value::Null) {
-            let mut keys: Vec<Value> = Value::Array(withdrawalFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Value = Value::Array(withdrawalFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             let mut keysLength: f64 = ((keys.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_762: bool = true;
                 while { if !__for_first_762 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_762 = false; i.as_f64().unwrap_or(f64::NAN) < keysLength } {
-                let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut value: Value = self.safe_dict(withdrawalFees.clone(), key.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(value.clone(), "symbol", &[]);
                 let mut currencyCode: Value = self.safe_currency_code(currencyId, &[]);

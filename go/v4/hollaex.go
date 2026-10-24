@@ -441,8 +441,8 @@ func (this *Hollaex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		var market map[string]any = SafeMapTyped(pairs, key)
 		var baseId *string = this.SafeString(market, "pair_base")
 		var quoteId *string = this.SafeString(market, "pair_2")
-		var base any = this.CommonCurrencyCode(strings.ToUpper(*baseId))
-		var quote any = this.CommonCurrencyCode(strings.ToUpper(*quoteId))
+		var base any = this.CommonCurrencyCode(ToUpper(baseId))
+		var quote any = this.CommonCurrencyCode(ToUpper(quoteId))
 		result = append(result, map[string]any{
 			"id":             this.SafeString(market, "name"),
 			"symbol":         Add(Add(base, "/"), quote),

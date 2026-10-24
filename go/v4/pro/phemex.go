@@ -90,7 +90,10 @@ func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
 }
 func (this *Phemex) RequestId() int64 {
-	var requestId int64 = this.NextRequestId("requestId")
+	this.LockId()
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	this.Options["requestId"] = requestId
+	this.UnlockId()
 	return requestId
 }
 func (this *Phemex) ParseSwapTicker(ticker map[string]any, optionalArgs ...any) any {
@@ -505,9 +508,9 @@ func (this *Phemex) HandleBalance(typeVar string, client any, message any) {
 		account["used"] = used
 		account["total"] = total
 		if code != nil {
-			this.Balance[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
-		this.WsBalanceReplace(this.SafeBalance(this.Balance))
+		this.Balance = this.SafeBalance(this.Balance)
 	}
 	var messageHash string = typeVar + ":balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
@@ -1060,15 +1063,15 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		if ccxt.InOp(this.Orderbooks, symbol) {
-			var orderbook ccxt.OrderBookInterface
+			var orderbook any
 			if symbol != nil {
-				orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+				orderbook = this.Orderbooks[*symbol]
 			}
 			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
 			var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
 			var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
-			this.CustomHandleDeltas(orderbook.GetAsks(), asks, market)
-			this.CustomHandleDeltas(orderbook.GetBids(), bids, market)
+			this.CustomHandleDeltas(ccxt.GetValue(orderbook, "asks"), asks, market)
+			this.CustomHandleDeltas(ccxt.GetValue(orderbook, "bids"), bids, market)
 			ccxt.AddElementToObject(orderbook, "nonce", nonce)
 			ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 			ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
@@ -2016,8 +2019,8 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var expiryDelta int64 = *this.SafeInteger(this.Options, "expires", 120)
-		var expiration int64 = this.Seconds() + expiryDelta
-		var payload any = ccxt.Add(this.ApiKey, strconv.FormatInt(expiration, 10))
+		var expiration any = (this.Seconds() + expiryDelta)
+		var payload any = ccxt.Add(this.ApiKey, ccxt.ToString(expiration))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
 		var method string = "user.auth"
 		var request map[string]any = map[string]any{

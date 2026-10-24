@@ -3697,7 +3697,7 @@ export default class binance extends binanceRest {
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             const delta = this.safeString(message, 'd');
-            if ((code !== undefined) && (code in this.balance[accountType])) {
+            if ((accountType !== undefined) && (code !== undefined) && (code in this.balance[accountType])) {
                 let previousValue = this.balance[accountType][code]['free'];
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString(previousValue);
@@ -3707,7 +3707,7 @@ export default class binance extends binanceRest {
             else {
                 account['free'] = delta;
             }
-            if (code !== undefined) {
+            if ((accountType !== undefined) && (code !== undefined)) {
                 this.balance[accountType][code] = account;
             }
         }
@@ -3724,7 +3724,7 @@ export default class binance extends binanceRest {
                 account['free'] = this.safeString(entry, 'f');
                 account['used'] = this.safeString(entry, 'l');
                 account['total'] = this.safeString(entry, wallet);
-                if (code !== undefined) {
+                if ((accountType !== undefined) && (code !== undefined)) {
                     this.balance[accountType][code] = account;
                 }
             }

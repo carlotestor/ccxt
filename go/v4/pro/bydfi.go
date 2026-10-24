@@ -97,7 +97,10 @@ func (this *Bydfi) Ping(client any) any {
 	}
 }
 func (this *Bydfi) RequestId() int64 {
-	var reqid int64 = this.NextRequestId("reqid")
+	this.LockId()
+	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
+	this.Options["reqid"] = reqid
+	this.UnlockId()
 	return reqid
 }
 func (this *Bydfi) WatchPublicAsync(messageHashes any, channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
@@ -1494,7 +1497,7 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 			}
 		}
 		var parsedBalance map[string]any = ccxt.MapTyped(this.SafeBalance(result))
-		this.WsBalanceReplace(this.Extend(this.Balance, parsedBalance))
+		this.Balance = this.Extend(this.Balance, parsedBalance)
 		client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 	}
 }

@@ -681,13 +681,11 @@ pub trait ExchangeBase:
 }
 
     fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_71: bool = true;
             while { if !__for_first_71 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_71 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.handle_delta(bookside.clone(), deltas.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -714,13 +712,11 @@ pub trait ExchangeBase:
         let mut priceKey = get_arg(optional_args, 0, Value::Int(0));
         let mut amountKey = get_arg(optional_args, 1, Value::Int(1));
         let mut countOrIdKey = get_arg(optional_args, 2, Value::Int(2));
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_73: bool = true;
             while { if !__for_first_73 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_73 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            let mut bidAsk: Value = self.parse_order_book_bid_ask(deltas.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
+            let mut bidAsk: Value = self.parse_order_book_bid_ask(deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
             bookSide.store_array(bidAsk);
         }
         }
@@ -733,14 +729,12 @@ pub trait ExchangeBase:
 }
 
     fn arrays_concat(&self, mut arraysOfArrays: Value) -> Value {
-        let __arraysOfArrays_empty = Vec::new();
-        let arraysOfArrays = arraysOfArrays.as_array().unwrap_or(&__arraysOfArrays_empty);
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_74: bool = true;
             while { if !__for_first_74 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_74 = false; i.as_f64().unwrap_or(f64::NAN) < ((arraysOfArrays.len() as i64) as f64) } {
-            result = self.array_concat(result.clone(), arraysOfArrays.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            result = self.array_concat(result.clone(), arraysOfArrays.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
         return result;
@@ -751,12 +745,12 @@ pub trait ExchangeBase:
     fn find_timeframe(&self, mut timeframe: Value, optional_args: &[Value]) -> Value {
         let mut timeframes = get_arg(optional_args, 0, Value::Null);
         let mut timeframesResolved: Value = (if (timeframes == Value::Null) { self.timeframes.clone() } else { timeframes });
-        let mut keys: Vec<Value> = object_keys(&timeframesResolved).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&timeframesResolved);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_75: bool = true;
             while { if !__for_first_75 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_75 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if is_equal(&timeframesResolved.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe) {
                 return key;
             }
@@ -950,12 +944,12 @@ pub trait ExchangeBase:
 
     fn find_message_hashes(&self, mut client: Value, mut element: Value) -> Value {
         let mut result: Vec<Value> = Vec::new();
-        let mut messageHashes: Vec<Value> = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut messageHashes: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_76: bool = true;
             while { if !__for_first_76 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_76 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if Value::Int(messageHash.as_str().zip(element.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 result.push(messageHash);
             }
@@ -2115,12 +2109,12 @@ pub trait ExchangeBase:
                 m.insert("createMarketOrderWs".to_string(), Value::Str("createOrderWs".into()));
             m
         });
-        let mut targets: Vec<Value> = Value::Array(fallbacks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut targets: Value = Value::Array(fallbacks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_81: bool = true;
             while { if !__for_first_81 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_81 = false; i.as_f64().unwrap_or(f64::NAN) < ((targets.len() as i64) as f64) } {
-            let mut target: Value = targets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut target: Value = targets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut source: Value = fallbacks.as_map().and_then(|__m| target.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut sourceDefined: bool = (matches!((&self.has, &source), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (self.has.as_map().and_then(|__m| source.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) != Value::Null);
             let mut targetDefined: bool = (matches!((&self.has, &target), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (self.has.as_map().and_then(|__m| target.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) != Value::Null);
@@ -2251,12 +2245,12 @@ pub trait ExchangeBase:
             }
         }
         // other methods
-        let mut keys: Vec<Value> = object_keys(&featuresObj).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&featuresObj);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_84: bool = true;
             while { if !__for_first_84 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_84 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut featureBlock: Value = get_value(&featuresObj, &key);
             let mut featureBlock: Value = get_value(&featuresObj, &key);
             if !(self.in_array(key.clone(), Value::from(vec![Value::Str("sandbox".into())])).as_bool() == Some(true)) && (featureBlock != Value::Null) {
@@ -2286,8 +2280,8 @@ pub trait ExchangeBase:
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
-        let mut market: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone()).as_map().cloned().unwrap_or_default();
-        return self.feature_value_by_type(market.get("type").cloned().unwrap_or(Value::Null), market.get("subType").cloned().unwrap_or(Value::Null), &[methodName, paramName, defaultValue]);
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
+        return self.feature_value_by_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), market.as_map().and_then(|__m| __m.get("subType")).cloned().unwrap_or(Value::Null), &[methodName, paramName, defaultValue]);
 
     Value::Null
 }
@@ -2398,7 +2392,7 @@ pub trait ExchangeBase:
 
     fn safe_ledger_entry(&self, mut entry: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(Value::Null, &[currency]).as_map().cloned().unwrap_or_default();
+        let mut currencyResolved: Value = self.safe_currency(Value::Null, &[currency]);
         let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
         let mut before: Value = self.safe_string_k(entry.clone(), "before", &[]);
         let mut after: Value = self.safe_string_k(entry.clone(), "after", &[]);
@@ -2439,7 +2433,7 @@ pub trait ExchangeBase:
         m.insert("referenceId".to_string(), self.safe_string_k(entry.clone(), "referenceId", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(entry.clone(), "referenceAccount", &[]));
         m.insert("type".to_string(), self.safe_string_k(entry.clone(), "type", &[]));
-        m.insert("currency".to_string(), currencyResolved.get("code").cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("before".to_string(), self.parse_number(before, &[]));
         m.insert("after".to_string(), self.parse_number(after, &[]));
@@ -2458,14 +2452,14 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut keys: Vec<Value> = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut length: f64 = ((keys.len() as i64) as f64);
         if (length != 0.0) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_85: bool = true;
                 while { if !__for_first_85 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_85 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-                let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut network: Value = self.safe_dict(networks.clone(), key, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2591,7 +2585,7 @@ pub trait ExchangeBase:
 
     fn safe_market_structure(&self, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut cleanStructure: indexmap::IndexMap<String, Value> = ({
+        let mut cleanStructure: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Null);
                 m.insert("lowercaseId".to_string(), Value::Null);
@@ -2669,7 +2663,7 @@ pub trait ExchangeBase:
             m
         });
         if (market != Value::Null) {
-            let mut result: Value = self.extend(Value::Map(cleanStructure.clone()), &[market]);
+            let mut result: Value = self.extend(cleanStructure.clone(), &[market]);
             // set undefined swap/future/etc
             if (match &(result.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 if (result.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null) == Value::Null) {
@@ -2690,7 +2684,7 @@ pub trait ExchangeBase:
             }
             return result;
         }
-        return self.extend(Value::Map(cleanStructure), &[]);
+        return self.extend(cleanStructure, &[]);
 
     Value::Null
 }
@@ -2724,18 +2718,18 @@ pub trait ExchangeBase:
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
-            let mut valueDefined: indexmap::IndexMap<String, Value> = ({
+            let mut valueDefined: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut valueKeys: Vec<Value> = Value::Array(value.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut valueKeys: Value = Value::Array(value.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_86: bool = true;
                 while { if !__for_first_86 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_86 = false; j.as_f64().unwrap_or(f64::NAN) < ((valueKeys.len() as i64) as f64) } {
-                let mut valueKey: Value = valueKeys.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut valueKey: Value = valueKeys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (value.as_map().and_then(|__m| valueKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) != Value::Null) {
-                    valueDefined.insert(crate::runtime::stringify_param(&valueKey), value.as_map().and_then(|__m| valueKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                    if let Value::Dict(__d) = &mut valueDefined { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&valueKey), value.as_map().and_then(|__m| valueKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
                 }
             }
             }
@@ -2744,7 +2738,7 @@ pub trait ExchangeBase:
                     m.insert("precision".to_string(), self.precision.clone());
                     m.insert("limits".to_string(), self.limits.clone());
                 m
-            }), self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Map(valueDefined)]);
+            }), self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), valueDefined]);
             if (match &(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 add_element_to_object(&mut market, &Value::Str("subType".into()), Value::Str("linear".into()));
             }  else if (match &(market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
@@ -2763,7 +2757,7 @@ pub trait ExchangeBase:
         self.ids = object_keys(&marketsSortedById);
         let mut numCurrencies: i64 = 0;
         if (currencies != Value::Null) {
-            let mut keys: Vec<Value> = object_keys(&currencies).as_array().cloned().unwrap_or_default();
+            let mut keys: Value = object_keys(&currencies);
             numCurrencies = keys.len() as i64;
         }
         if (numCurrencies as f64) > ((0i64) as f64) {
@@ -2812,13 +2806,13 @@ pub trait ExchangeBase:
             { let __t = self.map_to_safe_map(self.index_by(quoteCurrencies.clone(), Value::Str("code".into()))); self.quoteCurrencies = __t; }
             let mut allCurrencies: Value = self.array_concat(baseCurrencies, quoteCurrencies);
             let mut groupedCurrencies: Value = self.group_by(allCurrencies, Value::Str("code".into()), &[]);
-            let mut codes: Vec<Value> = object_keys(&groupedCurrencies).as_array().cloned().unwrap_or_default();
+            let mut codes: Value = object_keys(&groupedCurrencies);
             let mut resultingCurrencies: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_90: bool = true;
                 while { if !__for_first_90 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_90 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
-                let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut code: Value = codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut groupedCurrenciesCode: Value = self.safe_list(groupedCurrencies.clone(), code, &[Value::from(vec![])]);
                 let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone(), Value::Int(0), &[]);
                 {
@@ -2878,12 +2872,13 @@ pub trait ExchangeBase:
         self.quoteCurrencies = get_value(&sourceExchange, &Value::Str("quoteCurrencies".into()));
         self.codes = get_value(&sourceExchange, &Value::Str("codes".into()));
         // check marketHelperProps
-        let mut sourceExchangeHelpers: Vec<Value> = self.safe_list(get_value(&sourceExchange, &Value::Str("options".into())), Value::Str("marketHelperProps".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut sourceExchangeHelpers: Vec<Value> = self.safe_list(get_value(&sourceExchange, &Value::Str("options".into())), Value::Str("marketHelperProps".into()), &[Value::from(vec![])]).as_array().unwrap().clone();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_91: bool = true;
             while { if !__for_first_91 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_91 = false; i.as_f64().unwrap_or(f64::NAN) < ((sourceExchangeHelpers.len() as i64) as f64) } {
-            let mut helper: Value = sourceExchangeHelpers.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut helper: Value = sourceExchangeHelpers.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+            let mut helper: Value = sourceExchangeHelpers.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
             if (get_value(&get_value(&sourceExchange, &Value::Str("options".into())), &helper) != Value::Null) {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&helper), get_value(&get_value(&sourceExchange, &Value::Str("options".into())), &helper)); }
             }
@@ -2904,7 +2899,7 @@ pub trait ExchangeBase:
 
     fn safe_balance(&self, mut balance: Value) -> Value {
         let mut balances: Value = self.omit(balance.clone(), Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]), &[]);
-        let mut codes: Vec<Value> = object_keys(&balances).as_array().cloned().unwrap_or_default();
+        let mut codes: Value = object_keys(&balances);
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2925,7 +2920,7 @@ pub trait ExchangeBase:
                         let mut i: Value = Value::Int(0);
             let mut __for_first_92: bool = true;
             while { if !__for_first_92 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_92 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
-            let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut code: Value = codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut total: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]);
             let mut free: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]);
             let mut used: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]);
@@ -2951,7 +2946,7 @@ pub trait ExchangeBase:
             }
         }
         }
-        let mut debtBalanceArray: Vec<Value> = Value::Array(debtBalance.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut debtBalanceArray: Value = Value::Array(debtBalance.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut length: Value = Value::Int(debtBalanceArray.len() as i64);
         if (length != Value::Null) && (length.as_f64() != Some(0.0)) {
             if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("debt".into(), debtBalance); }
@@ -3320,12 +3315,12 @@ pub trait ExchangeBase:
             }
             }
         }  else {
-            let mut ids: Vec<Value> = object_keys(&orders).as_array().cloned().unwrap_or_default();
+            let mut ids: Value = object_keys(&orders);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_99: bool = true;
                 while { if !__for_first_99 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_99 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-                let mut id: Value = ids.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut idExtended: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.clone());
@@ -3459,9 +3454,9 @@ pub trait ExchangeBase:
             }
             cost = crate::precise::Precise::stringMul(&multiplyPrice, &amount);
         }
-        let resultFeeresultFeesVariable: Vec<Value> = self.parsed_fee_and_fees(trade.clone()).as_array().cloned().unwrap_or_default();
-        let mut resultFee: Value = resultFeeresultFeesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut resultFees: Value = resultFeeresultFeesVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut resultFeeresultFeesVariable = self.parsed_fee_and_fees(trade.clone());
+        let mut resultFee: Value = resultFeeresultFeesVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut resultFees: Value = resultFeeresultFeesVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if let Value::Dict(__d) = &mut trade { std::sync::Arc::make_mut(__d).insert("fee".into(), resultFee); }
         if let Value::Dict(__d) = &mut trade { std::sync::Arc::make_mut(__d).insert("fees".into(), resultFees); }
         if let Value::Dict(__d) = &mut trade { std::sync::Arc::make_mut(__d).insert("amount".into(), self.parse_number(amount, &[])); }
@@ -3585,12 +3580,12 @@ pub trait ExchangeBase:
 
     fn add_key_in_array_items(&self, mut obj: Value, mut keyName: Value) -> Value {
         let mut result: Vec<Value> = Vec::new();
-        let mut keys: Vec<Value> = object_keys(&obj).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&obj);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_102: bool = true;
             while { if !__for_first_102 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_102 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut item: Value = get_value(&obj, &key);
             let mut item: Value = get_value(&obj, &key);
             if (item == Value::Null) {
@@ -3614,12 +3609,12 @@ pub trait ExchangeBase:
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut keys: Vec<Value> = object_keys(&dict).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&dict);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_103: bool = true;
             while { if !__for_first_103 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_103 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut value: Value = get_value(&dict, &key);
             let mut value: Value = get_value(&dict, &key);
             if matches!(&value, Value::Str(_)) {
@@ -3726,12 +3721,12 @@ pub trait ExchangeBase:
         }
         }
         let mut result: Value = Value::from(vec![]);
-        let mut feeValues: Vec<Value> = Value::Array(reduced.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut feeValues: Value = Value::Array(reduced.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_105: bool = true;
             while { if !__for_first_105 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_105 = false; i.as_f64().unwrap_or(f64::NAN) < ((feeValues.len() as i64) as f64) } {
-            let mut reducedFeeValues: Value = object_values(&feeValues.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            let mut reducedFeeValues: Value = object_values(&feeValues.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             result = self.array_concat(result.clone(), reducedFeeValues);
         }
         }
@@ -4045,8 +4040,6 @@ pub trait ExchangeBase:
         let mut close = get_arg(optional_args, 4, Value::Str("c".into()));
         let mut volume = get_arg(optional_args, 5, Value::Str("v".into()));
         let mut ms = get_arg(optional_args, 6, Value::Bool(false));
-        let __ohlcvs_empty = Vec::new();
-        let ohlcvs = ohlcvs.as_array().unwrap_or(&__ohlcvs_empty);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4061,24 +4054,24 @@ pub trait ExchangeBase:
                         let mut i: Value = Value::Int(0);
             let mut __for_first_107: bool = true;
             while { if !__for_first_107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_107 = false; i.as_f64().unwrap_or(f64::NAN) < ((ohlcvs.len() as i64) as f64) } {
-            let mut ts: Value = (if ms.as_bool() == Some(true) { ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { self.parse_to_int((match ((ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) });
+            let mut ts: Value = (if ms.as_bool() == Some(true) { ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { self.parse_to_int((match ((ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) });
             let mut resultTimestamp: Value = result.as_map().and_then(|__m| timestamp.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut resultTimestamp { std::sync::Arc::make_mut(__a).push(ts); };
             crate::set_value(&mut result, &timestamp, resultTimestamp);
             let mut resultOpen: Value = result.as_map().and_then(|__m| open.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut resultOpen { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)); };
+            if let Value::Arr(__a) = &mut resultOpen { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &open, resultOpen);
             let mut resultHigh: Value = result.as_map().and_then(|__m| high.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut resultHigh { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null)); };
+            if let Value::Arr(__a) = &mut resultHigh { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &high, resultHigh);
             let mut resultLow: Value = result.as_map().and_then(|__m| low.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut resultLow { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null)); };
+            if let Value::Arr(__a) = &mut resultLow { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &low, resultLow);
             let mut resultClose: Value = result.as_map().and_then(|__m| close.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut resultClose { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null)); };
+            if let Value::Arr(__a) = &mut resultClose { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &close, resultClose);
             let mut resultVolume: Value = result.as_map().and_then(|__m| volume.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut resultVolume { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null)); };
+            if let Value::Arr(__a) = &mut resultVolume { std::sync::Arc::make_mut(__a).push(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &volume, resultVolume);
         }
         }
@@ -4123,14 +4116,14 @@ pub trait ExchangeBase:
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchWebEndpoint() returned empty content".into()))));
             }
             if (startRegex != Value::Null) {
-                let mut splitted_by_start: Vec<Value> = split(&content, &startRegex).as_array().cloned().unwrap_or_default();
+                let mut splitted_by_start: Vec<Value> = split(&content, &startRegex).as_array().unwrap().clone();
                 content = splitted_by_start.get(1).cloned().unwrap_or(Value::Null); // we need second part after start
             }
             if (content == Value::Null) {
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchWebEndpoint() returned empty content".into()))));
             }
             if (endRegex != Value::Null) {
-                let mut splitted_by_end: Vec<Value> = split(&content, &endRegex).as_array().cloned().unwrap_or_default();
+                let mut splitted_by_end: Vec<Value> = split(&content, &endRegex).as_array().unwrap().clone();
                 content = splitted_by_end.get(0).cloned().unwrap_or(Value::Null); // we need first part after start
             }
             if ((match &(returnAsJson) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (matches!(&content, Value::Str(_))) {
@@ -4442,12 +4435,12 @@ pub trait ExchangeBase:
         }
         // options.networks may still be keyed by an alias of the unified code
         let mut aliases: Value = self.networkAliases.clone();
-        let mut aliasKeys: Vec<Value> = object_keys(&aliases).as_array().cloned().unwrap_or_default();
+        let mut aliasKeys: Value = object_keys(&aliases);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_116: bool = true;
             while { if !__for_first_116 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_116 = false; i.as_f64().unwrap_or(f64::NAN) < ((aliasKeys.len() as i64) as f64) } {
-            let mut alias: Value = aliasKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut alias: Value = aliasKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (aliases.as_map().and_then(|__m| alias.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_str() == unifiedCode.as_str()) && (matches!((&networkIdsByCodes, &alias), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return networkIdsByCodes.as_map().and_then(|__m| alias.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }
@@ -4667,12 +4660,12 @@ pub trait ExchangeBase:
             }
             }
         }  else {
-            let mut keys: Vec<Value> = object_keys(&response).as_array().cloned().unwrap_or_default();
+            let mut keys: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_120: bool = true;
                 while { if !__for_first_120 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_120 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-                let mut marketId: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut marketId: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut item: Value = get_value(&response, &marketId);
                 let mut item: Value = get_value(&response, &marketId);
                 let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("swap".into())]);
@@ -5531,13 +5524,13 @@ pub trait ExchangeBase:
         let mut retries: Value = Value::Int(0);
         // implicit endpoints may pass a list body as params: keep it an untyped box
         let mut requestParams: Value = params;
-        let retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable: Vec<Value> = self.handle_option_integer_and_params(requestParams, path.clone(), Value::Str("maxRetriesOnFailure".into()), &[retries]).as_array().cloned().unwrap_or_default();
-        let mut retriesMaxRetriesOnFailure: Value = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetriesOnFailure: Value = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable = self.handle_option_integer_and_params(requestParams, path.clone(), Value::Str("maxRetriesOnFailure".into()), &[retries]);
+        let mut retriesMaxRetriesOnFailure: Value = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxRetriesOnFailure: Value = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut retryDelay: Value = Value::Int(0);
-        let retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable: Vec<Value> = self.handle_option_integer_and_params(paramsMaxRetriesOnFailure, path.clone(), Value::Str("maxRetriesOnFailureDelay".into()), &[retryDelay]).as_array().cloned().unwrap_or_default();
-        let mut retryDelayMaxRetriesOnFailureDelay: Value = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetriesOnFailureDelay: Value = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable = self.handle_option_integer_and_params(paramsMaxRetriesOnFailure, path.clone(), Value::Str("maxRetriesOnFailureDelay".into()), &[retryDelay]);
+        let mut retryDelayMaxRetriesOnFailureDelay: Value = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxRetriesOnFailureDelay: Value = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut fetchDataCacheEnabled: bool = self.fetchHistoryCacheSize.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
@@ -5835,7 +5828,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketType = get_arg(optional_args, 3, Value::Null);
         if (marketId != Value::Null) {
             if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut markets: Vec<Value> = self.safe_list(self.markets_by_id.clone(), marketId.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut markets: Vec<Value> = self.safe_list(self.markets_by_id.clone(), marketId.clone(), &[Value::from(vec![])]).as_array().unwrap().clone();
                 let mut numMarkets: f64 = ((markets.len() as i64) as f64);
                 if (numMarkets == 1.0) {
                     return markets.get(0).cloned().unwrap_or(Value::Null);
@@ -5848,7 +5841,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_135: bool = true;
                         while { if !__for_first_135 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_135 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
-                        let mut currentMarket: Value = markets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                        let mut currentMarket: Value = markets.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
+                        let mut currentMarket: Value = markets.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null);
                         if (match &(get_value(&currentMarket, &marketTypeResolved)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                             return currentMarket;
                         }
@@ -5881,7 +5875,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("quote".into(), quote.clone()); }
                     }
                     if (base != Value::Null) && (quote != Value::Null) {
-                        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into())); }
+                        add_element_to_object(&mut result, &Value::Str("symbol".into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
                     }
                 }
                 return result;
@@ -5922,12 +5916,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {boolean} error throw an error that a credential is required if true
          * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
          */
-        let mut keys: Vec<Value> = Value::Array(self.requiredCredentials.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = Value::Array(self.requiredCredentials.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_136: bool = true;
             while { if !__for_first_136 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_136 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut credentialValue: Value = self.prop(&key);
             let mut credentialMissing: bool = (credentialValue == Value::Null) || (credentialValue == Value::Null) || ((match &(credentialValue) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (credentialValue.as_str() == Some(""));
             if (self.requiredCredentials.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && credentialMissing {
@@ -6195,9 +6189,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::from(vec![value.clone(), paramsOmitted]);
         }  else {
             // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
-            let callerMethodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[methodName]).as_array().cloned().unwrap_or_default();
-            let mut callerMethodName: Value = callerMethodNameparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsCallerMethodName: Value = callerMethodNameparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut callerMethodNameparamsCallerMethodNameVariable = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[methodName]);
+            let mut callerMethodName: Value = callerMethodNameparamsCallerMethodNameVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+            let mut paramsCallerMethodName: Value = callerMethodNameparamsCallerMethodNameVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             // check if exchange has properties for this method
             let mut exchangeWideMethodOptions: Value = self.safe_value(self.options.clone(), callerMethodName, &[]);
             if (exchangeWideMethodOptions != Value::Null) {
@@ -6220,9 +6214,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 /* eslint-enable no-unused-vars */
     fn handle_option_and_params2(&self, mut params: Value, mut methodName1: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let valueparamsOption1Variable: Vec<Value> = self.handle_option_and_params(params, methodName1.clone(), optionName1, &[]).as_array().cloned().unwrap_or_default();
-        let mut value: Value = valueparamsOption1Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOption1: Value = valueparamsOption1Variable.get(1).cloned().unwrap_or(Value::Null);
+        let mut valueparamsOption1Variable = self.handle_option_and_params(params, methodName1.clone(), optionName1, &[]);
+        let mut value: Value = valueparamsOption1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsOption1: Value = valueparamsOption1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (value != Value::Null) {
             // omit optionName2 too from params
             let mut paramsOmitted: Value = self.omit(paramsOption1.clone(), optionName2.clone(), &[]);
@@ -6238,9 +6232,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn handle_option_string_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // handleOptionAndParams read as a string; the statically typed ports throw on another type
-        let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]).as_array().cloned().unwrap_or_default();
-        let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut newParams: Value = valuenewParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut valuenewParamsVariable = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         return Value::from(vec![self.check_option_string(methodName, optionName, value), newParams]);
 
     Value::Null
@@ -6250,9 +6244,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 /* eslint-enable no-unused-vars */
     fn handle_option_string_and_params2(&self, mut params: Value, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]).as_array().cloned().unwrap_or_default();
-        let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut newParams: Value = valuenewParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut valuenewParamsVariable = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         return Value::from(vec![self.check_option_string(methodName, optionName1, value), newParams]);
 
     Value::Null
@@ -6263,9 +6257,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn handle_option_bool_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // handleOptionAndParams read as a boolean (see checkOptionBool)
-        let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]).as_array().cloned().unwrap_or_default();
-        let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut newParams: Value = valuenewParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut valuenewParamsVariable = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         return Value::from(vec![self.check_option_bool(methodName, optionName, value), newParams]);
 
     Value::Null
@@ -6275,9 +6269,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 /* eslint-enable no-unused-vars */
     fn handle_option_bool_and_params2(&self, mut params: Value, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]).as_array().cloned().unwrap_or_default();
-        let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut newParams: Value = valuenewParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut valuenewParamsVariable = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         return Value::from(vec![self.check_option_bool(methodName, optionName1, value), newParams]);
 
     Value::Null
@@ -6288,9 +6282,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn handle_option_integer_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // handleOptionAndParams read as an integer; the statically typed ports throw on another type
-        let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]).as_array().cloned().unwrap_or_default();
-        let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut newParams: Value = valuenewParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut valuenewParamsVariable = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         return Value::from(vec![self.check_option_integer(methodName, optionName, value), newParams]);
 
     Value::Null
@@ -6300,9 +6294,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 /* eslint-enable no-unused-vars */
     fn handle_option_integer_and_params2(&self, mut params: Value, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]).as_array().cloned().unwrap_or_default();
-        let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut newParams: Value = valuenewParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut valuenewParamsVariable = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         return Value::from(vec![self.check_option_integer(methodName, optionName1, value), newParams]);
 
     Value::Null
@@ -6438,12 +6432,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn find_broadly_matched_key(&self, mut broad: Value, mut string: Value) -> Value {
         // a helper for matching error strings exactly vs broadly
-        let mut keys: Vec<Value> = object_keys(&broad).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&broad);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_137: bool = true;
             while { if !__for_first_137 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_137 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (string != Value::Null) {
                 if Value::Int(string.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     return key;
@@ -7016,8 +7010,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (network != Value::Null) {
                 return self.safe_dict(addressStructures.clone(), network, &[]);
             }  else {
-                let mut keys: Vec<Value> = object_keys(&addressStructures).as_array().cloned().unwrap_or_default();
-                let mut key: Value = keys.get(0).cloned().unwrap_or(Value::Null);
+                let mut keys: Value = object_keys(&addressStructures);
+                let mut key: Value = keys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 return self.safe_dict(addressStructures, key, &[]);
             }
         }  else {
@@ -7096,7 +7090,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" currency() requires a code argument".into()))));
         }
-        let mut keys: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut numCurrencies: f64 = ((keys.len() as i64) as f64);
         if (numCurrencies == 0.0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".into()))));
@@ -7197,8 +7191,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (cost == Value::Null) {
             return Value::Null;
         }
-        let mut market: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol).as_map().cloned().unwrap_or_default();
-        return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), self.safe_string2(market.get("precision").cloned().unwrap_or(Value::Null), Value::Str("cost".into()), Value::Str("price".into()), &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]);
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+        return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), self.safe_string2(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), Value::Str("price".into()), &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]);
 
     Value::Null
 }
@@ -7243,8 +7237,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (fee == Value::Null) {
             return Value::Null;
         }
-        let mut market: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol).as_map().cloned().unwrap_or_default();
-        return self.decimal_to_precision(fee, Value::Int(crate::runtime::ROUND), market.get("precision").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
+        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+        return self.decimal_to_precision(fee, Value::Int(crate::runtime::ROUND), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
 
     Value::Null
 }
@@ -7448,8 +7442,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn safe_currency_code(&self, mut currencyId: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(currencyId, &[currency]).as_map().cloned().unwrap_or_default();
-        return currencyResolved.get("code").cloned().unwrap_or(Value::Null);
+        let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
+        return currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -7521,12 +7515,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }  else {
-            let mut marketIds: Vec<Value> = object_keys(&pricesData).as_array().cloned().unwrap_or_default();
+            let mut marketIds: Value = object_keys(&pricesData);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_145: bool = true;
                 while { if !__for_first_145 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_145 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-                let mut marketId: Value = marketIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut priceData: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, get_value(&pricesData, &marketId), &[market]), &[params.clone()]);
                 results.push(priceData);
@@ -7579,12 +7573,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }  else {
-            let mut marketIds: Vec<Value> = object_keys(&tickers).as_array().cloned().unwrap_or_default();
+            let mut marketIds: Value = object_keys(&tickers);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_147: bool = true;
                 while { if !__for_first_147 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_147 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-                let mut marketId: Value = marketIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, get_value(&tickers, &marketId), &[market]);
                 let mut ticker: Value = self.extend(parsed, &[params.clone()]);
@@ -8239,8 +8233,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut markets: Value = self.markets.clone();
         let mut marketsById: Value = self.markets_by_id.clone();
         if ((markets != Value::Null) && (matches!((&markets, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((marketsById != Value::Null) && (matches!((&marketsById, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            let mut market: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::market(self, account.clone()).as_map().cloned().unwrap_or_default();
-            return market.get("id").cloned().unwrap_or(Value::Null);
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, account.clone());
+            return market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }  else {
             return account;
         }
@@ -8376,11 +8370,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        let mut networkKeys: Vec<Value> = object_keys(&fee.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+        let mut networkKeys: Value = object_keys(&fee.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null));
         let mut numNetworks: f64 = ((networkKeys.len() as i64) as f64);
         if (numNetworks == 1.0) {
-            { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(0).cloned().unwrap_or(Value::Null)), "withdraw"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("withdraw".into(), __be_tmp); } }
-            { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(0).cloned().unwrap_or(Value::Null)), "deposit"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("deposit".into(), __be_tmp); } }
+            { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)), "withdraw"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("withdraw".into(), __be_tmp); } }
+            { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)), "deposit"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("deposit".into(), __be_tmp); } }
             return fee;
         }
         let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
@@ -8388,10 +8382,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_158: bool = true;
             while { if !__for_first_158 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_158 = false; i.as_f64().unwrap_or(f64::NAN) < numNetworks } {
-            let mut network: Value = networkKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut network: Value = networkKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (network.as_str() == currencyCode.as_str()) {
-                { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)), "withdraw"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("withdraw".into(), __be_tmp); } }
-                { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)), "deposit"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("deposit".into(), __be_tmp); } }
+                { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)), "withdraw"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("withdraw".into(), __be_tmp); } }
+                { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)), "deposit"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("deposit".into(), __be_tmp); } }
             }
         }
         }
@@ -8467,14 +8461,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
-        let __ohlcvs_empty = Vec::new();
-        let ohlcvs = ohlcvs.as_array().unwrap_or(&__ohlcvs_empty);
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_160: bool = true;
             while { if !__for_first_160 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_160 = false; i.as_f64().unwrap_or(f64::NAN) < ((ohlcvs.len() as i64) as f64) } {
-            results.push(self.parse_ws_ohlcv(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            results.push(self.parse_ws_ohlcv(ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return Value::from(results);
@@ -8551,9 +8543,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(params, method, Value::Str("maxEntriesPerRequest".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut newMaxEntriesPerRequest: Value = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxEntriesPerRequest: Value = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable = self.handle_option_integer_and_params(params, method, Value::Str("maxEntriesPerRequest".into()), &[]);
+        let mut newMaxEntriesPerRequest: Value = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxEntriesPerRequest: Value = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut maxEntriesPerRequestOption: Value = (if (newMaxEntriesPerRequest != Value::Null) { newMaxEntriesPerRequest } else { maxEntriesPerRequest });
         let mut maxEntriesPerRequestResolved: Value = (if (maxEntriesPerRequestOption == Value::Null) { Value::Int(1000) } else { maxEntriesPerRequestOption }); // default to 1000
         return Value::from(vec![maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest]);
@@ -8572,27 +8564,27 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut maxEntriesPerRequest = get_arg(optional_args, 4, Value::Null);
         let mut removeRepeated = get_arg(optional_args, 5, Value::Bool(true));
         let mut maxCalls: Value = Value::Int(10);
-        let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]).as_array().cloned().unwrap_or_default();
-        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxCallsPaginationCallsparamsPaginationCallsVariable = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]);
+        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut maxRetries: Value = Value::Int(3);
-        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]).as_array().cloned().unwrap_or_default();
-        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
-        let paginationDirectionparamsPaginationDirectionVariable: Vec<Value> = self.handle_option_and_params(paramsMaxRetries, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]).as_array().cloned().unwrap_or_default();
-        let mut paginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxRetriesOptionparamsMaxRetriesVariable = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]);
+        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut paginationDirectionparamsPaginationDirectionVariable = self.handle_option_and_params(paramsMaxRetries, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]);
+        let mut paginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut paginationTimestamp: Value = Value::Null;
-        let removeRepeatedOptionparamsRemoveRepeatedVariable: Vec<Value> = self.handle_option_and_params(paramsPaginationDirection, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]).as_array().cloned().unwrap_or_default();
-        let mut removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsRemoveRepeated: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut removeRepeatedOptionparamsRemoveRepeatedVariable = self.handle_option_and_params(paramsPaginationDirection, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]);
+        let mut removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsRemoveRepeated: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut calls: Value = Value::Int(0);
         let mut result: Value = Value::from(vec![]);
         let mut errors: Value = Value::Int(0);
         let mut until: Value = self.safe_integer_n(paramsRemoveRepeated.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("untill".into()), Value::Str("till".into())]), &[]); // do not omit it from params here
-        let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsRemoveRepeated]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsRemoveRepeated]);
+        let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (paginationDirection.as_str() == Some("forward")) {
             if (since == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" pagination requires a since argument when paginationDirection set to forward".into()))));
@@ -8690,9 +8682,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut maxRetries: Value = Value::Int(3);
-        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]).as_array().cloned().unwrap_or_default();
-        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxRetriesOptionparamsMaxRetriesVariable = self.handle_option_integer_and_params(params, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]);
+        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut errors: Value = Value::Int(0);
         while errors.as_f64().unwrap_or(f64::NAN) <= maxRetriesOption.as_f64().unwrap_or(f64::NAN) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -8728,12 +8720,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut maxEntriesPerRequest = get_arg(optional_args, 5, Value::Null);
         let mut maxCalls: Value = Value::Int(10);
-        let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]).as_array().cloned().unwrap_or_default();
-        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsPaginationCalls]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxCallsPaginationCallsparamsPaginationCallsVariable = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]);
+        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsPaginationCalls]);
+        let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
@@ -8782,13 +8774,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             currentSince = (match (&(self.sum(&[currentSince.clone(), step.clone()])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
         }
-        let mut results: Vec<Value> = promise_all(&Value::from(tasks)).await.as_array().cloned().unwrap_or_default();
+        let mut results: Value = promise_all(&Value::from(tasks)).await;
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_162: bool = true;
             while { if !__for_first_162 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_162 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
-            result = self.array_concat(result.clone(), results.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            result = self.array_concat(result.clone(), results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
         let mut uniqueResults: Value = self.remove_repeated_elements_from_array(result, &[]);
@@ -8813,16 +8805,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut cursorIncrement = get_arg(optional_args, 6, Value::Null);
         let mut maxEntriesPerRequest = get_arg(optional_args, 7, Value::Null);
         let mut maxCalls: Value = Value::Int(10);
-        let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]).as_array().cloned().unwrap_or_default();
-        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxCallsPaginationCallsparamsPaginationCallsVariable = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]);
+        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut maxRetries: Value = Value::Int(3);
-        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]).as_array().cloned().unwrap_or_default();
-        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
-        let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsMaxRetries]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxRetriesOptionparamsMaxRetriesVariable = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]);
+        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsMaxRetries]);
+        let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut cursorValue: Value = Value::Null;
         let mut i: Value = Value::Int(0);
         let mut errors: Value = Value::Int(0);
@@ -8923,16 +8915,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut pageKey = get_arg(optional_args, 4, Value::Null);
         let mut maxEntriesPerRequest = get_arg(optional_args, 5, Value::Null);
         let mut maxCalls: Value = Value::Int(10);
-        let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]).as_array().cloned().unwrap_or_default();
-        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxCallsPaginationCallsparamsPaginationCallsVariable = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]);
+        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut maxRetries: Value = Value::Int(3);
-        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]).as_array().cloned().unwrap_or_default();
-        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
-        let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsMaxRetries]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut maxRetriesOptionparamsMaxRetriesVariable = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]);
+        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsMaxRetries]);
+        let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut i: Value = Value::Int(0);
         let mut errors: Value = Value::Int(0);
         let mut result: Value = Value::from(vec![]);
@@ -9057,7 +9049,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> Value {
-        let mut keys: Vec<Value> = object_keys(&dict).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&dict);
         let mut newDict: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -9066,7 +9058,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_166: bool = true;
             while { if !__for_first_166 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_166 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if !(self.in_array(key.clone(), removeKeys.clone()).as_bool() == Some(true)) {
                 newDict.insert(crate::runtime::stringify_param(&key), dict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             }
@@ -9125,8 +9117,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
-        let __liquidations_empty = Vec::new();
-        let liquidations = liquidations.as_array().unwrap_or(&__liquidations_empty);
         /*
          * @ignore
          * @method
@@ -9142,7 +9132,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_167: bool = true;
             while { if !__for_first_167 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_167 = false; i.as_f64().unwrap_or(f64::NAN) < ((liquidations.len() as i64) as f64) } {
-            let mut entry: Value = liquidations.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = liquidations.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_liquidation(self, entry, &[market.clone()]);
             result.push(parsed);
         }
@@ -9185,12 +9175,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }  else {
-            let mut marketIds: Vec<Value> = object_keys(&greeks).as_array().cloned().unwrap_or_default();
+            let mut marketIds: Value = object_keys(&greeks);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_169: bool = true;
                 while { if !__for_first_169 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_169 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-                let mut marketId: Value = marketIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, get_value(&greeks, &marketId), &[market]);
                 let mut greek: Value = self.extend(parsed, &[params.clone()]);
@@ -9215,8 +9205,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn parse_option_chain(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut currencyKey = get_arg(optional_args, 0, Value::Null);
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
-        let __response_empty = Vec::new();
-        let response = response.as_array().unwrap_or(&__response_empty);
         let mut optionStructures: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -9225,7 +9213,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_170: bool = true;
             while { if !__for_first_170 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_170 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut info: Value = response.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut info: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = (if (currencyKey == Value::Null) { Value::Null } else { self.safe_string(info.clone(), currencyKey.clone(), &[]) });
             let mut currency: Value = self.safe_currency(currencyId, &[]);
             let mut marketId: Value = (if (symbolKey == Value::Null) { Value::Null } else { self.safe_string(info.clone(), symbolKey.clone(), &[]) });
@@ -9242,8 +9230,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
-        let __response_empty = Vec::new();
-        let response = response.as_array().unwrap_or(&__response_empty);
         let mut marginModeStructures: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -9253,7 +9239,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_171: bool = true;
             while { if !__for_first_171 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_171 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut info: Value = response.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut info: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = (if (symbolKey == Value::Null) { Value::Null } else { self.safe_string(info.clone(), symbolKey.clone(), &[]) });
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketTypeResolved.clone()]);
             if (symbols == Value::Null) || self.in_array(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true) {
@@ -9280,8 +9266,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
-        let __response_empty = Vec::new();
-        let response = response.as_array().unwrap_or(&__response_empty);
         let mut leverageStructures: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -9291,7 +9275,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_172: bool = true;
             while { if !__for_first_172 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_172 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut info: Value = response.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut info: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = (if (symbolKey == Value::Null) { Value::Null } else { self.safe_string(info.clone(), symbolKey.clone(), &[]) });
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketTypeResolved.clone()]);
             if (symbols == Value::Null) || self.in_array(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true) {
@@ -9612,23 +9596,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 client.reject(&[Value::from(error.clone()), subHash.clone()]);
             }
         }  else {
-            let mut clientSubscriptions: Vec<Value> = object_keys(&get_value(&client, &Value::Str("subscriptions".into()))).as_array().cloned().unwrap_or_default();
+            let mut clientSubscriptions: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_175: bool = true;
                 while { if !__for_first_175 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_175 = false; i.as_f64().unwrap_or(f64::NAN) < ((clientSubscriptions.len() as i64) as f64) } {
-                let mut sub: Value = clientSubscriptions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut sub: Value = clientSubscriptions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (sub != Value::Null) && (subHash != Value::Null) && (sub.as_str().zip(subHash.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &sub);
                 }
             }
             }
-            let mut clientFutures: Vec<Value> = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut clientFutures: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_176: bool = true;
                 while { if !__for_first_176 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_176 = false; i.as_f64().unwrap_or(f64::NAN) < ((clientFutures.len() as i64) as f64) } {
-                let mut future: Value = clientFutures.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut future: Value = clientFutures.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (future != Value::Null) && (subHash != Value::Null) && (future.as_str().zip(subHash.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
                     let mut error = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), future));
                     client.reject(&[Value::from(error), future]);
@@ -9643,15 +9627,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         let mut topic: Option<String> = (match subscription.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbols: Vec<Value> = (match subscription.get("symbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut symbols: Value = (match subscription.get("symbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (topic.as_deref() == Some("ohlcv")) {
-            let mut symbolsAndTimeframes: Vec<Value> = (match subscription.get("symbolsAndTimeframes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut symbolsAndTimeframes: Value = (match subscription.get("symbolsAndTimeframes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_177: bool = true;
                 while { if !__for_first_177 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_177 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-                let mut symbolAndTimeFrame: Value = symbolsAndTimeframes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
+                let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbol: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
                 let mut timeframe: Value = self.safe_string(symbolAndTimeFrame, Value::Int(1), &[]);
                 if (symbol == Value::Null) {
@@ -9672,7 +9657,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_178: bool = true;
                 while { if !__for_first_178 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_178 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-                let mut symbol: Value = symbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = get_value(&symbols, &i);
+                let mut symbol: Value = get_value(&symbols, &i);
                 if (topic.as_deref() == Some("trades")) {
                     if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades.clone(), &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -9699,12 +9685,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.orders = Value::Null;
             }  else if (topic.as_deref() == Some("positions")) && (self.positions.clone() != Value::Null) {
                 self.positions = Value::Null;
-                let mut clients: Vec<Value> = Value::Array(self.clients.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut clients: Value = Value::Array(self.clients.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_179: bool = true;
                     while { if !__for_first_179 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_179 = false; i.as_f64().unwrap_or(f64::NAN) < ((clients.len() as i64) as f64) } {
-                    let mut client: Value = clients.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    let mut client: Value = clients.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut futures: Value = get_value(&client, &Value::Str("futures".into()));
                     if (futures != Value::Null) && (matches!(&futures, Value::Dict(__d) if __d.contains_key("fetchPositionsSnapshot"))) {
                         remove(&mut futures, &Value::Str("fetchPositionsSnapshot".into()));
@@ -9712,24 +9698,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 }
             }  else if ((topic.as_deref() == Some("ticker")) || (topic.as_deref() == Some("markPrice"))) && (self.tickers.clone() != Value::Null) {
-                let mut tickerSymbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut tickerSymbols: Value = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_180: bool = true;
                     while { if !__for_first_180 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_180 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickerSymbols.len() as i64) as f64) } {
-                    let mut tickerSymbol: Value = tickerSymbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    let mut tickerSymbol: Value = tickerSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     if (matches!((&self.tickers, &tickerSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers.clone(), &tickerSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                 }
                 }
             }  else if (topic.as_deref() == Some("bidsasks")) && (self.bidsasks.clone() != Value::Null) {
-                let mut bidsaskSymbols: Vec<Value> = Value::Array(self.bidsasks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut bidsaskSymbols: Value = Value::Array(self.bidsasks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_181: bool = true;
                     while { if !__for_first_181 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_181 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidsaskSymbols.len() as i64) as f64) } {
-                    let mut bidsaskSymbol: Value = bidsaskSymbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    let mut bidsaskSymbol: Value = bidsaskSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     if (matches!((&self.bidsasks, &bidsaskSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks.clone(), &bidsaskSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }

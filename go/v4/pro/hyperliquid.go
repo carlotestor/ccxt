@@ -2089,7 +2089,7 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 		}
 	} else {
 		if code != nil {
-			this.Balance[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
 }
@@ -2216,7 +2216,7 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
@@ -2626,7 +2626,7 @@ func (this *Hyperliquid) WaitForPendingUnsubscribeAsync(url any, subHash string)
 func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], url any, subHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if ccxt.InOp(this.WsClientsSnapshot(), url) {
+	if ccxt.InOp(this.Clients, url) {
 		var client ccxt.ClientInterface = this.Client(url)
 		var unsubHash string = "unsubscribe:" + subHash
 		if client.(ccxt.ClientInterface).SubscriptionHas(unsubHash) {
@@ -2796,16 +2796,16 @@ func (this *Hyperliquid) HandlePositionsUnsubscription(client any, subscription 
 	}
 	this.CleanCache(topicStructure)
 	// clean swap balance if it existed
-	if _, ok := this.Balance["swap"]; ok {
-		delete(this.Balance, "swap")
+	if ccxt.InOp(this.Balance, "swap") {
+		ccxt.Remove(this.Balance, "swap")
 	}
 }
 func (this *Hyperliquid) HandleSpotBalanceUnsubscription(client any, subscription map[string]any) {
 	var subHash string = "spotState"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
-	if _, ok := this.Balance["spot"]; ok {
-		delete(this.Balance, "spot")
+	if ccxt.InOp(this.Balance, "spot") {
+		ccxt.Remove(this.Balance, "spot")
 	}
 }
 func (this *Hyperliquid) HandleSubscriptionResponse(client any, message map[string]any) {

@@ -1046,7 +1046,7 @@ func (this *Coinbase) ParseAccount(account any) map[string]any {
 	var currencyId *string = this.SafeString(currency, "code", currencyIdV3)
 	var typeV3 *string = this.SafeString(account, "name")
 	var typeV2 *string = this.SafeString(account, "type")
-	var parts []string = strings.Split(*typeV3, " ")
+	var parts []string = Split(typeV3, " ")
 	return map[string]any{
 		"id": this.SafeString2(account, "id", "uuid"),
 		"type": func() any {
@@ -2740,10 +2740,10 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		var code *string = this.SafeCurrencyCode(id)
 		var name *string = this.SafeString(currency, "name")
 		if code != nil {
-			AddElementToObject(this.Options["networks"], code, strings.ToLower(*name))
+			AddElementToObject(this.Options["networks"], code, ToLower(name))
 		}
 		if code != nil {
-			AddElementToObject(this.Options["networksById"], code, strings.ToLower(*name))
+			AddElementToObject(this.Options["networksById"], code, ToLower(name))
 		}
 		var typeVar string = "fiat"
 		if assetId != nil {
@@ -2775,7 +2775,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 			})
 		}
 		if assetId != nil {
-			var lowerCaseName string = strings.ToLower(*name)
+			var lowerCaseName string = ToLower(name)
 			if code != nil {
 				networks[*code] = lowerCaseName
 			}

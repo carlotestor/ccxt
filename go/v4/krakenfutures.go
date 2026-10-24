@@ -561,12 +561,22 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var id *string = this.SafeString(market, "symbol")
 		var marketType *string = this.SafeString(market, "type")
 		var typeVar string
-		var index bool = (strings.Index(*marketType, " index") >= 0)
+		var index bool = (func() int {
+			if marketType == nil {
+				return -1
+			}
+			return strings.Index(*marketType, " index")
+		}() >= 0)
 		var linear any = nil
 		var inverse any = nil
 		var expiry any = nil
 		if !index {
-			linear = (strings.Index(*marketType, "_vanilla") >= 0)
+			linear = (func() int {
+				if marketType == nil {
+					return -1
+				}
+				return strings.Index(*marketType, "_vanilla")
+			}() >= 0)
 			inverse = !(linear == true)
 			var settleTime *string = this.SafeString(market, "lastTradingTime")
 			typeVar = func() string {
@@ -586,7 +596,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var swap bool = (typeVar == "swap")
 		var future bool = (typeVar == "future")
 		var symbol any = id
-		var split []string = strings.Split(*id, "_")
+		var split []string = Split(id, "_")
 		var splitMarket *string = this.SafeString(split, 1)
 		var baseId string = Slice(splitMarket, 0, GetLength(splitMarket)-3)
 		var quoteId string = "usd" // always USD
@@ -4526,7 +4536,7 @@ func (this *Krakenfutures) ParseKrakenAccountName(account any) any {
 	} else if (this.Markets() != nil) && (InOp(this.Markets(), account)) {
 		var market map[string]any = this.Market(account)
 		var marketId *string = SafeStringPtr(market["id"])
-		var splitId []string = strings.Split(*marketId, "_")
+		var splitId []string = Split(marketId, "_")
 		if market["inverse"] == true {
 			return Add("fi_", this.SafeString(splitId, 1))
 		} else {

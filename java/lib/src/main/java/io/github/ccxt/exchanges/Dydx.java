@@ -2206,12 +2206,12 @@ public class Dydx extends DydxApi
 
     }
 
-    public CompletableFuture<Map<String, Object>> estimateTxFee(Map<String, Object> message, String memo, Map<String, Object> account)
+    public CompletableFuture<Map<String, Object>> estimateTxFee(Object message, String memo, Object account)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object txBytes = this.encodeDydxTxForSimulation(message, memo, account.get("sequence"), account.get("pub_key"));
+            Object txBytes = this.encodeDydxTxForSimulation(message, memo, Helpers.GetValue(account, "sequence"), Helpers.GetValue(account, "pub_key"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "txBytes", txBytes );
             }};
@@ -2362,7 +2362,7 @@ public class Dydx extends DydxApi
                     signingPayload = hx4NewMap3;
                 }
             }
-            Map<String, Object> txFee = (this.estimateTxFee((Map<String, Object>) (signingPayload), "", (Map<String, Object>) (account))).join();
+            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, "", account)).join();
             String chainName = this.safeString(this.options, "chainName");
             Object signedTx = this.signDydxTx((String) (((Map<String, Object>)credentials).get("privateKey")), signingPayload, "", chainName, account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2573,7 +2573,7 @@ public class Dydx extends DydxApi
                 put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
                 put( "value", payload );
             }};
-            Map<String, Object> txFee = (this.estimateTxFee((Map<String, Object>) (signingPayload), tag, (Map<String, Object>) (account))).join();
+            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, tag, account)).join();
             String chainName = this.safeString(this.options, "chainName");
             Object signedTx = this.signDydxTx((String) (((Map<String, Object>)credentials).get("privateKey")), signingPayload, tag, chainName, account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{

@@ -859,7 +859,10 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 }
 func (this *Kraken) RequestId() int64 {
 	// their support said that reqid must be an int32, not documented
-	var reqid int64 = this.NextRequestId("reqid")
+	this.LockId()
+	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
+	this.Options["reqid"] = reqid
+	this.UnlockId()
 	return reqid
 }
 
@@ -1957,10 +1960,10 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 			var parsed map[string]any = this.ParseWsOrder(order)
 			var symbol *string = this.SafeString(order, "symbol")
 			var previousOrders map[string]any = ccxt.SafeMapTyped(stored.(*ccxt.ArrayCache).Hashmap, symbol)
-			var previousOrder map[string]any = ccxt.SafeMapTyped(previousOrders, id)
+			var previousOrder any = this.SafeDict(previousOrders, id)
 			var newOrder any = parsed
 			if previousOrder != nil {
-				var newRawOrder map[string]any = this.Extend(previousOrder["info"], ccxt.GetValue(newOrder, "info"))
+				var newRawOrder map[string]any = this.Extend(ccxt.GetValue(previousOrder, "info"), ccxt.GetValue(newOrder, "info"))
 				newOrder = this.ParseWsOrder(newRawOrder)
 			}
 			var length int = ccxt.GetArrayLength(stored)
@@ -2227,9 +2230,9 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	var balance map[string]any = ccxt.MapTyped(this.SafeBalance(result))
 	var oldBalance any = this.SafeDict(this.Balance, typeVar, map[string]any{})
 	var newBalance map[string]any = this.DeepExtend(oldBalance, balance)
-	this.Balance[typeVar] = this.SafeBalance(newBalance)
+	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(newBalance))
 	var channel *string = this.SafeString(message, "channel")
-	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], channel)
+	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), channel)
 }
 func (this *Kraken) GetMessageHash(unifiedElementName string, optionalArgs ...any) string {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...

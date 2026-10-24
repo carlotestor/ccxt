@@ -860,7 +860,7 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var position map[string]any = ccxt.PositionToMap(this.ParsePosition(data))
+	var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(data)))
 	var symbol *string = ccxt.SafeStringPtr(position["symbol"])
 	var newPositions []any = []any{}
 	// one position per market, so a fill through zero flips its side: the cache keys by
@@ -970,7 +970,7 @@ func (this *Paradex) HandleBalance(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	this.WsBalanceReplace(this.ParseWsBalance(data))
+	this.Balance = this.ParseWsBalance(data)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 func (this *Paradex) ParseWsBalance(data map[string]any) any {
@@ -1939,7 +1939,7 @@ func (this *Paradex) HandleMessage(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(parsedMessage, "params")
 	if data != nil {
 		var channel *string = this.SafeString(data, "channel")
-		var parts []string = strings.Split(*channel, ".")
+		var parts []string = ccxt.Split(channel, ".")
 		var name *string = this.SafeString(parts, 0)
 		var methods map[string]any = map[string]any{
 			"trades":          this.HandleTrade,

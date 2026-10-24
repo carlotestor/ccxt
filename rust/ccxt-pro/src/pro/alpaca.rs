@@ -594,13 +594,11 @@ impl AlpacaCore {
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_0 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.handle_delta(bookside.clone(), deltas.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -1006,11 +1004,10 @@ impl AlpacaCore {
         self.check_required_credentials(&[]);
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
-            let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Str("auth".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
@@ -1019,7 +1016,7 @@ impl AlpacaCore {
             });
             if (url.as_str() == self.safe_string(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Str("trading".into()), &[]).as_str()) {
                 // this auth request is being deprecated in test environment
-                request = ({
+                request = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("action".to_string(), Value::Str("authenticate".into()));
                         m.insert("data".to_string(), Value::Map({
@@ -1031,7 +1028,7 @@ impl AlpacaCore {
                     m
                 });
             }
-            self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash, future.clone()]).await;
+            self.watch(url, messageHash.clone(), &[request, messageHash.clone(), future.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1066,13 +1063,11 @@ impl AlpacaCore {
 }
 
     pub fn handle_crypto_message(&mut self, mut client: Value, mut message: Value) {
-        let __message_empty = Vec::new();
-        let message = message.as_array().unwrap_or(&__message_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
-            let mut data: Value = message.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut data: Value = message.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut T: Value = self.safe_string_k(data.clone(), "T", &[]);
             let mut msg: Option<String> = self.safe_string_k(data.clone(), "msg", &[]).as_str().map(str::to_owned);
             if (T.as_str() == Some("subscription")) {
@@ -1087,7 +1082,7 @@ impl AlpacaCore {
                 self.handle_authenticate(client.clone(), data.clone());
                 return;
             }
-            let mut methods: indexmap::IndexMap<String, Value> = ({
+            let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("error".to_string(), Value::Str("handle_error_message".into()).clone());
                     m.insert("b".to_string(), Value::Str("handle_ohlcv".into()).clone());
@@ -1096,7 +1091,7 @@ impl AlpacaCore {
                     m.insert("o".to_string(), Value::Str("handle_order_book".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(Value::Map(methods), T, &[]);
+            let mut method: Value = self.safe_value(methods, T, &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), data]);
             }
@@ -1130,7 +1125,6 @@ impl AlpacaCore {
 }
 
     pub fn handle_authenticate(&self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1165,7 +1159,7 @@ impl AlpacaCore {
 }) });
         let mut status: Option<String> = self.safe_string_k(data, "status", &[]).as_str().map(str::to_owned);
         if (T.as_deref() == Some("success")) || (status.as_deref() == Some("authorized")) {
-            let mut promise: Value = __ch.futures.clone().as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);
+            let mut promise: Value = get_value(&client, &Value::Str("futures".into())).as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);
             promise.resolve(&[message]);
             return;
         }

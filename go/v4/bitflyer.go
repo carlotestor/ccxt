@@ -429,7 +429,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			return nil
 		}()
 		var id *string = this.SafeString(market, "product_code")
-		var currencies []string = strings.Split(*id, "_")
+		var currencies []string = Split(id, "_")
 		var marketType *string = this.SafeString(market, "market_type")
 		var swap bool = (marketType != nil && *marketType == "FX")
 		var future bool = (marketType != nil && *marketType == "Futures")
@@ -508,7 +508,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 					str := *currencyIds
 					return str[max(len(str)-3, 0):]
 				}()
-				var splitId []string = strings.Split(*id, *currencyIds)
+				var splitId []string = Split(id, currencyIds)
 				var expiryDate *string = this.SafeString(splitId, 1)
 				if expiryDate == nil {
 					continue

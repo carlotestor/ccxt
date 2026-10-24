@@ -639,15 +639,15 @@ impl BtcmarketsCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         if (since != Value::Null) {
-            request.insert("after".into(), since.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("after".into(), since.clone()); }
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
@@ -655,13 +655,13 @@ impl BtcmarketsCore {
         }
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTransfers")) {
-            let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_transfers(&[__ws_arg_0]).await;
         }  else if (method.as_str() == Some("privateGetDeposits")) {
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_deposits(&[__ws_arg_1]).await;
         }  else {
-            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_2 = self.extend(request, &[params]);
             response = self.private_get_withdrawals(&[__ws_arg_2]).await;
         }
         return self.parse_transactions(response, &[currency, since, limit]);
@@ -825,11 +825,11 @@ impl BtcmarketsCore {
         let mut address: Value = self.safe_string_k(cryptoPaymentDetail, "address", &[]);
         let mut tag: Value = Value::Null;
         if (address != Value::Null) {
-            let mut addressParts: Vec<Value> = Value::Array(address.as_str().map(|__s| __s.split("?dt=").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut addressParts: Value = Value::Array(address.as_str().map(|__s| __s.split("?dt=").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut numParts: f64 = ((addressParts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
-                address = addressParts.get(0).cloned().unwrap_or(Value::Null);
-                tag = addressParts.get(1).cloned().unwrap_or(Value::Null);
+                address = addressParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                tag = addressParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
         }
         let mut addressTo: Value = address.clone();
@@ -907,10 +907,10 @@ impl BtcmarketsCore {
             return Value::Null;
         }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        let mut fees: indexmap::IndexMap<String, Value> = self.safe_dict(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
+        let mut fees: Value = self.safe_dict(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), quote.clone(), &[self.fees.clone()]).as_map().cloned().unwrap_or_default();
+})]), quote.clone(), &[self.fees.clone()]);
         let mut pricePrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "priceDecimals", &[])]), &[]);
         let mut minAmount: Value = self.safe_number_k(market.clone(), "minOrderAmount", &[]);
         let mut maxAmount: Value = self.safe_number_k(market.clone(), "maxOrderAmount", &[]);
@@ -939,8 +939,8 @@ impl BtcmarketsCore {
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
-        m.insert("taker".to_string(), fees.get("taker").cloned().unwrap_or(Value::Null));
-        m.insert("maker".to_string(), fees.get("maker").cloned().unwrap_or(Value::Null));
+        m.insert("taker".to_string(), fees.as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
+        m.insert("maker".to_string(), fees.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1124,10 +1124,10 @@ impl BtcmarketsCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("marketId".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -1477,8 +1477,6 @@ impl BtcmarketsCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ids_empty = Vec::new();
-        let ids = ids.as_array().unwrap_or(&__ids_empty);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1488,7 +1486,7 @@ impl BtcmarketsCore {
             let mut __for_first_469: bool = true;
             while { if !__for_first_469 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_469 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.push((match &ids.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
+            numericIds.push((match &ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1881,9 +1879,9 @@ impl BtcmarketsCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
+        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }

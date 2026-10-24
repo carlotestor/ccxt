@@ -965,7 +965,7 @@ public partial class lighter : ccxt.lighter
         return await this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex));
     }
 
-    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         //     {

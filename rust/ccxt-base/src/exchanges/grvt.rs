@@ -1908,9 +1908,9 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -2060,9 +2060,9 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit]).await;
         }
@@ -2085,9 +2085,9 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -2152,9 +2152,9 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone()]).await;
         }
@@ -2167,9 +2167,9 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -2385,9 +2385,9 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -2458,9 +2458,9 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -2693,18 +2693,18 @@ if _try_result.is_err() {
         });
         let mut currency: Value = self.currency(code);
         let mut maxLimit: Value = Value::Int(1000);
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[Value::Null, since.clone(), limit.clone(), paramsPaginate.clone(), maxLimit]).await;
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -2749,15 +2749,13 @@ if _try_result.is_err() {
 
     pub fn filter_transfers_by_type(&self, mut transfers: Value, mut transferType: Value, optional_args: &[Value]) -> Value {
         let onlyMainAccount: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
-        let __transfers_empty = Vec::new();
-        let transfers = transfers.as_array().unwrap_or(&__transfers_empty);
         let mut matchedResults: Vec<Value> = vec![];
         let mut nonMatchedResults: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_720: bool = true;
             while { if !__for_first_720 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_720 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
-            let mut transfer: Value = transfers.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut transfer: Value = transfers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (onlyMainAccount && (self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str() == Some("0")) && (self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str() == Some("0"))) || (!onlyMainAccount && ((self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str() != Some("0")) || (self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str() != Some("0")))) {
                 let mut metadata: Value = self.safe_string(transfer.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("transfer_metadata".into()), &[]);
                 let mut parsedMetadata: Value = self.parse_json_value(metadata);
@@ -2800,12 +2798,12 @@ if _try_result.is_err() {
         let mut toSubAccount: Value = toAccount.clone();
         let mut paramsFundingAccountId: Value = params.clone();
         if isInternal {
-            let tradingAccountIdparamsTradingAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("transfer".into()), Value::Str("tradingAccountId".into()), &[]).as_array().cloned().unwrap_or_default();
-            let mut tradingAccountId: Value = tradingAccountIdparamsTradingAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsTradingAccountId: Value = tradingAccountIdparamsTradingAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
-            let fundingAccountIdparamsFundingVariable: Vec<Value> = self.handle_option_string_and_params(paramsTradingAccountId, Value::Str("transfer".into()), Value::Str("fundingAccountId".into()), &[]).as_array().cloned().unwrap_or_default();
-            let mut fundingAccountId: Value = fundingAccountIdparamsFundingVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsFunding: Value = fundingAccountIdparamsFundingVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut tradingAccountIdparamsTradingAccountIdVariable = self.handle_option_string_and_params(params, Value::Str("transfer".into()), Value::Str("tradingAccountId".into()), &[]);
+            let mut tradingAccountId: Value = tradingAccountIdparamsTradingAccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+            let mut paramsTradingAccountId: Value = tradingAccountIdparamsTradingAccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+            let mut fundingAccountIdparamsFundingVariable = self.handle_option_string_and_params(paramsTradingAccountId, Value::Str("transfer".into()), Value::Str("fundingAccountId".into()), &[]);
+            let mut fundingAccountId: Value = fundingAccountIdparamsFundingVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+            let mut paramsFunding: Value = fundingAccountIdparamsFundingVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             if (tradingAccountId == Value::Null) || (fundingAccountId == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)".into()))));
             }
@@ -2950,15 +2948,15 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
         //     }
         //
-        let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
-        let mut result1: Value = self.safe_dict_k(responses.get(0).cloned().unwrap_or(Value::Null), "result", &[Value::Map({
+        let mut responses: Value = promise_all(&Value::from(promises)).await;
+        let mut result1: Value = self.safe_dict(responses.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("result".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut mainAccountId: Value = self.safe_string_k(result1, "main_account_id", &[]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userMainAccountId".into(), mainAccountId); }
         if accountIsUndefined {
-            let mut subAccountIds: Value = self.safe_list_k(responses.get(1).cloned().unwrap_or(Value::Null), "sub_account_ids", &[Value::from(vec![])]);
+            let mut subAccountIds: Value = self.safe_list(responses.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str("sub_account_ids".into()), &[Value::from(vec![])]);
             let mut length: f64 = ((subAccountIds.len() as i64) as f64);
             if length < ((1i64) as f64) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website".into()))));
@@ -3005,9 +3003,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("signature".to_string(), self.default_signature());
             m
         });
-        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut networkCodequeryVariable = self.handle_network_code_and_params(params);
+        let mut networkCode: Value = networkCodequeryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut query: Value = networkCodequeryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut networkId: Value = self.network_code_to_id(networkCode, &[code]);
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
@@ -3129,11 +3127,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut paramsOmitted2: Value = self.omit(paramsOmitted3, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]);
         // Trigger & SL & TP
-        let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable: Vec<Value> = self.handle_trigger_prices_and_params(symbol, paramsOmitted2, &[]).as_array().cloned().unwrap_or_default();
-        let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut stopLossPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut takeProfitPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(2).cloned().unwrap_or(Value::Null);
-        let mut paramsTriggerPrices: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(3).cloned().unwrap_or(Value::Null);
+        let mut triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = self.handle_trigger_prices_and_params(symbol, paramsOmitted2, &[]);
+        let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut stopLossPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut takeProfitPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
+        let mut paramsTriggerPrices: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null);
         let mut isTriggerOrder: bool = (triggerPrice != Value::Null) || (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
         if isTriggerOrder {
             // trigger price
@@ -3279,15 +3277,15 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let __order_empty = indexmap::IndexMap::new();
         let order = order.as_map().unwrap_or(&__order_empty);
         let mut priceMultiplier: Value = Value::Int(1000000000);
-        let mut orderLegs: Vec<Value> = (match order.get("legs") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut orderLegs: Value = (match order.get("legs") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut legs: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_721: bool = true;
             while { if !__for_first_721 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_721 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderLegs.len() as i64) as f64) } {
-            let mut leg: Value = orderLegs.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut market: indexmap::IndexMap<String, Value> = self.market(leg.as_map().and_then(|__m| __m.get("instrument")).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
-            let mut precisionValue: Value = self.precision_from_string(self.safe_string_k(market.get("precision").cloned().unwrap_or(Value::Null), "base", &[]));
+            let mut leg: Value = orderLegs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut market: Value = self.market(leg.as_map().and_then(|__m| __m.get("instrument")).cloned().unwrap_or(Value::Null));
+            let mut precisionValue: Value = self.precision_from_string(self.safe_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("base".into()), &[]));
             let mut sizeMultiplier: Value = crate::runtime::Math::pow(&Value::Int(10), &precisionValue);
             let mut size: Value = self.safe_string_k(leg.clone(), "size", &[]);
             if (size == Value::Null) {
@@ -3301,7 +3299,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut sizeInteger: Value = (match (((match (&(sizeDigits), &(sizeMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
             let mut legOrder: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("assetID".to_string(), crate::value::get_value_k(&market.get("info").cloned().unwrap_or(Value::Null), "instrument_hash"));
+                    m.insert("assetID".to_string(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "instrument_hash"));
                     m.insert("contractSize".to_string(), self.parse_to_int(sizeInteger));
                     m.insert("isBuyingContract".to_string(), leg.as_map().and_then(|__m| __m.get("is_buying_asset")).cloned().unwrap_or(Value::Null));
                 m
@@ -3365,9 +3363,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
         self.load_markets_and_sign_in().await;
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
@@ -3387,9 +3385,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), request, &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), request, &[paramsPaginate, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -3774,9 +3772,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
         self.load_markets_and_sign_in().await;
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(1000)]).await;
         }
@@ -3796,9 +3794,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), request, &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), request, &[paramsPaginate, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -3894,9 +3892,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), request, &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string(Value::Str("end_time".into()), request, &[params, Value::Int(1000000)]);
+        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntilOptionString { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); }
         }
@@ -4371,11 +4369,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         if (symbol != Value::Null) {
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
+            let mut market: Value = self.market(symbol);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("base".into(), Value::from(vec![])); }
-            crate::runtime::append_to_object_array(&mut request, &Value::Str("base".into()), market.get("baseId").cloned().unwrap_or(Value::Null));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("base".into()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quote".into(), Value::from(vec![])); }
-            crate::runtime::append_to_object_array(&mut request, &Value::Str("quote".into()), market.get("quoteId").cloned().unwrap_or(Value::Null));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("quote".into()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_26 = self.extend(request, &[params]);
         let mut response: Value = self.private_trading_post_full_v1_cancel_all_orders(&[__ws_arg_26]).await;
@@ -4627,7 +4625,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             });
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            let mut paramsKeys: Vec<Value> = Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut paramsKeys: Value = Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             let mut paramsKeysLength: f64 = ((paramsKeys.len() as i64) as f64);
             if (paramsKeysLength == 0.0) {
                 requestBody = Value::Str("{}".into());

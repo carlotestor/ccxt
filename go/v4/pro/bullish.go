@@ -943,7 +943,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
 		if (tradingAccountId != nil) && (code != nil) {
-			ccxt.AddElementToObject(this.Balance[*tradingAccountId], code, account)
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), "info", message)
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))
@@ -1050,7 +1050,7 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
 		positions.(ccxt.Appender).Append(position)
 		newPositions = append(newPositions, position)
 	}

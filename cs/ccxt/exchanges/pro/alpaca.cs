@@ -605,7 +605,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(myTrades, messageHash);
     }
 
-    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         //    {

@@ -788,14 +788,14 @@ public partial class upbit : Exchange
         IList<object> orderbooks = this.toArray(response);
         for (int i = 0; i < (orderbooks?.Count ?? 0); i++)
         {
-            IDictionary<string, object> orderbook = ((IDictionary<string, object>)orderbooks[i]);
+            object orderbook = orderbooks[i];
             string? marketId = this.safeString(orderbook, "market");
             string? symbol = this.safeSymbol(marketId, null, "-");
             Int64? timestamp = this.safeInteger(orderbook, "timestamp");
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "symbol", symbol },
-                { "bids", this.sortBy(this.parseOrderBookBidsAsks((orderbook != null && orderbook.ContainsKey("orderbook_units") ? orderbook["orderbook_units"] : null), "bid_price", "bid_size"), 0, true) },
-                { "asks", this.sortBy(this.parseOrderBookBidsAsks((orderbook != null && orderbook.ContainsKey("orderbook_units") ? orderbook["orderbook_units"] : null), "ask_price", "ask_size"), 0) },
+                { "bids", this.sortBy(this.parseOrderBookBidsAsks(getValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) },
+                { "asks", this.sortBy(this.parseOrderBookBidsAsks(getValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0) },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "nonce", null },

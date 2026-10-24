@@ -608,7 +608,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {
-			account = this.Balance[*code]
+			account = ccxt.GetValue(this.Balance, code)
 		}
 		var second *string = this.SafeString(parts, 1)
 		var freeOrTotal string = func() string {
@@ -622,7 +622,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Hollaex) WatchPublicAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

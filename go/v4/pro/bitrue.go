@@ -225,11 +225,11 @@ func (this *Bitrue) ParseWSBalances(balances []any) {
 				account["used"] = used
 			}
 			if code != nil {
-				this.Balance[*code] = account
+				ccxt.AddElementToObject(this.Balance, code, account)
 			}
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 }
 
 /**
@@ -489,7 +489,7 @@ func (this *Bitrue) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var parts []string = strings.Split(*channel, "_")
+	var parts []string = ccxt.Split(channel, "_")
 	var channelKind *string = this.SafeString(parts, 1)
 	var isFutures bool = (channelKind != nil && *channelKind == "e")
 	var market any = nil
@@ -656,7 +656,7 @@ func (this *Bitrue) HandleTrades(client any, message any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var parts []string = strings.Split(*channel, "_")
+	var parts []string = ccxt.Split(channel, "_")
 	var wsBaseQuote *string = this.SafeStringLower(parts, 2)
 	var market any = this.FindSwapMarketByWsBaseQuote(wsBaseQuote)
 	if ccxt.IsEqual(market, nil) {
@@ -806,7 +806,7 @@ func (this *Bitrue) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var parts []string = strings.Split(*channel, "_")
+	var parts []string = ccxt.Split(channel, "_")
 	var wsBaseQuote *string = this.SafeStringLower(parts, 2)
 	var market any = this.FindSwapMarketByWsBaseQuote(wsBaseQuote)
 	if ccxt.IsEqual(market, nil) {
@@ -934,7 +934,7 @@ func (this *Bitrue) HandleTicker(client any, message any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var parts []string = strings.Split(*channel, "_")
+	var parts []string = ccxt.Split(channel, "_")
 	var wsBaseQuote *string = this.SafeStringLower(parts, 2)
 	var market any = this.FindSwapMarketByWsBaseQuote(wsBaseQuote)
 	if ccxt.IsEqual(market, nil) {
@@ -1039,13 +1039,33 @@ func (this *Bitrue) pongBody(ch chan ccxt.AsyncResult[bool], client any, message
 func (this *Bitrue) HandleMessage(client any, message any) {
 	if ccxt.InOp(message, "channel") {
 		var channel *string = this.SafeString(message, "channel")
-		if strings.Index(*channel, "_depth_step") > -1 {
+		if func() int {
+			if channel == nil {
+				return -1
+			}
+			return strings.Index(*channel, "_depth_step")
+		}() > -1 {
 			this.HandleOrderBook(client, message)
-		} else if strings.Index(*channel, "_trade_ticker") > -1 {
+		} else if func() int {
+			if channel == nil {
+				return -1
+			}
+			return strings.Index(*channel, "_trade_ticker")
+		}() > -1 {
 			this.HandleTrades(client, message)
-		} else if strings.Index(*channel, "_kline_") > -1 {
+		} else if func() int {
+			if channel == nil {
+				return -1
+			}
+			return strings.Index(*channel, "_kline_")
+		}() > -1 {
 			this.HandleOHLCV(client, message)
-		} else if strings.Index(*channel, "_ticker") > -1 {
+		} else if func() int {
+			if channel == nil {
+				return -1
+			}
+			return strings.Index(*channel, "_ticker")
+		}() > -1 {
 			this.HandleTicker(client, message)
 		}
 	} else if ccxt.InOp(message, "ping") {

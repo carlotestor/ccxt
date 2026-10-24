@@ -368,7 +368,6 @@ impl PolymarketCore {
         let mut checkHashes = get_arg(optional_args, 2, Value::Null);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         // the base watch only sends the request when one of the hashes is not
         // subscribed yet, so a pending entry is registered under the same
         // condition - otherwise no ack would ever arrive to consume it, the
@@ -379,7 +378,7 @@ impl PolymarketCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_624: bool = true;
             while { if !__for_first_624 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_624 = false; i.as_f64().unwrap_or(f64::NAN) < ((hashesToCheck.len() as i64) as f64) } {
-            if !(in_op(&__ch.subscriptions.clone(), &hashesToCheck.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
+            if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &hashesToCheck.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
                 willSend = true;
             }
         }
@@ -407,7 +406,7 @@ impl PolymarketCore {
             m
         });
         let mut pending: Value = self.extend(Value::Map(basePending), &[context]);
-        add_element_to_object(&mut __ch.subscriptions, &Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
+        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
         return self.extend(Value::Map(request), &[params]);
 
     Value::Null
@@ -1058,7 +1057,7 @@ impl PolymarketCore {
         if (timeframe == Value::Null) {
             return;
         }
-        let mut rows: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut rows: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         if (rowsLength == 0.0) {
             return;
@@ -1079,7 +1078,7 @@ impl PolymarketCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_628: bool = true;
             while { if !__for_first_628 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_628 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut parsed: Value = self.parse_ohlcv(rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let mut parsed: Value = self.parse_ohlcv(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             ohlcv.append(parsed);
         }
         }
@@ -1103,10 +1102,9 @@ impl PolymarketCore {
         let mut credentials: Value = self.parent.load_proxy_credentials(&[]).await;
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
             let mut id: Value = self.request_id();
             let mut pending: Value = Value::Map({
@@ -1116,7 +1114,7 @@ impl PolymarketCore {
                     m.insert("subMessageHashes".to_string(), Value::from(vec![messageHash.clone()]));
                 m
             });
-            add_element_to_object(&mut __ch.subscriptions, &Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
@@ -1248,12 +1246,12 @@ impl PolymarketCore {
         }
         }
         client.resolve(&[stored.clone(), Value::Str("orders".into())]);
-        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_630: bool = true;
             while { if !__for_first_630 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
-            let mut symbol: Value = symbolKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())]);
         }
         }
@@ -1369,12 +1367,12 @@ impl PolymarketCore {
         }
         }
         client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
-        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_632: bool = true;
             while { if !__for_first_632 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
-            let mut symbol: Value = symbolKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())]);
         }
         }
@@ -1429,7 +1427,6 @@ impl PolymarketCore {
 }
 
     pub fn set_positions_cache(&mut self, mut client: Value, optional_args: &[Value]) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         if (self.positions.clone() != Value::Null) {
             return;
@@ -1437,7 +1434,7 @@ impl PolymarketCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1447,7 +1444,6 @@ impl PolymarketCore {
 }
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut positions: Value = self.fetch_positions(&[]).await;
         self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         let mut cache: Value = self.positions.clone();
@@ -1459,8 +1455,8 @@ impl PolymarketCore {
         }
         }
         // don't remove the future from the .futures cache
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
         }
         client.resolve(&[cache, Value::Str("positions".into())]);
@@ -1506,7 +1502,6 @@ impl PolymarketCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut balanceLoaded: bool = matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"));
         if balanceLoaded {
             return;
@@ -1514,7 +1509,7 @@ impl PolymarketCore {
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
         if (match &(fetchBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1522,12 +1517,11 @@ impl PolymarketCore {
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut balance: Value = self.fetch_balance(&[]).await;
         { let __t = self.extend(self.balance.clone(), &[balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[self.balance.clone()]);
         }
         client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
@@ -1627,7 +1621,6 @@ impl PolymarketCore {
 }
 
     pub fn handle_ack(&mut self, mut client: Value, mut message: Value) {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         //
         // subscribe or unsubscribe acknowledgement
         //
@@ -1645,16 +1638,16 @@ impl PolymarketCore {
             // through its pending entry, anything else counts like a pong
             if (id != Value::Null) {
                 let mut postKey: Value = Value::Str(format!("{}{}", Value::Str("req:".into()), id).into());
-                let mut postPending: Value = self.safe_dict(__ch.subscriptions.clone(), postKey.clone(), &[]);
+                let mut postPending: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), postKey.clone(), &[]);
                 if (postPending != Value::Null) {
-                    remove(&mut __ch.subscriptions, &postKey);
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &postKey);
                     let mut postAction: Option<String> = self.safe_string_k(postPending, "method", &[]).as_str().map(str::to_owned);
                     if (postAction.as_deref() == Some("auth")) {
                         let mut authStatus: Option<String> = self.safe_string_k(data.clone(), "status", &[]).as_str().map(str::to_owned);
                         if (authStatus.as_deref() == Some("ok")) {
                             // resolve the future object directly so it stays
                             // cached and later authenticate calls reuse it
-                            let mut future: Value = self.safe_value(__ch.futures.clone(), Value::Str("authenticated".into()), &[]);
+                            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticated".into()), &[]);
                             if (future != Value::Null) {
                                 future.resolve(&[Value::Bool(true)]);
                             }
@@ -1662,7 +1655,7 @@ impl PolymarketCore {
                             let mut authError = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authentication failed ".into())).into()), json_stringify(&data))));
                             client.reject(&[authError, Value::Str("authenticated".into())]);
                             if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
-                                remove(&mut __ch.subscriptions, &Value::Str("authenticated".into()));
+                                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str("authenticated".into()));
                             }
                         }
                         return;
@@ -1681,9 +1674,9 @@ impl PolymarketCore {
         if (pending == Value::Null) {
             return;
         }
-        remove(&mut __ch.subscriptions, &key);
-        let mut messageHashes: Vec<Value> = self.safe_list_k(pending.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut subMessageHashes: Vec<Value> = self.safe_list_k(pending.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &key);
+        let mut messageHashes: Value = self.safe_list_k(pending.clone(), "messageHashes", &[Value::from(vec![])]);
+        let mut subMessageHashes: Value = self.safe_list_k(pending.clone(), "subMessageHashes", &[Value::from(vec![])]);
         let mut action: Option<String> = self.safe_string_k(pending.clone(), "method", &[]).as_str().map(str::to_owned);
         let mut errorMessage: Value = Value::Null;
         {
@@ -1706,19 +1699,19 @@ impl PolymarketCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_636: bool = true;
                 while { if !__for_first_636 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                client.reject(&[Value::from(error.clone()), messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)]);
+                client.reject(&[Value::from(error.clone()), messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    remove(&mut __ch.subscriptions, &messageHash);
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
                 if (action.as_deref() == Some("sub")) {
-                    let mut subMessageHash: Value = subMessageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    let mut subMessageHash: Value = subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut __ch.subscriptions, &subMessageHash);
+                        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash);
                     }
                 }
             }
@@ -1754,7 +1747,7 @@ impl PolymarketCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_637: bool = true;
                 while { if !__for_first_637 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_637 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                self.clean_unsubscription(client.clone(), subMessageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
+                self.clean_unsubscription(client.clone(), subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             }
             }
         }

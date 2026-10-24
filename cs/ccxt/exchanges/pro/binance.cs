@@ -534,7 +534,7 @@ public partial class binance : ccxt.binance
         client.resolve(new List<object>() {liquidation}, ("liquidations::" + symbol));
     }
 
-    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         // future
@@ -1280,7 +1280,7 @@ public partial class binance : ccxt.binance
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = ((U - 1 == nonce));
+                            conditional = (isEqual(((U - 1)), nonce));
                         }
                         if ((conditional == true))
                         {
@@ -2927,7 +2927,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, object marketType)
+    public virtual ccxt.Ticker parseWsTicker(object message, object marketType)
     {
         // markPrice
         //   {
@@ -4246,7 +4246,7 @@ public partial class binance : ccxt.binance
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             string? delta = this.safeString(message, "d");
-            if (((code != null)) && (inOp((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), code)))
+            if (((accountType != null)) && ((code != null)) && (inOp((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), code)))
             {
                 object previousValue = getValue(getValue((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), code), "free");
                 if (!(previousValue is string))
@@ -4258,7 +4258,7 @@ public partial class binance : ccxt.binance
             {
                 account["free"] = delta;
             }
-            if ((code != null))
+            if (((accountType != null)) && ((code != null)))
             {
                 ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))[(string)code] = account;
             }
@@ -4278,7 +4278,7 @@ public partial class binance : ccxt.binance
                 account["free"] = this.safeString(entry, "f");
                 account["used"] = this.safeString(entry, "l");
                 account["total"] = this.safeString(entry, wallet);
-                if ((code != null))
+                if (((accountType != null)) && ((code != null)))
                 {
                     ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))[(string)code] = account;
                 }
@@ -4306,7 +4306,7 @@ public partial class binance : ccxt.binance
         return accountType;
     }
 
-    public virtual List<object> resolveAuthType(string methodName, IDictionary<string, object>? market = null, object parameters = null)
+    public virtual List<object> resolveAuthType(string methodName, IDictionary<string, object> market = null, object parameters = null)
     {
         // the single home for user-data type derivation: market type, subType,
         // and the guarded linear/inverse rewrite. option and stock must keep
@@ -5859,7 +5859,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null, object isPortfolioMargin = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null, object isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
         if ((type is "spot"))
@@ -5991,7 +5991,7 @@ public partial class binance : ccxt.binance
         client.resolve(newPositions, add(accountType, ":positions"));
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -6051,7 +6051,7 @@ public partial class binance : ccxt.binance
         });
     }
 
-    public virtual Dictionary<string, object> parseWsOptionsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsOptionsPosition(object position, IDictionary<string, object> market = null)
     {
         //
         //  from BALANCE_POSITION_UPDATE event P[] array:
@@ -6392,10 +6392,10 @@ public partial class binance : ccxt.binance
                             bool insertNewFeeCurrency = true;
                             for (int i = 0; i < fees.Count; i++)
                             {
-                                IDictionary<string, object> orderFee = ((IDictionary<string, object>)fees[i]);
+                                object orderFee = fees[i];
                                 if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
                                 {
-                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), (orderFee != null && orderFee.ContainsKey("cost") ? orderFee["cost"] : null));
+                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), getValue(orderFee, "cost"));
                                     string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
                                     if ((feeCostString == null))
                                     {

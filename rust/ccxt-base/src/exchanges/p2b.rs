@@ -1184,12 +1184,12 @@ impl P2bCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1036: bool = true;
             while { if !__for_first_1036 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1036 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut currencyId: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut currencyId: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(response.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut used: Value = self.safe_string_k(balance.clone(), "freeze", &[]);
@@ -1294,10 +1294,10 @@ impl P2bCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("orderId".to_string(), id);
             m
         });
@@ -1672,12 +1672,12 @@ impl P2bCore {
     m
 })]);
         let mut orders: Value = Value::from(vec![]);
-        let mut keys: Vec<Value> = Value::Array(result.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = Value::Array(result.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1037: bool = true;
             while { if !__for_first_1037 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1037 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut marketId: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut marketId: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketOrders: Value = result.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: Value = self.parse_orders(marketOrders, &[market.clone(), sinceResolved.clone(), limit.clone()]);
             orders = self.array_concat(orders.clone(), parsedOrders);
@@ -1792,7 +1792,7 @@ impl P2bCore {
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
             add_element_to_object(&mut paramsOmitted, &Value::Str("nonce".into()), Value::Str(format!("{}", self.incrementing_nonce()).into()));
             let mut payload: Value = self.string_to_base64(json_stringify(&paramsOmitted), &[]); // Body json encoded in base64
-            let mut headersSigned: indexmap::IndexMap<String, Value> = ({
+            let mut headersSigned: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-TXC-APIKEY".to_string(), self.apiKey.clone());
@@ -1806,7 +1806,7 @@ impl P2bCore {
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyJson);
-        m.insert("headers".to_string(), Value::Map(headersSigned));
+        m.insert("headers".to_string(), headersSigned);
     m
 });
         }

@@ -893,12 +893,12 @@ impl BitbnsCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut keys: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_333: bool = true;
             while { if !__for_first_333 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_333 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parts: Value = Value::Array(key.as_str().map(|__s| __s.split("availableorder").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut numParts: f64 = ((parts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
@@ -1074,7 +1074,7 @@ impl BitbnsCore {
         let mut trailRate: Value = self.safe_string_k(params.clone(), "trail_rate", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("trail_rate".into()), Value::Str("target_rate".into()), Value::Str("t_rate".into())]), &[]);
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("uppercaseId")).cloned().unwrap_or(Value::Null));
@@ -1082,25 +1082,25 @@ impl BitbnsCore {
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("rate".into(), self.price_to_precision(symbol.clone(), price));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("rate".into(), self.price_to_precision(symbol.clone(), price)); }
         }  else {
-            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
         if (triggerPrice != Value::Null) {
-            request.insert("t_rate".into(), self.price_to_precision(symbol.clone(), triggerPrice));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("t_rate".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
         }
         if (targetRate != Value::Null) {
-            request.insert("target_rate".into(), self.price_to_precision(symbol.clone(), targetRate));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("target_rate".into(), self.price_to_precision(symbol.clone(), targetRate)); }
         }
         if (trailRate != Value::Null) {
-            request.insert("trail_rate".into(), self.price_to_precision(symbol, trailRate));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trail_rate".into(), self.price_to_precision(symbol, trailRate)); }
         }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("limit")) {
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_1 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.v2_post_orders(&[__ws_arg_1]).await;
         }  else {
-            let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_2 = self.extend(request, &[paramsOmitted]);
             response = self.v1_post_place_market_order_qnty_symbol(&[__ws_arg_2]).await;
         }
         //
@@ -1745,10 +1745,10 @@ impl BitbnsCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: Value = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);

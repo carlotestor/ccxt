@@ -238,7 +238,7 @@ export default class dydx extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    estimateTxFee(message: Dict, memo: Str, account: Dict): Promise<Dict>;
+    estimateTxFee(message: any, memo: Str, account: any): Promise<Dict>;
     /**
      * @method
      * @name dydx#transfer

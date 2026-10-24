@@ -1541,9 +1541,9 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any]
 		}
 		// Extract trading limits
 		var limits map[string]any = SafeMapTyped(market, "limits")
-		var amountLimits map[string]any = SafeMapTyped(limits, "amount")
-		var priceLimits map[string]any = SafeMapTyped(limits, "price")
-		var costLimits map[string]any = SafeMapTyped(limits, "cost")
+		var amountLimits any = this.SafeDict(limits, "amount")
+		var priceLimits any = this.SafeDict(limits, "price")
+		var costLimits any = this.SafeDict(limits, "cost")
 		// Validate that all required limits exist and are valid numbers
 		var hasAmountLimits bool = (amountLimits != nil) && (this.SafeNumber(amountLimits, "min") != nil) && (this.SafeNumber(amountLimits, "max") != nil)
 		var hasPriceLimits bool = (priceLimits != nil) && (this.SafeNumber(priceLimits, "min") != nil) && (this.SafeNumber(priceLimits, "max") != nil)
@@ -1706,8 +1706,8 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 		}
 		// Add fee information if available
 		if feeData != nil {
-			var depositFee map[string]any = SafeMapTyped(feeData, "deposit")
-			var withdrawFee map[string]any = SafeMapTyped(feeData, "withdraw")
+			var depositFee any = this.SafeDict(feeData, "deposit")
+			var withdrawFee any = this.SafeDict(feeData, "withdraw")
 			if depositFee != nil {
 				var depositFeeData map[string]any = map[string]any{
 					"fixed": this.SafeNumber(depositFee, "fixed"),
@@ -5137,7 +5137,7 @@ func (this *Whitebit) ParseFundingHistory(contract map[string]any, optionalArgs 
 		"amount":    this.SafeNumber(contract, "fundingAmount"),
 	}
 }
-func (this *Whitebit) ParseFundingHistories(contracts []any, optionalArgs ...any) []any {
+func (this *Whitebit) ParseFundingHistories(contracts any, optionalArgs ...any) []any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -5145,7 +5145,7 @@ func (this *Whitebit) ParseFundingHistories(contracts []any, optionalArgs ...any
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var result []any = []any{}
-	for i := 0; i < len(contracts); i++ {
+	for i := 0; i < GetArrayLength(contracts); i++ {
 		var contract map[string]any = SafeMapTyped(contracts, i)
 		result = append(result, this.ParseFundingHistory(contract, market))
 	}
@@ -5248,7 +5248,7 @@ func (this *Whitebit) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	//        "total": 300                                                                                    // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//    }
 	//
-	var records []any = SafeListTyped(response, "records")
+	var records any = this.SafeList(response, "records")
 	var recordsList []any = []any{}
 	if records != nil {
 		recordsList = ArrayTyped(records)

@@ -1770,7 +1770,7 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 func (this *Modetrade) HandleErrorMessage(client any, message any) any {

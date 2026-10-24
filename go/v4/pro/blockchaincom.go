@@ -159,7 +159,7 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	var messageHash string = "balance"
-	this.WsBalanceReplace(this.SafeBalance(result))
+	this.Balance = this.SafeBalance(result)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 
@@ -905,9 +905,9 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
 		this.Orderbooks[*symbol] = this.CountedOrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface
+	var orderbook any
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol]
 	}
 	if event != nil && *event == "snapshot" {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
@@ -915,8 +915,8 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	} else if event != nil && *event == "updated" {
 		var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
-		this.HandleDeltas(orderbook.GetAsks(), asks)
-		this.HandleDeltas(orderbook.GetBids(), bids)
+		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
+		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", datetime)
 	} else {

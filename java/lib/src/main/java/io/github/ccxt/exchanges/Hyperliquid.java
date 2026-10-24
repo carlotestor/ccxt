@@ -1615,7 +1615,7 @@ public class Hyperliquid extends HyperliquidApi
         Double markPx = this.safeNumber(info, "markPx", (Object) null);
         Double oraclePx = this.safeNumber(info, "oraclePx", (Object) null);
         Long currentHour = this.parseToInt((((double) (((double) (((double) this.milliseconds()) / ((double) 60))) / ((double) 60))) / ((double) 1000)));
-        Object fundingTimestamp = (((((currentHour + 1L)) * 60L) * 60L) * 1000L);
+        Object fundingTimestamp = ((((currentHour + 1L) * 60L) * 60L) * 1000L);
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );

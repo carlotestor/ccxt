@@ -1012,7 +1012,7 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 	result["timestamp"] = latestTimestamp
 	result["datetime"] = this.Iso8601(latestTimestamp)
 	result["nonce"] = nonce
-	return result
+	return MapTyped(result)
 }
 
 /**

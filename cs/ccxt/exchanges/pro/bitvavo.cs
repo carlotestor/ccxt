@@ -240,7 +240,7 @@ public partial class bitvavo : ccxt.bitvavo
         client.resolve(result, eventVar);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, "-");

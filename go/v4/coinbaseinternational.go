@@ -1374,7 +1374,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan AsyncResu
 func (this *Coinbaseinternational) ParseFundingRateHistory(info any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var fundingRate map[string]any = FundingRateToMap(this.ParseFundingRate(info, market))
+	var fundingRate map[string]any = MapTyped(FundingRateToMap(this.ParseFundingRate(info, market)))
 	return map[string]any{
 		"info":        info,
 		"symbol":      fundingRate["symbol"],
@@ -2832,12 +2832,12 @@ func (this *Coinbaseinternational) ParseTransaction(transaction any, optionalArg
  * @param {float} amount unified order quantity
  * @returns {string} precision-formatted exchange order amount
  */
-func (this *Coinbaseinternational) GetOrderAmount(market map[string]any, amount any) *string {
+func (this *Coinbaseinternational) GetOrderAmount(market any, amount any) *string {
 	var exchangeAmount *string = this.NumberToString(amount)
-	if this.IsNativeDeribitCredentials() && (market["contract"] == true) {
+	if this.IsNativeDeribitCredentials() && (GetValue(market, "contract") == true) {
 		exchangeAmount = Precise.StringMul(exchangeAmount, this.SafeString(market, "contractSize"))
 	}
-	return this.AmountToPrecision(market["symbol"], exchangeAmount)
+	return this.AmountToPrecision(GetValue(market, "symbol"), exchangeAmount)
 }
 
 /**

@@ -211,8 +211,8 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         object request = this.createOrdersRequest(orders, parameters);
-        IDictionary<string, object> firstOrder = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
-        Dictionary<string, object> market = this.market((firstOrder != null && firstOrder.ContainsKey("symbol") ? firstOrder["symbol"] : null));
+        object firstOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
+        Dictionary<string, object> market = this.market(getValue(firstOrder, "symbol"));
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new NotSupported ((this.id + " createOrdersWs is not supported for swap markets")) ;
@@ -1673,7 +1673,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null)
     {
         if ((this.positions == null))
         {
@@ -2153,7 +2153,7 @@ public partial class gate : ccxt.gate
         client.resolve(newLiquidations, "myLiquidations");
     }
 
-    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         // future / delivery

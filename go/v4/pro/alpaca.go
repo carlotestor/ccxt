@@ -374,9 +374,9 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook ccxt.OrderBookInterface
+	var orderbook any
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol]
 	}
 	if isSnapshot != nil && *isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
@@ -384,13 +384,13 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(message, "a", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})
-		this.HandleDeltas(orderbook.GetAsks(), asks)
-		this.HandleDeltas(orderbook.GetBids(), bids)
+		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
+		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", datetime)
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Alpaca) HandleDelta(bookside any, delta any) {

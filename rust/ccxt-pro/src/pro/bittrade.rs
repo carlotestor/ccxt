@@ -474,7 +474,7 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut data: Vec<Value> = self.safe_list_k(tick, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Value = self.safe_list_k(tick, "data", &[Value::from(vec![])]);
         let mut ch: Value = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (ch == Value::Null) {
             return message;
@@ -493,7 +493,7 @@ impl BittradeCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_144: bool = true;
             while { if !__for_first_144 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_144 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut trade: Value = self.parse_trade(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let mut trade: Value = self.parse_trade(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             tradesCache.append(trade);
         }
         }
@@ -716,7 +716,6 @@ impl BittradeCore {
 }
 
     pub async fn watch_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut subscription: Value) -> Value {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut messageHash: Value = self.safe_string_k(subscription.clone(), "messageHash", &[]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
@@ -752,7 +751,7 @@ impl BittradeCore {
             return orderbook.limit();
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-            remove(&mut __ch.subscriptions, &messageHash);
+            remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             client.reject(&[e, messageHash]);
          } }
         return Value::Null;
@@ -767,13 +766,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_146: bool = true;
             while { if !__for_first_146 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_146 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.handle_delta(bookside.clone(), deltas.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -891,7 +888,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -906,7 +902,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (id == Value::Null) {
             return message;
         }
-        let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
+        let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
         let mut subscription: Value = self.safe_dict(subscriptionsById, id.clone(), &[]);
         if (subscription != Value::Null) {
             let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
@@ -914,8 +910,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
             }
             // clean up
-            if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &id);
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
             }
         }
         return message;
@@ -995,7 +991,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1013,7 +1008,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (id == Value::Null) {
                 return Value::Bool(false);
             }
-            let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
+            let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
             let mut subscription: Value = self.safe_dict(subscriptionsById, id.clone(), &[]);
             if (subscription != Value::Null) {
                 let mut errorCode: Value = (match __pro_message.get("err-code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
@@ -1028,8 +1023,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = self.safe_string_k(subscription, "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash]);
                     client.reject(&[e, id.clone()]);
-                    if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut __ch.subscriptions, &id);
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
                     }
                 }
             }

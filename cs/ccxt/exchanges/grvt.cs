@@ -822,10 +822,7 @@ public partial class grvt : Exchange
         {
             return ((bool?)((object)(true)));  // skip if builder fee is already approved
         }
-        var hxauTask33794_0 = this.privateTradingPostFullV1GetAuthorizedBuilders();
-        var hxauTask33794_1 = this.loadAccountInfos();
-        await Task.WhenAll(hxauTask33794_0, hxauTask33794_1);
-        List<object> results = new List<object> { hxauTask33794_0.Result, hxauTask33794_1.Result };
+        List<object> results = await promiseAll(new List<object> {this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()});
         //
         // {
         //     "results": [{
@@ -2613,8 +2610,8 @@ public partial class grvt : Exchange
         List<object> legs = new List<object>() {};
         for (int i = 0; i < orderLegs.Count; i++)
         {
-            IDictionary<string, object> leg = ((IDictionary<string, object>)orderLegs[i]);
-            Dictionary<string, object> market = this.market((leg != null && leg.ContainsKey("instrument") ? leg["instrument"] : null));
+            object leg = orderLegs[i];
+            Dictionary<string, object> market = this.market(getValue(leg, "instrument"));
             int precisionValue = this.precisionFromString(this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "base"));
             double sizeMultiplier = Math.Pow(Convert.ToDouble(10), Convert.ToDouble(precisionValue));
             string? size = this.safeString(leg, "size");
@@ -2631,7 +2628,7 @@ public partial class grvt : Exchange
             Dictionary<string, object> legOrder = new Dictionary<string, object>() {
                 { "assetID", getValue((market.ContainsKey("info") ? market["info"] : null), "instrument_hash") },
                 { "contractSize", this.parseToInt(sizeInteger) },
-                { "isBuyingContract", (leg != null && leg.ContainsKey("is_buying_asset") ? leg["is_buying_asset"] : null) },
+                { "isBuyingContract", getValue(leg, "is_buying_asset") },
             };
             string? limitPrice = this.safeString(leg, "limit_price");
             if (((limitPrice != null)) && (!(this.omitZero(limitPrice) == null)))

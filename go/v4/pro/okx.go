@@ -2636,7 +2636,7 @@ func (this *Okx) HandleBalance(client any, message map[string]any) {
 	var channel *string = this.SafeString(arg, "channel")
 	var balance map[string]any = this.ParseTradingBalance(message)
 	var newBalance map[string]any = this.DeepExtend(this.Balance, balance)
-	this.WsBalanceReplace(this.SafeBalance(newBalance))
+	this.Balance = this.SafeBalance(newBalance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, channel)
 }
 func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
@@ -2947,7 +2947,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
 		if ccxt.IsEqual(position["contracts"], 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
 			position["side"] = "long"
 			var shortPosition any = this.Clone(position)

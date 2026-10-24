@@ -356,7 +356,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(result, topic);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
     {
         // protobuf ticker
         // "bidPrice": "93387.28",  // Best bid price
@@ -503,7 +503,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> data = this.safeDict(ticker, "d");
         string? marketId = this.safeString(ticker, "s");

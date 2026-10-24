@@ -1426,7 +1426,7 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 	}
 	var cache any = this.Positions
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var position map[string]any = ccxt.PositionToMap(this.ParsePosition(data))
+	var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(data)))
 	cache.(ccxt.Appender).Append(position)
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "position::contract"))
 	for i := 0; i < len(messageHashes); i++ {
@@ -1866,9 +1866,9 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 			}
 		}
-		var orderbook ccxt.OrderBookInterface
+		var orderbook any
 		if symbol != nil {
-			orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+			orderbook = this.Orderbooks[*symbol]
 		}
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		if nonce == nil {
@@ -1881,7 +1881,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			return
 		}
 		if obAsks != nil {
-			var asks any = orderbook.GetAsks()
+			var asks any = ccxt.GetValue(orderbook, "asks")
 			for i := 0; i < len(obAsks); i++ {
 				var ask []any = ccxt.SafeListTyped(obAsks, i)
 				var price *float64 = this.SafeNumber(ask, 0)
@@ -1890,7 +1890,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			}
 		}
 		if obBids != nil {
-			var bids any = orderbook.GetBids()
+			var bids any = ccxt.GetValue(orderbook, "bids")
 			for i := 0; i < len(obBids); i++ {
 				var bid []any = ccxt.SafeListTyped(obBids, i)
 				var price *float64 = this.SafeNumber(bid, 0)
@@ -2155,9 +2155,9 @@ func (this *Xt) HandleBalance(client any, message map[string]any) {
 	account["used"] = this.SafeString(data, "f")
 	account["total"] = this.SafeString2(data, "b", "walletBalance")
 	if code != nil {
-		this.Balance[*code] = account
+		ccxt.AddElementToObject(this.Balance, code, account)
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 	var tradeType string = "spot"
 	if _, ok := data["coin"]; ok {
 		tradeType = "contract"

@@ -1828,9 +1828,9 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	if IsArray(response) {
 		data = ArrayTyped(response)
 	} else {
-		var dataList []any = SafeListTyped(response, "data")
+		var dataList any = this.SafeList(response, "data")
 		if dataList != nil {
-			data = dataList
+			data = ArrayTyped(dataList)
 		} else {
 			var dataDict map[string]any = SafeMapTyped(response, "data")
 			data = ArrayTyped(this.SafeList(dataDict, "list", []any{}))
@@ -2233,7 +2233,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		request["side"] = 1
 	}
 	if clientOrderId == nil {
-		var broker map[string]any = SafeMapTyped(this.Options, "broker")
+		var broker any = this.SafeDict(this.Options, "broker")
 		if broker != nil {
 			var brokerId *string = this.SafeString(broker, "marketType")
 			if brokerId != nil {
@@ -3459,13 +3459,13 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 func (this *Tokocrypto) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if _, ok := config["noCoin"]; ok && !(InOp(params, "coin")) {
+	if (func() bool { _, ok := config["noCoin"]; return ok }()) && !(InOp(params, "coin")) {
 		return GetValue(config, "noCoin")
-	} else if _, ok := config["noSymbol"]; ok && !(InOp(params, "symbol")) {
+	} else if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if _, ok := config["noPoolId"]; ok && !(InOp(params, "poolId")) {
+	} else if (func() bool { _, ok := config["noPoolId"]; return ok }()) && !(InOp(params, "poolId")) {
 		return GetValue(config, "noPoolId")
-	} else if _, ok := config["byLimit"]; ok && (InOp(params, "limit")) {
+	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
 		var limit *int64 = this.SafeInteger(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {

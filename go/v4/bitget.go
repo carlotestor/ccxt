@@ -3822,7 +3822,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var types []any = nil
-	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
 	if fetchMarketsOptions != nil {
 		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultMarkets))

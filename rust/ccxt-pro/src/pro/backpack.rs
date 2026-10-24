@@ -374,9 +374,9 @@ impl BackpackCore {
  * @returns {object} local parameters with the validated stock selector
  */
     pub async fn prepare_ws_stock_params(&mut self, mut methodName: Value, mut params: Value) -> Value {
-        let stockqueryVariable: Vec<Value> = self.handle_option_bool_and_params(params, methodName, Value::Str("stock".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockqueryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut query: Value = stockqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut stockqueryVariable = self.handle_option_bool_and_params(params, methodName, Value::Str("stock".into()), &[]);
+        let mut stock: Value = stockqueryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut query: Value = stockqueryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -447,7 +447,6 @@ impl BackpackCore {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut kind: Value = (if (bidAsk).as_bool() == Some(true) { Value::Str("bidask".into()) } else { Value::Str("ticker".into()) });
         {
                         let mut i: Value = Value::Int(0);
@@ -506,7 +505,7 @@ impl BackpackCore {
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", kind, Value::Str(":".into())).into()), symbol).into()), Value::Str("@".into())).into()), topic).into());
             let mut subscriptionKey: Value = Value::Str(format!("{}{}", Value::Str("marketData:".into()), topic).into());
-            let mut subscriptions: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionKey.clone(), &[Value::Map({
+            let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionKey.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -527,8 +526,8 @@ impl BackpackCore {
 }));
                 messageHashes.push(messageHash.clone());
             }
-            add_element_to_object(&mut __ch.subscriptions, &subscriptionKey, subscriptions.clone());
-            let mut subscriptionHashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionKey, subscriptions.clone());
+            let mut subscriptionHashes: Value = object_keys(&subscriptions);
             let mut subscriptionsLength: f64 = ((subscriptionHashes.len() as i64) as f64);
             if !unwatch || (subscriptionsLength == 0.0) {
                 if !(self.in_array(topic.clone(), topics.clone()).as_bool() == Some(true)) {
@@ -812,7 +811,6 @@ impl BackpackCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -837,17 +835,17 @@ impl BackpackCore {
     m
 }) });
         let mut stream: Value = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut subscriptions: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("marketData:".into()), stream).into()), &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("marketData:".into()), stream).into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let mut hashes: Value = object_keys(&subscriptions);
         let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_42: bool = true;
             while { if !__for_first_42 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_42 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
-            let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut messageHash: Value = hashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut subscription: Value = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -941,7 +939,6 @@ impl BackpackCore {
  * @returns {boolean} whether a subscription was updated
  */
     pub fn handle_stock_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
@@ -949,17 +946,17 @@ impl BackpackCore {
     m
 }) });
         let mut stream: Value = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut subscriptions: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("marketData:".into()), stream).into()), &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("marketData:".into()), stream).into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let mut hashes: Value = object_keys(&subscriptions);
         let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_43: bool = true;
             while { if !__for_first_43 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_43 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
-            let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut messageHash: Value = hashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut subscription: Value = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1042,7 +1039,6 @@ impl BackpackCore {
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1065,17 +1061,17 @@ impl BackpackCore {
     m
 }) });
         let mut stream: Value = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut subscriptions: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("marketData:".into()), stream).into()), &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("marketData:".into()), stream).into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let mut hashes: Value = object_keys(&subscriptions);
         let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_44: bool = true;
             while { if !__for_first_44 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_44 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
-            let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut messageHash: Value = hashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut subscription: Value = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1808,13 +1804,11 @@ impl BackpackCore {
 }
 
     pub fn handle_bid_asks(&self, mut bookSide: Value, mut bidAsks: Value) {
-        let __bidAsks_empty = Vec::new();
-        let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_51: bool = true;
             while { if !__for_first_51 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_51 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidAsks.len() as i64) as f64) } {
-            let mut bidAsk: Value = self.parse_order_book_bid_ask(bidAsks.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), &[]);
+            let mut bidAsk: Value = self.parse_order_book_bid_ask(bidAsks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             bookSide.store_array(bidAsk);
         }
         }

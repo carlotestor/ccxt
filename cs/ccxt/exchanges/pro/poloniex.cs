@@ -1067,9 +1067,9 @@ public partial class poloniex : ccxt.poloniex
                     object previousOrderTrades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
                     for (int j = 0; j < getArrayLength(previousOrderTrades); j++)
                     {
-                        IDictionary<string, object> previousOrderTrade = ((IDictionary<string, object>)getValue(previousOrderTrades, j));
-                        string? cost = this.numberToString((previousOrderTrade != null && previousOrderTrade.ContainsKey("cost") ? previousOrderTrade["cost"] : null));
-                        string? amount = this.numberToString((previousOrderTrade != null && previousOrderTrade.ContainsKey("amount") ? previousOrderTrade["amount"] : null));
+                        object previousOrderTrade = getValue(previousOrderTrades, j);
+                        string? cost = this.numberToString(getValue(previousOrderTrade, "cost"));
+                        string? amount = this.numberToString(getValue(previousOrderTrade, "amount"));
                         totalCost = Precise.stringAdd(totalCost, cost);
                         totalAmount = Precise.stringAdd(totalAmount, amount);
                     }

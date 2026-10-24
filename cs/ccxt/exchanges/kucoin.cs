@@ -7255,7 +7255,7 @@ public partial class kucoin : Exchange
         }
     }
 
-    public virtual object parseContractOrder(object order, IDictionary<string, object>? market = null)
+    public virtual object parseContractOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrder, fetchOrdersByStatus
@@ -7395,7 +7395,7 @@ public partial class kucoin : Exchange
         }, marketResolved));
     }
 
-    public virtual object parseSpotOrder(object order, IDictionary<string, object>? market = null)
+    public virtual object parseSpotOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -8294,7 +8294,7 @@ public partial class kucoin : Exchange
         }
     }
 
-    public virtual object parseSpotOrUtaTrade(object trade, IDictionary<string, object>? market = null)
+    public virtual object parseSpotOrUtaTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)
@@ -8442,7 +8442,7 @@ public partial class kucoin : Exchange
         }, marketResolved));
     }
 
-    public virtual object parseContractTrade(object trade, IDictionary<string, object>? market = null)
+    public virtual object parseContractTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)
@@ -11214,7 +11214,7 @@ public partial class kucoin : Exchange
         return this.parseMarginLoan(data, currency);
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, IDictionary<string, object>? currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, Dictionary<string, object> currency = null)
     {
         //
         //     {

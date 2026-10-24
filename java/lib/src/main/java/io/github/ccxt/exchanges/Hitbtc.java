@@ -4291,7 +4291,7 @@ public class Hitbtc extends HitbtcApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if (java.util.Objects.equals(parameters.get("margin_balance"), null))
+            if (java.util.Objects.equals(((Map<String, Object>)parameters).get("margin_balance"), null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")) ;
             }

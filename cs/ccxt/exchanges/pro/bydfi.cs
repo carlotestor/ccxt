@@ -931,7 +931,7 @@ public partial class bydfi : ccxt.bydfi
         client.resolve(new List<object>() {parsedPosition}, symbolMessageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {

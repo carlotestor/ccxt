@@ -791,11 +791,11 @@ impl HashkeyCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "O", &[]);
         let mut side: Value = self.safe_string_lower_k(order.clone(), "S", &[]);
         let mut reduceOnly: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.parent.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.parent.parse_order_side_and_reduce_only(side.clone()); side = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut type_var: Value = self.parent.parse_order_type(self.safe_string_k(order.clone(), "o", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "f", &[]);
         let mut postOnly: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.clone(), timeInForce.clone()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.parent.parse_order_type_time_in_force_and_post_only(type_var.clone(), timeInForce.clone()); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null); }
         if (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             type_var = Value::Null;
         }
@@ -1134,15 +1134,14 @@ impl HashkeyCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subscribeHash: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        if (matches!((&__ch.subscriptions.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut snapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(true)]);
         if snapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), Value::Str("fetchBalanceSnapshot".into())).into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -1154,7 +1153,6 @@ impl HashkeyCore {
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut response: Value = self.fetch_balance(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
@@ -1166,8 +1164,8 @@ impl HashkeyCore {
 })]);
         { let __be_tmp = self.extend(response, &[__ws_arg_1]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into())]);
         }
@@ -1244,8 +1242,7 @@ impl HashkeyCore {
         // the client's own accessors
         let mut messageHash: Value = Value::Str("authenticateFlight".into());
         let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;

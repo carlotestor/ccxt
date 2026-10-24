@@ -1686,7 +1686,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //   }
         //
         List<Object> result = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
-        this.balance.put("info", result);
+        Helpers.addElementToObject(this.balance, "info", result);
         for (var i = 0; i < ((List<?>)result).size(); i++)
         {
             Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(result, i, (Object) null);
@@ -1694,8 +1694,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Long timestamp = (Long) this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
-            this.balance.put("timestamp", timestamp);
-            this.balance.put("datetime", this.iso8601(timestamp));
+            Helpers.addElementToObject(this.balance, "timestamp", timestamp);
+            Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
             account.put("used", this.safeString(rawBalance, "freeze"));
             account.put("free", this.safeString(rawBalance, "available"));
             account.put("total", this.safeString2(rawBalance, "total", "balance"));

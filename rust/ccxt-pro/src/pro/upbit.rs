@@ -301,10 +301,9 @@ impl UpbitCore {
             m
         }));
         let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subscriptionsKey: Value = Value::Str("upbitPublicSubscriptions".into());
-        if !(matches!((&__ch.subscriptions.clone(), &subscriptionsKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            add_element_to_object(&mut __ch.subscriptions, &subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
         }
         let mut subscriptions: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey);
         let mut messageHashes: Value = Value::from(vec![]);
@@ -331,12 +330,12 @@ impl UpbitCore {
         m.insert("ticket".to_string(), self.uuid(&[]));
     m
 })];
-        let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let mut channelKeys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_654: bool = true;
             while { if !__for_first_654 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_654 = false; i.as_f64().unwrap_or(f64::NAN) < ((channelKeys.len() as i64) as f64) } {
-            let mut key: Value = channelKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = channelKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             finalMessage.push(get_value(&subscriptions, &key));
         }
         }
@@ -739,11 +738,10 @@ impl UpbitCore {
         }));
         url = Value::Str(format!("{}{}", url, Value::Str("/private".into())).into());
         let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         // Track private channel subscriptions to support multiple concurrent watches
         let mut subscriptionsKey: Value = Value::Str("upbitPrivateSubscriptions".into());
-        if !(matches!((&__ch.subscriptions.clone(), &subscriptionsKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            add_element_to_object(&mut __ch.subscriptions, &subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
+        if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
         }
         let mut channelKey: Value = channel.clone();
         if (symbolResolved != Value::Null) {
@@ -757,12 +755,12 @@ impl UpbitCore {
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
         let mut requests: Vec<Value> = Vec::new();
-        let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let mut channelKeys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_656: bool = true;
             while { if !__for_first_656 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_656 = false; i.as_f64().unwrap_or(f64::NAN) < ((channelKeys.len() as i64) as f64) } {
-            requests.push(get_value(&subscriptions, &channelKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)));
+            requests.push(get_value(&subscriptions, &channelKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
         }
         let mut message: Vec<Value> = vec![Value::Map({

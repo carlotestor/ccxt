@@ -1173,14 +1173,14 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	var symbol *string = this.SafeSymbol(marketId)
 	var channel string = "book"
 	var messageHash any = ccxt.Add(channel+":", marketId)
-	var book map[string]any = ccxt.SafeMapTyped(this.Orderbooks, symbol)
+	var book any = this.SafeDict(this.Orderbooks, symbol)
 	if book == nil {
 		return
 	}
 	var depth int = 25 // covers the first 25 bids and asks
 	var stringArray []any = []any{}
-	var bids any = book["bids"]
-	var asks any = book["asks"]
+	var bids any = ccxt.GetValue(book, "bids")
+	var asks any = ccxt.GetValue(book, "asks")
 	var prec *string = this.SafeString(subscription, "prec", "P0")
 	var isRaw bool = (prec != nil && *prec == "R0")
 	var idToCheck int = func() int {
@@ -1191,8 +1191,8 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	}()
 	// pepperoni pizza from bitfinex
 	for i := 0; i < depth; i++ {
-		var bid []any = ccxt.SafeListTyped(bids, i)
-		var ask []any = ccxt.SafeListTyped(asks, i)
+		var bid any = this.SafeList(bids, i)
+		var ask any = this.SafeList(asks, i)
 		if bid != nil {
 			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), idToCheck)))
 			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), 1)))
@@ -1363,7 +1363,7 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 	for i := 0; i < len(updatesKeys); i++ {
 		var typeVar string = updatesKeys[i]
 		var messageHash string = "balance:" + typeVar
-		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 	}
 }
 func (this *Bitfinex) ParseWsBalance(balance any) any {

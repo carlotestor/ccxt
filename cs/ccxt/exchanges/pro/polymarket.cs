@@ -82,7 +82,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    public virtual object sendSubscription(object action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
+    public virtual object sendSubscription(object action, object channels, object messageHashes, object subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, object checkHashes = null)
     {
         context ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -976,7 +976,7 @@ public partial class polymarket : ccxt.polymarket
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
     {
         if ((this.positions != null))
         {

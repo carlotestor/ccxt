@@ -346,7 +346,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         return this.parseTicker(ticker, market);
     }
@@ -414,7 +414,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
@@ -742,7 +742,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
     {
         return this.parsePosition(position, market);
     }

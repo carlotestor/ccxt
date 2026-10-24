@@ -833,7 +833,7 @@ public Object describe()
         {
             return;
         }
-        List<Object> marketKeys = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
+        List<Object> marketKeys = ((List<Object>) switch ((Object)(this.markets)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
         {
             this.indexMarketOutcomes((this.markets == null ? null : ((Map<?, ?>)this.markets).get((marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)))));

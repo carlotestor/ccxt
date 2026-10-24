@@ -1995,7 +1995,7 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) *string {
 func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var market map[string]any = this.Market(symbol)
 	var priceStr *string = this.NumberToString(price)
-	var integerPart *string = SafeStringPtr(GetValue(strings.Split(*priceStr, "."), 0))
+	var integerPart *string = SafeStringPtr(GetValue(Split(priceStr, "."), 0))
 	var significantDigits any = mathMax(5, len(*integerPart))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals int = 6
@@ -7093,7 +7093,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 func (this *Hyperliquid) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if _, ok := config["byType"]; ok && (InOp(params, "type")) {
+	if (func() bool { _, ok := config["byType"]; return ok }()) && (InOp(params, "type")) {
 		var typeVar any = GetValue(params, "type")
 		var byType map[string]any = SafeMapTyped(config, "byType")
 		if InOp(byType, typeVar) {

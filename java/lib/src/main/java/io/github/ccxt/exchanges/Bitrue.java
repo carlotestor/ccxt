@@ -3721,7 +3721,7 @@ public class Bitrue extends BitrueApi
                     url = (url + ("?" + this.urlencode(paramsOmitted)));
                 } else
                 {
-                    Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
+                    Object query = this.extend(new HashMap<String, Object>() {{
                         put( "recvWindow", recvWindow );
                     }}, paramsOmitted);
                     requestBody = this.json(query);

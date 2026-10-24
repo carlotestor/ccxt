@@ -1303,7 +1303,7 @@ func (this *Woofipro) HandleOrder(client any, message any, topic any) {
 		}
 		var cachedOrders any = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
-		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
+		var order any = this.SafeDict(orders, orderId)
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {
@@ -1745,7 +1745,7 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 func (this *Woofipro) HandleErrorMessage(client any, message any) any {

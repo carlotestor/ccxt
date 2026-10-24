@@ -418,7 +418,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         client.resolve(newPositions, "positions");
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
     {
         //
         //        {
@@ -889,9 +889,9 @@ public partial class krakenfutures : ccxt.krakenfutures
                 object trades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
                 for (int i = 0; i < getArrayLength(trades); i++)
                 {
-                    IDictionary<string, object> currentTrade = ((IDictionary<string, object>)getValue(trades, i));
-                    totalCost = Precise.stringAdd(totalCost, this.numberToString((currentTrade != null && currentTrade.ContainsKey("cost") ? currentTrade["cost"] : null)));
-                    totalAmount = Precise.stringAdd(totalAmount, this.numberToString((currentTrade != null && currentTrade.ContainsKey("amount") ? currentTrade["amount"] : null)));
+                    object currentTrade = getValue(trades, i);
+                    totalCost = Precise.stringAdd(totalCost, this.numberToString(getValue(currentTrade, "cost")));
+                    totalAmount = Precise.stringAdd(totalAmount, this.numberToString(getValue(currentTrade, "amount")));
                 }
                 if (Precise.stringGt(totalAmount, "0"))
                 {
@@ -1261,7 +1261,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         //
         //    {
@@ -1779,7 +1779,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         client.resolve(stored, "myTrades");
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         //    {

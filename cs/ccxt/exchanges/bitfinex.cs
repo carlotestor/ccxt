@@ -1109,12 +1109,12 @@ public partial class bitfinex : Exchange
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(ids, indexed, indexedNetworks))));
     }
 
-    public virtual Dictionary<string, object> parseCurrenciesCustom(IList<object> ids, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
+    public virtual Dictionary<string, object> parseCurrenciesCustom(object ids, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
     {
         List<object> allowedIds = new List<object>() {};
-        for (int i = 0; i < (ids?.Count ?? 0); i++)
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
-            object id = (ids != null && i < ids.Count ? ids[i] : null);
+            object id = getValue(ids, i);
             if (((string)id).EndsWith("F0"))
             {
                 continue;

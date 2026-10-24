@@ -2445,12 +2445,12 @@ func (this *Bingx) HandleBalance(client any, message any) {
 	if isSpot {
 		typeVar = "spot"
 	}
-	if _, ok := this.Balance[typeVar]; !ok {
-		this.Balance[typeVar] = map[string]any{}
+	if !(ccxt.InOp(this.Balance, typeVar)) {
+		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
-	ccxt.AddElementToObject(this.Balance[typeVar], "info", data)
-	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", data)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "a")
@@ -2460,11 +2460,11 @@ func (this *Bingx) HandleBalance(client any, message any) {
 		account["used"] = this.SafeString(balance, "lk")
 		account["free"] = this.SafeString(balance, "wb")
 		if code != nil {
-			this.WsBalanceEntryForWrite(typeVar)[*code] = account
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}
 	}
-	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
-	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
+	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
+	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":balance")
 }
 func (this *Bingx) HandleMessage(client any, message any) {
 	// plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them

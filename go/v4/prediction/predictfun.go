@@ -4304,7 +4304,11 @@ func (this *Predictfun) SocketUrl() any {
  * @returns {int} the next request id
  */
 func (this *Predictfun) RequestId() int64 {
-	var next int64 = this.NextRequestId("requestId")
+	this.LockId()
+	var previous *int64 = this.SafeInteger(this.Options, "requestId", 0)
+	var next int64 = this.Sum(previous, 1).(int64)
+	this.Options["requestId"] = next
+	this.UnlockId()
 	return next
 }
 

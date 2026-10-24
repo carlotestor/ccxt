@@ -2057,22 +2057,22 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	var data any = this.SafeDictN(message, []any{"data", "privateAccount"})
 	var futuresTimestamp *int64 = this.SafeInteger2(message, "ts", "createTime")
 	var timestamp *int64 = this.SafeInteger2(data, "time", futuresTimestamp)
-	if _, ok := this.Balance[typeVar]; !ok {
-		this.Balance[typeVar] = map[string]any{}
+	if !(ccxt.InOp(this.Balance, typeVar)) {
+		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
-	ccxt.AddElementToObject(this.Balance[typeVar], "info", data)
-	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", data)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
 	var currencyId *string = this.SafeString2(data, "currency", "vcoinName")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString2(data, "balanceAmount", "availableBalance")
 	account["used"] = this.SafeString2(data, "frozenBalance", "frozenAmount")
 	if code != nil {
-		this.WsBalanceEntryForWrite(typeVar)[*code] = account
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
-	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
-	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
+	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
+	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 }
 
 /**
@@ -2672,7 +2672,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenK
 						var client ccxt.ClientInterface = this.Client(url)
 						this.Options["listenKey"] = nil
 						client.(ccxt.ClientInterface).Reject(error)
-						this.WsClientRemove(url)
+						ccxt.Remove(this.Clients, url)
 						return nil
 					}(this)
 				}

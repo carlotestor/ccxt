@@ -237,21 +237,21 @@ func (this *Binance) Stream(typeVar any, subscriptionHash any, optionalArgs ...a
 		var previousStreamIndex *int64 = this.SafeInteger(this.Options, "streamIndex", int64(-1))
 		var streamLimits map[string]any = ccxt.SafeMapTyped(this.Options, "streamLimits")
 		var streamLimit *int64 = this.SafeInteger(streamLimits, typeVar)
-		var streamIndex int64 = *previousStreamIndex + 1
+		var streamIndex any = ccxt.Add(previousStreamIndex, 1)
 		var normalizedIndex any = ccxt.Mod(streamIndex, streamLimit)
 		this.Options["streamIndex"] = streamIndex
 		stream = this.NumberToString(normalizedIndex)
 		if !ccxt.IsEqual(subscriptionHash, nil) {
 			ccxt.AddElementToObject(this.Options["streamBySubscriptionsHash"], subscriptionHash, stream)
 		}
-		var subscriptionsByStreams map[string]any = ccxt.SafeMapTyped(this.Options, "numSubscriptionsByStream")
+		var subscriptionsByStreams any = this.SafeDict(this.Options, "numSubscriptionsByStream")
 		if subscriptionsByStreams == nil {
 			this.Options["numSubscriptionsByStream"] = this.CreateSafeDictionary()
 		}
 		var subscriptionsByStream int64 = *this.SafeInteger(this.Options["numSubscriptionsByStream"], stream, 0)
-		var newNumSubscriptions int64 = subscriptionsByStream + numSubscriptions
+		var newNumSubscriptions any = (subscriptionsByStream + numSubscriptions)
 		var subscriptionLimitByStream int64 = *this.SafeInteger(this.Options["subscriptionLimitByStream"], typeVar, 200)
-		if newNumSubscriptions > subscriptionLimitByStream {
+		if newNumSubscriptions.(int64) > subscriptionLimitByStream {
 			panic(ccxt.BadRequest(this.Id + " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows."))
 		}
 		ccxt.AddElementToObject(this.Options["numSubscriptionsByStream"], stream, newNumSubscriptions)
@@ -3968,12 +3968,12 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			continue
 		}
 		var tickerMarketId *string = this.SafeString(ticker, "s")
-		var tickerMarketsByIdList []any = ccxt.SafeListTyped(this.Markets_by_id(), tickerMarketId)
+		var tickerMarketsByIdList any = this.SafeList(this.Markets_by_id(), tickerMarketId)
 		var numTickerMarkets int = func() int {
 			if tickerMarketsByIdList == nil {
 				return 0
 			}
-			return len(tickerMarketsByIdList)
+			return ccxt.GetArrayLength(tickerMarketsByIdList)
 		}()
 		// an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
 		// blind first pick, the stream url decides; only a unique match, like an
@@ -4076,7 +4076,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 	var client ccxt.ClientInterface = this.Client(url)
 	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
-	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
+	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if accountType == marketType {
 
 		return nil
@@ -4153,7 +4153,7 @@ func (this *Binance) HandleUserDataStreamSubscribe(client any, message map[strin
 	var messageHash *string = this.SafeString(message, "id")
 	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
-	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
+	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var subscriptionId *int64 = this.SafeInteger(result, "subscriptionId")
 	if subscriptionId == nil {
@@ -4198,7 +4198,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 	var lastAuthenticatedTime int64 = *this.SafeInteger(options, "lastAuthenticatedTime", 0)
 	var listenTokenRefreshRate *int64 = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
 	var time int64 = this.Milliseconds()
-	var delay int64 = *listenTokenRefreshRate + 10000
+	var delay int64 = ccxt.Add(listenTokenRefreshRate, 10000).(int64)
 	if time-lastAuthenticatedTime > delay {
 		// the future covers the REST create plus the ws subscribe, including the
 		// renewal timer re-entry through renewListenToken, so a concurrent caller
@@ -4399,7 +4399,7 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 		refreshRateKey = "stockListenKeyRefreshRate"
 	}
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, refreshRateKey, 1200000)
-	var delay int64 = *listenKeyRefreshRate + 10000
+	var delay int64 = ccxt.Add(listenKeyRefreshRate, 10000).(int64)
 	if time-lastAuthenticatedTime > delay {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
 		// the flight is registered on a never-dialed client because the
@@ -4669,7 +4669,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 	})
 	}
 	// whether or not to schedule another listenKey keepAlive request
-	var clients []any = ccxt.ObjectValues(this.WsClientsSnapshot())
+	var clients []any = ccxt.ObjectValues(this.Clients)
 	var refreshRateKey string = "listenKeyRefreshRate"
 	if isStock {
 		refreshRateKey = "stockListenKeyRefreshRate"
@@ -5230,12 +5230,12 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	// each account is connected to a different endpoint
 	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
-	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
-	var messageHash string = accountType + ":balance"
-	if ccxt.IsEqual(this.Balance[accountType], nil) {
-		this.Balance[accountType] = map[string]any{}
+	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
+	var messageHash any = ccxt.Add(accountType, ":balance")
+	if ccxt.IsEqual(ccxt.GetValue(this.Balance, accountType), nil) {
+		ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 	}
-	this.WsBalanceEntryForWrite(accountType)["info"] = message
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
 	var event *string = this.SafeString(message, "e")
 	// balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
 	var balanceMessage any = this.SafeDict(message, "a", message)
@@ -5244,8 +5244,8 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		var delta *string = this.SafeString(message, "d")
-		if (code != nil) && (ccxt.InOp(this.Balance[accountType], code)) {
-			var previousValue any = ccxt.GetValue(ccxt.GetValue(this.Balance[accountType], code), "free")
+		if (accountType != nil) && (code != nil) && (ccxt.InOp(ccxt.GetValue(this.Balance, accountType), code)) {
+			var previousValue any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Balance, accountType), code), "free")
 			if !ccxt.IsString(previousValue) {
 				previousValue = ccxt.DerefScalar(this.NumberToString(previousValue))
 			}
@@ -5253,8 +5253,8 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 		} else {
 			account["free"] = delta
 		}
-		if code != nil {
-			ccxt.AddElementToObject(this.Balance[accountType], code, account)
+		if (accountType != nil) && (code != nil) {
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 		}
 	} else {
 		var B []any = ccxt.SafeListTyped(balanceMessage, "B")
@@ -5274,23 +5274,23 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["free"] = this.SafeString(entry, "f")
 			account["used"] = this.SafeString(entry, "l")
 			account["total"] = this.SafeString(entry, wallet)
-			if code != nil {
-				ccxt.AddElementToObject(this.Balance[accountType], code, account)
+			if (accountType != nil) && (code != nil) {
+				ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 			}
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(balanceMessage, "E")
-	ccxt.AddElementToObject(this.Balance[accountType], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[accountType], "datetime", this.Iso8601(timestamp))
-	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
-	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(this.Balance, accountType, this.SafeBalance(ccxt.GetValue(this.Balance, accountType)))
+	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, accountType), messageHash)
 }
-func (this *Binance) GetAccountTypeFromSubscriptions(subscriptions []string) string {
-	var accountType string = ""
-	for i := 0; i < len(subscriptions); i++ {
-		var subscription string = subscriptions[i]
-		if (subscription == "spot") || (subscription == "margin") || (subscription == "linear") || (subscription == "inverse") || (subscription == "option") {
-			accountType = subscription
+func (this *Binance) GetAccountTypeFromSubscriptions(subscriptions any) any {
+	var accountType any = ""
+	for i := 0; i < ccxt.GetArrayLength(subscriptions); i++ {
+		var subscription *string = ccxt.SafeStringPtr(ccxt.GetValue(subscriptions, i))
+		if (subscription != nil && *subscription == "spot") || (subscription != nil && *subscription == "margin") || (subscription != nil && *subscription == "linear") || (subscription != nil && *subscription == "inverse") || (subscription != nil && *subscription == "option") {
+			accountType = ccxt.DerefScalar(subscription)
 			break
 		}
 	}
@@ -7139,7 +7139,7 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 	// and has exactly one subscriptionhash which is the account type
 	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
-	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
+	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if this.Positions == nil {
 		this.Positions = map[string]any{}
 	}
@@ -7159,7 +7159,7 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::"))
+	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(accountType, ":positions::")))
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
@@ -7180,7 +7180,7 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, accountType+":positions")
+	client.(ccxt.ClientInterface).Resolve(newPositions, ccxt.Add(accountType, ":positions"))
 }
 func (this *Binance) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
 	//
@@ -7690,7 +7690,7 @@ func (this *Binance) HandleOrder(client any, message any) {
 		}
 		var cachedOrders any = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
-		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
+		var order any = this.SafeDict(orders, orderId)
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {
@@ -7742,10 +7742,10 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 	//
 	// --- balance ---
 	var accountType string = "option"
-	if ccxt.IsEqual(this.Balance[accountType], nil) {
-		this.Balance[accountType] = map[string]any{}
+	if ccxt.IsEqual(ccxt.GetValue(this.Balance, accountType), nil) {
+		ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 	}
-	this.WsBalanceEntryForWrite(accountType)["info"] = message
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
 	var B []any = ccxt.SafeListTyped(message, "B")
 	for i := 0; i < len(B); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(B, i)
@@ -7754,14 +7754,14 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 		if code != nil {
 			var account map[string]any = this.Account()
 			account["total"] = this.SafeString(entry, "b")
-			this.WsBalanceEntryForWrite(accountType)[*code] = account
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	ccxt.AddElementToObject(this.Balance[accountType], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[accountType], "datetime", this.Iso8601(timestamp))
-	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
-	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], accountType+":balance")
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(this.Balance, accountType, this.SafeBalance(ccxt.GetValue(this.Balance, accountType)))
+	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, accountType), accountType+":balance")
 	// --- positions ---
 	if this.Positions == nil {
 		this.Positions = map[string]any{}
@@ -7881,7 +7881,7 @@ func (this *Binance) HandleEventStreamTerminated(client any, message map[string]
 	var event *string = this.SafeString(message, "e")
 	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
-	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
+	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if event != nil && *event == "eventStreamTerminated" {
 		client.(ccxt.ClientInterface).SubscriptionDel(accountType)
 		error := ccxt.ExchangeError(this.Id + " user data event stream terminated " + this.Json(message))
@@ -7915,7 +7915,7 @@ func (this *Binance) HandleMessage(client any, message any) {
 		return messageValue2
 	}()
 	var status *string = this.SafeString(messageValue, "status")
-	var error map[string]any = ccxt.SafeMapTyped(messageValue, "error")
+	var error any = this.SafeDict(messageValue, "error")
 	if (error != nil) || ((status != nil) && (status == nil || *status != "200")) {
 		this.HandleWsError(client, messageValue)
 		return

@@ -2456,7 +2456,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			request["limit"] = limit
 		}
 		if until != nil {
-			request["endTime"] = *until + 1 // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
+			request["endTime"] = Add(until, 1) // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
 		}
 
 		r2 := <-this.SpotPublicGetKlines(this.Extend(request, paramsUntil))
@@ -3910,12 +3910,12 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		return nil
 	}
 }
-func (this *Mexc) FetchOrdersByIdsAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Mexc) FetchOrdersByIdsAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByIdsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Mexc) fetchOrdersByIdsBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
+func (this *Mexc) fetchOrdersByIdsBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3939,7 +3939,7 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan AsyncResult[[]Order], ids []strin
 	if marketType != nil && *marketType == "spot" {
 		panic(NotSupported(this.Id + " fetchOrdersByIds() is not supported for " + *marketType))
 	} else {
-		request["order_ids"] = strings.Join(ids, ",")
+		request["order_ids"] = Join(ids, ",")
 
 		r1 := <-this.ContractPrivateGetOrderBatchQuery(this.Extend(request, query))
 		if r1.Err != nil {

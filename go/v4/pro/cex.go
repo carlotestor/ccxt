@@ -61,7 +61,10 @@ func (this *Cex) Describe() any {
 	})
 }
 func (this *Cex) RequestId() string {
-	var requestId int64 = this.NextRequestId("requestId")
+	this.LockId()
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	this.Options["requestId"] = requestId
+	this.UnlockId()
 	return strconv.FormatInt(requestId, 10)
 }
 
@@ -158,7 +161,7 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 			result[*code] = account
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(result))
+	this.Balance = this.SafeBalance(result)
 	var messageHash *string = this.SafeString(message, "oid")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -205,7 +208,7 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash string = "trades"
 	var subscriptionHash string = "old:" + *symbolValue
-	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
+	var client any = this.SafeValue(this.Clients, url)
 	if client != nil {
 		var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		for i := 0; i < len(subscriptionKeys); i++ {
@@ -1369,7 +1372,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
-	if (nonce == nil) || (!ccxt.IsEqual(incrementalId, *nonce+1)) {
+	if (nonce == nil) || (!ccxt.IsEqual(incrementalId, ccxt.Add(nonce, 1))) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook() skipped a message")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)

@@ -1713,10 +1713,10 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var asks []any = ccxt.SafeListTyped(item, "asks")
 		var bids []any = ccxt.SafeListTyped(item, "bids")
 		if snapshot || update {
-			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.SafeValue(this.Orderbooks, symbol))
+			var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 			if snapshot && (ccxt.IsEqual(orderbook, nil)) {
 				orderbook = this.OrderBook(map[string]any{}, limit)
-				this.Orderbooks[*symbol] = orderbook
+				ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 			}
 			if ccxt.IsEqual(orderbook, nil) {
 				continue
@@ -1733,7 +1733,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					var bid []any = ccxt.SafeListTyped(bids, j)
 					var price *float64 = this.SafeNumber(bid, 0)
 					var amount *float64 = this.SafeNumber(bid, 1)
-					var bidsSide any = orderbook.GetBids()
+					var bidsSide any = ccxt.GetValue(orderbook, "bids")
 					bidsSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
 			}
@@ -1742,7 +1742,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					var ask []any = ccxt.SafeListTyped(asks, j)
 					var price *float64 = this.SafeNumber(ask, 0)
 					var amount *float64 = this.SafeNumber(ask, 1)
-					var asksSide any = orderbook.GetAsks()
+					var asksSide any = ccxt.GetValue(orderbook, "asks")
 					asksSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
 			}
@@ -1798,10 +1798,10 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 		newAccount["free"] = this.SafeString(balance, "available")
 		newAccount["used"] = this.SafeString(balance, "hold")
 		if code != nil {
-			this.Balance[*code] = newAccount
+			ccxt.AddElementToObject(this.Balance, code, newAccount)
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {

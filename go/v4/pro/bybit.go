@@ -180,7 +180,10 @@ func (this *Bybit) DescribeData() any {
 	}
 }
 func (this *Bybit) RequestId() int64 {
-	var requestId int64 = this.NextRequestId("requestId")
+	this.LockId()
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	this.Options["requestId"] = requestId
+	this.UnlockId()
 	return requestId
 }
 func (this *Bybit) GetUrlByMarketTypeAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
@@ -1318,7 +1321,10 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var ohlcvsByTimeframe map[string]any = ccxt.SafeMapTyped(this.Ohlcvs, symbol)
+	var ohlcvsByTimeframe map[string]any
+	if symbol != nil {
+		ohlcvsByTimeframe = this.Ohlcvs[*symbol]
+	}
 	if ohlcvsByTimeframe == nil {
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
@@ -1671,9 +1677,9 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook ccxt.OrderBookInterface
+	var orderbook any
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol]
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	if isSnapshot {
@@ -1682,13 +1688,13 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "a", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "b", []any{})
-		this.HandleDeltas(orderbook.GetAsks(), asks)
-		this.HandleDeltas(orderbook.GetBids(), bids)
+		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
+		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	if limit != nil && *limit == "1" {
 		var bidask any = this.ParseWsBidAsk(ccxt.UnWrapType(this.Orderbooks[*symbol]), market)
@@ -2560,7 +2566,7 @@ func (this *Bybit) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
 		// without crashing, we should handle this properly later
@@ -3412,7 +3418,7 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 		var timestamp *int64 = this.SafeInteger(message, "ts")
 		ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 		ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
-		this.WsBalanceReplace(this.SafeBalance(this.Balance))
+		this.Balance = this.SafeBalance(this.Balance)
 		messageHash = "balances"
 		client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 	}
@@ -3473,7 +3479,7 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 		}
 	} else {
 		if code != nil {
-			this.Balance[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
 }

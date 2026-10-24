@@ -1305,8 +1305,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put("type", type);
+            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>(); j39v6.put("type", type); yield j39v6; } });
             List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
@@ -1358,7 +1357,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v10 -> ((Object)(accountType)) != null && j39v10.contains(accountType); case Map<?, ?> j39v9 -> ((Object)(accountType)) instanceof String && j39v9.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(accountType)) != null && j39v11.contains(accountType); case Map<?, ?> j39v10 -> ((Object)(accountType)) instanceof String && j39v10.containsKey(accountType); case null, default -> false; })))
         {
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -1370,7 +1369,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             rawPositions = new ArrayList<Object>(Arrays.asList(message));
         }
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(rawPositions)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(rawPositions)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);

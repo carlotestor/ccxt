@@ -1849,7 +1849,7 @@ class dydx extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function estimate_tx_fee(array $message, ?string $memo, array $account): array {
+    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): array {
         $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
         $request = array(
             'txBytes' => $txBytes,

@@ -513,7 +513,7 @@ public partial class hitbtc : ccxt.hitbtc
         client.resolve(result, topic);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
     {
         //
         //    {
@@ -654,7 +654,7 @@ public partial class hitbtc : ccxt.hitbtc
         client.resolve(result, topic);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(ticker, "t");
         object bidAskSymbol = null;

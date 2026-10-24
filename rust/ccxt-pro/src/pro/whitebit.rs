@@ -403,12 +403,12 @@ impl WhitebitCore {
         //     "id": null
         // }
         //
-        let mut params: Vec<Value> = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_681: bool = true;
             while { if !__for_first_681 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_681 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
-            let mut data: Value = params.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut data: Value = params.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string(data.clone(), Value::Int(7), &[]);
             let mut market: Value = self.safe_market(&[marketId]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -546,13 +546,11 @@ impl WhitebitCore {
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_682: bool = true;
             while { if !__for_first_682 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_682 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.handle_delta(bookside.clone(), deltas.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -635,7 +633,6 @@ impl WhitebitCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -671,12 +668,12 @@ impl WhitebitCore {
         // watchTicker
         client.resolve(&[ticker.clone(), messageHash]);
         // watchTickers
-        let mut messageHashes: Vec<Value> = Value::Array(__ch.futures.clone().as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut messageHashes: Value = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_684: bool = true;
             while { if !__for_first_684 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_684 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut currentMessageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut currentMessageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if Value::Int(currentMessageHash.as_str().and_then(|__s| __s.find("tickers")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) && Value::Int(currentMessageHash.as_str().zip(symbol.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
@@ -1163,9 +1160,9 @@ impl WhitebitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]);
+        let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str("wallet:".into());
         let mut method: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
@@ -1182,12 +1179,12 @@ impl WhitebitCore {
         let mut url: Value = self.safe_string_k(apiUrls, "ws", &[]);
         let mut client: Value = self.client(&[url]);
         self.set_balance_cache(client.clone(), type_var.clone(), messageHash.clone());
-        let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut fetchBalanceSnapshot: Value = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsFetchBalanceSnapshot: Value = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
-        let awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsFetchBalanceSnapshot, Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut awaitBalanceSnapshot: Value = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAwaitBalanceSnapshot: Value = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = self.handle_option_bool_and_params(paramsMarketType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
+        let mut fetchBalanceSnapshot: Value = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsFetchBalanceSnapshot: Value = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = self.handle_option_bool_and_params(paramsFetchBalanceSnapshot, Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(true)]);
+        let mut awaitBalanceSnapshot: Value = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsAwaitBalanceSnapshot: Value = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
@@ -1197,14 +1194,13 @@ impl WhitebitCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subscriptionHash: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        if (matches!((&__ch.subscriptions.clone(), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
         if (match &(fetchBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var, subscriptionHash]);
             }
@@ -1212,7 +1208,6 @@ impl WhitebitCore {
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value, mut subscriptionHash: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut response: Value = self.fetch_balance(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var);
@@ -1220,8 +1215,8 @@ impl WhitebitCore {
         })]).await;
         { let __t = self.extend(response, &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.clone(), subscriptionHash]);
         }
@@ -1294,12 +1289,12 @@ impl WhitebitCore {
                     if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
                 }
             }  else {
-                let mut keys: Vec<Value> = Value::Array(balanceDict.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut keys: Value = Value::Array(balanceDict.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_686: bool = true;
                     while { if !__for_first_686 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_686 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-                    let mut currencyId: Value = keys.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    let mut currencyId: Value = keys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut rawBalance: Value = self.safe_dict(balanceDict.clone(), currencyId.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -1367,7 +1362,6 @@ impl WhitebitCore {
         let mut url: Value = self.safe_string_k(apiUrls, "ws", &[]);
         let mut id: Value = self.incrementing_nonce();
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone(), &[]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut request: Value = Value::Null;
         let mut marketIds: Value = Value::from(vec![]);
         if (client == Value::Null) {
@@ -1394,7 +1388,7 @@ impl WhitebitCore {
             let mut message: Value = self.extend(request.clone(), &[params]);
             return self.watch(url.clone(), messageHash.clone(), &[message, method.clone(), subscription.clone()]).await;
         }  else {
-            let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), method.clone(), &[Value::Map({
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), method.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1424,8 +1418,8 @@ impl WhitebitCore {
                         m.insert("params".to_string(), marketIdsNew);
                     m
                 });
-                if (matches!((&__ch.subscriptions.clone(), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    remove(&mut __ch.subscriptions, &method);
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &method);
                 }
                 return self.watch(url, messageHash, &[Value::Map(resubRequest), method, subscription]).await;
             }
@@ -1473,7 +1467,6 @@ impl WhitebitCore {
         })]);
         let mut url: Value = self.safe_string_k(apiUrls, "ws", &[]);
         let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subscribeHash: Value = Value::Str("authenticated".into());
         // handleAuthenticate () resolves the handshake future with 1, so 1 is
         // the authorized sentinel authenticate () has always returned - every
@@ -1485,7 +1478,7 @@ impl WhitebitCore {
         // their own authorize frame. the flight lives in client.futures of the handshake client
         // under a non-messageHash key and settles only via client.resolve () / client.reject ()
         let mut messageHash: Value = Value::Str("authenticateFlight".into());
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             // a flight is already in progress - wake when the leader settles
             // it, the socket is authorized by then. the flight gate is
             // checked before the subscriptions one because watch () registers
@@ -1494,7 +1487,7 @@ impl WhitebitCore {
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
             return authorized;
         }
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), subscribeHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), subscribeHash.clone(), &[]);
         if (authenticated != Value::Null) {
             return authorized;
         }
@@ -1541,10 +1534,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // replay that failure. the stale future is settled through
             // client.reject () - guarded, so it always has a waiter and the
             // error is never parked in client.rejections
-            if (matches!((&__ch.subscriptions.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &subscribeHash);
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash);
             }
-            if (matches!((&__ch.futures.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (matches!((&get_value(&client, &Value::Str("futures".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.reject(&[e.clone(), subscribeHash.clone()]);
             }
             // reject the flight - the leader and every waiter throw and the
@@ -1560,11 +1553,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_authenticate(&self, mut client: Value, mut message: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
-        let mut future: Value = __ch.futures.clone().as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);
+        let mut future: Value = get_value(&client, &Value::Str("futures".into())).as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);
         future.resolve(&[Value::Int(1)]);
         return message;
 
@@ -1572,7 +1564,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1593,8 +1584,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                 client.reject(&[e.clone(), Value::Str("authenticated".into())]);
-                if (matches!(&__ch.subscriptions.clone(), Value::Dict(__d) if __d.contains_key("authenticated"))) {
-                    remove(&mut __ch.subscriptions, &Value::Str("authenticated".into()));
+                if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str("authenticated".into()));
                 }
                 return Value::Bool(false);
             }
@@ -1648,16 +1639,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value, mut id: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         // not every method stores its subscription
         // as an object so we can't do indeById here
-        let mut subs: Value = __ch.subscriptions.clone();
-        let mut values: Vec<Value> = object_values(&subs).as_array().cloned().unwrap_or_default();
+        let mut subs: Value = get_value(&client, &Value::Str("subscriptions".into()));
+        let mut values: Value = object_values(&subs);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_688: bool = true;
             while { if !__for_first_688 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_688 = false; i.as_f64().unwrap_or(f64::NAN) < ((values.len() as i64) as f64) } {
-            let mut subscription: Value = values.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut subscription: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if !(match &(subscription) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 let mut subId: Value = self.safe_integer_k(subscription.clone(), "id", &[]);
                 if (subId != Value::Null) && (subId.as_f64() == id.as_f64()) {

@@ -358,7 +358,7 @@ public partial class weex : ccxt.weex
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -386,7 +386,7 @@ public partial class weex : ccxt.weex
             symbol = null;
         } else
         {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = ((string)getValue(market, "symbol"));
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1209,7 +1209,7 @@ public partial class weex : ccxt.weex
         client.resolve(ticker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(message, "E");
         string? symbol = null;
@@ -1404,7 +1404,7 @@ public partial class weex : ccxt.weex
         client.resolve(trades, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -2154,7 +2154,7 @@ public partial class weex : ccxt.weex
         client.resolve(newPositions, "positions");
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         // same as REST api
         return this.parsePosition(position, market);

@@ -953,12 +953,12 @@ impl CoinoneCore {
             m
         });
         let mut balances: Value = self.omit(response, Value::from(vec![Value::Str("errorCode".into()), Value::Str("result".into()), Value::Str("normalWallets".into())]), &[]);
-        let mut currencyIds: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyIds: Value = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_568: bool = true;
             while { if !__for_first_568 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_568 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
-            let mut currencyId: Value = currencyIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(balances.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -1076,7 +1076,7 @@ impl CoinoneCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), Value::Str("KRW".into()));
             m
@@ -1086,12 +1086,12 @@ impl CoinoneCore {
         if (symbolsNormalized != Value::Null) {
             let mut first: Value = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]);
             market = self.market(first);
-            request.insert("quote_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-            request.insert("target_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quote_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("target_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)); }
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_1]).await;
         }  else {
-            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_2 = self.extend(request, &[params]);
             response = self.v2_public_get_ticker_new_quote_currency(&[__ws_arg_2]).await;
         }
         //
@@ -1828,8 +1828,8 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut keys: Vec<Value> = Value::Array(walletAddress.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut result: indexmap::IndexMap<String, Value> = ({
+        let mut keys: Value = Value::Array(walletAddress.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1837,7 +1837,7 @@ impl CoinoneCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_569: bool = true;
             while { if !__for_first_569 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_569 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_string(walletAddress.clone(), key.clone(), &[]);
             if (value == Value::Null) || (value == Value::Null) || (value.as_str() == Some("")) || (value.as_str() == Some("-1")) {
                 continue;
@@ -1846,7 +1846,7 @@ impl CoinoneCore {
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            let mut depositAddress: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
+            let mut depositAddress: Value = self.safe_dict(result.clone(), code.clone(), &[]);
             if (depositAddress == Value::Null) {
                 depositAddress = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1867,11 +1867,11 @@ impl CoinoneCore {
                 if let Value::Dict(__d) = &mut depositAddress { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(vec![address, value])); }
             }
             if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), depositAddress);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), depositAddress); }
             }
         }
         }
-        return self.to_array(Value::Map(result));
+        return self.to_array(result);
 
     Value::Null
 }

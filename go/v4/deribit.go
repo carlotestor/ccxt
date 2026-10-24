@@ -4546,7 +4546,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if since == nil {
 			return now
 		}
-		return *since + month
+		return Add(since, month)
 	}()
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],

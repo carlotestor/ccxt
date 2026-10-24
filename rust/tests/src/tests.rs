@@ -2367,8 +2367,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn inject_ws_messages(&mut self, mut exchange: Value, mut url: Value, mut messages: Value, optional_args: &[Value]) -> Value {
         let sequential: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let __messages_empty = Vec::new();
-        let messages = messages.as_array().unwrap_or(&__messages_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1637: bool = true;
@@ -2379,14 +2377,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 waited = (match (&(waited), &(Value::Int(50))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
             // a reply frame must not arrive before its request was sent, or it is dropped
-            let mut frameId: Value = exchange.safe_string(messages.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]);
+            let mut frameId: Value = exchange.safe_string(messages.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]);
             let mut waitedSent: Value = Value::Int(0);
             while (frameId != Value::Null) && !(self.ws_request_was_sent(exchange.clone(), url.clone(), frameId.clone()).as_bool() == Some(true)) && (waitedSent.as_f64().unwrap_or(f64::NAN) < Value::Int(5000).as_f64().unwrap_or(f64::NAN)) {
                 exchange.sleep(Value::Int(50)).await;
                 waitedSent = (match (&(waitedSent), &(Value::Int(50))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
             // a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
-            let mut frame: Value = messages.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut frame: Value = messages.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut binaryFrame: Value = exchange.safe_string(frame.clone(), Value::Str("binary".into()), &[]);
             if (binaryFrame != Value::Null) {
                 frame = exchange.base16_to_binary(binaryFrame.clone(), &[]);
@@ -2429,8 +2427,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn watch_and_assert_sequence(&mut self, mut exchange: Value, mut url: Value, mut method: Value, mut input: Value, mut skipKeys: Value, mut expectedResults: Value) -> Value {
-        let __expectedResults_empty = Vec::new();
-        let expectedResults = expectedResults.as_array().unwrap_or(&__expectedResults_empty);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             {
                                 let mut i: Value = Value::Int(0);
@@ -2441,7 +2437,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // runtimes — roundtrip through json so the deep-compare sees plain
                 // dicts in every language
                 let mut unifiedResult: Value = jsonParse(jsonStringify(result.clone()));
-                self.assert_static_response_output(exchange.clone(), skipKeys.clone(), unifiedResult.clone(), expectedResults.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+                self.assert_static_response_output(exchange.clone(), skipKeys.clone(), unifiedResult.clone(), expectedResults.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;

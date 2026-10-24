@@ -2719,8 +2719,8 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var takeProfit any = this.SafeDict(params, "takeProfit")
 	var paramsChildOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (paramsChildOrders != nil)
 	var response map[string]any = nil
@@ -2784,8 +2784,8 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
-		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
-		var takeProfit map[string]any = SafeMapTyped(orderParams, "takeProfit")
+		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
+		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
 		var paramsChildOrders []any = SafeListTyped(orderParams, "childOrders")
 		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (paramsChildOrders != nil)
 		if isConditional {
@@ -4171,7 +4171,7 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	listRecv3883, _ := r.Value, r.Value != nil
 	var currencyRows []any = listRecv3883
 	var currency any = this.SafeValue(currencyRows, 0)
-	var rows []any = SafeListTyped(currencyRows, 1)
+	var rows any = this.SafeList(currencyRows, 1)
 	//
 	//     {
 	//         "rows":[],

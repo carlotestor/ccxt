@@ -2630,7 +2630,7 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId *int64, outcomeSide *
 		var market map[string]any = ccxt.SafeMapTyped(this.Markets(), marketKeys[i])
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
-			var outcomes []any = ccxt.SafeListTyped(market, "outcomes")
+			var outcomes any = this.SafeList(market, "outcomes", []any{})
 			var index int = func() int {
 				if outcomeSide != nil && *outcomeSide == 2 {
 					return 1
@@ -2762,16 +2762,16 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
 		// the delta belongs to the market's other token, whose book is not being watched
 		return
 	}
-	var orderbook ccxt.OrderBookInterface
+	var orderbook any
 	if sym != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*sym])
+		orderbook = this.Orderbooks[*sym]
 	}
 	var sideStr *string = this.SafeString(message, "side")
 	var bookSide any = func() any {
 		if sideStr != nil && *sideStr == "bids" {
-			return orderbook.GetBids()
+			return ccxt.GetValue(orderbook, "bids")
 		}
-		return orderbook.GetAsks()
+		return ccxt.GetValue(orderbook, "asks")
 	}()
 	var price *float64 = this.SafeNumber(message, "price")
 	var size *float64 = this.SafeNumber(message, "size")

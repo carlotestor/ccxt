@@ -1093,11 +1093,11 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), market.get("baseId").cloned().unwrap_or(Value::Null));
-                m.insert("quote".to_string(), market.get("quoteId").cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
+                m.insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
@@ -1129,15 +1129,15 @@ impl LatokenCore {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        let mut rawAsks: Vec<Value> = self.safe_list_k(response.clone(), "ask", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut rawBids: Vec<Value> = self.safe_list_k(response, "bid", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawAsks: Value = self.safe_list_k(response.clone(), "ask", &[Value::from(vec![])]);
+        let mut rawBids: Value = self.safe_list_k(response, "bid", &[Value::from(vec![])]);
         let mut asks: Vec<Value> = Vec::new();
         let mut bids: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_908: bool = true;
             while { if !__for_first_908 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_908 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
-            let mut askEntry: Value = rawAsks.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut askEntry: Value = rawAsks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut askQuantity: Value = self.safe_string_k(askEntry.clone(), "quantity", &[]);
             if crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 asks.push(askEntry);
@@ -1148,7 +1148,7 @@ impl LatokenCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_909: bool = true;
             while { if !__for_first_909 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_909 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
-            let mut bidEntry: Value = rawBids.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut bidEntry: Value = rawBids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut bidQuantity: Value = self.safe_string_k(bidEntry.clone(), "quantity", &[]);
             if crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 bids.push(bidEntry);
@@ -1542,23 +1542,23 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100
         }
         let mut response: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
+            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_auth_trade_pair_currency_quote(&[__ws_arg_5]).await;
         }  else {
-            let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_6 = self.extend(request, &[params]);
             response = self.private_get_auth_trade(&[__ws_arg_6]).await;
         }
         return self.parse_trades(response, &[market, since, limit]);
@@ -1742,17 +1742,17 @@ impl LatokenCore {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         let mut market: Value = self.market(symbol);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
         if (isTrigger.as_bool() == Some(true)) {
-            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_7 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_get_auth_stop_order_pair_currency_quote_active(&[__ws_arg_7]).await;
         }  else {
-            let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_8 = self.extend(request, &[paramsOmitted]);
             response = self.private_get_auth_order_pair_currency_quote_active(&[__ws_arg_8]).await;
         }
         return self.parse_orders(response, &[market, since, limit]);
@@ -1786,7 +1786,7 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1794,26 +1794,26 @@ impl LatokenCore {
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 100
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100
         }
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
             if (isTrigger.as_bool() == Some(true)) {
-                let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_9 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.private_get_auth_stop_order_pair_currency_quote(&[__ws_arg_9]).await;
             }  else {
-                let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_10 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.private_get_auth_order_pair_currency_quote(&[__ws_arg_10]).await;
             }
         }  else {
             if (isTrigger.as_bool() == Some(true)) {
-                let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_11 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.private_get_auth_stop_order(&[__ws_arg_11]).await;
             }  else {
-                let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
+                let __ws_arg_12 = self.extend(request, &[paramsOmitted]);
                 response = self.private_get_auth_order(&[__ws_arg_12]).await;
             }
         }
@@ -1843,7 +1843,7 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
             m
@@ -1852,10 +1852,10 @@ impl LatokenCore {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut response: Value = Value::Null;
         if (isTrigger.as_bool() == Some(true)) {
-            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_13 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_get_auth_stop_order_get_order_id(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_14 = self.extend(request, &[paramsOmitted]);
             response = self.private_get_auth_order_get_order_id(&[__ws_arg_14]).await;
         }
         return self.parse_order(response, &[]);
@@ -1894,7 +1894,7 @@ impl LatokenCore {
         let mut market: Value = self.market(symbol.clone());
         let mut uppercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("baseCurrency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quoteCurrency".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
@@ -1907,17 +1907,17 @@ impl LatokenCore {
             m
         });
         if (uppercaseType.as_str() == Some("LIMIT")) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price)); }
         }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
         let mut response: Value = Value::Null;
         if (triggerPrice != Value::Null) {
-            request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice));
-            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice)); }
+            let __ws_arg_15 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_post_auth_stop_order_place(&[__ws_arg_15]).await;
         }  else {
-            let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_16 = self.extend(request, &[paramsOmitted]);
             response = self.private_post_auth_order_place(&[__ws_arg_16]).await;
         }
         return self.parse_order(response, &[market]);
@@ -1946,7 +1946,7 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
             m
@@ -1955,10 +1955,10 @@ impl LatokenCore {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut response: Value = Value::Null;
         if (isTrigger.as_bool() == Some(true)) {
-            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_17 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_post_auth_stop_order_cancel(&[__ws_arg_17]).await;
         }  else {
-            let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_18 = self.extend(request, &[paramsOmitted]);
             response = self.private_post_auth_order_cancel(&[__ws_arg_18]).await;
         }
         return self.parse_order(response, &[]);
@@ -1986,7 +1986,7 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1996,21 +1996,21 @@ impl LatokenCore {
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
             if (isTrigger.as_bool() == Some(true)) {
-                let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_19 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[__ws_arg_19]).await;
             }  else {
-                let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_20 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.private_post_auth_order_cancel_all_currency_quote(&[__ws_arg_20]).await;
             }
         }  else {
             if (isTrigger.as_bool() == Some(true)) {
-                let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_21 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.private_post_auth_stop_order_cancel_all(&[__ws_arg_21]).await;
             }  else {
-                let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
+                let __ws_arg_22 = self.extend(request, &[paramsOmitted]);
                 response = self.private_post_auth_order_cancel_all(&[__ws_arg_22]).await;
             }
         }
@@ -2118,7 +2118,7 @@ impl LatokenCore {
         let mut addressTo: Value = self.safe_string_k(transaction.clone(), "recipientAddress", &[]);
         let mut txid: Value = self.safe_string_k(transaction.clone(), "transactionHash", &[]);
         let mut tagTo: Value = self.safe_string_k(transaction.clone(), "memo", &[]);
-        let mut fee: indexmap::IndexMap<String, Value> = ({
+        let mut fee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), Value::Null);
                 m.insert("cost".to_string(), Value::Null);
@@ -2127,8 +2127,8 @@ impl LatokenCore {
         });
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "transactionFee", &[]);
         if (feeCost != Value::Null) {
-            fee.insert("cost".into(), feeCost);
-            fee.insert("currency".into(), code.clone());
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".into(), feeCost); }
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".into(), code.clone()); }
         }
         let mut type_var: Value = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "type", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         return Value::Map({
@@ -2152,7 +2152,7 @@ impl LatokenCore {
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
-        m.insert("fee".to_string(), Value::Map(fee));
+        m.insert("fee".to_string(), fee);
     m
 });
 
@@ -2266,23 +2266,23 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut currency: Value = self.currency(code.clone());
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("recipient".to_string(), toAccount.clone());
                 m.insert("value".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
         let mut response: Value = Value::Null;
         if Value::Int(toAccount.as_str().and_then(|__s| __s.find("@")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_transfer_email(&[__ws_arg_24]).await;
         }  else if (Value::Int(toAccount.len() as i64).as_f64() == Some(36.0)) {
-            let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_transfer_id(&[__ws_arg_25]).await;
         }  else {
-            let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_26 = self.extend(request, &[params]);
             response = self.private_post_auth_transfer_phone(&[__ws_arg_26]).await;
         }
         return self.parse_transfer(response, &[]);

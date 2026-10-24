@@ -970,10 +970,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 this.balance.put(code, account);
             }
         }
-        this.balance.put("info", message);
+        Helpers.addElementToObject(this.balance, "info", message);
         Long timestamp = this.safeInteger(message, "timestamp");
-        this.balance.put("timestamp", timestamp);
-        this.balance.put("datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
+        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }

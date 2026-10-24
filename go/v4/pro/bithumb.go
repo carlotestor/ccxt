@@ -1127,14 +1127,14 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 		account["free"] = this.SafeString(asset, "balance")
 		account["used"] = this.SafeString(asset, "locked")
 		if code != nil {
-			this.Balance[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
 	ccxt.AddElementToObject(this.Balance, "info", message)
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 

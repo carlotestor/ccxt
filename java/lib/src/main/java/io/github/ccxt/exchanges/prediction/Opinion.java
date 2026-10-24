@@ -2131,7 +2131,7 @@ public class Opinion extends OpinionApi
         {
             return null;
         }
-        List<Object> marketKeys = (this.markets == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(this.markets.keySet()));
+        List<Object> marketKeys = ((List<Object>) switch ((Object)(this.markets)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer marketKeysLength = ((List<?>)marketKeys).size();
         for (var i = 0; (marketKeysLength != null && i < marketKeysLength); i++)
         {

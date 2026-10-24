@@ -3472,9 +3472,9 @@ func (this *Kraken) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 					}
 					ret_ = func(this *Kraken) any {
 						// catch block:
-						if (!IsEqual(this.GetLast_http_response(), nil)) && (this.GetLast_http_response() != "") {
-							if GetIndexOf(this.GetLast_http_response(), "EOrder:Unknown order") >= 0 {
-								panic(OrderNotFound(Add(this.Id+" cancelOrder() error ", this.GetLast_http_response())))
+						if (!IsEqual(this.Last_http_response, nil)) && (this.Last_http_response != "") {
+							if GetIndexOf(this.Last_http_response, "EOrder:Unknown order") >= 0 {
+								panic(OrderNotFound(Add(this.Id+" cancelOrder() error ", this.Last_http_response)))
 							}
 						}
 						panic(e)

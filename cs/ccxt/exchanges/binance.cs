@@ -4715,7 +4715,7 @@ public partial class binance : Exchange
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(responseCurrencies, marginablesById))));
     }
 
-    public virtual Dictionary<string, object> parseCurrenciesCustom(object responseCurrencies, IDictionary<string, object> marginablesById)
+    public virtual Dictionary<string, object> parseCurrenciesCustom(object responseCurrencies, object marginablesById)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(responseCurrencies); i++)
@@ -9011,18 +9011,18 @@ public partial class binance : Exchange
      * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    public virtual string? generateClientOrderId(IDictionary<string, object>? market = null, object api = null, object path = null)
+    public virtual string? generateClientOrderId(object market = null, object api = null, object path = null)
     {
         string? idMarketType = null;
         if ((market != null))
         {
-            if ((((object)((market != null && market.ContainsKey("option") ? market["option"] : null))) is true))
+            if ((getValue(market, "option") is true))
             {
                 idMarketType = "option";
-            } else if ((((object)((market != null && market.ContainsKey("linear") ? market["linear"] : null))) is true))
+            } else if ((getValue(market, "linear") is true))
             {
-                idMarketType = ((((object)((market != null && market.ContainsKey("swap") ? market["swap"] : null))) is true)) ? "swap" : "future";
-            } else if ((((object)((market != null && market.ContainsKey("inverse") ? market["inverse"] : null))) is true))
+                idMarketType = ((getValue(market, "swap") is true)) ? "swap" : "future";
+            } else if ((getValue(market, "inverse") is true))
             {
                 idMarketType = "inverse";
             } else
@@ -12988,7 +12988,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -13660,7 +13660,7 @@ public partial class binance : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseAccountPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseAccountPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // usdm
@@ -14530,7 +14530,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
-    public virtual object parseOptionPosition(object position, IDictionary<string, object>? market = null)
+    public virtual object parseOptionPosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -16927,7 +16927,7 @@ public partial class binance : Exchange
         return this.parseMarginLoan(response, currency);
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, IDictionary<string, object>? currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, Dictionary<string, object> currency = null)
     {
         //
         //     {

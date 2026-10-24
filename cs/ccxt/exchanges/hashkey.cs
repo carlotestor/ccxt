@@ -4602,7 +4602,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
     {
         //
         // spot

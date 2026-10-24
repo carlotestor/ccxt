@@ -460,19 +460,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })); }
         }
-        let bookSubscriptionTypeparamsBookSubscriptionTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("bookSubscriptionType".into()), &[Value::Str("SNAPSHOT_AND_UPDATE".into())]).as_array().cloned().unwrap_or_default();
-        let mut bookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let bookSubscriptionType2paramsBookSubscriptionType2Variable: Vec<Value> = self.handle_option_string_and_params(paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType]).as_array().cloned().unwrap_or_default();
-        let mut bookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(1).cloned().unwrap_or(Value::Null);
+        let mut bookSubscriptionTypeparamsBookSubscriptionTypeVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("bookSubscriptionType".into()), &[Value::Str("SNAPSHOT_AND_UPDATE".into())]);
+        let mut bookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsBookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut bookSubscriptionType2paramsBookSubscriptionType2Variable = self.handle_option_string_and_params(paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType]);
+        let mut bookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsBookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         add_element_to_object(get_value_mut(&mut paramsBookSubscriptionType2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2);
-        let bookUpdateFrequencyparamsBookUpdateFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut bookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(1).cloned().unwrap_or(Value::Null);
-        let bookUpdateFrequency2paramsBookUpdateFrequency2Variable: Vec<Value> = self.handle_option_string_and_params(paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency]).as_array().cloned().unwrap_or_default();
-        let mut bookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(1).cloned().unwrap_or(Value::Null);
+        let mut bookUpdateFrequencyparamsBookUpdateFrequencyVariable = self.handle_option_string_and_params(paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]);
+        let mut bookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsBookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut bookUpdateFrequency2paramsBookUpdateFrequency2Variable = self.handle_option_string_and_params(paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency]);
+        let mut bookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsBookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (bookUpdateFrequency2 != Value::Null) {
             add_element_to_object(get_value_mut(&mut paramsBookUpdateFrequency2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookUpdateFrequency2);
         }
@@ -526,19 +526,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })); }
         }
-        let bookSubscriptionTypeparamsBookSubscriptionTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("bookSubscriptionType".into()), &[Value::Str("SNAPSHOT_AND_UPDATE".into())]).as_array().cloned().unwrap_or_default();
-        let mut bookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let bookSubscriptionType2paramsBookSubscriptionType2Variable: Vec<Value> = self.handle_option_string_and_params(paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType]).as_array().cloned().unwrap_or_default();
-        let mut bookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(1).cloned().unwrap_or(Value::Null);
+        let mut bookSubscriptionTypeparamsBookSubscriptionTypeVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("bookSubscriptionType".into()), &[Value::Str("SNAPSHOT_AND_UPDATE".into())]);
+        let mut bookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsBookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut bookSubscriptionType2paramsBookSubscriptionType2Variable = self.handle_option_string_and_params(paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType]);
+        let mut bookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsBookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         add_element_to_object(get_value_mut(&mut paramsBookSubscriptionType2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2);
-        let bookUpdateFrequencyparamsBookUpdateFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut bookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(1).cloned().unwrap_or(Value::Null);
-        let bookUpdateFrequency2paramsBookUpdateFrequency2Variable: Vec<Value> = self.handle_option_string_and_params(paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency]).as_array().cloned().unwrap_or_default();
-        let mut bookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(1).cloned().unwrap_or(Value::Null);
+        let mut bookUpdateFrequencyparamsBookUpdateFrequencyVariable = self.handle_option_string_and_params(paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]);
+        let mut bookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsBookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut bookUpdateFrequency2paramsBookUpdateFrequency2Variable = self.handle_option_string_and_params(paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency]);
+        let mut bookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsBookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (bookUpdateFrequency2 != Value::Null) {
             add_element_to_object(get_value_mut(&mut paramsBookUpdateFrequency2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookUpdateFrequency2);
         }
@@ -568,13 +568,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_280: bool = true;
             while { if !__for_first_280 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_280 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.handle_delta(bookside.clone(), deltas.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -754,8 +752,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_281: bool = true;
             while { if !__for_first_281 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_281 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-            let mut currentTopic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(".".into())).into()), market.get("id").cloned().unwrap_or(Value::Null)).into());
+            let mut market: Value = self.market(symbol);
+            let mut currentTopic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(".".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
             if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(currentTopic); }
         }
         }
@@ -921,8 +919,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str(".".into())).into()), market.get("id").cloned().unwrap_or(Value::Null)).into());
+        let mut market: Value = self.market(symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str(".".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         return self.watch_public(messageHash, &[params]).await;
 
     Value::Null
@@ -1081,12 +1079,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = (match __pro_message.get("subscription").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut marketId: Value = (match __pro_message.get("instrument_name").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut market: Value = self.safe_market(&[marketId]);
-        let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_286: bool = true;
             while { if !__for_first_286 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_286 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut ticker: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut ticker: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_ticker(ticker, &[market.clone()]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1526,12 +1524,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn set_positions_cache(&mut self, mut client: Value, mut type_var: Value, optional_args: &[Value]) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1541,7 +1538,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut positions: Value = self.fetch_positions(&[]).await;
         self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         let mut cache: Value = self.positions.clone();
@@ -1557,8 +1553,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         // don't remove the future from the .futures cache
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("positions".into())]);
         }
@@ -1600,7 +1596,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Vec<Value> = self.safe_list_k(firstData, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawPositions: Value = self.safe_list_k(firstData, "positions", &[Value::from(vec![])]);
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
@@ -1610,7 +1606,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_291: bool = true;
             while { if !__for_first_291 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_291 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
-            let mut rawPosition: Value = rawPositions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[]);
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
             cache.append(position);
@@ -1622,8 +1618,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_292: bool = true;
             while { if !__for_first_292 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_292 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
+            let mut parts: Value = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+            let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
@@ -2044,7 +2040,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -2073,8 +2068,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                 let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[e.clone(), messageHash.clone()]);
-                if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    remove(&mut __ch.subscriptions, &messageHash);
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
                 client.reject(&[e, id.clone()]);
@@ -2183,10 +2178,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         self.check_required_credentials(&[]);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
         let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
             let mut method: Value = Value::Str("public/auth".into());
             let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
@@ -2214,42 +2208,40 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_authenticate(&self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
-        let mut future: Value = self.safe_value(__ch.futures.clone(), Value::Str("authenticated".into()), &[]);
+        let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticated".into()), &[]);
         future.resolve(&[Value::Bool(true)]);
 }
 
     pub fn handle_unsubscribe(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut keys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_295: bool = true;
             while { if !__for_first_295 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_295 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut messageHash: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut messageHash: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             if (messageHash.as_str().is_some_and(|__s| __s.starts_with("unsubscribe"))) {
-                let mut subscription: Value = get_value(&__ch.subscriptions.clone(), &messageHash);
+                let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 let mut subId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
                 if (id != subId) {
                     continue;
                 }
-                let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-                let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]);
+                let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_294: bool = true;
                     while { if !__for_first_294 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_294 = false; j.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                    let mut unsubHash: Value = messageHashes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                    let mut subHash: Value = subMessageHashes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    let mut unsubHash: Value = messageHashes.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut subHash: Value = subMessageHashes.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
                 }
                 }

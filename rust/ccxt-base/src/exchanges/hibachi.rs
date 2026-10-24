@@ -758,12 +758,12 @@ impl HibachiCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networks: indexmap::IndexMap<String, Value> = ({
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut networkId: Value = Value::Str("ARBITRUM".into());
-        networks.insert(crate::runtime::stringify_param(&networkId), Value::Map({
+        if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkId), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkId.clone());
@@ -791,7 +791,7 @@ impl HibachiCore {
     m
 }));
     m
-}));
+})); }
         let mut code: Value = self.safe_currency_code(Value::Str("USDT".into()), &[]);
         if (code != Value::Null) {
             result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
@@ -803,7 +803,7 @@ impl HibachiCore {
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.000001".into()), &[]));
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("networks".to_string(), Value::Map(networks));
+        m.insert("networks".to_string(), networks);
         m.insert("deposit".to_string(), Value::Bool(true));
         m.insert("withdraw".to_string(), Value::Bool(true));
         m.insert("limits".to_string(), Value::Map({
@@ -1066,15 +1066,15 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-        let mut rawPromises: Value = Value::from(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(Value::Map(request), &[params])]).await]);
-        let mut promises: Vec<Value> = promise_all(&rawPromises).await.as_array().cloned().unwrap_or_default();
-        let mut pricesResponse: Value = promises.get(0).cloned().unwrap_or(Value::Null);
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut rawPromises: Value = Value::from(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(request, &[params])]).await]);
+        let mut promises: Value = promise_all(&rawPromises).await;
+        let mut pricesResponse: Value = promises.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -1087,7 +1087,7 @@ impl HibachiCore {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        let mut statsResponse: Value = promises.get(1).cloned().unwrap_or(Value::Null);
+        let mut statsResponse: Value = promises.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
@@ -1495,12 +1495,12 @@ impl HibachiCore {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         let mut ret: Vec<Value> = Vec::new();
-        let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_733: bool = true;
             while { if !__for_first_733 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_733 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut responseOrder: Value = responseOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1640,12 +1640,12 @@ impl HibachiCore {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Vec<Value> = Vec::new();
-        let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_735: bool = true;
             while { if !__for_first_735 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_735 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut responseOrder: Value = responseOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1723,14 +1723,12 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ids_empty = Vec::new();
-        let ids = ids.as_array().unwrap_or(&__ids_empty);
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_736: bool = true;
             while { if !__for_first_736 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_736 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut orderRequest: Value = self.cancel_order_request(ids.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            let mut orderRequest: Value = self.cancel_order_request(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("cancel".into())); }
             orders.push(orderRequest);
         }
@@ -1747,12 +1745,12 @@ impl HibachiCore {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Value = Value::from(vec![]);
-        let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_737: bool = true;
             while { if !__for_first_737 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_737 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut responseOrder: Value = responseOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut ret { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1963,10 +1961,10 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
@@ -2132,9 +2130,9 @@ impl HibachiCore {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("until".into()), &[]);
+        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
             request.insert("endTime".into(), until);
         }
@@ -2264,9 +2262,9 @@ impl HibachiCore {
         if (since != Value::Null) {
             request.insert("fromMs".into(), since.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]);
+        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
             request.insert("toMs".into(), until);
         }
@@ -2433,7 +2431,7 @@ impl HibachiCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", apiUrl, endpoint).into());
-        let mut headersValue: indexmap::IndexMap<String, Value> = ({
+        let mut headersValue: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Hibachi-Client".to_string(), Value::Str("HibachiCCXT/unversioned".into()));
             m
@@ -2447,7 +2445,7 @@ impl HibachiCore {
         }
         let mut hasJsonBody: bool = (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE"));
         if hasJsonBody {
-            headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));
+            if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
         }
         let mut bodyResult: Value = Value::Null;
         if hasJsonBody {
@@ -2455,14 +2453,14 @@ impl HibachiCore {
         }
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            headersValue.insert("Authorization".into(), self.apiKey.clone());
+            if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("Authorization".into(), self.apiKey.clone()); }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult);
-        m.insert("headers".to_string(), Value::Map(headersValue));
+        m.insert("headers".to_string(), headersValue);
     m
 });
 
@@ -2607,13 +2605,13 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(Value::Str("USDT".into()));
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-        let mut rawPromises: Value = Value::from(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(Value::Map(request), &[params.clone()])]).await]);
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut rawPromises: Value = Value::from(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(request, &[params.clone()])]).await]);
         let mut promises: Value = promise_all(&rawPromises).await;
         let mut responseCapitalHistory: Value = self.safe_dict(promises.clone(), Value::Int(0), &[]);
         //
@@ -2922,14 +2920,12 @@ impl HibachiCore {
 
     pub fn parse_settlements(&self, mut settlements: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let __settlements_empty = Vec::new();
-        let settlements = settlements.as_array().unwrap_or(&__settlements_empty);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_738: bool = true;
             while { if !__for_first_738 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_738 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
-            result.push(self.parse_settlement(settlements.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            result.push(self.parse_settlement(settlements.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return Value::from(result);
@@ -2976,9 +2972,9 @@ impl HibachiCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchMySettlementHistory".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchMySettlementHistory".into()), Value::Str("until".into()), &[]);
+        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
             request.insert("endTime".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
@@ -3162,10 +3158,10 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
@@ -3182,13 +3178,13 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_739: bool = true;
             while { if !__for_first_739 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_739 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_product_k(entry.clone(), "fundingTimestamp", Value::Int(1000), &[]);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

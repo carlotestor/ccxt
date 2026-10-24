@@ -1776,9 +1776,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(balances.keySet());
         Long ts = this.safeInteger(message, "ts");
-        this.balance.put("info", data);
-        this.balance.put("timestamp", ts);
-        this.balance.put("datetime", this.iso8601(ts));
+        Helpers.addElementToObject(this.balance, "info", data);
+        Helpers.addElementToObject(this.balance, "timestamp", ts);
+        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(ts));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1796,7 +1796,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Helpers.addElementToObject(account, "free", Precise.stringSub(total, used));
             if (!java.util.Objects.equals(code, null))
             {
-                this.balance.put(code, account);
+                Helpers.addElementToObject(this.balance, code, account);
             }
         }
         this.balance = this.safeBalance(this.balance);

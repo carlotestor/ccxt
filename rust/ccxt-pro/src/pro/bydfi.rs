@@ -426,8 +426,7 @@ impl BydfiCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut subHash: Value = Value::Str("private".into());
         let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut privateSubscription: Value = self.safe_value(__ch.subscriptions.clone(), subHash, &[]);
+        let mut privateSubscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), subHash, &[]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -477,8 +476,8 @@ impl BydfiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-        let mut marketId: Value = market.get("id").cloned().unwrap_or(Value::Null);
+        let mut market: Value = self.market(symbol.clone());
+        let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into());
         let mut channel: Value = Value::Str(format!("{}{}", marketId, Value::Str("@ticker".into())).into());
         return self.watch_public(Value::from(vec![messageHash]), Value::from(vec![channel]), &[params]).await;
@@ -625,15 +624,14 @@ impl BydfiCore {
     pub fn get_message_hashes_for_tickers_unsubscription(&mut self) -> Value {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut client: Value = self.client(&[url]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut subscriptions: Value = __ch.subscriptions.clone();
+        let mut subscriptions: Value = get_value(&client, &Value::Str("subscriptions".into()));
         let mut messageHashes: Vec<Value> = Vec::new();
-        let mut keys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_220: bool = true;
             while { if !__for_first_220 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (Value::Int(key.as_str().and_then(|__s| __s.find("ticker::")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                 messageHashes.push(key);
             }
@@ -923,13 +921,13 @@ impl BydfiCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let mut depth: Value = Value::Str("100".into());
-        let depthOptionparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[depth]).as_array().cloned().unwrap_or_default();
-        let mut depthOption: Value = depthOptionparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDepth: Value = depthOptionparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut depthOptionparamsDepthVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[depth]);
+        let mut depthOption: Value = depthOptionparamsDepthVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsDepth: Value = depthOptionparamsDepthVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut frequency: Value = Value::Str("100ms".into());
-        let frequencyOptionparamsFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(paramsDepth, Value::Str("watchOrderBookForSymbols".into()), Value::Str("frequency".into()), &[frequency]).as_array().cloned().unwrap_or_default();
-        let mut frequencyOption: Value = frequencyOptionparamsFrequencyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsFrequency: Value = frequencyOptionparamsFrequencyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut frequencyOptionparamsFrequencyVariable = self.handle_option_string_and_params(paramsDepth, Value::Str("watchOrderBookForSymbols".into()), Value::Str("frequency".into()), &[frequency]);
+        let mut frequencyOption: Value = frequencyOptionparamsFrequencyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsFrequency: Value = frequencyOptionparamsFrequencyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut channelSuffix: Value = Value::Str("".into());
         if (frequencyOption.as_str() == Some("100ms")) {
             channelSuffix = Value::Str("@100ms".into());
@@ -972,13 +970,13 @@ impl BydfiCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let mut depth: Value = Value::Str("100".into());
-        let depthOptionparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[depth]).as_array().cloned().unwrap_or_default();
-        let mut depthOption: Value = depthOptionparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDepth: Value = depthOptionparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut depthOptionparamsDepthVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[depth]);
+        let mut depthOption: Value = depthOptionparamsDepthVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsDepth: Value = depthOptionparamsDepthVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut frequency: Value = Value::Str("100ms".into());
-        let frequencyOptionparamsFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(paramsDepth, Value::Str("watchOrderBookForSymbols".into()), Value::Str("frequency".into()), &[frequency]).as_array().cloned().unwrap_or_default();
-        let mut frequencyOption: Value = frequencyOptionparamsFrequencyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsFrequency: Value = frequencyOptionparamsFrequencyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut frequencyOptionparamsFrequencyVariable = self.handle_option_string_and_params(paramsDepth, Value::Str("watchOrderBookForSymbols".into()), Value::Str("frequency".into()), &[frequency]);
+        let mut frequencyOption: Value = frequencyOptionparamsFrequencyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsFrequency: Value = frequencyOptionparamsFrequencyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut channelSuffix: Value = Value::Str("".into());
         if (frequencyOption.as_str() == Some("100ms")) {
             channelSuffix = Value::Str("@100ms".into());
@@ -1455,12 +1453,11 @@ impl BydfiCore {
 }
 
     pub fn fetch_balance_snapshot(&mut self, mut client: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1468,7 +1465,6 @@ impl BydfiCore {
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut params: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("swap".into()));
@@ -1477,7 +1473,7 @@ impl BydfiCore {
         let mut response: Value = self.fetch_balance(&[Value::Map(params)]).await;
         { let __t = self.extend(response, &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
-        let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
         future.resolve(&[]);
         client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
 
@@ -1485,7 +1481,6 @@ impl BydfiCore {
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1529,7 +1524,7 @@ impl BydfiCore {
         //     }
         //
         let mut messageHash: Value = Value::Str("balance".into());
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut data: Value = (match __pro_message.get("a").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1565,7 +1560,6 @@ impl BydfiCore {
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1575,7 +1569,7 @@ impl BydfiCore {
         //     }
         //
         let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
+        let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
         let mut subscription: Value = self.safe_dict(subscriptionsById, id, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1592,13 +1586,13 @@ impl BydfiCore {
     pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &subscription { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHashes: Vec<Value> = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut messageHashes: Value = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut subHashIsPrefix: Value = (match __pro_message.get("subHashIsPrefix").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_228: bool = true;
             while { if !__for_first_228 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_228 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut unsubHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut unsubHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut subHash: Value = replace_str(&unsubHash, &Value::Str("unsubscribe::".into()), &Value::Str("".into()));
             self.clean_unsubscription(client.clone(), subHash, unsubHash, &[subHashIsPrefix.clone()]);
         }
@@ -1664,12 +1658,12 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-                let mut balances: Vec<Value> = self.safe_list_k(account.clone(), "B", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut balances: Value = self.safe_list_k(account.clone(), "B", &[Value::from(vec![])]);
                 let mut balancesLength: f64 = ((balances.len() as i64) as f64);
                 if balancesLength > ((0i64) as f64) {
                     self.handle_balance(client.clone(), message.clone());
                 }
-                let mut positions: Vec<Value> = self.safe_list_k(account, "p", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut positions: Value = self.safe_list_k(account, "p", &[Value::from(vec![])]);
                 let mut positionsLength: f64 = ((positions.len() as i64) as f64);
                 if positionsLength > ((0i64) as f64) {
                     self.handle_positions(client, message);

@@ -2601,7 +2601,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		var market map[string]any = this.Market(symbol)
 		var orderItem map[string]any = map[string]any{
 			"instrument_name": market["id"],
-			"order_id":        *id,
+			"order_id":        ToString(id),
 		}
 		orderRequests = append(orderRequests, orderItem)
 	}

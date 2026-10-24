@@ -197,7 +197,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //         "t": 1657799510000
         //     }]
         //
-        this.balance.put("info", balances);
+        Helpers.addElementToObject(this.balance, "info", balances);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);

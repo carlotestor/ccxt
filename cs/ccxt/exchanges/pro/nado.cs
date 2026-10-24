@@ -1450,7 +1450,7 @@ public partial class nado : ccxt.nado
         }, marketResolved);
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(object trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1671,7 +1671,7 @@ public partial class nado : ccxt.nado
         client.resolve(orders, ("orders:" + symbol));
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1769,7 +1769,7 @@ public partial class nado : ccxt.nado
         client.resolve(positions, ("positions:" + symbol));
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object bidask, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object bidask, IDictionary<string, object> market = null)
     {
         //
         //     {

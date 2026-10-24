@@ -697,7 +697,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -808,7 +808,7 @@ public partial class cryptocom : ccxt.cryptocom
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "i");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1075,7 +1075,7 @@ public partial class cryptocom : ccxt.cryptocom
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null)
     {
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))

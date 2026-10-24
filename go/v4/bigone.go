@@ -1627,12 +1627,12 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		var duration int64 = this.ParseTimeframe(timeframe)
 		var endByLimit int64 = this.ParseToInt(this.Sum(since, ((limitResolved * duration) * 1000)))
 		if until != nil {
-			request["time"] = this.Iso8601(mathMin(endByLimit, *until+1))
+			request["time"] = this.Iso8601(mathMin(endByLimit, Add(until, 1)))
 		} else {
 			request["time"] = this.Iso8601(endByLimit)
 		}
 	} else if until != nil {
-		request["time"] = this.Iso8601(*until + 1)
+		request["time"] = this.Iso8601(Add(until, 1))
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 

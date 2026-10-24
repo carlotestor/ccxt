@@ -1353,12 +1353,12 @@ impl DydxCore {
         // }
         //
         let mut rates: Vec<Value> = Vec::new();
-        let mut rows: Vec<Value> = self.safe_list_k(response, "historicalFunding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Value = self.safe_list_k(response, "historicalFunding", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_655: bool = true;
             while { if !__for_first_655 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_655 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut entry: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(entry.clone(), "effectiveAt", &[]));
             let mut marketId: Value = self.safe_string_k(entry.clone(), "ticker", &[]);
             rates.push(Value::Map({
@@ -1379,12 +1379,12 @@ impl DydxCore {
 }
 
     pub fn handle_public_address(&self, mut methodName: Value, mut params: Value) -> Value {
-        let userAuxparamsUserVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("user".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut userAux: Value = userAuxparamsUserVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUser: Value = userAuxparamsUserVariable.get(1).cloned().unwrap_or(Value::Null);
-        let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux]).as_array().cloned().unwrap_or_default();
-        let mut user: Value = userparamsAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAddress: Value = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut userAuxparamsUserVariable = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("user".into()), &[]);
+        let mut userAux: Value = userAuxparamsUserVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUser: Value = userAuxparamsUserVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut userparamsAddressVariable = self.handle_option_string_and_params(paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux]);
+        let mut user: Value = userparamsAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsAddress: Value = userparamsAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (user != Value::Null) && (user.as_str() != Some("")) {
             return Value::from(vec![user, paramsAddress.clone()]);
         }
@@ -1544,12 +1544,12 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchOrders".into()), params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchOrders".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
-        let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut userAddressparamsPublicAddressVariable = self.handle_public_address(Value::Str("fetchOrders".into()), params);
+        let mut userAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut subAccountNumberparamsSubAccountNumberVariable = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchOrders".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]);
+        let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1742,12 +1742,12 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchPositions".into()), params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchPositions".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
-        let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut userAddressparamsPublicAddressVariable = self.handle_public_address(Value::Str("fetchPositions".into()), params);
+        let mut userAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut subAccountNumberparamsSubAccountNumberVariable = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchPositions".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]);
+        let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1852,9 +1852,9 @@ impl DydxCore {
 
     pub fn sign_dydx_tx(&self, mut privateKey: Value, mut message: Value, mut memo: Value, mut chainId: Value, mut account: Value, mut authenticators: Value, optional_args: &[Value]) -> Option<String> {
         let mut fee = get_arg(optional_args, 0, Value::Null);
-        let encodedTxsignDocVariable: Vec<Value> = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, &[fee]).as_array().cloned().unwrap_or_default();
-        let mut encodedTx: Value = encodedTxsignDocVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut signDoc: Value = encodedTxsignDocVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut encodedTxsignDocVariable = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, &[fee]);
+        let mut encodedTx: Value = encodedTxsignDocVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut signDoc: Value = encodedTxsignDocVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut signature: Value = self.sign_hash(encodedTx, privateKey);
         return self.encode_dydx_tx_raw(signDoc, (match (&(signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null)), &(signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null))) { (Value::Null, Value::Null) => Value::Null, (__a, __b) => Value::Str(format!("{}{}", __a, __b).into()) })).as_str().map(str::to_owned);
 }
@@ -1964,9 +1964,9 @@ impl DydxCore {
         }
         let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         let mut subaccountId: Value = Value::Int(0);
-        let subaccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("subAccountId".into()), &[subaccountId]).as_array().cloned().unwrap_or_default();
-        let mut subaccountIdOption: Value = subaccountIdOptionparamsSubAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountId: Value = subaccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut subaccountIdOptionparamsSubAccountIdVariable = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("subAccountId".into()), &[subaccountId]);
+        let mut subaccountIdOption: Value = subaccountIdOptionparamsSubAccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountId: Value = subaccountIdOptionparamsSubAccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut triggerPrice: Value = self.safe_string2(paramsSubAccountId.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Value = self.safe_string_k(paramsSubAccountId.clone(), "stopLossPrice", &[triggerPrice.clone()]);
         let mut takeProfitPrice: Value = self.safe_string_k(paramsSubAccountId.clone(), "takeProfitPrice", &[]);
@@ -2036,9 +2036,9 @@ impl DydxCore {
         let mut goodTillBlock: Value = self.safe_integer_k(paramsSubAccountId.clone(), "goodTillBlock", &[]);
         let mut goodTillBlockTime: Value = Value::Null;
         let mut goodTillBlockTimeInSeconds: Value = Value::Int(2592000);
-        let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[goodTillBlockTimeInSeconds]).as_array().cloned().unwrap_or_default();
-        let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null); // default is 30 days
+        let mut goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = self.handle_option_integer_and_params(paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[goodTillBlockTimeInSeconds]);
+        let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); // default is 30 days
         if (orderFlag.as_f64() == Some(0.0)) {
             if (goodTillBlock == Value::Null) {
                 // short term order
@@ -2056,7 +2056,7 @@ impl DydxCore {
         let mut sideNumber: Value = (if (orderSide.as_str() == Some("BUY")) { Value::Int(1) } else { Value::Int(2) });
         let mut defaultClientOrderId: Value = self.rand_number(Value::Int(9)); // 2**32 - 1 is 10 digits, but it may overflow with 10
         let mut clientOrderId: Value = self.safe_integer_k(paramsGoodTillBlockTimeInSeconds.clone(), "clientOrderId", &[defaultClientOrderId]);
-        let mut orderPayload: indexmap::IndexMap<String, Value> = ({
+        let mut orderPayload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2091,7 +2091,7 @@ impl DydxCore {
         let mut signingPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("typeUrl".to_string(), Value::Str("/dydxprotocol.clob.MsgPlaceOrder".into()));
-                m.insert("value".to_string(), Value::Map(orderPayload));
+                m.insert("value".to_string(), orderPayload);
             m
         });
         let mut paramsOmitted: Value = self.omit(paramsGoodTillBlockTimeInSeconds, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clientOrderId".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("latestBlockHeight".into()), Value::Str("goodTillBlock".into()), Value::Str("goodTillBlockTimeInSeconds".into()), Value::Str("subaccountId".into())]), &[]);
@@ -2253,7 +2253,7 @@ impl DydxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol);
         let mut clientOrderId: Value = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[id.clone()]);
         if (clientOrderId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.".into()))));
@@ -2265,9 +2265,9 @@ impl DydxCore {
         let mut goodTillBlockOption: Value = self.safe_integer_k(paramsOmitted.clone(), "goodTillBlock", &[]);
         let mut goodTillBlock: Value = goodTillBlockOption.clone();
         let mut goodTillBlockTimeInSeconds: Value = Value::Int(2592000);
-        let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[goodTillBlockTimeInSeconds]).as_array().cloned().unwrap_or_default();
-        let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null); // default is 30 days
+        let mut goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = self.handle_option_integer_and_params(paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[goodTillBlockTimeInSeconds]);
+        let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); // default is 30 days
         let mut goodTillBlockTime: Value = Value::Null;
         let mut defaultOrderFlags: Value = (if isTrigger.as_bool() == Some(true) { Value::Int(32) } else { Value::Int(64) });
         let mut orderFlags: Value = self.safe_integer_k(paramsGoodTillBlockTimeInSeconds.clone(), "orderFlags", &[defaultOrderFlags]);
@@ -2292,7 +2292,7 @@ impl DydxCore {
         }
         let mut credentials: Value = self.retrieve_credentials();
         let mut account: Value = self.fetch_dydx_account().await;
-        let mut cancelPayload: indexmap::IndexMap<String, Value> = ({
+        let mut cancelPayload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2304,7 +2304,7 @@ impl DydxCore {
 }));
         m.insert("clientId".to_string(), clientOrderId);
         m.insert("orderFlags".to_string(), orderFlags);
-        m.insert("clobPairId".to_string(), crate::value::get_value_k(&market.get("info").cloned().unwrap_or(Value::Null), "clobPairId"));
+        m.insert("clobPairId".to_string(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "clobPairId"));
     m
 }));
                 m.insert("goodTilBlock".to_string(), goodTillBlock);
@@ -2314,7 +2314,7 @@ impl DydxCore {
         let mut signingPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("typeUrl".to_string(), Value::Str("/dydxprotocol.clob.MsgCancelOrder".into()));
-                m.insert("value".to_string(), Value::Map(cancelPayload));
+                m.insert("value".to_string(), cancelPayload);
             m
         });
         let mut chainName: Value = self.safe_string_k(self.options.clone(), "chainName", &[]);
@@ -2369,15 +2369,15 @@ impl DydxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol);
         let mut clientOrderIds: Value = self.safe_list_k(params.clone(), "clientOrderIds", &[]);
         if (clientOrderIds == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders only support clientOrderIds.".into()))));
         }
         let mut subAccountId: Value = Value::Int(0);
-        let subAccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[subAccountId]).as_array().cloned().unwrap_or_default();
-        let mut subAccountIdOption: Value = subAccountIdOptionparamsSubAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountId: Value = subAccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut subAccountIdOptionparamsSubAccountIdVariable = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[subAccountId]);
+        let mut subAccountIdOption: Value = subAccountIdOptionparamsSubAccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountId: Value = subAccountIdOptionparamsSubAccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut goodTillBlock: Value = self.safe_integer_k(paramsSubAccountId, "goodTillBlock", &[]);
         if (goodTillBlock == Value::Null) {
             let mut latestBlockHeight: Value = self.fetch_latest_block_height(&[]).await;
@@ -2388,10 +2388,10 @@ impl DydxCore {
         let mut cancelOrders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("clientIds".to_string(), clientOrderIds);
-                m.insert("clobPairId".to_string(), crate::value::get_value_k(&market.get("info").cloned().unwrap_or(Value::Null), "clobPairId"));
+                m.insert("clobPairId".to_string(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "clobPairId"));
             m
         });
-        let mut cancelPayload: indexmap::IndexMap<String, Value> = ({
+        let mut cancelPayload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccountId".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2406,7 +2406,7 @@ impl DydxCore {
         let mut signingPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("typeUrl".to_string(), Value::Str("/dydxprotocol.clob.MsgBatchCancel".into()));
-                m.insert("value".to_string(), Value::Map(cancelPayload));
+                m.insert("value".to_string(), cancelPayload);
             m
         });
         let mut chainName: Value = self.safe_string_k(self.options.clone(), "chainName", &[]);
@@ -2585,9 +2585,7 @@ impl DydxCore {
 }
 
     pub async fn estimate_tx_fee(&mut self, mut message: Value, mut memo: Value, mut account: Value) -> Value {
-        let __account_empty = indexmap::IndexMap::new();
-        let account = account.as_map().unwrap_or(&__account_empty);
-        let mut txBytes: Value = self.encode_dydx_tx_for_simulation(message, memo, account.get("sequence").cloned().unwrap_or(Value::Null), account.get("pub_key").cloned().unwrap_or(Value::Null));
+        let mut txBytes: Value = self.encode_dydx_tx_for_simulation(message, memo, crate::value::get_value_k(&account, "sequence"), crate::value::get_value_k(&account, "pub_key"));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("txBytes".to_string(), txBytes);
@@ -2923,9 +2921,9 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut tagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
+        let mut tag: Value = tagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (code.as_str() != Some("USDC")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
@@ -2941,7 +2939,7 @@ impl DydxCore {
         let mut credentials: Value = self.retrieve_credentials();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount), &Value::Str("1000000".into())));
-        let mut payload: indexmap::IndexMap<String, Value> = ({
+        let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2954,15 +2952,15 @@ impl DydxCore {
                 m.insert("quantums".to_string(), usd);
             m
         });
-        let mut signingPayload: indexmap::IndexMap<String, Value> = ({
+        let mut signingPayload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("typeUrl".to_string(), Value::Str("/dydxprotocol.sending.MsgWithdrawFromSubaccount".into()));
-                m.insert("value".to_string(), Value::Map(payload));
+                m.insert("value".to_string(), payload);
             m
         });
-        let mut txFee: Value = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.clone(), account.clone()).await;
+        let mut txFee: Value = self.estimate_tx_fee(signingPayload.clone(), tag.clone(), account.clone()).await;
         let mut chainName: Value = self.safe_string_k(self.options.clone(), "chainName", &[]);
-        let mut signedTx: Value = self.sign_dydx_tx(credentials.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null), Value::Map(signingPayload), tag, chainName, account, Value::Null, &[txFee]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut signedTx: Value = self.sign_dydx_tx(credentials.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null), signingPayload, tag, chainName, account, Value::Null, &[txFee]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx);
@@ -3124,12 +3122,12 @@ impl DydxCore {
 }));
         let mut methodName: Value = self.safe_string_k(params.clone(), "methodName", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("methodName".into()), &[]);
-        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(methodName.clone(), paramsOmitted).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
-        let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut userAddressparamsPublicAddressVariable = self.handle_public_address(methodName.clone(), paramsOmitted);
+        let mut userAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut subAccountNumberparamsSubAccountNumberVariable = self.handle_option_string_and_params(paramsPublicAddress, methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]);
+        let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress);
@@ -3181,9 +3179,9 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchAccounts".into()), params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut userAddressparamsPublicAddressVariable = self.handle_public_address(Value::Str("fetchAccounts".into()), params);
+        let mut userAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress);
@@ -3235,13 +3233,13 @@ impl DydxCore {
         //     ]
         // }
         //
-        let mut rows: Vec<Value> = self.safe_list_k(response, "subaccounts", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Value = self.safe_list_k(response, "subaccounts", &[Value::from(vec![])]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_657 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut account: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut account: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut accountId: Value = self.safe_string_k(account.clone(), "subaccountNumber", &[]);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3275,12 +3273,12 @@ impl DydxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchBalance".into()), params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subaccountNumberparamsSubaccountNumberVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPublicAddress, Value::Str("fetchBalance".into()), Value::Str("subaccountNumber".into()), &[Value::Int(0)]).as_array().cloned().unwrap_or_default();
-        let mut subaccountNumber: Value = subaccountNumberparamsSubaccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubaccountNumber: Value = subaccountNumberparamsSubaccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut userAddressparamsPublicAddressVariable = self.handle_public_address(Value::Str("fetchBalance".into()), params);
+        let mut userAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut subaccountNumberparamsSubaccountNumberVariable = self.handle_option_integer_and_params(paramsPublicAddress, Value::Str("fetchBalance".into()), Value::Str("subaccountNumber".into()), &[Value::Int(0)]);
+        let mut subaccountNumber: Value = subaccountNumberparamsSubaccountNumberVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsSubaccountNumber: Value = subaccountNumberparamsSubaccountNumberVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress);

@@ -363,10 +363,9 @@ impl ParadexCore {
 }));
         let mut url: Value = self.get_ws_url();
         let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = client.reusable_future(Value::Str("authenticated".into()));
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
             let mut token: Value = self.parent.authenticate_rest(&[]).await;
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -390,7 +389,6 @@ impl ParadexCore {
 }
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -403,7 +401,7 @@ impl ParadexCore {
         let mut result: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (result != Value::Null) {
             // client.resolve (true, messageHash);
-            let mut future: Value = self.safe_value(__ch.futures.clone(), Value::Str("authenticated".into()), &[]);
+            let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticated".into()), &[]);
             if (future != Value::Null) {
                 future.resolve(&[Value::Bool(true)]);
             }
@@ -433,8 +431,8 @@ impl ParadexCore {
         }
         let mut messageHash: Value = Value::Str("trades.".into());
         if (symbol != Value::Null) {
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-            messageHash = Value::Str(format!("{}{}", messageHash, market.get("id").cloned().unwrap_or(Value::Null)).into());
+            let mut market: Value = self.market(symbol.clone());
+            messageHash = Value::Str(format!("{}{}", messageHash, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         }  else {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("ALL".into())).into());
         }
@@ -530,8 +528,8 @@ impl ParadexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-        let mut messageHash: Value = self.get_order_book_channel(market.get("id").cloned().unwrap_or(Value::Null)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut market: Value = self.market(symbol);
+        let mut messageHash: Value = self.get_order_book_channel(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut url: Value = self.get_ws_url();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -761,8 +759,8 @@ impl ParadexCore {
         let mut channel: Value = Value::Str("orders.".into());
         let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
         if (symbol != Value::Null) {
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-            channel = Value::Str(format!("{}{}", channel, market.get("id").cloned().unwrap_or(Value::Null)).into());
+            let mut market: Value = self.market(symbol);
+            channel = Value::Str(format!("{}{}", channel, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }  else {
             channel = Value::Str(format!("{}{}", channel, Value::Str("ALL".into())).into());
@@ -870,8 +868,8 @@ impl ParadexCore {
         let mut channel: Value = Value::Str("fills.".into());
         let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
         if (symbol != Value::Null) {
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-            channel = Value::Str(format!("{}{}", channel, market.get("id").cloned().unwrap_or(Value::Null)).into());
+            let mut market: Value = self.market(symbol);
+            channel = Value::Str(format!("{}{}", channel, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }  else {
             channel = Value::Str(format!("{}{}", channel, Value::Str("ALL".into())).into());
@@ -1918,8 +1916,6 @@ impl ParadexCore {
 }
 
     pub fn sbe_read_flags(&self, mut frameHex: Value, mut offset: Value, mut names: Value) -> Value {
-        let __names_empty = Vec::new();
-        let names = names.as_array().unwrap_or(&__names_empty);
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         let mut flags: Vec<Value> = Vec::new();
         let mut bits: Value = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
@@ -1928,8 +1924,8 @@ impl ParadexCore {
             let mut __for_first_597: bool = true;
             while { if !__for_first_597 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_597 = false; i.as_f64().unwrap_or(f64::NAN) < ((names.len() as i64) as f64) } {
             let mut bit: Value = self.parse_to_int((match (&(bits), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }));
-            if (bit.as_f64() == Some(1.0)) && (names.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
-                flags.push(names.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            if (bit.as_f64() == Some(1.0)) && (names.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
+                flags.push(names.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             bits = self.parse_to_int((match ((bits).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         }

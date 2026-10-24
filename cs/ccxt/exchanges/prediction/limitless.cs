@@ -438,13 +438,13 @@ public partial class limitless : PredictionExchange
                         { "markets", new List<object>() {} },
                     };
                 }
-                IDictionary<string, object> eventGroup = ((IDictionary<string, object>)(eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null));
+                object eventGroup = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
-                object groupMarkets = (eventGroup != null && eventGroup.ContainsKey("markets") ? eventGroup["markets"] : null);
+                object groupMarkets = getValue(eventGroup, "markets");
                 ((IList<object>)groupMarkets).Add(m);
-                eventGroup["markets"] = groupMarkets;
+                ((IDictionary<string,object>)eventGroup)["markets"] = groupMarkets;
             }
         }
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
@@ -3245,7 +3245,7 @@ public partial class limitless : PredictionExchange
         return ccxt.BaseExchange.ToPredictionPositionList(result);
     }
 
-    public virtual Dictionary<string, object> getPositionFromClobEntry(string? label, IDictionary<string, object>? entry = null)
+    public virtual Dictionary<string, object> getPositionFromClobEntry(string? label, object entry = null)
     {
         if ((entry == null))
         {
@@ -3451,13 +3451,13 @@ public partial class limitless : PredictionExchange
                         { "markets", new List<object>() {} },
                     };
                 }
-                IDictionary<string, object> eventGroup = ((IDictionary<string, object>)(eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null));
+                object eventGroup = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
-                object groupMarkets = (eventGroup != null && eventGroup.ContainsKey("markets") ? eventGroup["markets"] : null);
+                object groupMarkets = getValue(eventGroup, "markets");
                 ((IList<object>)groupMarkets).Add(m);
-                eventGroup["markets"] = groupMarkets;
+                ((IDictionary<string,object>)eventGroup)["markets"] = groupMarkets;
             }
         }
         List<object> result = new List<object>() {};

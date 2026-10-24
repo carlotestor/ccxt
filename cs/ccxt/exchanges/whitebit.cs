@@ -4227,7 +4227,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(data, market, since, limit));
     }
 
-    public virtual object parseFundingHistory(IDictionary<string, object> contract, IDictionary<string, object>? market = null)
+    public virtual object parseFundingHistory(object contract, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4253,10 +4253,10 @@ public partial class whitebit : Exchange
         };
     }
 
-    public virtual object parseFundingHistories(IList<object> contracts, IDictionary<string, object>? market = null, Int64? since = null, Int64? limit = null)
+    public virtual object parseFundingHistories(object contracts, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (contracts?.Count ?? 0); i++)
+        for (int i = 0; i < getArrayLength(contracts); i++)
         {
             IDictionary<string, object> contract = this.safeDict(contracts, i);
             result.Add(this.parseFundingHistory(contract, market));

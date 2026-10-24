@@ -917,7 +917,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var market []any = SafeListTypedDefault(pairObj, 1, []any{})
 		var spot bool = true
 		var typeVar string
-		if strings.Index(*id, "F0") >= 0 {
+		if func() int {
+			if id == nil {
+				return -1
+			}
+			return strings.Index(*id, "F0")
+		}() >= 0 {
 			spot = false
 			typeVar = "swap"
 		} else {
@@ -926,8 +931,13 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var swap bool = (typeVar == "swap")
 		var baseId any = nil
 		var quoteId any = nil
-		if strings.Index(*id, ":") >= 0 {
-			var parts []string = strings.Split(*id, ":")
+		if func() int {
+			if id == nil {
+				return -1
+			}
+			return strings.Index(*id, ":")
+		}() >= 0 {
+			var parts []string = Split(id, ":")
 			baseId = func() any {
 				if 0 >= 0 && 0 < len(parts) {
 					return parts[0]
@@ -958,8 +968,8 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var splitBase []string = strings.Split(*base, "F0")
-		var splitQuote []string = strings.Split(*quote, "F0")
+		var splitBase []string = Split(base, "F0")
+		var splitQuote []string = Split(quote, "F0")
 		base = this.SafeString(splitBase, 0)
 		quote = this.SafeString(splitQuote, 0)
 		if (base == nil) || (quote == nil) {
@@ -1605,11 +1615,11 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	}
 	var fullRequest map[string]any = this.Extend(request, params)
 
-	listEp1575 := <-this.PublicGetBookSymbolPrecision(fullRequest)
-	if listEp1575.Err != nil {
-		panic(listEp1575.Err)
+	listEp1585 := <-this.PublicGetBookSymbolPrecision(fullRequest)
+	if listEp1585.Err != nil {
+		panic(listEp1585.Err)
 	}
-	var orderbook []any = listEp1575.Value
+	var orderbook []any = listEp1585.Value
 	var timestamp int64 = this.Milliseconds()
 	var result map[string]any = map[string]any{
 		"symbol":    market["symbol"],
@@ -3580,7 +3590,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		tag = this.SafeString(data, 3)
 		typeVar = SafeStringPtr("withdrawal")
 		var networkId *string = this.SafeString(data, 2)
-		network = this.NetworkIdToCode(strings.ToUpper(*networkId), code) // withdraw returns in lowercase
+		network = this.NetworkIdToCode(ToUpper(networkId), code) // withdraw returns in lowercase
 	} else if transactionLength == 22 {
 		if derefPtr := this.SafeString(transaction, 0); derefPtr != nil {
 			id = *derefPtr
@@ -5137,11 +5147,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4883 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4883.Err != nil {
-		panic(listEp4883.Err)
+	listEp4893 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4893.Err != nil {
+		panic(listEp4893.Err)
 	}
-	var response []any = listEp4883.Value
+	var response []any = listEp4893.Value
 
 	//
 	//     [

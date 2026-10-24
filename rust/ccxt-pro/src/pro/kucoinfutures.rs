@@ -297,7 +297,7 @@ impl KucoinfuturesCore {
         }
         let mut currency: Value = self.currency(code.clone());
         let mut amountToPrecision: Value = self.currency_to_precision(code, amount, &[]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_string_k(currency.clone(), "id", &[]));
                 m.insert("amount".to_string(), amountToPrecision.clone());
@@ -306,12 +306,12 @@ impl KucoinfuturesCore {
         let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (toAccountString.as_str() == Some("TRADE")) || (toAccountString.as_str() == Some("MAIN")) {
-            request.insert("recAccountType".into(), toAccountString);
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("recAccountType".into(), toAccountString); }
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.parent.parent.futures_private_post_transfer_out(&[__ws_arg_1]).await;
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
-            request.insert("payAccountType".into(), self.parse_transfer_type(fromAccount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
-            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payAccountType".into(), self.parse_transfer_type(fromAccount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
+            let __ws_arg_2 = self.extend(request, &[params]);
             response = self.parent.parent.futures_private_post_transfer_in(&[__ws_arg_2]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".into()))));

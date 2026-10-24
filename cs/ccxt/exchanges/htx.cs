@@ -2249,7 +2249,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToInt64Value(this.safeInteger2(response, "data", "ts"));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10481,7 +10481,7 @@ public partial class htx : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, IDictionary<string, object>? currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
     {
         //
         // borrowMargin cross

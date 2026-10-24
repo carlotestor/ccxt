@@ -886,8 +886,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //
         List<Object> data = (List<Object>) this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "timestamp");
-        this.balance.put("timestamp", timestamp);
-        this.balance.put("datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
+        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);

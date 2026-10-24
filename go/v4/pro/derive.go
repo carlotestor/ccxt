@@ -1477,7 +1477,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var topic *string = this.SafeString(params, "channel")
-	var topicParts []string = strings.Split(*topic, ".")
+	var topicParts []string = ccxt.Split(topic, ".")
 	var subaccountIdKey *string = this.SafeString(topicParts, 0)
 	var data []any = ccxt.SafeListTyped(params, "data")
 	if ccxt.IsEqual(this.Balance, nil) {

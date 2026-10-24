@@ -2256,7 +2256,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 if (((String)symbol).indexOf("unsubscribe") >= 0)
                 {
                     // unWatchTickers
-                    List<Object> symbols = (this.tickers == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(this.tickers.keySet()));
+                    List<Object> symbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
                     for (var j = 0; j < ((List<?>)symbols).size(); j++)
                     {
                         ((Map<String,Object>)this.tickers).remove((String)(symbols == null || j < 0 || j >= symbols.size() ? null : symbols.get(j)));
@@ -2418,14 +2418,14 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
             String channel = this.safeString(parts, 1);
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("public.increase.depth.v3.api", Mexc.this::handleOrderBookSubscription);
-                put("public.aggre.depth.v3.api.pb", Mexc.this::handleOrderBookSubscription);
+            Map<String, Object> methods = new HashMap<String, Object>() {{
+                put( "public.increase.depth.v3.api", "handleOrderBookSubscription");
+                put( "public.aggre.depth.v3.api.pb", "handleOrderBookSubscription");
             }};
-            io.github.ccxt.Handler method = methods.get(channel);
+            Object method = this.safeValue(methods, channel);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                Helpers.callDynamically(this, method, new Object[] {client, message});
             }
         }
     }

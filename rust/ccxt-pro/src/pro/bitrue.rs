@@ -764,19 +764,19 @@ impl BitrueCore {
         if (markets == Value::Null) {
             return Value::Null;
         }
-        let mut symbols: Vec<Value> = object_keys(&markets).as_array().cloned().unwrap_or_default();
+        let mut symbols: Value = object_keys(&markets);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_137: bool = true;
             while { if !__for_first_137 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_137 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut candidate: Value = get_value(&markets, &symbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            let mut candidate: Value = get_value(&markets, &symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             if !matches!(self.safe_bool_k(candidate.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 continue;
             }
             let mut baseId: Value = self.safe_string_lower_k(candidate.clone(), "baseId", &[]);
             let mut quoteId: Value = self.safe_string_lower_k(candidate.clone(), "quoteId", &[]);
             if (baseId == Value::Null) || (quoteId == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" findSwapMarketByWsBaseQuote() market ".into())).into()), symbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).into()), Value::Str(" has no baseId or quoteId".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" findSwapMarketByWsBaseQuote() market ".into())).into()), symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()), Value::Str(" has no baseId or quoteId".into()))));
             }
             if (Value::Str(format!("{}{}", baseId, quoteId).into()).as_str() == wsBaseQuote.as_str()) {
                 return candidate;
@@ -912,7 +912,7 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut data: Vec<Value> = self.safe_list_k(tick, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Value = self.safe_list_k(tick, "data", &[Value::from(vec![])]);
         let mut appended: bool = false;
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
@@ -924,7 +924,7 @@ impl BitrueCore {
                 stored = ArrayCache::new(limit);
                 if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
-            let mut trade: Value = self.parse_ws_trade(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let mut trade: Value = self.parse_ws_trade(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(trade);
             appended = true;
         }

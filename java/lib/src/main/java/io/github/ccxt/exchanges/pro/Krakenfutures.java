@@ -1685,7 +1685,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (!java.util.Objects.equals(holding, null))
         {
             List<String> holdingKeys = new ArrayList<String>(holding.keySet()); // cashAccount
-            this.balance.put("cash", this.safeDict(this.balance, "cash", new HashMap<String, Object>() {{}}));
+            Helpers.addElementToObject(this.balance, "cash", this.safeDict(this.balance, "cash", new HashMap<String, Object>() {{}}));
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash")), "info", message);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash")), "timestamp", timestamp);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash")), "datetime", this.iso8601(timestamp));
@@ -1709,7 +1709,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (!java.util.Objects.equals(futures, null))
         {
             List<String> futuresKeys = new ArrayList<String>(futures.keySet()); // marginAccount
-            this.balance.put("margin", this.safeDict(this.balance, "margin", new HashMap<String, Object>() {{}}));
+            Helpers.addElementToObject(this.balance, "margin", this.safeDict(this.balance, "margin", new HashMap<String, Object>() {{}}));
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), "info", message);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), "timestamp", timestamp);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), "datetime", this.iso8601(timestamp));
@@ -1744,7 +1744,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             Map<String, Object> flexFutureCurrencies = (Map<String, Object>) this.safeDict(flexFutures, "currencies", new HashMap<String, Object>() {{}});
             List<String> flexFuturesKeys = new ArrayList<String>(flexFutureCurrencies.keySet()); // multi-collateral margin account
-            this.balance.put("flex", this.safeDict(this.balance, "flex", new HashMap<String, Object>() {{}}));
+            Helpers.addElementToObject(this.balance, "flex", this.safeDict(this.balance, "flex", new HashMap<String, Object>() {{}}));
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), "info", message);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), "timestamp", timestamp);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), "datetime", this.iso8601(timestamp));

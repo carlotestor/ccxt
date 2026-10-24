@@ -1155,12 +1155,12 @@ impl CoinspotCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ids: Vec<Value> = Value::Array(prices.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut ids: Value = Value::Array(prices.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_581: bool = true;
             while { if !__for_first_581 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_581 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut id: Value = ids.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[id.clone()]);
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1404,20 +1404,20 @@ impl CoinspotCore {
         if (type_var.as_str() == Some("market")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut market: Value = self.market(symbol);
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cointype".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amount);
                 m.insert("rate".to_string(), price);
             m
         });
         let mut response: Value = Value::Null;
         if (sideUpper.as_str() == Some("BUY")) {
-            let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_my_buy(&[__ws_arg_3]).await;
         }  else if (sideUpper.as_str() == Some("SELL")) {
-            let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_4 = self.extend(request, &[params]);
             response = self.private_post_my_sell(&[__ws_arg_4]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".into()))));
@@ -1453,17 +1453,17 @@ impl CoinspotCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".into()))));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("side".into()), &[]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
             m
         });
         let mut response: Value = Value::Null;
         if (side.as_deref() == Some("buy")) {
-            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_5 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await;
         }  else {
-            let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_6 = self.extend(request, &[paramsOmitted]);
             response = self.private_post_my_sell_cancel(&[__ws_arg_6]).await;
         }
         return self.safe_order(Value::Map({

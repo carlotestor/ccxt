@@ -531,7 +531,7 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	}
 }
 func (this *Bitopro) Authenticate(url string) {
-	if _, ok := this.WsClientsSnapshot()[url]; (this.WsClientsSnapshot() != nil) && ok {
+	if _, ok := this.Clients[url]; (this.Clients != nil) && ok {
 		return
 	}
 	this.CheckRequiredCredentials()
@@ -660,7 +660,7 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 			result[*code] = account
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(result))
+	this.Balance = this.SafeBalance(result)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, event)
 }
 func (this *Bitopro) HandleMessage(client any, message any) {

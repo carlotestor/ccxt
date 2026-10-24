@@ -649,7 +649,7 @@ public partial class bitstamp : ccxt.bitstamp
         client.resolve(stored, channel);
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         //     {

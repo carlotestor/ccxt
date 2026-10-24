@@ -537,7 +537,7 @@ public partial class coinbase : ccxt.coinbase
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, string? market = null)
     {
         //
         //     {

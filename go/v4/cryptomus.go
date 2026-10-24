@@ -815,7 +815,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data any = this.SafeList(response, "data")
 	var dataList []any = []any{}
 	if data != nil {
 		dataList = ArrayTyped(data)

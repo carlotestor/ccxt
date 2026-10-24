@@ -1501,11 +1501,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
-        this.balance.put("info", data);
+        Helpers.addElementToObject(this.balance, "info", data);
         Map<String, Object> firstBalance = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(firstBalance, "ts");
-        this.balance.put("timestamp", timestamp);
-        this.balance.put("datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
+        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);

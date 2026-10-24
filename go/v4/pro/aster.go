@@ -1931,7 +1931,10 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	var ohlcvsByTimeframe map[string]any = ccxt.SafeMapTyped(this.Ohlcvs, symbol)
+	var ohlcvsByTimeframe map[string]any
+	if symbol != nil {
+		ohlcvsByTimeframe = this.Ohlcvs[*symbol]
+	}
 	if ohlcvsByTimeframe == nil {
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
@@ -2308,10 +2311,10 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	//
 	var accountType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var messageHash string = accountType + ":balance"
-	if ccxt.IsEqual(this.Balance[accountType], nil) {
-		this.Balance[accountType] = map[string]any{}
+	if ccxt.IsEqual(ccxt.GetValue(this.Balance, accountType), nil) {
+		ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 	}
-	this.WsBalanceEntryForWrite(accountType)["info"] = message
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
 	var messageValue any = this.SafeDict(message, "a", message)
 	var B []any = ccxt.SafeListTyped(messageValue, "B")
 	var wallet *string = this.SafeString(this.Options, "wallet", "wb")
@@ -2329,14 +2332,14 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(entry, "l")
 		account["total"] = this.SafeString(entry, wallet)
 		if code != nil {
-			this.WsBalanceEntryForWrite(accountType)[*code] = account
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(messageValue, "E")
-	ccxt.AddElementToObject(this.Balance[accountType], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[accountType], "datetime", this.Iso8601(timestamp))
-	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
-	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(this.Balance, accountType, this.SafeBalance(ccxt.GetValue(this.Balance, accountType)))
+	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, accountType), messageHash)
 }
 
 /**

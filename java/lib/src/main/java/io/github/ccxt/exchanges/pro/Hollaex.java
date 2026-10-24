@@ -527,9 +527,9 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(data.keySet());
         Long timestamp = this.safeTimestamp(message, "time");
-        this.balance.put("info", data);
-        this.balance.put("timestamp", timestamp);
-        this.balance.put("datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject(this.balance, "info", data);
+        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
+        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -546,7 +546,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Helpers.addElementToObject(account, freeOrTotal, this.safeString(data, key));
             if (!java.util.Objects.equals(code, null))
             {
-                this.balance.put(code, account);
+                Helpers.addElementToObject(this.balance, code, account);
             }
         }
         this.balance = this.safeBalance(this.balance);

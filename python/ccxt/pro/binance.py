@@ -3366,14 +3366,14 @@ class binance(ccxt.async_support.binance):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             delta = self.safe_string(message, 'd')
-            if (code is not None) and (code in self.balance[accountType]):
+            if (accountType is not None) and (code is not None) and (code in self.balance[accountType]):
                 previousValue = self.balance[accountType][code]['free']
                 if not isinstance(previousValue, str):
                     previousValue = self.number_to_string(previousValue)
                 account['free'] = Precise.string_add(previousValue, delta)
             else:
                 account['free'] = delta
-            if code is not None:
+            if (accountType is not None) and (code is not None):
                 self.balance[accountType][code] = account
         else:
             B = self.safe_list(balanceMessage, 'B')
@@ -3387,7 +3387,7 @@ class binance(ccxt.async_support.binance):
                 account['free'] = self.safe_string(entry, 'f')
                 account['used'] = self.safe_string(entry, 'l')
                 account['total'] = self.safe_string(entry, wallet)
-                if code is not None:
+                if (accountType is not None) and (code is not None):
                     self.balance[accountType][code] = account
         timestamp = self.safe_integer(balanceMessage, 'E')
         self.balance[accountType]['timestamp'] = timestamp

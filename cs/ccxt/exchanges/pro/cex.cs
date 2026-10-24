@@ -197,7 +197,7 @@ public partial class cex : ccxt.cex
         this.handleTradesInner(client, message);
     }
 
-    public virtual Dictionary<string, object> parseWsOldTrade(object trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsOldTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //  snapshot trade
@@ -413,7 +413,7 @@ public partial class cex : ccxt.cex
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //  public
@@ -863,7 +863,7 @@ public partial class cex : ccxt.cex
         client.resolve(storedOrders, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsOrderUpdate(IDictionary<string, object> order, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsOrderUpdate(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //      {
@@ -1171,7 +1171,7 @@ public partial class cex : ccxt.cex
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol);
         string messageHash = ("orderbook:" + symbol);
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
-        if (((nonce == null)) || ((nonce + 1 != incrementalId)))
+        if (((nonce == null)) || (!(incrementalId == (nonce + 1))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             var error = new InvalidNonce((this.id + " watchOrderBook() skipped a message"));

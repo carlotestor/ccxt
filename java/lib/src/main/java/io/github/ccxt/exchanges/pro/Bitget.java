@@ -3001,7 +3001,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        this.balance.put(code, account);
+                        Helpers.addElementToObject(this.balance, code, account);
                     }
                 }
             } else
@@ -3029,13 +3029,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "frozen"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    this.balance.put(code, account);
+                    Helpers.addElementToObject(this.balance, code, account);
                 }
             }
         }
         // REST parseBalance sets info, keep the ws structure at parity,
         // see https://github.com/ccxt/ccxt/issues/21973
-        this.balance.put("info", message);
+        Helpers.addElementToObject(this.balance, "info", message);
         this.balance = this.safeBalance(this.balance);
         String messageHash = ("balance:" + instType);
         client.resolve(this.balance, messageHash);

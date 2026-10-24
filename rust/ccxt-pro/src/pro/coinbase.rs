@@ -471,8 +471,8 @@ impl CoinbaseCore {
             let mut __for_first_236: bool = true;
             while { if !__for_first_236 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_236 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-            let mut marketId: Value = market.get("id").cloned().unwrap_or(Value::Null);
+            let mut market: Value = self.market(symbol.clone());
+            let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             productIds.push(marketId);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into())); }
         }
@@ -528,8 +528,8 @@ impl CoinbaseCore {
             let mut __for_first_237: bool = true;
             while { if !__for_first_237 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_237 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-            let mut marketId: Value = market.get("id").cloned().unwrap_or(Value::Null);
+            let mut market: Value = self.market(symbol.clone());
+            let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             productIds.push(marketId);
             watchMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into()));
             if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol).into())); };
@@ -811,12 +811,12 @@ impl CoinbaseCore {
             let mut __for_first_239: bool = true;
             while { if !__for_first_239 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_239 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
             let mut tickersObj: Value = self.safe_dict(events.clone(), i.clone(), &[]);
-            let mut tickers: Vec<Value> = self.safe_list_k(tickersObj, "tickers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut tickers: Value = self.safe_list_k(tickersObj, "tickers", &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_238: bool = true;
                 while { if !__for_first_238 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_238 = false; j.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-                let mut ticker: Value = tickers.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut ticker: Value = tickers.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut wsMarketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
                 if (wsMarketId.is_none()) {
                     continue;
@@ -1362,7 +1362,6 @@ impl CoinbaseCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1409,7 +1408,7 @@ impl CoinbaseCore {
             let mut market: Value = self.safe_market(&[marketId]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("level2::".into()), symbol).into());
-            let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1478,21 +1477,21 @@ impl CoinbaseCore {
             m
         })]);
         let mut isUnsub: bool = matches!(&firstEvent, Value::Dict(__d) if __d.contains_key("subscriptions"));
-        let mut subKeys: Vec<Value> = object_keys(&firstEvent.as_map().and_then(|__m| __m.get("subscriptions")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+        let mut subKeys: Value = object_keys(&firstEvent.as_map().and_then(|__m| __m.get("subscriptions")).cloned().unwrap_or(Value::Null));
         let mut subKeysLength: f64 = ((subKeys.len() as i64) as f64);
         if isUnsub && (subKeysLength == 0.0) {
             let mut unSubObject: Value = self.safe_dict_k(self.options.clone(), "unSubscription", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut messageHashes: Vec<Value> = self.safe_list_k(unSubObject.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-            let mut subMessageHashes: Vec<Value> = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut messageHashes: Value = self.safe_list_k(unSubObject.clone(), "messageHashes", &[Value::from(vec![])]);
+            let mut subMessageHashes: Value = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_247: bool = true;
                 while { if !__for_first_247 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_247 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut subHash: Value = subMessageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut subHash: Value = subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 self.clean_unsubscription(client.clone(), subHash, messageHash, &[]);
             }
             }

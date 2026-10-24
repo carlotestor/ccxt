@@ -145,7 +145,10 @@ func (this *Htx) Describe() any {
 	})
 }
 func (this *Htx) RequestId() string {
-	var requestId int64 = this.NextRequestId("requestId")
+	this.LockId()
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	this.Options["requestId"] = requestId
+	this.UnlockId()
 	return strconv.FormatInt(requestId, 10)
 }
 
@@ -2247,7 +2250,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 	if this.Positions == nil {
 		this.Positions = map[string]any{}
 	}
-	var clientPositions map[string]any = ccxt.SafeMapTyped(this.Positions, url)
+	var clientPositions any = this.SafeDict(this.Positions, url)
 	if clientPositions == nil {
 		ccxt.AddElementToObject(this.Positions, url, map[string]any{})
 	}
@@ -2272,7 +2275,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
 		position["timestamp"] = timestamp
 		position["datetime"] = this.Iso8601(timestamp)
 		var marginMode *string = this.SafeStringLower(position, "marginMode", defaultMarginMode)
@@ -2610,7 +2613,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
-		this.WsBalanceReplace(this.SafeBalance(this.Balance))
+		this.Balance = this.SafeBalance(this.Balance)
 		client.(ccxt.ClientInterface).Resolve(this.Balance, channel)
 	} else {
 		// contract balance
@@ -2634,7 +2637,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 				account["total"] = this.SafeString(detail, "equity")
 				ccxt.AddElementToObject(this.Balance, code, account)
 			}
-			this.WsBalanceReplace(this.SafeBalance(this.Balance))
+			this.Balance = this.SafeBalance(this.Balance)
 			client.(ccxt.ClientInterface).Resolve(this.Balance, "account")
 			return
 		}
@@ -2686,7 +2689,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 			if code != nil {
 				ccxt.AddElementToObject(this.Balance, code, unifiedAccount)
 			}
-			this.WsBalanceReplace(this.SafeBalance(this.Balance))
+			this.Balance = this.SafeBalance(this.Balance)
 			client.(ccxt.ClientInterface).Resolve(this.Balance, "accounts_unify")
 		} else if subType != nil && *subType == "linear" {
 			var margin *string = this.SafeString(subscription, "margin")
@@ -2700,7 +2703,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 					account["used"] = this.SafeString(first, "margin_frozen")
 					account["total"] = this.SafeString(first, "margin_balance")
 					ccxt.AddElementToObject(this.Balance, code, account)
-					this.WsBalanceReplace(this.SafeBalance(this.Balance))
+					this.Balance = this.SafeBalance(this.Balance)
 				}
 			} else {
 				// isolated margin
@@ -2714,7 +2717,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 					if code != nil {
 						ccxt.AddElementToObject(this.Balance, code, account)
 					}
-					this.WsBalanceReplace(this.SafeBalance(this.Balance))
+					this.Balance = this.SafeBalance(this.Balance)
 				}
 			}
 		} else {
@@ -2729,7 +2732,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 				if code != nil {
 					ccxt.AddElementToObject(this.Balance, code, account)
 				}
-				this.WsBalanceReplace(this.SafeBalance(this.Balance))
+				this.Balance = this.SafeBalance(this.Balance)
 			}
 		}
 		client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
@@ -3077,7 +3080,7 @@ func (this *Htx) HandleErrorMessage(client any, message any) any {
 			return false
 		}
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, id)
+		var subscription any = this.SafeDict(subscriptionsById, id)
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
 

@@ -2571,7 +2571,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToDict(await this.fapiPrivatePostV3PositionSideDual(this.extend(request, parameters)));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(fee, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -4074,7 +4074,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public virtual object parsePositionRisk(object position, IDictionary<string, object>? market = null)
+    public virtual object parsePositionRisk(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4415,7 +4415,7 @@ public partial class aster : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseAccountPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseAccountPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");

@@ -1531,9 +1531,9 @@ impl OnetradingCore {
         if (periodUnit == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing periodUnit".into()))));
         }
-        let periodunitVariable: Vec<Value> = Value::Array(periodUnit.as_str().map(|__s| __s.split("/").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut period: Value = periodunitVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut unit: Value = periodunitVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut periodunitVariable = Value::Array(periodUnit.as_str().map(|__s| __s.split("/").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+        let mut period: Value = periodunitVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut unit: Value = periodunitVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut durationInSeconds: Value = self.parse_timeframe(timeframe.clone());
         let mut duration: Value = (match (&(durationInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(1500) } else { limit });
@@ -1941,22 +1941,22 @@ impl OnetradingCore {
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
         let mut method: Value = Value::Str("privateDeleteAccountOrdersOrderId".into());
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (clientOrderId != Value::Null) {
             method = Value::Str("privateDeleteAccountOrdersClientClientId".into());
-            request.insert("client_id".into(), clientOrderId);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_id".into(), clientOrderId); }
         }  else {
-            request.insert("order_id".into(), id);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id); }
         }
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateDeleteAccountOrdersOrderId")) {
-            let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_4 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_delete_account_orders_order_id(&[__ws_arg_4]).await;
         }  else {
-            let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_5 = self.extend(request, &[paramsOmitted]);
             response = self.private_delete_account_orders_client_client_id(&[__ws_arg_5]).await;
         }
         return self.parse_order(response, &[]);
@@ -1987,8 +1987,8 @@ impl OnetradingCore {
             m
         });
         if (symbol != Value::Null) {
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-            request.insert("instrument_code".into(), market.get("id").cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbol);
+            request.insert("instrument_code".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_account_orders(&[__ws_arg_6]).await;
@@ -2410,7 +2410,7 @@ impl OnetradingCore {
             }
         }  else if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut headersSigned: indexmap::IndexMap<String, Value> = ({
+            let mut headersSigned: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Accept".to_string(), Value::Str("application/json".into()));
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), self.apiKey.clone()).into()));
@@ -2418,7 +2418,7 @@ impl OnetradingCore {
             });
             let mut bodyJson: Value = (if (method.as_str() == Some("POST")) { json_stringify(&query) } else { Value::Null });
             if (method.as_str() == Some("POST")) {
-                headersSigned.insert("Content-Type".into(), Value::Str("application/json".into()));
+                if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }  else {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
@@ -2429,7 +2429,7 @@ impl OnetradingCore {
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyJson);
-        m.insert("headers".to_string(), Value::Map(headersSigned));
+        m.insert("headers".to_string(), headersSigned);
     m
 });
         }

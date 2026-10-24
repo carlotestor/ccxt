@@ -441,7 +441,10 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var timeframe *string = this.FindTimeframe(timeframeId)
-	var ohlcvsBySymbol map[string]any = ccxt.SafeMapTyped(this.Ohlcvs, symbol)
+	var ohlcvsBySymbol map[string]any
+	if symbol != nil {
+		ohlcvsBySymbol = this.Ohlcvs[*symbol]
+	}
 	if ohlcvsBySymbol == nil {
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
@@ -540,9 +543,9 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	if isInitial {
 		// the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
@@ -590,7 +593,9 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, side, bookside)
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -834,8 +839,8 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	if symbol != nil {
 		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
-	var bids any = orderbook.GetBids()
-	var asks any = orderbook.GetAsks()
+	var bids ccxt.IOrderBookSide = orderbook.GetBids()
+	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(rawOrderBookChanges, i)
 		var price *float64 = this.SafeNumber(entry, "price")
@@ -1250,7 +1255,7 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 
 		return nil
 	}
-	if (this.WsClientsSnapshot() != nil) && (ccxt.InOp(this.WsClientsSnapshot(), url)) {
+	if (this.Clients != nil) && (ccxt.InOp(this.Clients, url)) {
 
 		return nil
 	}

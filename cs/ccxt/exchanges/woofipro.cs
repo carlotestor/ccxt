@@ -1002,7 +1002,7 @@ public partial class woofipro : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        var tokenPromise = this.v1PublicGetPublicToken(parameters);
+        Task<Dictionary<string, object>> tokenPromise = this.v1PublicGetPublicToken(parameters);
         //
         // {
         //     "success": true,
@@ -1025,11 +1025,10 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        var chainPromise = this.v1PublicGetPublicChainInfo(parameters);
-        await Task.WhenAll(tokenPromise, chainPromise);
-        List<object> tokenResponsechainResponseVariable = new List<object> { tokenPromise.Result, chainPromise.Result };
-        var tokenResponse = tokenResponsechainResponseVariable[0];
-        var chainResponse = tokenResponsechainResponseVariable[1];
+        Task<Dictionary<string, object>> chainPromise = this.v1PublicGetPublicChainInfo(parameters);
+        var tokenResponsechainResponseVariable = new List<object>(await Task.WhenAll(new List<Task<Dictionary<string, object>>>() {tokenPromise, chainPromise}));
+        var tokenResponse = ((IList<object>) tokenResponsechainResponseVariable)[0];
+        var chainResponse = ((IList<object>) tokenResponsechainResponseVariable)[1];
         IDictionary<string, object> tokenData = this.safeDict(tokenResponse, "data", new Dictionary<string, object>() {});
         List<object> tokenRows = this.safeList(tokenData, "rows", new List<object>() {});
         IDictionary<string, object> chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});

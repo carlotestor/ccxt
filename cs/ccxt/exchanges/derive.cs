@@ -1581,7 +1581,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market = null)
     {
         //
         // fetchSettlementHistory
@@ -1621,7 +1621,7 @@ public partial class derive : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
