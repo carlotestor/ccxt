@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -407,13 +406,6 @@ public class Helpers {
         return false;
     }
 
-    public static Object mathMin(Object a, Object b) {
-        if (a == null || b == null) return null;
-        double first = toDouble(a);
-        double second = toDouble(b);
-        return (first < second) ? a : b;
-    }
-
     public static Object mathMax(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -556,14 +548,7 @@ public class Helpers {
         }
     }
 
-    public static Object toFixed(Object number, Object decimals) {
-        double n = toDouble(number);
-        int d = toInt(decimals);
-        BigDecimal bd = new BigDecimal(Double.toString(n)).setScale(d, RoundingMode.HALF_UP);
-        return bd.doubleValue();
-    }
-
-public static Object callDynamically(Object obj, Object methodName, Object[] args) {
+    public static Object callDynamically(Object obj, Object methodName, Object[] args) {
     if (args == null) args = new Object[]{};
 
     String name = (String) methodName;
@@ -716,29 +701,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             if (end > str.length()) end = str.length();
             if (start > end) start = end;
             return str.substring(start, end);
-        }
-    }
-
-    public static Object concat(Object a, Object b) {
-        if (a == null && b == null) return null;
-        if (a == null) return b;
-        if (b == null) return a;
-
-        if (a instanceof List && b instanceof List) {
-            List result = new ArrayList((List) a);
-            result.addAll((List) b);
-            return result;
-        } else if (a instanceof List && !(b instanceof List)) {
-            List result = new ArrayList((List) a);
-            result.add(b);
-            return result;
-        } else if (!(a instanceof List) && b instanceof List) {
-            List result = new ArrayList();
-            result.add(a);
-            result.addAll((List) b);
-            return result;
-        } else {
-            throw new IllegalStateException("Unsupported types for concatenation.");
         }
     }
 
@@ -904,16 +866,14 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
 
 
     /**
-     * Snapshot-copy of a Map's keys under the map's intrinsic lock, so concurrent
-     * put/remove from a WS-handler thread doesn't IOOBE the iteration. Used by
-     * the transpile of `Object.keys(x)` — see post-process in build/javaTranspiler.ts.
+     * Copy of a Map's keys. The caller owns the map or reads a published snapshot (an
+     * immutable map, or a null-free store's weakly consistent view), so the copy needs no
+     * monitor. Used by the transpile of `Object.keys(x)`.
      * For non-Map targets returns an empty list (matches JS Object.keys on non-objects).
      */
     public static List<Object> objectKeys(Object target) {
         if (target instanceof Map<?, ?> m) {
-            synchronized (m) {
-                return new ArrayList<>(m.keySet());
-            }
+            return new ArrayList<>(m.keySet());
         }
         return new ArrayList<>();
     }
@@ -921,9 +881,7 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     /** Same as {@link #objectKeys} but for values — transpile of `Object.values(x)`. */
     public static List<Object> objectValues(Object target) {
         if (target instanceof Map<?, ?> m) {
-            synchronized (m) {
-                return new ArrayList<>(m.values());
-            }
+            return new ArrayList<>(m.values());
         }
         return new ArrayList<>();
     }
@@ -934,18 +892,15 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             if (args.length != 2)
                 throw new IllegalArgumentException("Map requires (key, value)");
             Map<Object, Object> m = (Map<Object, Object>) map;
-            // ConcurrentHashMap answers null-free shared state by removing; no monitor, it is atomic
-            if (m instanceof java.util.concurrent.ConcurrentHashMap) {
-                if (args[1] == null) {
-                    m.remove(args[0]);
-                } else {
-                    m.put(args[0], args[1]);
-                }
-                return;
-            }
-            // request/response payloads keep explicit null entries and one owner thread per map
-            synchronized (m) {
+            // JS keeps an explicit null entry; a null-free store spells the same write as a removal
+            if (args[1] != null || args[0] == null) {
                 m.put(args[0], args[1]);
+            } else {
+                try {
+                    m.put(args[0], null);
+                } catch (NullPointerException nullFree) {
+                    m.remove(args[0]);
+                }
             }
             return;
         }
@@ -973,28 +928,23 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
                 "List requires (value) to append or (index(Integer), value) to insert");
         }
 
-        // Fallback: set field via reflection for arbitrary objects (e.g., WsOrderBook).
-        // Sync on the target so a sequence of writes (e.g. timestamp + datetime updated
-        // together by an exchange's handler) appears atomic to readers that take the
-        // same monitor (see WsOrderBook.toMap, which synchronizes on `this`). Without
-        // it, apex/gate orderbooks showed datetime drift / null because the two writes
-        // weren't memory-visible together.
+        // Fallback: set a field via reflection on a plain object. The target is owned by the
+        // calling thread (every Map, including WsOrderBook, takes the branch above), so the
+        // write needs no monitor to be visible to that thread's later reads.
         if (args.length == 2 && args[0] instanceof String fieldName) {
-            synchronized (target) {
+            try {
+                java.lang.reflect.Field field = target.getClass().getField(fieldName);
+                field.setAccessible(true);
+                field.set(target, args[1]);
+                return;
+            } catch (NoSuchFieldException e) {
                 try {
-                    java.lang.reflect.Field field = target.getClass().getField(fieldName);
-                    field.setAccessible(true);
-                    field.set(target, args[1]);
+                    String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                    java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
+                    method.invoke(target, args[1]);
                     return;
-                } catch (NoSuchFieldException e) {
-                    try {
-                        String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-                        java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
-                        method.invoke(target, args[1]);
-                        return;
-                    } catch (Exception e2) { /* fall through */ }
-                } catch (Exception e) { /* fall through */ }
-            }
+                } catch (Exception e2) { /* fall through */ }
+            } catch (Exception e) { /* fall through */ }
         }
         throw new IllegalArgumentException("Target is neither Map nor List: " + typeName(target));
     }
@@ -1124,22 +1074,6 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
         }
 
         return str.substring(0, length);
-    }
-
-    public static String padStart(Object input, Object length2, Object padStr) {
-        int length = toInt(length2);
-        String str = toString(input);
-        String pad = toString(padStr);
-
-        if (pad.isEmpty()) {
-            throw new IllegalArgumentException("padStr must not be empty");
-        }
-
-        while (str.length() < length) {
-            str = pad + str;
-        }
-
-        return str.substring(str.length() - length);
     }
 
     public static String json(Object obj) {
