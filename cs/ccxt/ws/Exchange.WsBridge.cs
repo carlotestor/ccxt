@@ -189,7 +189,13 @@ public partial class BaseExchange
         var backoffDelay = 0;
 
         Future existingFuture = null;
-        if (subscribeHash == null && (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture))
+        // one hand-off: an already pending future is answered without touching the
+        // client's table, a missing one is attached below
+        if (subscribeHash == null)
+        {
+            existingFuture = client.getFuture(messageHash);
+        }
+        if (existingFuture != null)
         {
             return await existingFuture;
         }
@@ -201,7 +207,9 @@ public partial class BaseExchange
         // like watchMultiple already does and send only when this call won the claim,
         // js stores null subscribe hashes under a literal undefined key, mirror that
         var subscriptionClaimKey = subscribeHash ?? "undefined";
-        bool subscriptionClaimed = (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscriptionClaimKey, subscription ?? true);
+        // the client owns the claim table: it answers which keys this call won, and
+        // the release below hands the same key back
+        bool subscriptionClaimed = client.claimSubscriptions(new List<string> { subscriptionClaimKey }, subscription).Count > 0;
         if (!client.startedConnecting)
         {
             // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
@@ -219,7 +227,7 @@ public partial class BaseExchange
                 }
                 catch (Exception ex)
                 {
-                    client.subscriptions.Remove(subscriptionClaimKey);
+                    client.releaseSubscriptions(new List<string> { subscriptionClaimKey });
                     future.reject(ex);
                     // future.SetException(ex); check this out
                 }
@@ -243,15 +251,9 @@ public partial class BaseExchange
 
         if (subscribeHashes != null)
         {
-            foreach (var subscribeHash in subscribeHashes)
-            {
-                if (subscribeHash == null) continue;
-
-                if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
-                {
-                    missingSubscriptions.Add(subscribeHash);
-                }
-            }
+            // one hand-off for the whole batch: the client answers the keys this
+            // call won, so a second watch on an already-claimed hash sends nothing
+            missingSubscriptions = client.claimSubscriptions(subscribeHashes, subscription);
         }
 
         var backoffDelay2 = 0;
@@ -273,10 +275,7 @@ public partial class BaseExchange
                 }
                 catch (Exception ex)
                 {
-                    foreach (var subscribeHash in missingSubscriptions)
-                    {
-                        client.subscriptions.Remove(subscribeHash);
-                    }
+                    client.releaseSubscriptions(missingSubscriptions);
                     future.reject(ex); // check this out
                 }
             }
