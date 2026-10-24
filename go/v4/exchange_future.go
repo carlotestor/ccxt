@@ -24,11 +24,9 @@ func ToGetsLimit(v any) GetsLimit {
 	return NoopLimit{Val: v} // otherwise it is wrapped in NoopLimit
 }
 
-// futureState is the resolution state plus the pending subscribers. It travels
-// through the state channel: whoever holds it is its only owner, so the resolved
-// flag and the subscriber list can never be seen half-updated, and a resolve
-// can never notify a list it did not snapshot. See
-// https://github.com/ccxt/ccxt/issues/29586.
+// futureState is the resolution state plus the pending subscribers; whoever
+// holds it out of the state channel is its only owner, so the resolved flag and
+// the subscriber list are never half-updated (ccxt issue 29586).
 type futureState struct {
 	resolved bool
 	value    any

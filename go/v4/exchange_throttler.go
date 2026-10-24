@@ -11,10 +11,9 @@ type TimestampedCost struct {
 	Cost      float64
 }
 
-// throttlerState is the mutable half of a Throttler. It travels through the
-// state channel: whoever holds it is the only goroutine allowed to touch it,
-// which makes the draining loop the single owner of the queue, the running
-// flag, the leaky-bucket token count and the rolling-window history.
+// throttlerState is the mutable half of a Throttler; whoever holds it out of
+// the state channel is its only owner, so the draining loop alone touches the
+// running flag, the token count and the rolling-window history.
 type throttlerState struct {
 	Running    bool
 	Tokens     float64
