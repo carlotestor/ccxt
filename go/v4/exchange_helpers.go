@@ -306,6 +306,17 @@ func getValue(collection any, key any) any {
 		if ok {
 			return val
 		}
+	case map[string]map[string]any:
+		// the ohlcv book is two-level: a symbol key answers its timeframe map
+		if !isStr {
+			return nil
+		}
+		addElementMu.Lock()
+		val, ok := v[keyStr]
+		addElementMu.Unlock()
+		if ok {
+			return val
+		}
 	case *sync.Map:
 		if v == nil {
 			return nil
@@ -1048,6 +1059,20 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 		} else {
 			// return fmt.Errorf("invalid key type for map: expected string")
 		}
+	case map[string]map[string]any:
+		// the ohlcv book is two-level: a symbol key holds its timeframe map
+		if obj == nil {
+			return // a typed-nil map is absent: a no-op, like untyped nil
+		}
+		book, ok := value.(map[string]any)
+		if !ok {
+			return // a book slot only takes a book, like the helper's unsupported-type no-op
+		}
+		if key, ok := stringOrInt.(string); ok {
+			addElementMu.Lock()
+			obj[key] = book
+			addElementMu.Unlock()
+		}
 	case *sync.Map:
 		if key, ok := stringOrInt.(string); ok {
 			obj.Store(key, value)
@@ -1166,6 +1191,14 @@ func InOp(dict any, key any) bool {
 	switch v := dict.(type) {
 	case map[string]any:
 		// serialize map read to avoid concurrent read/write with AddElementToObject
+		addElementMu.Lock()
+		_, ok := v[key.(string)]
+		addElementMu.Unlock()
+		if ok {
+			return true
+		}
+	case map[string]map[string]any:
+		// the ohlcv book is two-level: presence of the symbol key answers the book
 		addElementMu.Lock()
 		_, ok := v[key.(string)]
 		addElementMu.Unlock()
@@ -2945,6 +2978,10 @@ func Remove(dict any, key any) {
 		// never throws, mirror that semantic instead of panicking, concurrent
 		// transpiled deletes of the same key raced here and panicked the loser
 		v.Delete(keyStr)
+		return
+	case map[string]map[string]any:
+		// the ohlcv book is two-level; the javascript delete is a no-op on a missing key
+		delete(v, keyStr)
 		return
 	case map[string]any:
 		// the javascript delete statement is a no-op on a missing key

@@ -166,8 +166,9 @@ type BaseExchange struct {
 
 	SubstituteCommonCurrencyCodes bool
 
-	// WS - plain string-keyed caches, one per exchange instance (cache objects stay boxed)
-	Ohlcvs         map[string]any
+	// WS - plain string-keyed caches, one per exchange instance (cache objects stay boxed).
+	// Ohlcvs holds one book per symbol, and a book is the plain map of its timeframes.
+	Ohlcvs         map[string]map[string]any
 	Trades         map[string]any
 	Tickers        TickerCache
 	Orders         any // *ArrayCache  // cache object, not a map
@@ -274,7 +275,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Trades = map[string]any{}
 	this.Tickers = TickerCache{}
 	this.Orderbooks = map[string]any{}
-	this.Ohlcvs = map[string]any{}
+	this.Ohlcvs = map[string]map[string]any{}
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)

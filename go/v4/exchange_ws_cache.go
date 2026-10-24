@@ -109,8 +109,6 @@ func (this *BaseExchange) wsCacheField(name string) map[string]any {
 	switch name {
 	case "Orderbooks":
 		return this.Orderbooks
-	case "Ohlcvs":
-		return this.Ohlcvs
 	case "Trades":
 		return this.Trades
 	case "FundingRates":
@@ -167,6 +165,12 @@ func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 		return nil
 	}
 	cache := this.wsCacheField(req.field)
+	if (cache == nil) && (req.op == wsOpReset) && (req.field == "Ohlcvs") {
+		// the ohlcv book is typed per timeframe: clearing its symbols keeps the map
+		// handler code points at, like every other cache reset does
+		clear(this.Ohlcvs)
+		return nil
+	}
 	if cache == nil {
 		return nil
 	}
