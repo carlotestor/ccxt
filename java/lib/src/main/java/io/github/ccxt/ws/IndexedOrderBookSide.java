@@ -188,10 +188,11 @@ public class IndexedOrderBookSide extends OrderBookSide {
         } else {
             out = new IndexedOrderBookSide(null, this.depth, this.side);
         }
+        out.beginBatch();
         for (Object row : this.snapshot()) {
             out.storeArray(new ArrayList<>((List<Object>) row));
         }
-        out.publishRows();
+        out.endBatch();
         return out;
     }
 
