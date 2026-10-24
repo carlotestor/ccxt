@@ -304,6 +304,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
             copy["market"] = Exchange.SafeValue(this as dict, "market");
         }
+        copy.PublishRows();
         return copy;
     }
 
@@ -368,6 +369,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
             copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
             copy["market"] = Exchange.SafeValue(this as dict, "market");
         }
+        copy.PublishRows();
         return copy;
     }
 
@@ -424,6 +426,7 @@ public class IndexedOrderBook : OrderBook, IOrderBook
             copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
             copy["market"] = Exchange.SafeValue(this as dict, "market");
         }
+        copy.PublishRows();
         return copy;
     }
 
