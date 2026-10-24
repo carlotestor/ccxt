@@ -962,32 +962,18 @@ export default class deribit extends Exchange {
                 }
                 const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
-                let strike: Num = undefined;
-                let optionType: Str = undefined;
-                let symbol = id;
-                let type = 'swap';
-                if (future) {
-                    type = 'future';
-                } else if (option) {
-                    type = 'option';
-                } else if (isSpot) {
-                    type = 'spot';
-                }
+                const type = future ? 'future' : (option ? 'option' : (isSpot ? 'spot' : 'swap'));
+                const strike: Num = option ? this.safeNumber (market, 'strike') : undefined;
+                const optionType: Str = option ? this.safeString (market, 'option_type') : undefined;
+                const spotSymbol = base + '/' + quote;
+                const contractSymbol = spotSymbol + ':' + settle;
+                const datedSymbol = (option || future) ? (contractSymbol + '-' + this.yymmdd (expiry, '')) : contractSymbol;
+                const letter = (optionType === 'call') ? 'C' : 'P';
+                const optionSuffix = option ? ('-' + this.numberToString (strike) + '-' + letter) : '';
+                const symbol = isSpot ? spotSymbol : (isComboMarket ? id : datedSymbol + optionSuffix);
                 let inverse: Bool = undefined;
                 let linear: Bool = undefined;
-                if (isSpot) {
-                    symbol = base + '/' + quote;
-                } else if (!isComboMarket) {
-                    symbol = base + '/' + quote + ':' + settle;
-                    if (option || future) {
-                        symbol = symbol + '-' + this.yymmdd (expiry, '');
-                        if (option) {
-                            strike = this.safeNumber (market, 'strike');
-                            optionType = this.safeString (market, 'option_type');
-                            const letter = (optionType === 'call') ? 'C' : 'P';
-                            symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
-                        }
-                    }
+                if (!isSpot && !isComboMarket) {
                     inverse = (quote !== settle);
                     linear = (settle === quote);
                 }
