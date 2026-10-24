@@ -165,7 +165,7 @@ type IBaseExchange interface {
 	GetAlias() any
 	GetTimeframes() map[string]any
 	GetFeatures() map[string]any
-	GetCache() map[string]any
+	GetCache() *sync.Map
 	GetRequiredCredentials() map[string]any
 	SetTimeout(timeout any)
 	SetHttpsProxy(httpsProxy any)
@@ -226,7 +226,7 @@ type ICoreExchange interface {
 	GetAlias() any
 	GetTimeframes() map[string]any
 	GetFeatures() map[string]any
-	GetCache() map[string]any
+	GetCache() *sync.Map
 	GetRequiredCredentials() map[string]any
 	SetTimeout(timeout any)
 	SetHttpsProxy(httpsProxy any)
@@ -451,7 +451,7 @@ type IDerivedExchange interface {
 	ParseTrade(trade any, optionalArgs ...any) Trade
 	ParseTrades(trades any, optionalArgs ...any) []any
 	ParseGreeks(greeks any, optionalArgs ...any) Greeks
-	ParseMarket(market any) any
+	ParseMarket(market any) map[string]any
 	ParseCurrency(rawCurrency any) map[string]any
 	ParseTransaction(transaction any, optionalArgs ...any) Transaction
 	ParseTransfer(transfer any, optionalArgs ...any) TransferEntry
