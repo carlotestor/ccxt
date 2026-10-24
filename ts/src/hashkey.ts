@@ -4539,7 +4539,7 @@ export default class hashkey extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = apiUrl + '/' + path;
+        let url = apiUrl + '/' + path;
         let query: Str = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
