@@ -36,13 +36,16 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     /** Owner-to-reader hand-off: scalars and side references as of the last completed write. */
     private final OwnerSlot<Meta> publishedMeta = new OwnerSlot<>();
 
-    /** The ws owner thread, claimed by the first write; null means "single-threaded so far". */
+    /** The ws owner thread, claimed by the first write; null means "nobody has written yet". */
     private Thread owner;
 
-    /** True on the ws owner thread (and before any write, when nobody owns the book yet). */
+    /**
+     * True only on the thread that owns the book. An unclaimed book answers from the published
+     * record, which is empty until the first write, so a reader never touches live sides.
+     */
     protected final boolean isOwner() {
         Thread o = this.owner;
-        return o == null || o == Thread.currentThread();
+        return o != null && o == Thread.currentThread();
     }
 
     /** Immutable reader view of the book's scalars and live side references. */

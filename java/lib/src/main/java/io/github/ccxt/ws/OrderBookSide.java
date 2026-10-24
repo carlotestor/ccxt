@@ -33,13 +33,16 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
     /** Reader-to-owner hand-off: trims requested by user threads. */
     private final LinkedBlockingQueue<Object> trimRequests = new LinkedBlockingQueue<>();
 
-    /** The ws owner thread, claimed by the first mutation; null means "single-threaded so far". */
+    /** The ws owner thread, claimed by the first mutation; null means "nobody has written yet". */
     protected Thread owner;
 
-    /** True on the ws owner thread (and before any write, when nobody owns the side yet). */
+    /**
+     * True only on the thread that owns the side. An unclaimed side answers from the published
+     * rows, which are empty until the first write, so the reader never copies live state.
+     */
     protected final boolean isOwner() {
         Thread o = this.owner;
-        return o == null || o == Thread.currentThread();
+        return o != null && o == Thread.currentThread();
     }
 
     public OrderBookSide(List<Object> deltas, Object depthObj, boolean side) {

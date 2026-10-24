@@ -64,13 +64,16 @@ public class ArrayCache extends ArrayList<Object> {
     /** Reader-to-owner hand-off: poll scopes whose counters the next append must reset. */
     protected final LinkedBlockingQueue<String> pendingPolls = new LinkedBlockingQueue<>();
 
-    /** The ws owner thread, claimed by the first mutation; null means "single-threaded so far". */
+    /** The ws owner thread, claimed by the first mutation; null means "nobody has written yet". */
     protected Thread owner;
 
-    /** True on the ws owner thread (and before any write, when nobody owns the cache yet). */
+    /**
+     * True only on the thread that owns the cache. An unclaimed cache answers every caller from
+     * the published view, which is empty and equals the live state until the first append.
+     */
     protected final boolean isOwner() {
         Thread o = this.owner;
-        return o == null || o == Thread.currentThread();
+        return o != null && o == Thread.currentThread();
     }
 
     /**
