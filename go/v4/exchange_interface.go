@@ -1,7 +1,5 @@
 package ccxt
 
-import "sync"
-
 // IPredictionDispatch lets PredictionExchange's base parse loops (parsePredictionTrades →
 // parsePredictionTrade, etc.) reach the venue override via this.DerivedExchange instead of calling
 // the base NotSupported stub. These parsers are prediction-only (regular cores lack them), so they
@@ -398,7 +396,7 @@ type ICoreExchange interface {
 	WarmUpCache()
 	GetItf() any
 	ConvertToSafeDictionary(data any) any
-	CreateSafeDictionary(isWs ...bool) *sync.Map
+	CreateSafeDictionary(isWs ...bool) map[string]any
 	SetOptions(options any)
 	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction]
 	// WS methods
@@ -503,7 +501,7 @@ type IDerivedExchange interface {
 	Market(symbol any) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) Conversion
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
-	HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
+	HandleErrors(statusCode any, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
 	HandleMessage(client any, message any)
 	OnError(client any, err any)
 	OnClose(client any, err any)

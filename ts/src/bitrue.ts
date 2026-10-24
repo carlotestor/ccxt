@@ -3411,7 +3411,7 @@ export default class bitrue extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {

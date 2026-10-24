@@ -25,6 +25,7 @@ import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
 import { hx10G02Pass, hx10w3G02SelfCheck } from './hx10w3-G02.js';
 import { hx10w5G05Pass, g05check } from './hx10w5-G05.js';
 import { b02TupleSliceSlotReads, b02TupleSliceSlotSelfTest } from './hx10w7-B02.js';
+import { hx10w8Gp08TuplePairBinds, hx10w8Gp08SelfTest } from './hx10w8-GP08.js';
 import { og02IdBookPass, og02IdBookCheck } from './hx10w6-OG02.js';  // hx10 wave-6 OG02: id/nonce counters + last-response fields owned by the request book
 import { hx10w4OG01Pass, hx10w4OG01Check } from './hx10w4-OG01.js';
 import { hx10w4OG03Pass, og03selfcheck } from './hx10w4-OG03.js';
@@ -50,6 +51,8 @@ import { hx10w3G07Pass, hx10w3G07Check } from './hx10w3-G07.js';
 import { hx10G08TupleReads, hx10G08Check } from './hx10w2-G08.js';
 import { g01SubsHandOff, g01SubsCheck } from './hx10w3-G01.js';  // hx10w3 G01
 import { installCcxtGoParamTypes, g08w3Check } from './hx10w3-G08.js';
+import { installCcxtGoDictParams, hx10w8GB01Check } from './hx10w8-GB01.js';
+import { installCcxtGoGb05ParamTypes, hx10w8GB05Check } from './hx10w8-GB05.js';  // hx10 w8 GB05: parse-family frame parameters
 import { hx10w3G10, g10SelfCheck } from './hx10w3-G10.js';  // hx10w3 G10
 import { hx10w6G01BalanceOwner, hx10w6G01BalanceCheck, g01BalanceWired } from './hx10w6-G01.js';  // hx10 wave6 G01: typed balance account
 import { g01UrlsViews, g01Check } from './hx10w5-G01.js';  // hx10w5 G01: urls views
@@ -58,6 +61,8 @@ import { hx10G15Pass, hx10G15Check } from './hx10w5-G15.js';  // hx10 wave5 G15
 import { g21Pass, g21Check } from './hx10w5-G21.js';  // hx10 w5 G21: prediction-tier boxed locals
 import { og03w6pass, og03w6SelfCheck, og03w6Wired } from './hx10w6-OG03.js';  // hx10 w6 OG03: registry reads ask the owner
 import { og06SyncMapArmsPass, og06SelfCheck } from './hx10w7-OG06.js';  // hx10 w7 OG06: dead *sync.Map arms in the resolved map coercion
+import { gb08Pass, gb08Check } from './hx10w8-GB08.js';  // hx10 w8 GB08: prediction-tier dead bounds guards
+import { hx10w8GO04Pass, hx10w8GO04Check } from './hx10w8-GO04.js';  // hx10 w8 GO04: the typed FromMap builders take the boxed value
 
 type dict = { [key: string]: string };
 
@@ -89,7 +94,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createTakeProfitOrderWs': [ 0, 1, 2 ], 'createTrailingAmountOrder': [ 0, 1, 2 ],
     'createTrailingAmountOrderWs': [ 0, 1, 2 ], 'createTrailingPercentOrder': [ 0, 1, 2 ],
     'createTrailingPercentOrderWs': [ 0, 1, 2 ], 'createTriggerOrder': [ 0, 1, 2 ], 'createTriggerOrderWs': [ 0, 1, 2 ],
-    'createTwapOrder': [ 0, 1 ], 'sign': [ 0 ], 'handleErrors': [ 5 ], 'editLimitOrder': [ 1, 2 ], 'editOrderWithClientOrderId': [ 1, 2, 3 ],
+    'createTwapOrder': [ 0, 1 ], 'sign': [ 0 ], 'handleErrors': [ 2, 5 ], 'calculateRateLimiterCost': [ 1, 2 ], 'editLimitOrder': [ 1, 2 ], 'editOrderWithClientOrderId': [ 1, 2, 3 ],
     'editOrderWs': [ 1, 2, 3 ], 'setTakeProfitAndStopLossParams': [ 1, 2 ], 'editLimitBuyOrder': [ 1 ],
     'editLimitSellOrder': [ 1 ], 'watchOHLCV': [ 0 ], 'unWatchOrderBook': [ 0 ], 'unWatchTrades': [ 0 ],
     'unWatchOHLCV': [ 0 ], 'unWatchTicker': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchFundingRate': [ 0 ],
@@ -2746,6 +2751,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx4X01TupleProducerReads (content);
     content = nativeTupleHolderReads (content);
     content = b02TupleSliceSlotReads (content);  // hx10 w7 B02: the params slot of a tuple holder
+    content = hx10w8Gp08TuplePairBinds (content);  // hx10 w8 GP08: typed slot-0 local, native pair bind
     content = nativeAsyncTupleHolderReads (content);
     content = hx4G12TupleSlotReads (content, filePath);
     hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
@@ -2798,6 +2804,8 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10G15Pass (content);  // hx10 wave5 G15: option-dict field receivers
     content = og02IdBookPass (content);  // hx10w6 OG02: the id/nonce counter and last-response reads hand off to the request book owner
     content = og06SyncMapArmsPass (content);  // hx10 w7 OG06: the resolved map coercion drops its *sync.Map arm where the producer cannot yield one
+    content = gb08Pass (content, filePath);  // hx10 w8 GB08: prediction-tier element reads inside a len(list) loop
+    content = hx10w8GO04Pass (content);  // hx10 w8 GO04: a coercion feeding one typed FromMap builder goes, the builder takes the box
     return goGofmtSplicedText (content);
 }
 
@@ -4120,8 +4128,17 @@ function goProvenParseSelfTest (): string[] {
     // G12: MapTyped around a struct->map converter is the identity
     ok (dropNoOpMapTyped ('\tvar p map[string]any = MapTyped(PositionToMap(this.ParsePosition(p)))\n') === '\tvar p map[string]any = PositionToMap(this.ParsePosition(p))\n', 'converter wrap dropped');
     ok (dropNoOpMapTyped ('\tvar b map[string]any = MapTyped(this.SafeBalance(p))\n') === '\tvar b map[string]any = MapTyped(this.SafeBalance(p))\n', 'a still-untyped callee keeps its wrap');
+    // hx10w8 GB07: a second Market/Currency wrap around a base row builder is the identity
+    ok (dropNoOpMapTyped ('\treturn MarketTyped(this.Exchange.SafeMarket(id))\n') === '\treturn this.Exchange.SafeMarket(id)\n', 'base row wrap dropped');
+    ok (dropNoOpMapTyped ('\treturn MarketTyped(this.SafeMarket(id))\n') === '\treturn MarketTyped(this.SafeMarket(id))\n', 'an override keeps its wrap');
     return problems;
 }
+
+// hx10w8 GB07: base methods whose every return path is already a MarketTyped/CurrencyTyped row, so a
+// second wrapper around their call is the identity (the helper hands back the same map for a plain row).
+const GO_PLAIN_ROW_METHODS = [ 'Market', 'SafeMarket', 'Currency', 'SafeCurrency' ];
+const GO_PLAIN_ROW_CALL = new RegExp ('^(?:this\\.(?:DerivedExchange\\.|Exchange\\.)(?:' + GO_PLAIN_ROW_METHODS.join ('|')
+    + ')|this\\.(?:SafeCurrencyStructure|SafeMarketStructure))\\(');  // the two structure builders have no venue override
 
 function dropNoOpMapTyped (content: string): string {
     const callee = new RegExp ('^(?:this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:' + GO_MAP_RETURNING_METHODS.join ('|') + ')|(?:ccxt\\.)?(?:' + GO_PROVEN_STRUCT_TO_MAP_CALLS.join ('|') + '))\\(');
@@ -4145,7 +4162,7 @@ function dropNoOpMapTyped (content: string): string {
     };
     let out = '';
     let cursor = 0;
-    const wrapper = /\b(?:ccxt\.)?MapTyped\(|\bthis\.(?:DerivedExchange\.|Exchange\.)?(?:Currency|SafeCurrency|SafeMarket)\(/g;
+    const wrapper = /\b(?:ccxt\.)?(?:MapTyped|MarketTyped|CurrencyTyped)\(|\bthis\.(?:DerivedExchange\.|Exchange\.)?(?:Currency|SafeCurrency|SafeMarket)\(/g;
     for (let m = wrapper.exec (content); m !== null; m = wrapper.exec (content)) {
         if (m.index < cursor) {
             continue;
@@ -4164,7 +4181,11 @@ function dropNoOpMapTyped (content: string): string {
         }
         const inner = content.substring (open + 1, end);
         const innerOpen = inner.indexOf ('(');
-        if (!callee.test (inner) || (close (inner, innerOpen) !== inner.length - 1)) {
+        // a MarketTyped/CurrencyTyped wrap is the identity only on a base method that already answers a
+        // plain row; MapTyped keeps its wider table
+        const rowWrap = /^(?:ccxt\.)?(?:MarketTyped|CurrencyTyped)\($/.test (m[0]);
+        const innerIsCall = (rowWrap ? GO_PLAIN_ROW_CALL : callee).test (inner);
+        if (!innerIsCall || (close (inner, innerOpen) !== inner.length - 1)) {
             continue;
         }
         out += content.substring (cursor, m.index) + dropNoOpMapTyped (inner);
@@ -5085,6 +5106,8 @@ class NewTranspiler {
         installCcxtGoLocalTypes (this.transpiler.goTranspiler, GO_UNIFIED_INT64_PARAMS);
         installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
         installCcxtGoParamTypes (this.transpiler.goTranspiler);
+        installCcxtGoDictParams (this.transpiler.goTranspiler);
+        installCcxtGoGb05ParamTypes (this.transpiler.goTranspiler);
     }
 
     createGeneratedHeader() {
@@ -6382,7 +6405,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (og06SyncMapArmsPass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))))
+            fs.writeFileSync (goPredictionBase, hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w8GO04Pass (og06SyncMapArmsPass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))))
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -8901,7 +8924,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (gb08Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w8GO04Check ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

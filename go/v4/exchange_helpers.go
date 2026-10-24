@@ -13,11 +13,9 @@ import (
 	"time"
 )
 
-// serialize writes in AddElementToObject to avoid concurrent map writes in hot WS paths
-var addElementMu sync.Mutex
-
-// AddElementMu is the same lock, for InOp inlined into generated code of other packages
-var AddElementMu = &addElementMu
+// These helpers lock nothing: every map they touch is goroutine-local or owned by one
+// goroutine (the markets book owner or the ws dispatch loop), and no writer anywhere
+// takes a helper lock, so a read-side mutex was never a synchronization edge.
 
 func UnWrapType(value any) any {
 	// converts from wrapped types to basic types
@@ -215,8 +213,6 @@ func MapTyped(v any) map[string]any {
 // GetValue(row, "k"). A row still holding such a value is copied, never written in place.
 func MarketTyped(v any) map[string]any {
 	row := MapTyped(v)
-	addElementMu.Lock()
-	defer addElementMu.Unlock()
 	var plain map[string]any
 	for key, value := range row {
 		if marketValueIsPlain(value) {
@@ -299,10 +295,7 @@ func getValue(collection any, key any) any {
 		if !isStr {
 			return nil
 		}
-		// serialize map reads to avoid races with concurrent writes
-		addElementMu.Lock()
 		val, ok := v[keyStr]
-		addElementMu.Unlock()
 		if ok {
 			return val
 		}
@@ -311,9 +304,7 @@ func getValue(collection any, key any) any {
 		if !isStr {
 			return nil
 		}
-		addElementMu.Lock()
 		val, ok := v[keyStr]
-		addElementMu.Unlock()
 		if ok {
 			return val
 		}
@@ -1052,9 +1043,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 			return // a typed-nil map is absent: a no-op, like untyped nil
 		}
 		if key, ok := stringOrInt.(string); ok {
-			addElementMu.Lock()
 			obj[key] = value
-			addElementMu.Unlock()
 			// return nil
 		} else {
 			// return fmt.Errorf("invalid key type for map: expected string")
@@ -1069,9 +1058,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 			return // a book slot only takes a book, like the helper's unsupported-type no-op
 		}
 		if key, ok := stringOrInt.(string); ok {
-			addElementMu.Lock()
 			obj[key] = book
-			addElementMu.Unlock()
 		}
 	case *sync.Map:
 		if key, ok := stringOrInt.(string); ok {
@@ -1083,15 +1070,11 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]map[string]*ArrayCacheByTimestamp:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(map[string]*ArrayCacheByTimestamp); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else if _, ok := value.(map[string]any); ok {
 				// assume we want a new map[string]*ArrayCacheByTimestamp
 				cache := make(map[string]*ArrayCacheByTimestamp)
-				addElementMu.Lock()
 				obj[key] = cache
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]map[string]*ArrayCacheByTimestamp")
 			}
@@ -1099,9 +1082,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]*ArrayCacheByTimestamp:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheByTimestamp); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheByTimestamp")
 			}
@@ -1109,9 +1090,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]*ArrayCache:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCache); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCache")
 			}
@@ -1119,9 +1098,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]*ArrayCacheBySymbolById:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheBySymbolById); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolById")
 			}
@@ -1129,9 +1106,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]*ArrayCacheBySymbolBySide:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheBySymbolBySide); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolBySide")
 			}
@@ -1190,18 +1165,13 @@ func InOp(dict any, key any) bool {
 
 	switch v := dict.(type) {
 	case map[string]any:
-		// serialize map read to avoid concurrent read/write with AddElementToObject
-		addElementMu.Lock()
 		_, ok := v[key.(string)]
-		addElementMu.Unlock()
 		if ok {
 			return true
 		}
 	case map[string]map[string]any:
 		// the ohlcv book is two-level: presence of the symbol key answers the book
-		addElementMu.Lock()
 		_, ok := v[key.(string)]
-		addElementMu.Unlock()
 		if ok {
 			return true
 		}
@@ -1231,36 +1201,28 @@ func InOp(dict any, key any) bool {
 		}
 	case map[string]map[string]*ArrayCacheByTimestamp:
 		if keyStr, ok2 := derefScalar(key).(string); ok2 {
-			addElementMu.Lock()
 			_, ok3 := v[keyStr]
-			addElementMu.Unlock()
 			if ok3 {
 				return true
 			}
 		}
 	case map[string]*ArrayCacheByTimestamp:
 		if keyStr, ok2 := derefScalar(key).(string); ok2 {
-			addElementMu.Lock()
 			_, ok3 := v[keyStr]
-			addElementMu.Unlock()
 			if ok3 {
 				return true
 			}
 		}
 	case map[string]*ArrayCache:
 		if keyStr, ok2 := derefScalar(key).(string); ok2 {
-			addElementMu.Lock()
 			_, ok3 := v[keyStr]
-			addElementMu.Unlock()
 			if ok3 {
 				return true
 			}
 		}
 	case map[string]*ArrayCacheBySymbolBySide:
 		if keyStr, ok2 := derefScalar(key).(string); ok2 {
-			addElementMu.Lock()
 			_, ok3 := v[keyStr]
-			addElementMu.Unlock()
 			if ok3 {
 				return true
 			}

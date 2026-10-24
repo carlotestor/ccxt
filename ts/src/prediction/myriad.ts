@@ -2696,8 +2696,8 @@ export default class myriad extends Exchange {
     override async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const outcomeObj = await this.loadOutcome (outcome);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
-        const networkId = this.safeString (outcomeObj['info'], 'networkId');
-        const marketId = this.safeString (outcomeObj['info'], 'marketId');
+        const networkId = this.safeString (outcomeInfo, 'networkId');
+        const marketId = this.safeString (outcomeInfo, 'marketId');
         const outcomeId = this.safeString (outcomeInfo, 'outcomeId', this.safeString (outcomeInfo, 'id'));
         const outcomeTitle = this.safeString (outcomeInfo, 'outcomeLabel', this.safeString (outcomeInfo, 'label', this.safeString (outcomeInfo, 'title')));
         const bucketKey = this.safeString (this.timeframes, timeframe, '30d');

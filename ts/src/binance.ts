@@ -4752,10 +4752,8 @@ export default class binance extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    checkNoStockSymbols (symbols: Strings, methodName: string) {
-        if (symbols === undefined) {
-            return;
-        }
+    checkNoStockSymbols (symbols: string[], methodName: string) {
+        // a nil slice runs zero iterations, so the absent case needs no early return
         for (let i = 0; i < symbols.length; i++) {
             const symbolMarket = this.market (symbols[i]);
             const stock = this.safeBool (symbolMarket, 'stock', false);
@@ -4783,7 +4781,9 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
-        this.checkNoStockSymbols (symbolsNormalized, 'fetchBidsAsks');
+        if (symbolsNormalized !== undefined) {
+            this.checkNoStockSymbols (symbolsNormalized, 'fetchBidsAsks');
+        }
         const market = this.getMarketFromSymbols (symbolsNormalized);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, paramsMarketType);
@@ -4940,7 +4940,9 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
-        this.checkNoStockSymbols (symbolsNormalized, 'fetchTickers');
+        if (symbolsNormalized !== undefined) {
+            this.checkNoStockSymbols (symbolsNormalized, 'fetchTickers');
+        }
         const market = this.getMarketFromSymbols (symbolsNormalized);
         let type: Str = undefined;
         let paramsMarketType = undefined;
@@ -7182,7 +7184,7 @@ export default class binance extends Exchange {
      * @param {string} method HTTP method
      * @returns {object} params with the injected client order id
      */
-    handleClientOrderId (params: Dict, api: Str, path: Str, method: Str): Dict {
+    handleClientOrderId (params: Dict, api: Str, path: Str, method: string): Dict {
         if (method !== 'POST') {
             return params;
         }
@@ -13442,10 +13444,8 @@ export default class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    getExceptionsByUrl (url: Str, exactOrBroad: string): Dict {
-        if (url === undefined) {
-            return {};
-        }
+    getExceptionsByUrl (url: string, exactOrBroad: string): Dict {
+        // the only callers pass handleErrors' url, which is a non-nullable string everywhere
         let marketType: Str = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
         if (url.startsWith ('https://api.' + hostname + '/') || url.startsWith ('https://demo-api') || url.startsWith ('https://testnet.binance.vision')) {
@@ -13554,7 +13554,7 @@ export default class binance extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: any, method: string, path: string, params: any, config: Dict = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {

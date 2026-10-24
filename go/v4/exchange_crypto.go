@@ -37,8 +37,6 @@ func Secp256k1() string { return "secp256k1" }
 func P256() string      { return "p256" }
 func keccak() string    { return "keccak" }
 func secp256k1() string { return "secp256k1" }
-func p256() string      { return "p256" }
-
 func (this *BaseExchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
 	digest := GetArg(args, 0, "hex").(string)
 	return Hmac(request2, secret2, algorithm2, digest)
@@ -151,10 +149,6 @@ func Hash(request2 any, hash func() string, digest2 any) any {
 		return hex.EncodeToString(signature)
 	}
 	return base64.StdEncoding.EncodeToString(signature)
-}
-
-func (this *BaseExchange) Axolotl(a any, b any, c any) string {
-	return ""
 }
 
 func signSHA256(data string) []byte {

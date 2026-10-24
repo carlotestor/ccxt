@@ -2701,8 +2701,8 @@ export default class bitvavo extends Exchange {
             let payload = '';
             if (!getOrDelete) {
                 if (Object.keys (query).length > 0) {
-                    requestBody = this.json (query);
-                    payload = requestBody;
+                    payload = this.json (query);
+                    requestBody = payload;
                 }
             }
             const timestamp = this.milliseconds ().toString ();
@@ -2747,7 +2747,7 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

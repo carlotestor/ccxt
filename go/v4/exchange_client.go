@@ -282,14 +282,6 @@ func (this *Client) Log(args ...any) {
 	// fmt.Printf("%+v\n", args) // equivalent to console.dir with depth
 }
 
-func (this *Client) Connect(backoffDelay ...int) (any, error) {
-	return nil, NotSupported(this.Url + " connect() not implemented yet")
-}
-
-func (this *Client) IsOpen() (any, error) {
-	return nil, NotSupported(this.Url + " isOpen() not implemented yet")
-}
-
 func (this *Client) OnConnectionTimeout() {
 	if !derefScalar(this.IsConnected).(bool) {
 		err := RequestTimeout("Connection to " + this.Url + " failed due to a connection timeout")
@@ -314,22 +306,6 @@ func (this *Client) ClearConnectionTimeout() {
 			timer.Stop()
 		}
 		this.ConnectionTimer = nil
-	}
-}
-
-// this method is not used at this time, because in JS the ws client will
-// respond to pings coming from the server with pongs automatically
-// however, some devs may want to track connection states in their app
-func (this *Client) OnPing() {
-	if this.Verbose {
-		this.Log(time.Now(), "onPing")
-	}
-}
-
-func (this *Client) OnPongTS() {
-	this.SetLastPong(time.Now().UnixNano() / int64(time.Millisecond))
-	if this.Verbose {
-		this.Log(time.Now(), "onPong")
 	}
 }
 
@@ -365,14 +341,6 @@ func (this *Client) OnClose(event any) {
 		this.Disconnected.(*Future).Resolve(true)
 	}
 	this.OnCloseCallback(this, event) // TODO: What to do with event? parameter is error
-}
-
-// this method is not used at this time
-// but may be used to read protocol-level data like cookies, headers, etc
-func (this *Client) OnUpgrade(message any) {
-	if this.Verbose {
-		this.Log(time.Now(), "onUpgrade")
-	}
 }
 
 func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
@@ -420,10 +388,6 @@ func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
 	}()
 
 	return ch
-}
-
-func (this *Client) CloseConnection() (any, error) {
-	return nil, NotSupported(this.Url + " close() not implemented yet")
 }
 
 func gunzipData(data []byte) ([]byte, error) {
@@ -1014,11 +978,6 @@ func (this *Client) connTable() *connOwner {
 // most a read reference and must not write or close it.
 func (this *Client) AdoptConnection(conn *websocket.Conn) {
 	this.connTable().call(connOp{kind: connAdopt, conn: conn})
-}
-
-// CurrentConnection is the handle the owner is holding, nil once closed.
-func (this *Client) CurrentConnection() *websocket.Conn {
-	return this.connTable().call(connOp{kind: connCurrent}).conn
 }
 
 // HasConnection reports whether the owner still holds a handle.

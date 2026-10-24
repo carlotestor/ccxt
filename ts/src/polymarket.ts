@@ -2803,7 +2803,7 @@ export default class polymarket extends Exchange {
         return result;
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config = {}) {
         if (path === 'account/orders') {
             return ('order_id' in params) ? 1 : 10;
         }

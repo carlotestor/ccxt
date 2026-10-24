@@ -50,16 +50,6 @@ func marketsBookWithEntry(source map[string]any, key any, value any) map[string]
 	return copied
 }
 
-func marketsBookWithoutEntry(source map[string]any, key any) map[string]any {
-	text, ok := derefScalar(key).(string)
-	if !ok || source == nil {
-		return source
-	}
-	copied := marketsBookCopied(source)
-	delete(copied, text)
-	return copied
-}
-
 // marketsBookRequests starts the owner synchronously, so a caller that can send a
 // request can never observe a half-started owner.
 func (this *BaseExchange) marketsBookRequests() chan marketsBookRequest {
@@ -181,17 +171,5 @@ func (this *BaseExchange) AddMarketsEntry(key any, value any) {
 func (this *BaseExchange) AddMarketsByIdEntry(key any, value any) {
 	this.publishMarketsBook(func(next *marketsBook) {
 		next.marketsById = marketsBookWithEntry(next.marketsById, key, value)
-	})
-}
-
-func (this *BaseExchange) RemoveMarketsEntry(key any) {
-	this.publishMarketsBook(func(next *marketsBook) {
-		next.markets = marketsBookWithoutEntry(next.markets, key)
-	})
-}
-
-func (this *BaseExchange) RemoveMarketsByIdEntry(key any) {
-	this.publishMarketsBook(func(next *marketsBook) {
-		next.marketsById = marketsBookWithoutEntry(next.marketsById, key)
 	})
 }

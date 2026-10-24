@@ -12,6 +12,9 @@
 
 const G09_FIELD = 'this.Options';
 const G09_TYPES = '(?:string|int64|float64|bool|int|\\[\\]string|\\[\\]any|map\\[string\\]any)';
+// the same types as plain values: a local the function declares with one of them can never be a
+// pointer, so the DerefScalar wrap at its store adds nothing
+const G09_VALUE_TYPES = G09_TYPES;
 const G09_PTR_HELPER = '^this\\.Safe(?:Bool|String|Integer|Int|Float)2?N?\\(';
 const G09_IDENT = '^[A-Za-z_]\\w*$';
 const G09_LITERAL = '^"(?:[^"\\\\\\n]|\\\\.)*"$';
@@ -97,16 +100,37 @@ function g09Key (key: string, masked: string): string | undefined {
     return key;
 }
 
-// a value the file proves to be a `*T` (GetValue derefed it on read, so a pointer must not land
-// in the map un-derefed or the native read would answer a different value than the helper did)
-function g09Ptr (value: string, masked: string): boolean {
+// the text of the function enclosing `at`: a `var x *T` declaration binds a local in ITS function,
+// while the same name is a plain int64 local in another method of the file
+function g09FunctionAt (masked: string, at: number): string {
+    const start = masked.lastIndexOf ('\nfunc ', at);
+    if (start < 0) {
+        return masked;
+    }
+    const end = masked.indexOf ('\n}', start);
+    return (end < 0) ? masked.slice (start) : masked.slice (start, end);
+}
+
+// a value the file proves to be a `*T` (GetValue derefed it on read, so a pointer must not land in
+// the map un-derefed or the native read would answer a different value than the helper did). The
+// proof is file-wide, but a declaration binds its own function: the wrap drops only for a local
+// this function declares with a non-pointer value type — an `any` local or a `:=` tuple slot can
+// still carry the pointer the other method proves.
+function g09Ptr (value: string, masked: string, scope: string): boolean {
     if (new RegExp (G09_PTR_HELPER).test (value)) {
         return true;
     }
     if (!new RegExp (G09_IDENT).test (value)) {
         return false;
     }
-    return new RegExp ('\\bvar ' + value + ' \\*' + G09_TYPES + ' =', 'm').test (masked);
+    if (!new RegExp ('\\bvar ' + value + ' \\*' + G09_TYPES + ' =', 'm').test (masked)) {
+        return false;
+    }
+    // the pointer declaration sits in some method of the file; when THIS function declares the
+    // same name with a non-pointer value type it can only hold a plain value, so nothing to unwrap
+    const plain = (scope.match (new RegExp ('\\bvar ' + value + ' ' + G09_VALUE_TYPES + ' =', 'g')) || []).length;
+    const declared = (scope.match (new RegExp ('\\bvar ' + value + ' ', 'g')) || []).length;
+    return !((plain === 1) && (declared === 1));
 }
 
 // literal-key GetValue reads -> native map index (runs after the store rewrite, so no span overlaps it)
@@ -164,7 +188,7 @@ export function g09Pass (content: string): string {
         if (keyText === undefined) {
             text = prefix + 'AddElementToObject(' + G09_FIELD + ', ' + key + ', ' + value + ')';
         } else {
-            const stored = g09Ptr (value, masked) ? (prefix + 'DerefScalar(' + value + ')') : value;
+            const stored = g09Ptr (value, masked, g09FunctionAt (masked, m.index)) ? (prefix + 'DerefScalar(' + value + ')') : value;
             text = G09_FIELD + '[' + keyText + '] = ' + stored;
         }
         edits.push ({ 'start': m.index, 'end': close, 'text': text });
@@ -201,6 +225,18 @@ export function g09Check (): string[] {
         ]) {
             ok (g09Pass (keep) === keep, 'keeps its text: ' + keep);
         }
+        // a `*T` declaration binds its own function: the same name is a plain int64 local in
+        // RequestId() while another method holds the `*string` twin
+        const cross = head + 'func (this *X) A() any {\n\tvar requestId *string = this.SafeString(this.Options, "requestId")\n\treturn requestId\n}\n\nfunc (this *X) F() {\n\tvar requestId int64 = GetArgInt64Local()\n\tthis.Options.Store("requestId", requestId)\n}\n';
+        ok (g09Pass (cross).includes('\tthis.Options["requestId"] = requestId\n'), 'a pointer elsewhere in the file does not wrap a plain local');
+        // an `any` local in this function can still carry the pointer the other method proves
+        const boxed = head + 'func (this *X) A() any {\n\tvar cached *string = this.SafeString(this.Options, "cached")\n\treturn cached\n}\n\nfunc (this *X) F() {\n\tvar cached any = this.SafeDict(this.Options, "cached")\n\tthis.Options.Store("cached", cached)\n}\n';
+        ok (g09Pass (boxed).includes('DerefScalar(cached)'), 'an any local keeps the wrap');
+        // a `:=` tuple slot carries whatever the helper returned (the printer types it *string)
+        const slot = head + 'func (this *X) A() any {\n\tvar cached *string = this.SafeString(this.Options, "cached")\n\treturn cached\n}\n\nfunc (this *X) F() {\n\tcached, params := this.HandleOptionStringAndParams(nil, "m", "cached")\n\t_ = params\n\tthis.Options.Store("cached", cached)\n}\n';
+        ok (g09Pass (slot).includes('DerefScalar(cached)'), 'a tuple slot keeps the wrap');
+        const pkg = head + 'var shared *string = nil\n\nfunc (this *X) F() {\n\tthis.Options.Store("k", shared)\n}\n';
+        ok (g09Pass (pkg).includes('DerefScalar(shared)'), 'a package-level pointer still wraps');
         const once = g09Pass (fn ('\tthis.Options.Store("k", 1)\n\tvar r any = GetValue(this.Options, "r")\n'));
         ok (g09Pass (once) === once, 'idempotent');
     } catch (e: any) {

@@ -915,10 +915,6 @@ func (obs *OrderBookSide) GetDataCopy() [][]any {
 	return out
 }
 
-func (ords *OrderBookSide) GetSide() bool {
-	return ords.Side
-}
-
 func (obs *OrderBookSide) CopySide() IOrderBookSide {
 	published := obs.snapshot()
 

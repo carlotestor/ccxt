@@ -7362,7 +7362,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         return this.safeValue (config, 'cost', 1);
     }
 

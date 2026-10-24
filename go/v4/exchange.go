@@ -243,7 +243,7 @@ const (
 
 func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
 	// this = &Exchange{}
-	this.FetchHistoryCache = &ConcurrentListForRequests{}
+	this.FetchHistoryCache = NewConcurrentListForRequests()
 	if this.Options == nil {
 		this.Options = map[string]any{}
 	}
@@ -271,8 +271,9 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)
 	this.PublishTransactions(map[string]any{})
-	this.Liquidations = &sync.Map{}
-	this.MyLiquidations = &sync.Map{}
+	// the liquidation caches start empty: every reader creates the ArrayCache on nil
+	this.Liquidations = nil
+	this.MyLiquidations = nil
 	this.Clients = make(map[string]any)
 	// the balance map is owned by the ws dispatch loop like the caches above
 	this.Balance = map[string]any{}
@@ -305,7 +306,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 func (this *BaseExchange) Init(userConfig map[string]any) {
 	if this.FetchHistoryCache == nil {
-		this.FetchHistoryCache = &ConcurrentListForRequests{}
+		this.FetchHistoryCache = NewConcurrentListForRequests()
 	}
 	if this.Options == nil {
 		this.Options = map[string]any{}
@@ -604,9 +605,10 @@ func (this *BaseExchange) ConvertToBigInt(data any) any {
 	return bigValue.String()
 }
 
-func (this *BaseExchange) CreateSafeDictionary(isWs ...bool) *sync.Map {
-	// Create a new sync.Map to hold the safe dictionary
-	return &sync.Map{}
+// CreateSafeDictionary returns a plain dictionary: helpers read map[string]any
+// natively, so the safe dictionary is not a *sync.Map producer any more.
+func (this *BaseExchange) CreateSafeDictionary(isWs ...bool) map[string]any {
+	return map[string]any{}
 }
 
 // error related functions
@@ -734,10 +736,6 @@ func (this *BaseExchange) ValueIsDefined(v any) bool {
 	}
 	return true
 }
-
-// func (this *BaseExchange) CreateSafeDictionary() any {
-// 	return map[string]any{}
-// }
 
 func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 	return data
@@ -2344,38 +2342,59 @@ func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResu
 
 // ############ Requests data ############
 
+// ConcurrentListForRequests keeps the fetch history on one owner goroutine: a write
+// is handed over as a request and a read is answered by that goroutine, so items is
+// only touched in own() and no caller takes a lock.
 type ConcurrentListForRequests struct {
-	mu    sync.Mutex
-	items []any
+	requests chan fetchCacheRequest
 }
 
-func (cl *ConcurrentListForRequests) Lock()   { cl.mu.Lock() }
-func (cl *ConcurrentListForRequests) Unlock() { cl.mu.Unlock() }
-
-func (cl *ConcurrentListForRequests) Add(item any) {
-	cl.mu.Lock()
-	defer cl.mu.Unlock()
-	cl.items = append(cl.items, item)
+// fetchCacheRequest is one access handed to the owner: a write carries the item and
+// the cap, a read carries a reply channel.
+type fetchCacheRequest struct {
+	item  any
+	limit int
+	read  bool
+	reply chan []any
 }
 
-func (cl *ConcurrentListForRequests) GetAll() []any {
-	cl.mu.Lock()
-	defer cl.mu.Unlock()
-	cp := make([]any, len(cl.items))
-	copy(cp, cl.items)
-	return cp
+func NewConcurrentListForRequests() *ConcurrentListForRequests {
+	list := &ConcurrentListForRequests{requests: make(chan fetchCacheRequest)}
+	go list.own()
+	return list
+}
+
+// own is the only place items is read or written.
+func (list *ConcurrentListForRequests) own() {
+	items := []any{}
+	for request := range list.requests {
+		if !request.read {
+			items = append(items, request.item)
+			if request.limit > 0 && len(items) > request.limit {
+				items = items[1:] // drop the oldest, the cache is capped
+			}
+			continue
+		}
+		snapshot := make([]any, len(items))
+		copy(snapshot, items)
+		request.reply <- snapshot
+	}
+}
+
+// Add hands one item to the owner; the send returns once the owner has received it,
+// so a read issued afterwards from this goroutine sees it.
+func (list *ConcurrentListForRequests) Add(item any, limit int) {
+	list.requests <- fetchCacheRequest{item: item, limit: limit}
+}
+
+func (list *ConcurrentListForRequests) GetAll() []any {
+	reply := make(chan []any, 1)
+	list.requests <- fetchCacheRequest{read: true, reply: reply}
+	return <-reply
 }
 
 func (e *BaseExchange) AddFetchCache(item any) {
-
-	e.FetchHistoryCache.Lock()
-	defer e.FetchHistoryCache.Unlock()
-
-	e.FetchHistoryCache.items = append(e.FetchHistoryCache.items, item)
-
-	if e.FetchHistoryCacheSize > 0 && len(e.FetchHistoryCache.items) > e.FetchHistoryCacheSize {
-		e.FetchHistoryCache.items = e.FetchHistoryCache.items[1:]
-	}
+	e.FetchHistoryCache.Add(item, e.FetchHistoryCacheSize)
 }
 func (e *BaseExchange) GetFetchCache() []any {
 	return e.FetchHistoryCache.GetAll()

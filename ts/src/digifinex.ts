@@ -4718,8 +4718,8 @@ export default class digifinex extends Exchange {
             urlencoded = this.urlencode (this.keysort (query));
         }
         if (signed) {
-            let auth: Str = undefined;
-            let nonce: Str = undefined;
+            let auth = '';
+            let nonce = '';
             if (pathPart === '/swap/v2') {
                 nonce = this.milliseconds ().toString ();
                 auth = nonce + method + payload;

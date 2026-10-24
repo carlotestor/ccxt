@@ -217,16 +217,6 @@ func (this *WSClient) connectOnce(estimate func() int) error {
 	return dialErr
 }
 
-func (this *WSClient) IsOpen() bool {
-	return this.HasConnection()
-}
-
-func (this *WSClient) ResetConnection(err any) {
-	this.ClearConnectionTimeout()
-	this.ClearPingInterval()
-	this.Reject(err)
-}
-
 func (this *WSClient) SetPingInterval() {
 	if derefScalar(this.KeepAlive).(int64) > 0 {
 		ticker := time.NewTicker(time.Duration(derefScalar(this.KeepAlive).(int64)) * time.Millisecond)
@@ -242,15 +232,6 @@ func (this *WSClient) SetPingInterval() {
 				}
 			}
 		}()
-	}
-}
-
-func (this *WSClient) ClearPingInterval() {
-	if this.PingInterval != nil {
-		if ticker, ok := this.PingInterval.(*time.Ticker); ok {
-			ticker.Stop()
-		}
-		this.PingInterval = nil
 	}
 }
 

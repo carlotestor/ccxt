@@ -81,15 +81,17 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.FetchHistoryCacheSize = SafeValue(extendedProperties, "fetchHistoryCacheSize", 0).(int)
 }
 
-func (this *BaseExchange) MapToSafeMap(input map[string]any) *sync.Map {
+// MapToSafeMap copies the input into a plain dictionary: the safe dictionary type is
+// a map now, so no *sync.Map producer remains in the runtime.
+func (this *BaseExchange) MapToSafeMap(input map[string]any) map[string]any {
 	if input == nil {
 		return nil
 	}
-	var sm sync.Map
+	copied := make(map[string]any, len(input))
 	for k, v := range input {
-		sm.Store(k, v)
+		copied[k] = v
 	}
-	return &sm
+	return copied
 }
 
 func (this *BaseExchange) SafeMapToMap(sm *sync.Map) map[string]any {
