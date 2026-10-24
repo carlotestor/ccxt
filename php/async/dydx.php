@@ -1930,11 +1930,11 @@ class dydx extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): PromiseInterface {
+    public function estimate_tx_fee(array $message, ?string $memo, array $account): PromiseInterface {
         return Async\async(self::do_estimate_tx_fee(...))($message, $memo, $account);
     }
 
-    private function do_estimate_tx_fee(mixed $message, ?string $memo, mixed $account) {
+    private function do_estimate_tx_fee(array $message, ?string $memo, array $account) {
         $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
         $request = array(
             'txBytes' => $txBytes,
