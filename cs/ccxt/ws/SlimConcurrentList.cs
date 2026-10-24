@@ -21,7 +21,7 @@ public class SlimConcurrentList<T> : List<T>, IReadOnlyList<T>, IReadOnlyCollect
     /// Owner-side publication point: freezes the current contents into the array that
     /// readers off the loop observe. That array is never mutated afterwards.
     /// </summary>
-    public void Publish()
+    public virtual void Publish()
     {
         this.Published = base.ToArray();
     }
