@@ -30,21 +30,68 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     private IList<object> _cache = new SlimConcurrentList<object>();
 
+    // Owned by the ws receive loop: the frozen asks+bids pair as of the last message
+    // step. Readers off the loop copy from here and never touch the live sides.
+    internal sealed class BookRows
+    {
+        public readonly object[] asks;
+        public readonly decimal[] askPrices;
+        public readonly object[] bids;
+        public readonly decimal[] bidPrices;
+
+        public BookRows(object[] asks, decimal[] askPrices, object[] bids, decimal[] bidPrices)
+        {
+            this.asks = asks;
+            this.askPrices = askPrices;
+            this.bids = bids;
+            this.bidPrices = bidPrices;
+        }
+    }
+
+    private BookRows _publishedRows;
+
+    // The pair a caller copies from: one publication, so the two halves can never
+    // come from different book states.
+    internal BookRows PublishedRows()
+    {
+        var rows = this._publishedRows;
+        if (rows != null)
+        {
+            return rows;
+        }
+        var askSide = this.asks as OrderBookSide;
+        var bidSide = this.bids as OrderBookSide;
+        if (askSide == null || bidSide == null)
+        {
+            return new BookRows(Array.Empty<object>(), Array.Empty<decimal>(), Array.Empty<object>(), Array.Empty<decimal>());
+        }
+        return new BookRows(askSide.LiveArray(), askSide.PublishedPrices, bidSide.LiveArray(), bidSide.PublishedPrices);
+    }
+
+    // Owner-loop publication point, called by a side after every mutation: trims both
+    // sides to depth, then freezes the pair. Nothing off the loop calls this.
+    internal void PublishRows()
+    {
+        var askSide = this.asks as OrderBookSide;
+        var bidSide = this.bids as OrderBookSide;
+        if (askSide == null || bidSide == null)
+        {
+            return;
+        }
+        askSide.TrimToDepth();
+        bidSide.TrimToDepth();
+        this._publishedRows = new BookRows(askSide.Published, askSide.PublishedPrices, bidSide.Published, bidSide.PublishedPrices);
+    }
+
     public IList<object> cache
     {
         get
         {
-            lock (_syncRoot)
-            {
-                return _cache;
-            }
+            return _cache;
         }
         set
         {
-            lock (_syncRoot)
-            {
-                _cache = value;
-            }
+            _cache = value;
         }
     }
 
@@ -52,21 +99,19 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         get
         {
-            lock (_syncRoot)
+            object value;
+            if (!this.TryGetValue("asks", out value))
             {
-                object value;
-                if (!this.TryGetValue("asks", out value))
-                {
-                    return null;
-                }
-                return value as IAsks;
+                return null;
             }
+            return value as IAsks;
         }
         set
         {
-            lock (_syncRoot)
+            this["asks"] = value;
+            if (value is OrderBookSide askOwner)
             {
-                this["asks"] = value;
+                askOwner.owner = this;
             }
         }
     }
@@ -75,21 +120,19 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         get
         {
-            lock (_syncRoot)
+            object value;
+            if (!this.TryGetValue("bids", out value))
             {
-                object value;
-                if (!this.TryGetValue("bids", out value))
-                {
-                    return null;
-                }
-                return value as IBids;
+                return null;
             }
+            return value as IBids;
         }
         set
         {
-            lock (_syncRoot)
+            this["bids"] = value;
+            if (value is OrderBookSide bidOwner)
             {
-                this["bids"] = value;
+                bidOwner.owner = this;
             }
         }
     }
@@ -98,22 +141,16 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         get
         {
-            lock (_syncRoot)
+            object value;
+            if (!this.TryGetValue("symbol", out value) || value == null)
             {
-                object value;
-                if (!this.TryGetValue("symbol", out value) || value == null)
-                {
-                    return null;
-                }
-                return value.ToString();
+                return null;
             }
+            return value.ToString();
         }
         set
         {
-            lock (_syncRoot)
-            {
-                this["symbol"] = value;
-            }
+            this["symbol"] = value;
         }
     }
 
@@ -121,22 +158,16 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         get
         {
-            lock (_syncRoot)
+            object value;
+            if (!this.TryGetValue("nonce", out value) || value == null)
             {
-                object value;
-                if (!this.TryGetValue("nonce", out value) || value == null)
-                {
-                    return null;
-                }
-                return Convert.ToInt64(value);
+                return null;
             }
+            return Convert.ToInt64(value);
         }
         set
         {
-            lock (_syncRoot)
-            {
-                this["nonce"] = value;
-            }
+            this["nonce"] = value;
         }
     }
 
@@ -144,22 +175,16 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         get
         {
-            lock (_syncRoot)
+            object value;
+            if (!this.TryGetValue("timestamp", out value) || value == null)
             {
-                object value;
-                if (!this.TryGetValue("timestamp", out value) || value == null)
-                {
-                    return null;
-                }
-                return Convert.ToInt64(value);
+                return null;
             }
+            return Convert.ToInt64(value);
         }
         set
         {
-            lock (_syncRoot)
-            {
-                this["timestamp"] = value;
-            }
+            this["timestamp"] = value;
         }
     }
 
@@ -184,130 +209,112 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         this["datetime"] = Exchange.Iso8601(rawTimestamp);
         this.nonce = (rawNonce == null) ? null : Convert.ToInt64(rawNonce);
         this.symbol = (rawSymbol == null) ? null : rawSymbol.ToString();
+        this.PublishRows();
     }
 
     public IOrderBook limit()
     {
-
-        lock (_syncRoot)
-        {
-            this.asks.limit();
-            this.bids.limit();
-            return this;
-        }
+        // Trimming is the owner loop's job (PublishRows trims both sides after every
+        // mutation), so a caller never mutates the live book here.
+        return this;
     }
+
 
     public IOrderBook update(object snapshot)
     {
-        lock (_syncRoot)
+        var snapshotNonce = Exchange.SafeValue(snapshot as dict, "nonce");
+        if (snapshotNonce != null && this.nonce != null && (long)snapshotNonce <= this.nonce)
         {
-            var snapshotNonce = Exchange.SafeValue(snapshot as dict, "nonce");
-            if (snapshotNonce != null && this.nonce != null && (long)snapshotNonce <= this.nonce)
-            {
-                return this;
-            }
+            return this;
+        }
 
-            this["nonce"] = snapshotNonce;
-            this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
-            this["datetime"] = Exchange.SafeValue(snapshot as dict, "datetime", this["datetime"]);
-            this["symbol"] = Exchange.SafeString(snapshot as dict, "symbol", this.symbol);
-            this.reset(snapshot);
-            return null;
+        this["nonce"] = snapshotNonce;
+        this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
+        this["datetime"] = Exchange.SafeValue(snapshot as dict, "datetime", this["datetime"]);
+        this["symbol"] = Exchange.SafeString(snapshot as dict, "symbol", this.symbol);
+        this.reset(snapshot);
+        return null;
+    }
+
+    private void ResetCore(object snapshot = null)
+    {
+        var askSide = this.asks as OrderBookSide;
+        askSide._index.Clear();
+        askSide.Clear();
+
+        var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
+        if (snapshotAsks != null)
+        {
+            for (var i = 0; i < snapshotAsks.Count; i++)
+            {
+                this.asks.storeArray(snapshotAsks[i] as List<object>);
+            }
+        }
+
+        var bidSide = this.bids as OrderBookSide;
+        bidSide._index.Clear();
+        bidSide.Clear();
+        var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
+        if (snapshotBids != null)
+        {
+            for (var i = 0; i < snapshotBids.Count; i++)
+            {
+                this.bids.storeArray(snapshotBids[i] as List<object>);
+            }
+        }
+        this["nonce"] = Exchange.SafeValue(snapshot as dict, "nonce", this["nonce"]);
+        this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
+        this["datetime"] = Exchange.Iso8601(this["timestamp"]);
+        this["symbol"] = Exchange.SafeValue(snapshot as dict, "symbol", this["symbol"]);
+        // prediction-market identity — only attach when present, so crypto books are unchanged
+        if ((snapshot as dict) != null && (snapshot as dict).ContainsKey("outcome"))
+        {
+            this["outcome"] = Exchange.SafeValue(snapshot as dict, "outcome");
+            this["outcomeId"] = Exchange.SafeValue(snapshot as dict, "outcomeId");
+            this["market"] = Exchange.SafeValue(snapshot as dict, "market");
         }
     }
 
     public void reset(object snapshot = null)
     {
-        lock (_syncRoot)
-        {
-            var askSide = this.asks as OrderBookSide;
-            askSide._index.Clear();
-            askSide.Clear();
-
-            var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
-            if (snapshotAsks != null)
-            {
-                for (var i = 0; i < snapshotAsks.Count; i++)
-                {
-                    this.asks.storeArray(snapshotAsks[i] as List<object>);
-                }
-            }
-
-            var bidSide = this.bids as OrderBookSide;
-            bidSide._index.Clear();
-            bidSide.Clear();
-            var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
-            if (snapshotBids != null)
-            {
-                for (var i = 0; i < snapshotBids.Count; i++)
-                {
-                    this.bids.storeArray(snapshotBids[i] as List<object>);
-                }
-            }
-            this["nonce"] = Exchange.SafeValue(snapshot as dict, "nonce", this["nonce"]);
-            this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
-            this["datetime"] = Exchange.Iso8601(this["timestamp"]);
-            this["symbol"] = Exchange.SafeValue(snapshot as dict, "symbol", this["symbol"]);
-            // prediction-market identity — only attach when present, so crypto books are unchanged
-            if ((snapshot as dict) != null && (snapshot as dict).ContainsKey("outcome"))
-            {
-                this["outcome"] = Exchange.SafeValue(snapshot as dict, "outcome");
-                this["outcomeId"] = Exchange.SafeValue(snapshot as dict, "outcomeId");
-                this["market"] = Exchange.SafeValue(snapshot as dict, "market");
-            }
-        }
+        this.ResetCore(snapshot);
+        this.PublishRows();
     }
 
     public IOrderBook Copy()
     {
-        lock (_syncRoot)
+        // Build from the owner's last publication, never from the live sides: this
+        // runs on the caller's thread, the sides are mutated on the receive loop.
+        var rows = this.PublishedRows();
+        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        var copy = new OrderBook(new Dictionary<string, object>());
+        var askSide = new Asks(new List<object>(), depth);
+        askSide.LoadFromSnapshot(rows.asks, rows.askPrices);
+        var bidSide = new Bids(new List<object>(), depth);
+        bidSide.LoadFromSnapshot(rows.bids, rows.bidPrices);
+        copy.asks = askSide;
+        copy.bids = bidSide;
+        copy.nonce = this.nonce;
+        copy.timestamp = this.timestamp;
+        copy["datetime"] = this["datetime"];
+        copy.symbol = this.symbol;
+        if (this.ContainsKey("outcome"))
         {
-            // Both sides must be observed as of the SAME instant: each side is
-            // guarded by its own monitor and storeArray takes only that one, so
-            // a ws delta arriving on a threadpool thread between the two side
-            // copies would yield a snapshot whose halves come from different
-            // book states (symptom: bids[0][0] >= asks[0][0], with the stale ask
-            // level still listed). Hold asks then bids across the whole
-            // snapshot; the order is fixed and every writer takes at most one
-            // side monitor, so the pair cannot cycle. Inside these locks the
-            // sides are copied through CopyUnlocked, so neither monitor is
-            // entered twice. storeArray is untouched — only Copy() pays.
-            var askSide = this.asks;
-            var bidSide = this.bids;
-            lock (askSide)
-            {
-                lock (bidSide)
-                {
-                    var copy = new OrderBook(new Dictionary<string, object>());
-                    copy.asks = (askSide as Asks).CopyUnlocked();
-                    copy.bids = (bidSide as Bids).CopyUnlocked();
-                    copy.nonce = this.nonce;
-                    copy.timestamp = this.timestamp;
-                    copy["datetime"] = this["datetime"];
-                    copy.symbol = this.symbol;
-                    if (this.ContainsKey("outcome"))
-                    {
-                        copy["outcome"] = this["outcome"];
-                        copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
-                        copy["market"] = Exchange.SafeValue(this as dict, "market");
-                    }
-                    return copy;
-                }
-            }
+            copy["outcome"] = this["outcome"];
+            copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
+            copy["market"] = Exchange.SafeValue(this as dict, "market");
         }
+        return copy;
     }
+
 
     // Serialize the object safely
     public string Serialize()
     {
-        lock (_syncRoot)
-        {
-            // Create an immutable snapshot for serialization
-            var snapshot = new Dictionary<string, object>(this);
-
-            return JsonConvert.SerializeObject(snapshot);
-        }
+        // Serialize the publication, not the live book: same snapshot the callers copy.
+        return JsonConvert.SerializeObject(this.Copy());
     }
+
 }
 
 public class CountedOrderBook : OrderBook, IOrderBook
@@ -332,35 +339,38 @@ public class CountedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        this.asks.limit();
-        this.bids.limit();
+        // Trimming is the owner loop's job (PublishRows trims both sides after every
+        // mutation), so a caller never mutates the live book here.
         return this;
     }
 
+
     public IOrderBook Copy()
     {
-        lock (_syncRoot)
+        // Build from the owner's last publication, never from the live sides: this
+        // runs on the caller's thread, the sides are mutated on the receive loop.
+        var rows = this.PublishedRows();
+        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        var copy = new CountedOrderBook(new Dictionary<string, object>());
+        var askSide = new CountedAsks(new List<object>(), depth);
+        askSide.LoadFromSnapshot(rows.asks, rows.askPrices);
+        var bidSide = new CountedBids(new List<object>(), depth);
+        bidSide.LoadFromSnapshot(rows.bids, rows.bidPrices);
+        copy.asks = askSide;
+        copy.bids = bidSide;
+        copy.nonce = this.nonce;
+        copy.timestamp = this.timestamp;
+        copy["datetime"] = this["datetime"];
+        copy.symbol = this.symbol;
+        if (this.ContainsKey("outcome"))
         {
-            // same atomicity requirement and same asks-then-bids order as
-            // OrderBook.Copy
-            var askSide = this.asks;
-            var bidSide = this.bids;
-            lock (askSide)
-            {
-                lock (bidSide)
-                {
-                    var copy = new CountedOrderBook(new Dictionary<string, object>());
-                    copy.asks = askSide.CopyUnlocked() as CountedAsks;
-                    copy.bids = bidSide.CopyUnlocked() as CountedBids;
-                    copy.nonce = this.nonce;
-                    copy.timestamp = this.timestamp;
-                    copy["datetime"] = this["datetime"];
-                    copy.symbol = this.symbol;
-                    return copy;
-                }
-            }
+            copy["outcome"] = this["outcome"];
+            copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
+            copy["market"] = Exchange.SafeValue(this as dict, "market");
         }
+        return copy;
     }
+
 }
 
 
@@ -385,33 +395,36 @@ public class IndexedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        this.asks.limit();
-        this.bids.limit();
+        // Trimming is the owner loop's job (PublishRows trims both sides after every
+        // mutation), so a caller never mutates the live book here.
         return this;
     }
 
+
     public IOrderBook Copy()
     {
-        lock (_syncRoot)
+        // Build from the owner's last publication, never from the live sides: this
+        // runs on the caller's thread, the sides are mutated on the receive loop.
+        var rows = this.PublishedRows();
+        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        var copy = new IndexedOrderBook(new Dictionary<string, object>());
+        var askSide = new IndexedAsks(new List<object>(), depth);
+        askSide.LoadFromSnapshot(rows.asks, rows.askPrices);
+        var bidSide = new IndexedBids(new List<object>(), depth);
+        bidSide.LoadFromSnapshot(rows.bids, rows.bidPrices);
+        copy.asks = askSide;
+        copy.bids = bidSide;
+        copy.nonce = this.nonce;
+        copy.timestamp = this.timestamp;
+        copy["datetime"] = this["datetime"];
+        copy.symbol = this.symbol;
+        if (this.ContainsKey("outcome"))
         {
-            // same atomicity requirement and same asks-then-bids order as
-            // OrderBook.Copy
-            var askSide = this.asks;
-            var bidSide = this.bids;
-            lock (askSide)
-            {
-                lock (bidSide)
-                {
-                    var copy = new IndexedOrderBook(new Dictionary<string, object>());
-                    copy.asks = askSide.CopyUnlocked() as IndexedAsks;
-                    copy.bids = bidSide.CopyUnlocked() as IndexedBids;
-                    copy.nonce = this.nonce;
-                    copy.timestamp = this.timestamp;
-                    copy["datetime"] = this["datetime"];
-                    copy.symbol = this.symbol;
-                    return copy;
-                }
-            }
+            copy["outcome"] = this["outcome"];
+            copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
+            copy["market"] = Exchange.SafeValue(this as dict, "market");
         }
+        return copy;
     }
+
 }
