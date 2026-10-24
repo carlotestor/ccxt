@@ -18,7 +18,6 @@ import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { g06MapReads, g06MapReadsSelfTest } from './hx10w2-G06.js';
 import { hx10G06Check } from './hx10w3-G06.js';
-import { g06Trace, g06SetSweep } from './hx10w7-G06.js'; // hx10w7 G06
 import { g09Pass, g09Check } from './hx10w2-G09.js';
 import { g09w3Pass, g09w3Check } from './hx10w3-G09.js';
 import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
@@ -2037,7 +2036,6 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const name = head[2];
     if (((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf))
         && !h2kG10UntilReceiverNeverNil (masked, start, k, maskedFunc, lines[start], name, declOf, typeAt)) {
-        g06Trace ('recv|' + name + '|' + (typeAt (name, k) ?? '-') + '|' + masked[k].trim ());
         return;
     }
     // the call may span lines (a multi-line literal value): it must be the whole statement
@@ -2075,9 +2073,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     } else if (guardedPointer (key) && (typeAt (key, k) === '*string')) {
         keyOut = '*' + key;
     }
-    // a nil *string key makes the helper a no-op, so the write can be guarded instead of
-    // demanding a non-nil proof: `if k != nil { m[*k] = v }` is the helper's map branch for
-    // that key. The value proof below decides whether the guarded form is exact.
+    // a nil *string key makes the helper a no-op: `if k != nil { m[*k] = v }` is its map
+    // branch, so the write can be guarded instead of demanding a non-nil proof.
     const nilKeyGuardable = (keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string')
         && notRebound (key) && (lastLine === k);
     let nilKeyGuard = false;
@@ -2087,7 +2084,6 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const defaultedOk = (defaulted !== null) && (defaulted[3].startsWith ('"') || (typeAt (defaulted[3], k) === 'string'));
     let valueOut: string | undefined = undefined;
     if ((keyOut === undefined) && !nilKeyGuardable) {
-        g06Trace ('key|' + name + '|' + key + '|' + (typeAt (key, k) ?? '-') + '|' + value + '|' + (valueType ?? '-') + '|' + masked[k].trim ());
         return;
     }
     if (/^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false|nil)$/.test (value) || goMapWritePlainValueExpr (valueMasked)) {
@@ -2115,7 +2111,6 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         nilKeyGuard = true;
     }
     if ((keyOut === undefined) || (valueOut === undefined)) {
-        g06Trace ('value|' + name + '|' + key + '|' + (keyOut ?? '-') + '|' + value + '|' + (valueType ?? '-') + '|' + masked[k].trim ());
         return;
     }
     const suffix = lines[lastLine].substring (lines[lastLine].length - (tail.substring (close).split ('\n')[0].length));
@@ -2750,7 +2745,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx4G12TupleSlotReads (content, filePath);
     hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
     content = g06MapReads (content);  // hx10w2 G06
-    g06SetSweep (1);
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
@@ -2797,8 +2791,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10w5G05Pass (content);  // hx10w5 G05: one ohlcv book per symbol, typed per timeframe
     content = hx10G15Pass (content);  // hx10 wave5 G15: option-dict field receivers
     content = og02IdBookPass (content);  // hx10w6 OG02: the id/nonce counter and last-response reads hand off to the request book owner
-    g06SetSweep (2);
-    content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));  // hx10w7 G06 probe: second sweep
     return goGofmtSplicedText (content);
 }
 
@@ -13120,7 +13112,6 @@ function hx4G20BaseNativePasses (content: string): string {
     content = nativeLoopBoundedSliceReads (retagLoopBoundedElementReads (content));
     hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
     content = g06MapReads (content);  // hx10w2 G06
-    g06SetSweep (1);  // hx10w7 G06 probe
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
