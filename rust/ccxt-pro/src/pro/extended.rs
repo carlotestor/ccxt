@@ -426,7 +426,7 @@ impl ExtendedCore {
         self.check_required_credentials(&[]);
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Str("/account".into())).into());
         if (self.clients.clone() == Value::Null) || !(matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut defaultOptions: Value = Value::Map({
+            let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -442,7 +442,7 @@ impl ExtendedCore {
 }));
                 m
             });
-            self.extend_exchange_options(&[defaultOptions]);
+            self.extend_exchange_options(&[Value::Map(defaultOptions)]);
             let mut originalOptions: Value = crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options");
             let mut originalHeaders: Value = self.safe_dict_k(originalOptions.clone(), "headers", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

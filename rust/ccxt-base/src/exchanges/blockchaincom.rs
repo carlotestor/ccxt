@@ -730,15 +730,15 @@ impl BlockchaincomCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".into(), limit); }
+            request.insert("depth".into(), limit);
         }
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_l3_symbol(&[__ws_arg_0]).await;
         return self.parse_order_book_l3(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]);
 
@@ -755,15 +755,15 @@ impl BlockchaincomCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".into(), limit); }
+            request.insert("depth".into(), limit);
         }
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_l2_symbol(&[__ws_arg_1]).await;
         return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into())]);
 
@@ -831,12 +831,12 @@ impl BlockchaincomCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_2]).await;
         return self.parse_ticker(response, &[market]);
 
@@ -868,7 +868,7 @@ impl BlockchaincomCore {
 }
 
     pub fn parse_order_state(&self, mut state: Value) -> Option<String> {
-        let mut states: Value = Value::Map({
+        let mut states: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OPEN".to_string(), Value::Str("open".into()));
                 m.insert("REJECTED".to_string(), Value::Str("rejected".into()));
@@ -878,7 +878,7 @@ impl BlockchaincomCore {
                 m.insert("EXPIRED".to_string(), Value::Str("expired".into()));
             m
         });
-        return self.safe_string(states, state.clone(), &[state.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(states), state.clone(), &[state.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1032,12 +1032,12 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_orders_order_id(&[__ws_arg_4]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1069,15 +1069,15 @@ impl BlockchaincomCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
             let mut marketId: Value = self.market_id(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), marketId); }
+            request.insert("symbol".into(), marketId);
         }
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_orders(&[__ws_arg_5]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1225,7 +1225,7 @@ impl BlockchaincomCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), state);
                 m.insert("limit".to_string(), Value::Int(100));
@@ -1234,9 +1234,9 @@ impl BlockchaincomCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders(&[__ws_arg_6]).await;
         return self.parse_orders(response, &[market, since, limit]);
 
@@ -1322,19 +1322,19 @@ impl BlockchaincomCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.market_id(symbol.clone())); }
+            request.insert("symbol".into(), self.market_id(symbol.clone()));
             market = self.market(symbol);
         }
-        let __ws_arg_7 = self.extend(request, &[params.clone()]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params.clone()]);
         let mut trades: Value = self.private_get_fills(&[__ws_arg_7]).await;
         return self.parse_trades(trades, &[market, since, limit, params]);
 
@@ -1359,12 +1359,12 @@ impl BlockchaincomCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_deposits_currency(&[__ws_arg_8]).await;
         let mut rawAddress: Value = self.safe_string_k(response.clone(), "address", &[]);
         let mut tag: Value = Value::Null;
@@ -1389,7 +1389,7 @@ impl BlockchaincomCore {
 }
 
     pub fn parse_transaction_state(&self, mut state: Value) -> Option<String> {
-        let mut states: Value = Value::Map({
+        let mut states: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("COMPLETED".to_string(), Value::Str("ok".into()));
                 m.insert("REJECTED".to_string(), Value::Str("failed".into()));
@@ -1398,7 +1398,7 @@ impl BlockchaincomCore {
                 m.insert("REFUNDED".to_string(), Value::Str("refunded".into()));
             m
         });
-        return self.safe_string(states, state.clone(), &[state.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(states), state.clone(), &[state.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -1503,7 +1503,7 @@ impl BlockchaincomCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), amount);
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1511,7 +1511,7 @@ impl BlockchaincomCore {
                 m.insert("sendMax".to_string(), Value::Bool(false));
             m
         });
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_9]).await;
         return self.parse_transaction(response, &[currency]);
 
@@ -1540,18 +1540,18 @@ impl BlockchaincomCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), since.clone()); }
+            request.insert("from".into(), since.clone());
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_withdrawals(&[__ws_arg_10]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
@@ -1577,12 +1577,12 @@ impl BlockchaincomCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("withdrawalId".to_string(), id);
             m
         });
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_withdrawals_withdrawal_id(&[__ws_arg_11]).await;
         return self.parse_transaction(response, &[]);
 
@@ -1611,18 +1611,18 @@ impl BlockchaincomCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), since.clone()); }
+            request.insert("from".into(), since.clone());
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let __ws_arg_12 = self.extend(request, &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_deposits(&[__ws_arg_12]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
@@ -1649,12 +1649,12 @@ impl BlockchaincomCore {
             self.load_markets(&[]).await;
         }
         let mut depositId: Value = self.safe_string_k(params.clone(), "depositId", &[id]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("depositId".to_string(), depositId);
             m
         });
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut deposit: Value = self.private_get_deposits_deposit_id(&[__ws_arg_13]).await;
         return self.parse_transaction(deposit, &[]);
 
@@ -1679,12 +1679,12 @@ impl BlockchaincomCore {
         }
         let mut accountName: Value = self.safe_string_k(params.clone(), "account", &[Value::Str("primary".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("account".into()), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), accountName.clone());
             m
         });
-        let __ws_arg_14 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_accounts(&[__ws_arg_14]).await;
         //
         //     {
@@ -1705,7 +1705,7 @@ impl BlockchaincomCore {
         if (balances == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() could not find the \"".into())).into()), accountName).into()), Value::Str("\" account".into()))));
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
@@ -1720,10 +1720,10 @@ impl BlockchaincomCore {
             let mut account: Value = self.account();
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(entry.clone(), "available", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(entry, "balance", &[])); }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+            result.insert(crate::runtime::stringify_param(&code), account);
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1749,12 +1749,12 @@ impl BlockchaincomCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_15 = self.extend(request, &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_order_id(&[__ws_arg_15]).await;
         return self.parse_order(response, &[]);
 

@@ -618,14 +618,14 @@ impl WhitebitCore {
             args.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), Value::from(args));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -1333,14 +1333,14 @@ impl WhitebitCore {
         })]);
         let mut url: Value = self.safe_string_k(apiUrls, "ws", &[]);
         let mut id: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), reqParams);
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -1411,7 +1411,7 @@ impl WhitebitCore {
                 if isNested {
                     marketIdsNew = Value::from(vec![marketIdsNew.clone()]);
                 }
-                let mut resubRequest: Value = Value::Map({
+                let mut resubRequest: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id);
                         m.insert("method".to_string(), method.clone());
@@ -1421,7 +1421,7 @@ impl WhitebitCore {
                 if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &method);
                 }
-                return self.watch(url, messageHash, &[resubRequest, method, subscription]).await;
+                return self.watch(url, messageHash, &[Value::Map(resubRequest), method, subscription]).await;
             }
         }
 
@@ -1442,14 +1442,14 @@ impl WhitebitCore {
         })]);
         let mut url: Value = self.safe_string_k(apiUrls, "ws", &[]);
         let mut id: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), reqParams);
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -1508,20 +1508,20 @@ impl WhitebitCore {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty websocket_token".into()))));
             }
             let mut id: Value = self.incrementing_nonce();
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("method".to_string(), Value::Str("authorize".into()));
                     m.insert("params".to_string(), Value::from(vec![token, Value::Str("public".into())]));
                 m
             });
-            let mut subscription: Value = Value::Map({
+            let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
                     m.insert("method".to_string(), Value::Str("handle_authenticate".into()).clone());
                 m
             });
-            self.watch(url, subscribeHash.clone(), &[request, subscribeHash.clone(), subscription]).await;
+            self.watch(url, subscribeHash.clone(), &[Value::Map(request), subscribeHash.clone(), Value::Map(subscription)]).await;
             // settle the flight and wake every waiter - resolve () also drops
             // the registry entry, so a later cold call can re-lead
             client.resolve(&[authorized.clone(), messageHash.clone()]);
@@ -1618,7 +1618,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_subscription_status(client.clone(), message.clone(), id.clone());
             return;
         }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_update".to_string(), Value::Str("handle_ticker".into()).clone());
                 m.insert("trades_update".to_string(), Value::Str("handle_trades".into()).clone());
@@ -1632,7 +1632,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut topic: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut method: Value = self.safe_value(methods, topic, &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), topic, &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message.clone()]);
         }

@@ -688,7 +688,7 @@ impl ApexCore {
         // }
         // }
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), Value::Null);
@@ -699,8 +699,8 @@ impl ApexCore {
         let mut account: Value = self.account();
         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(response.clone(), "availableBalance", &[])); }
         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(response, "totalEquityValue", &[])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
-        return self.safe_balance(result);
+        result.insert(crate::runtime::stringify_param(&code), account);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1191,12 +1191,12 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_v3_ticker(&[__ws_arg_0]).await;
         let mut tickers: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut rawTicker: Value = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
@@ -1258,7 +1258,7 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
@@ -1266,8 +1266,8 @@ impl ApexCore {
         });
         // default is 200 when requested with `since`, max 200
         let mut limitResolved: Value = (if ((limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64)) { Value::Int(200) } else { limit });
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limitResolved.clone()); }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), request, params, &[Value::Float(0.001)]);
+        request.insert("limit".into(), limitResolved.clone());
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[Value::Float(0.001)]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
@@ -1312,13 +1312,13 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit })); }; // max 100, default 100
-        let __ws_arg_2 = self.extend(request, &[params]);
+        request.insert("limit".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit })); // max 100, default 100
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_v3_depth(&[__ws_arg_2]).await;
         //
         // {
@@ -1382,14 +1382,14 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(500) } else { limit }); // default is 50
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limitResolved.clone()); }
-        let __ws_arg_3 = self.extend(request, &[params]);
+        request.insert("limit".into(), limitResolved.clone());
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_v3_trades(&[__ws_arg_3]).await;
         //
         // [
@@ -1479,12 +1479,12 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_v3_ticker(&[__ws_arg_4]).await;
         let mut tickers: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut rawTicker: Value = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
@@ -1560,27 +1560,27 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = self.market(symbol.clone());
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+        request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("beginTimeInclusive".into(), since.clone()); }
+            request.insert("beginTimeInclusive".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
         if (page != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page".into(), page); }
+            request.insert("page".into(), page);
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTimeExclusive".into(), endTimeExclusive); }
+            request.insert("endTimeExclusive".into(), endTimeExclusive);
         }
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_v3_history_funding(&[__ws_arg_5]).await;
         //
         // {
@@ -1735,7 +1735,7 @@ impl ApexCore {
 }
 
     pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
-        let mut timeInForces: Value = Value::Map({
+        let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("GOOD_TIL_CANCEL".to_string(), Value::Str("GOOD_TIL_CANCEL".into()));
                 m.insert("FILL_OR_KILL".to_string(), Value::Str("FILL_OR_KILL".into()));
@@ -1743,12 +1743,12 @@ impl ApexCore {
                 m.insert("POST_ONLY".to_string(), Value::Str("POST_ONLY".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce, &[]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(timeInForces), timeInForce, &[]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         if (status != Value::Null) {
-            let mut statuses: Value = Value::Map({
+            let mut statuses: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("PENDING".to_string(), Value::Str("open".into()));
                     m.insert("OPEN".to_string(), Value::Str("open".into()));
@@ -1758,13 +1758,13 @@ impl ApexCore {
                     m.insert("UNTRIGGERED".to_string(), Value::Str("open".into()));
                 m
             });
-            return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+            return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
         }
         return None;
 }
 
     pub fn parse_order_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("LIMIT".to_string(), Value::Str("limit".into()));
                 m.insert("MARKET".to_string(), Value::Str("market".into()));
@@ -1774,7 +1774,7 @@ impl ApexCore {
                 m.insert("TAKE_PROFIT_MARKET".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn safe_market(&self, optional_args: &[Value]) -> Value {
@@ -1926,7 +1926,7 @@ impl ApexCore {
         let mut finalClientOrderId: Value = (if (clientOrderId != Value::Null) { clientOrderId } else { self.generate_random_client_id_omni(accountId.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null) });
         let mut paramsOmitted3: Value = self.omit(paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into())]), &[]);
         let mut finalOrderPrice: Value = orderPrice; // java req
-        let mut orderToSign: Value = Value::Map({
+        let mut orderToSign: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId);
                 m.insert("slotId".to_string(), finalClientOrderId.clone());
@@ -1940,10 +1940,10 @@ impl ApexCore {
             m
         });
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut orderToSign { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            orderToSign.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
-        let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)), &[orderToSign]).await;
-        let mut request: Value = Value::Map({
+        let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)), &[Value::Map(orderToSign)]).await;
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), orderSide);
@@ -1958,10 +1958,10 @@ impl ApexCore {
             m
         });
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), self.price_to_precision(symbol, triggerPrice)); }
+            request.insert("triggerPrice".into(), self.price_to_precision(symbol, triggerPrice));
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        let __ws_arg_6 = self.extend(request, &[paramsOmitted3]);
+        request.insert("signature".into(), signature);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted3]);
         let mut response: Value = self.private_post_v3_order(&[__ws_arg_6]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2214,15 +2214,15 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_v3_delete_open_orders(&[__ws_arg_14]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2375,27 +2375,27 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("beginTimeInclusive".into(), since.clone()); }
+            request.insert("beginTimeInclusive".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTimeExclusive".into(), endTimeExclusive.clone()); }
+            request.insert("endTimeExclusive".into(), endTimeExclusive.clone());
         }
         let mut paramsOmitted: Value = (if (endTimeExclusive != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_19 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_v3_history_orders(&[__ws_arg_19]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2430,18 +2430,18 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOrderId".into(), clientOrderId); }
+            request.insert("clientOrderId".into(), clientOrderId);
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
+            request.insert("orderId".into(), id);
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientId".into())]), &[]);
-        let __ws_arg_20 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_v3_order_fills(&[__ws_arg_20]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2479,27 +2479,27 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("beginTimeInclusive".into(), since.clone()); }
+            request.insert("beginTimeInclusive".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTimeExclusive".into(), endTimeExclusive.clone()); }
+            request.insert("endTimeExclusive".into(), endTimeExclusive.clone());
         }
         let mut paramsOmitted: Value = (if (endTimeExclusive != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_21 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_v3_fills(&[__ws_arg_21]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2536,27 +2536,27 @@ impl ApexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("beginTimeInclusive".into(), since.clone()); }
+            request.insert("beginTimeInclusive".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTimeExclusive".into(), endTimeExclusive.clone()); }
+            request.insert("endTimeExclusive".into(), endTimeExclusive.clone());
         }
         let mut paramsOmitted: Value = (if (endTimeExclusive != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_22 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_v3_funding(&[__ws_arg_22]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2629,13 +2629,13 @@ impl ApexCore {
         let mut market: Value = self.market(symbol);
         let mut leverageString: Value = self.number_to_string(leverage);
         let mut initialMarginRate: Value = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(4));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("initialMarginRate".to_string(), initialMarginRate);
             m
         });
-        let __ws_arg_23 = self.extend(request, &[params]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_v3_set_initial_margin_rate(&[__ws_arg_23]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

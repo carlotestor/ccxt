@@ -322,7 +322,7 @@ impl MudrexCore {
         let mut baseIdString: Value = (if (market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null) != Value::Null) { market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null) } else { Value::Str("".into()) });
         let mut quoteIdString: Value = (if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null) != Value::Null) { market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null) } else { Value::Str("".into()) });
         let mut assetId: Value = Value::Str(format!("{}{}", baseIdString.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null), quoteIdString.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -330,7 +330,7 @@ impl MudrexCore {
                 m.insert("assets".to_string(), Value::from(vec![assetId]));
             m
         });
-        let mut request: Value = self.extend(subscribe, &[params]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
@@ -363,7 +363,7 @@ impl MudrexCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         self.set_broker_headers();
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -371,18 +371,18 @@ impl MudrexCore {
                 m.insert("assets".to_string(), Value::from(assets));
             m
         });
-        let mut request: Value = self.extend(subscribe, &[params]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
         let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array_tickers(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -418,14 +418,14 @@ impl MudrexCore {
         let mut messageHash: Value = stream.clone();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         self.set_broker_headers();
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), Value::from(vec![stream]));
             m
         });
-        let mut request: Value = self.extend(subscribe, &[paramsOmitted]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[paramsOmitted]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {

@@ -1252,7 +1252,7 @@ impl SxbetCore {
         let mut defaultDeadlineSeconds: Value = self.safe_integer_k(self.options.clone(), "approveDeadlineSeconds", &[Value::Int(7200)]);
         let mut deadline: Value = self.safe_integer_k(paramsSpender.clone(), "deadline", &[self.sum(&[self.seconds(), defaultDeadlineSeconds])]);
         let mut value: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&self.number_to_string(amount), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-        let mut domain: Value = Value::Map({
+        let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), tokenName);
                 m.insert("version".to_string(), Value::Str("1".into()));
@@ -1260,7 +1260,7 @@ impl SxbetCore {
                 m.insert("verifyingContract".to_string(), tokenAddress.clone());
             m
         });
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Permit".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1290,7 +1290,7 @@ impl SxbetCore {
 })]));
             m
         });
-        let mut messageData: Value = Value::Map({
+        let mut messageData: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("owner".to_string(), owner.clone());
                 m.insert("spender".to_string(), spender.clone());
@@ -1299,10 +1299,10 @@ impl SxbetCore {
                 m.insert("deadline".to_string(), deadline.clone());
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, messageData);
+        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
         let mut digest: Value = self.hash_eip712_digest(encoded).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_digest(digest, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("owner".to_string(), owner);
                 m.insert("spender".to_string(), spender);
@@ -1313,7 +1313,7 @@ impl SxbetCore {
             m
         });
         let mut rest: Value = self.omit(paramsSpender, Value::from(vec![Value::Str("amount".into()), Value::Str("tokenAddress".into()), Value::Str("deadline".into()), Value::Str("rpcUrl".into())]), &[]);
-        let __ws_arg_5 = self.extend(request, &[rest]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[rest]);
         let mut response: Value = self.sxbet_private_post_user_transfer_to_proxy(&[__ws_arg_5]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1421,7 +1421,7 @@ impl SxbetCore {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() market orders cannot be GTC - use type 'limit' for a resting order".into()))));
         }
         let mut maker: Value = self.walletAddress.clone();
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Order".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1466,7 +1466,7 @@ impl SxbetCore {
 })]));
             m
         });
-        let mut messageData: Value = Value::Map({
+        let mut messageData: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHash".to_string(), marketHash.clone());
                 m.insert("baseToken".to_string(), baseToken.clone());
@@ -1478,7 +1478,7 @@ impl SxbetCore {
                 m.insert("isMakerBettingOutcomeOne".to_string(), isMakerBettingOutcomeOne.clone());
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, messageData);
+        let mut encoded: Value = self.eth_encode_structured_data(domain, Value::Map(messageTypes), Value::Map(messageData));
         let mut digest: Value = self.hash_eip712_digest(encoded).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut orderSignature: Value = self.sign_digest(digest, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut orderItem: Value = Value::Map({
@@ -1511,13 +1511,13 @@ impl SxbetCore {
         }
         let mut waitForOutcome: Value = self.safe_bool_k(paramsTimeInForce.clone(), "waitForOutcome", &[Value::Bool(true)]);
         let mut rest: Value = self.omit(paramsTimeInForce, Value::from(vec![Value::Str("salt".into()), Value::Str("expiry".into()), Value::Str("clientOrderId".into()), Value::Str("waitForOutcome".into()), Value::Str("useBetCredits".into()), Value::Str("externalUserId".into())]), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(vec![orderItem]));
                 m.insert("waitForOutcome".to_string(), waitForOutcome);
             m
         });
-        let __ws_arg_6 = self.extend(request, &[rest]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[rest]);
         let mut response: Value = self.sxbet_private_post_orders_v3(&[__ws_arg_6]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1680,7 +1680,7 @@ impl SxbetCore {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1689,7 +1689,7 @@ impl SxbetCore {
 })]));
             m
         });
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_private_delete_orders_v3(&[__ws_arg_7]).await;
         let mut orders: Value = self.parse_sxbet_cancel_response(response);
         let mut first: Value = self.safe_dict(orders, Value::Int(0), &[]);
@@ -1791,12 +1791,12 @@ impl SxbetCore {
         if isEventScoped {
             // the event route takes eventId in the QUERY string, not the body - sign() urlencodes
             // body-less DELETE params
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("eventId".to_string(), eventId.clone());
                 m
             });
-            let __ws_arg_9 = self.extend(request, &[rest.clone()]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[rest.clone()]);
             response = self.sxbet_private_delete_orders_v3_event(&[__ws_arg_9]).await;
         }  else {
             response = self.sxbet_private_delete_orders_v3_all(&[rest.clone()]).await;
@@ -1975,7 +1975,7 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1983,12 +1983,12 @@ impl SxbetCore {
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketHash".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[])); }
+            request.insert("marketHash".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[]));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone())); }
+            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone()));
         }
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_private_get_orders_v3(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2049,12 +2049,12 @@ impl SxbetCore {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_12 = self.extend(request, &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_private_get_orders_v3_order_id(&[__ws_arg_12]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2089,15 +2089,15 @@ impl SxbetCore {
         }
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHash".to_string(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[]));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone())); }
+            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone()));
         }
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_public_get_trades_v3_public(&[__ws_arg_13]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2141,7 +2141,7 @@ impl SxbetCore {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2151,14 +2151,14 @@ impl SxbetCore {
             outcomeObj = self.outcome(outcome.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startDate".into(), self.iso8601(since.clone())); }
+            request.insert("startDate".into(), self.iso8601(since.clone()));
         }
         if (limit != Value::Null) && (outcome == Value::Null) {
             // with an outcome filter the rows are narrowed client-side - a server-side page
             // size would truncate the page before the filter and under-fill the result
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone())); }
+            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone()));
         }
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_private_get_fills_v3(&[__ws_arg_14]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2284,7 +2284,7 @@ impl SxbetCore {
     m
 })]);
         let mut balances: Value = self.safe_list_k(data, "balances", &[Value::from(vec![])]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
@@ -2305,16 +2305,16 @@ impl SxbetCore {
             }
             let mut free: Value = crate::precise::Precise::stringDivPrec(&self.safe_string_k(row.clone(), "availableAmount", &[Value::Str("0".into())]), &usdcDecimals, &Value::Int(6));
             let mut used: Value = crate::precise::Precise::stringDivPrec(&self.safe_string_k(row, "escrowedAmount", &[Value::Str("0".into())]), &usdcDecimals, &Value::Int(6));
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map({
+            result.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), self.parse_number(free.clone(), &[]));
         m.insert("used".to_string(), self.parse_number(used.clone(), &[]));
         m.insert("total".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&free, &used), &[]));
     m
-})); }
+}));
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -2356,13 +2356,13 @@ impl SxbetCore {
         }
         // open exposure lives in MATCHED and LOCKED bets - the venue requires an explicit status
         // list drawn from MATCHED, LOCKED, SETTLED, FAILED
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), self.safe_string_k(params.clone(), "status", &[Value::Str("MATCHED,LOCKED".into())]));
             m
         });
         let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("status".into())]), &[]);
-        let __ws_arg_15 = self.extend(request, &[rest]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[rest]);
         let mut response: Value = self.sxbet_private_get_positions_v3(&[__ws_arg_15]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2476,7 +2476,7 @@ impl SxbetCore {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("SETTLED".into()));
             m
@@ -2485,18 +2485,18 @@ impl SxbetCore {
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketHash".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())])); }
+            request.insert("marketHash".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]));
         }
         let mut wantedOutcomeId: Value = self.safe_string_k(outcomeObj, "outcomeId", &[]);
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startDate".into(), self.iso8601(since)); }
+            request.insert("startDate".into(), self.iso8601(since));
         }
         if (limit != Value::Null) && (outcome == Value::Null) {
             // the outcome scope narrows rows client-side (the venue filter is per market, not
             // per side) - a server-side page size would under-fill the filtered result
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("perPage".into(), self.clamp_sxbet_per_page(limit)); }
+            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit));
         }
-        let __ws_arg_16 = self.extend(request, &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_private_get_trades_v3(&[__ws_arg_16]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2617,12 +2617,12 @@ impl SxbetCore {
  * @returns {object} the raw snapshot data
  */
     pub async fn fetch_sxbet_book_snapshot(&mut self, mut marketHash: Value) -> Value {
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHash".to_string(), marketHash);
             m
         });
-        let mut response: Value = self.sxbet_public_get_orderbook_v3_snapshot(&[request]).await;
+        let mut response: Value = self.sxbet_public_get_orderbook_v3_snapshot(&[Value::Map(request)]).await;
         return self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2672,12 +2672,12 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHashes".to_string(), Value::Str(marketHashes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         });
-        let __ws_arg_17 = self.extend(request, &[params]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_private_get_orders_v3_odds_best(&[__ws_arg_17]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2964,19 +2964,19 @@ impl SxbetCore {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[]);
         let mut outcomeId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
-        let mut isOutcomeOne: Value = (Value::Bool(outcomeId == marketHash));
-        let mut request: Value = Value::Map({
+        let mut isOutcomeOne: bool = outcomeId == marketHash;
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHash".to_string(), marketHash);
             m
         });
-        let __ws_arg_18 = self.extend(request, &[params]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_public_get_orderbook_v3_snapshot(&[__ws_arg_18]).await;
         let mut snapshot: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot, isOutcomeOne.is_truthy());
+        let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot, isOutcomeOne);
         let mut sortedBids: Value = self.safe_list_k(sides.clone(), "bids", &[Value::from(vec![])]);
         let mut sortedAsks: Value = self.safe_list_k(sides, "asks", &[Value::from(vec![])]);
         if (limit != Value::Null) {
@@ -3134,7 +3134,7 @@ impl SxbetCore {
             let mut token: Value = self.fetch_sxbet_realtime_token().await;
             let mut requestId: Value = self.request_id(url.clone());
             self.register_sxbet_ws_request(requestId.clone(), Value::Str("centrifugoConnected".into()), Value::Str("connect".into()));
-            let mut connectMsg: Value = Value::Map({
+            let mut connectMsg: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("connect".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3145,7 +3145,7 @@ impl SxbetCore {
                     m.insert("id".to_string(), requestId);
                 m
             });
-            return self.watch(url, Value::Str("centrifugoConnected".into()), &[connectMsg, Value::Str("connect".into())]).await;
+            return self.watch(url, Value::Str("centrifugoConnected".into()), &[Value::Map(connectMsg), Value::Str("connect".into())]).await;
         }
         if matches!(self.safe_bool_k(self.options.clone(), "wsConnected", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Null;
@@ -3169,7 +3169,7 @@ impl SxbetCore {
         self.connect_sxbet_centrifugo(url.clone()).await;
         let mut requestId: Value = self.request_id(url.clone());
         self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), channel.clone());
-        let mut subscribeMsg: Value = Value::Map({
+        let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3179,7 +3179,7 @@ impl SxbetCore {
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch(url, messageHash, &[subscribeMsg, channel]).await;
+        return self.watch(url, messageHash, &[Value::Map(subscribeMsg), channel]).await;
 
     Value::Null
 }
@@ -3342,7 +3342,7 @@ impl SxbetCore {
         }
         let mut requestId: Value = self.request_id(url.clone());
         self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), channel.clone());
-        let mut subscribeMsg: Value = Value::Map({
+        let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3352,7 +3352,7 @@ impl SxbetCore {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut future: Value = self.watch(url, messageHash.clone(), &[subscribeMsg, channel]).await;
+        let mut future: Value = self.watch(url, messageHash.clone(), &[Value::Map(subscribeMsg), channel]).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next publication
             client.resolve(&[self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash]);
@@ -3405,8 +3405,8 @@ impl SxbetCore {
             }
             let mut outcomeObj: Value = self.outcome(sym.clone());
             let mut outcomeId: Value = self.safe_string_k(outcomeObj, "outcomeId", &[]);
-            let mut isOutcomeOne: Value = (Value::Bool(outcomeId == marketHash));
-            let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne.is_truthy());
+            let mut isOutcomeOne: bool = outcomeId == marketHash;
+            let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne);
             let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), sym.clone(), &[]);
             if (orderbook == Value::Null) {
                 orderbook = self.order_book(&[Value::Map({
@@ -3502,7 +3502,7 @@ impl SxbetCore {
         }
         let mut requestId: Value = self.request_id(url.clone());
         self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), channel.clone());
-        let mut subscribeMsg: Value = Value::Map({
+        let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3512,7 +3512,7 @@ impl SxbetCore {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut future: Value = self.watch(url, messageHash.clone(), &[subscribeMsg, channel]).await;
+        let mut future: Value = self.watch(url, messageHash.clone(), &[Value::Map(subscribeMsg), channel]).await;
         if hydrated {
             client.resolve(&[self.safe_value(self.tickers.clone(), sym, &[]), messageHash]);
         }
@@ -3884,7 +3884,7 @@ impl SxbetCore {
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("sxbet")).cloned().unwrap_or(Value::Null)]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut existingHeaders: Value = Value::Map({
+        let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3893,7 +3893,7 @@ impl SxbetCore {
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
-        }), &[existingHeaders]);
+        }), &[Value::Map(existingHeaders)]);
         if (self.apiKey.clone() != Value::Null) {
             add_element_to_object(&mut headersExtended, &Value::Str("x-sx-api-key".into()), self.apiKey.clone());
         }

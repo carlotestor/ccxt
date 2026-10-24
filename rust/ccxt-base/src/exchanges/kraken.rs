@@ -1489,13 +1489,13 @@ impl KrakenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("fee-info".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_trade_volume(&[__ws_arg_0]).await;
         //
         //     {
@@ -1598,15 +1598,15 @@ impl KrakenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit); }; // 100
+            request.insert("count".into(), limit); // 100
         }
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_depth(&[__ws_arg_1]).await;
         //
         //     {
@@ -1720,7 +1720,7 @@ impl KrakenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1738,9 +1738,9 @@ impl KrakenCore {
                 }
             }
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into())); }
+            request.insert("pair".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));
         }
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_2]).await;
         let mut tickers: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1785,12 +1785,12 @@ impl KrakenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_3]).await;
         let mut tickerResult: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1841,15 +1841,15 @@ impl KrakenCore {
         }
         let mut market: Value = self.market(symbol);
         let mut parsedTimeframe: Value = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (parsedTimeframe != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".into(), parsedTimeframe.clone()); }
+            request.insert("interval".into(), parsedTimeframe.clone());
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".into(), timeframe.clone()); }
+            request.insert("interval".into(), timeframe.clone());
         }
         if (since != Value::Null) {
             let mut scaledSince: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
@@ -1857,9 +1857,9 @@ impl KrakenCore {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing parsedTimeframe".into()))));
             }
             let mut timeFrameInSeconds: Value = (match (&(parsedTimeframe), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("since".into(), self.number_to_string((match (&(scaledSince), &(timeFrameInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))); }; // expected to be in seconds
+            request.insert("since".into(), self.number_to_string((match (&(scaledSince), &(timeFrameInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))); // expected to be in seconds
         }
-        let __ws_arg_4 = self.extend(request, &[paramsPaginate]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsPaginate]);
         let mut response: Value = self.public_get_ohlc(&[__ws_arg_4]).await;
         //
         //     {
@@ -1885,7 +1885,7 @@ impl KrakenCore {
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("trade".to_string(), Value::Str("trade".into()));
                 m.insert("withdrawal".to_string(), Value::Str("transaction".into()));
@@ -1894,7 +1894,7 @@ impl KrakenCore {
                 m.insert("margin".to_string(), Value::Str("margin".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -1984,25 +1984,25 @@ impl KrakenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("asset".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         let mut until: Value = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params });
         if (until != Value::Null) {
             let mut untilDivided: Value = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into()));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())))); }
+            request.insert("end".into(), self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into()))));
         }
-        let __ws_arg_5 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_ledgers(&[__ws_arg_5]).await;
         // {  error: [],
         //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -2278,7 +2278,7 @@ impl KrakenCore {
         }
         let mut market: Value = self.market(symbol);
         let mut id: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), id.clone());
             m
@@ -2286,12 +2286,12 @@ impl KrakenCore {
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("since".into(), self.number_to_string(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); }; // expected to be in seconds
+            request.insert("since".into(), self.number_to_string(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // expected to be in seconds
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit.clone()); }
+            request.insert("count".into(), limit.clone());
         }
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trades(&[__ws_arg_6]).await;
         //
         //     {
@@ -2328,7 +2328,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
                 m.insert("timestamp".to_string(), Value::Null);
@@ -2350,11 +2350,11 @@ impl KrakenCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "hold_trade", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance, "balance", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -2401,12 +2401,12 @@ impl KrakenCore {
             self.load_markets(&[]).await;
         }
         // only buy orders are supported by the endpoint
-        let mut req: Value = Value::Map({
+        let mut req: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        let __ws_arg_7 = self.extend(req, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(req), &[params]);
         return self.create_order(symbol, Value::Str("market".into()), side, cost, &[Value::Null, __ws_arg_7]).await;
 
     Value::Null
@@ -2468,7 +2468,7 @@ impl KrakenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("type".to_string(), side);
@@ -2476,7 +2476,7 @@ impl KrakenCore {
                 m.insert("volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        let mut orderRequest: Value = self.order_request(Value::Str("createOrder".into()), symbol, type_var, request, amount, &[price, params]);
+        let mut orderRequest: Value = self.order_request(Value::Str("createOrder".into()), symbol, type_var, Value::Map(request), amount, &[price, params]);
         let mut flags: Value = self.safe_string(orderRequest.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("oflags".into()), &[Value::Str("".into())]);
         let mut isUsingCost: Value = Value::Bool(Value::Int(flags.as_str().and_then(|__s| __s.find("viqc")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64));
         let __ws_arg_8 = self.extend(orderRequest.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[orderRequest.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)]);
@@ -2669,7 +2669,7 @@ impl KrakenCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pending".to_string(), Value::Str("open".into()));
                 m.insert("open".to_string(), Value::Str("open".into()));
@@ -2682,11 +2682,11 @@ impl KrakenCore {
                 m.insert("expired".to_string(), Value::Str("expired".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("take-profit".to_string(), Value::Str("market".into()));
                 m.insert("stop-loss".to_string(), Value::Str("market".into()));
@@ -2695,7 +2695,7 @@ impl KrakenCore {
                 m.insert("trailing-stop-limit".to_string(), Value::Str("limit".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -3225,7 +3225,7 @@ impl KrakenCore {
             self.load_markets(&[]).await;
         }
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("userref".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("trades".to_string(), Value::Bool(true));
                 m.insert("txid".to_string(), id.clone());
@@ -3233,10 +3233,10 @@ impl KrakenCore {
         });
         let mut query: Value = params.clone();
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("userref".into(), clientOrderId); }
+            request.insert("userref".into(), clientOrderId);
             query = self.omit(params, Value::from(vec![Value::Str("userref".into()), Value::Str("clientOrderId".into())]), &[]);
         }
-        let __ws_arg_10 = self.extend(request, &[query]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.private_post_query_orders(&[__ws_arg_10]).await;
         //
         //     {
@@ -3483,20 +3483,20 @@ impl KrakenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         let mut until: Value = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params });
         if (until != Value::Null) {
             let mut untilDivided: Value = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into()));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())))); }
+            request.insert("end".into(), self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into()))));
         }
-        let __ws_arg_14 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_trades_history(&[__ws_arg_14]).await;
         //
         //     {
@@ -3624,12 +3624,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), ids);
             m
         });
-        let __ws_arg_16 = self.extend(request, &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_cancel_order_batch(&[__ws_arg_16]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3694,12 +3694,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (timeout == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() missing timeout".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timeout".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { (self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) } else { Value::Int(0) }));
             m
         });
-        let __ws_arg_17 = self.extend(request, &[params]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_cancel_all_orders_after(&[__ws_arg_17]).await;
         return response;
 
@@ -3730,24 +3730,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         let mut userref: Value = self.safe_integer_k(params.clone(), "userref", &[]);
         let mut paramsOmitted: Value = (if (userref != Value::Null) { self.omit(params.clone(), Value::Str("userref".into()), &[]) } else { params });
         if (userref != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("userref".into(), userref); }
+            request.insert("userref".into(), userref);
         }
         let mut clientOrderId: Value = self.safe_string_k(paramsOmitted.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cl_ord_id".into(), clientOrderId); }
+            request.insert("cl_ord_id".into(), clientOrderId);
             paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("clientOrderId".into()), &[]);
         }
-        let __ws_arg_18 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_open_orders(&[__ws_arg_18]).await;
         //
         //     {
@@ -3936,7 +3936,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         // IFEX transaction states
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Initial".to_string(), Value::Str("pending".into()));
                 m.insert("Pending".to_string(), Value::Str("pending".into()));
@@ -3946,7 +3946,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("Partial".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_network(&self, mut network: Value) -> Option<String> {
@@ -4122,25 +4122,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
             let mut currency: Value = self.currency(code.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("asset".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
             let mut sinceString: Value = self.number_to_string(since.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), crate::precise::Precise::stringDiv(&sinceString, &Value::Str("1000".into()))); }
+            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString, &Value::Str("1000".into())));
         }
         let mut until: Value = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params });
         if (until != Value::Null) {
             let mut untilDivided: Value = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into()));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into()))); }
+            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())));
         }
-        let __ws_arg_21 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_deposit_status(&[__ws_arg_21]).await;
         //
         //     {  error: [],
@@ -4226,25 +4226,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut paramsPaginate { std::sync::Arc::make_mut(__d).insert("cursor".into(), Value::Bool(true)); }
             return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next_cursor".into()), Value::Str("cursor".into())]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
             let mut currency: Value = self.currency(code.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("asset".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
             let mut sinceString: Value = self.number_to_string(since.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), crate::precise::Precise::stringDiv(&sinceString, &Value::Str("1000".into()))); }
+            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString, &Value::Str("1000".into())));
         }
         let mut until: Value = self.safe_string2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { paramsPaginate });
         if (until != Value::Null) {
             let mut untilDivided: Value = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into()));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into()))); }
+            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())));
         }
-        let __ws_arg_22 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_withdraw_status(&[__ws_arg_22]).await;
         //
         // with no pagination
@@ -4326,12 +4326,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("new".to_string(), Value::Str("true".into()));
             m
         });
-        let __ws_arg_23 = self.extend(request, &[params]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         return self.fetch_deposit_address(code, &[__ws_arg_23]).await;
 
     Value::Null
@@ -4355,12 +4355,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_24 = self.extend(request, &[params]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_deposit_methods(&[__ws_arg_24]).await;
         //
         //     {
@@ -4453,13 +4453,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 depositMethod = self.safe_string_k(firstDepositMethod, "method", &[]);
             }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("method".to_string(), depositMethod);
             m
         });
-        let __ws_arg_25 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_deposit_addresses(&[__ws_arg_25]).await;
         //
         //     {
@@ -4531,17 +4531,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("key"))) {
             self.load_markets(&[]).await;
             let mut currency: Value = self.currency(code.clone());
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                     m.insert("amount".to_string(), amount);
                 m
             });
             if (address != Value::Null) && (address.as_str() != Some("")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("address".into(), address.clone()); }
+                request.insert("address".into(), address.clone());
                 self.check_address(&[address, code, tagWithdrawTag]);
             }
-            let __ws_arg_26 = self.extend(request, &[paramsWithdrawTag.clone()]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[paramsWithdrawTag.clone()]);
             let mut response: Value = self.private_post_withdraw(&[__ws_arg_26]).await;
             //
             //     {
@@ -4580,13 +4580,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("docalcs".to_string(), Value::Str("true".into()));
                 m.insert("consolidation".to_string(), Value::Str("market".into()));
             m
         });
-        let __ws_arg_27 = self.extend(request, &[params]);
+        let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_open_positions(&[__ws_arg_27]).await;
         //
         // no consolidation
@@ -4699,14 +4699,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_account_type(&self, mut account: Value) -> Option<String> {
-        let mut accountByType: Value = Value::Map({
+        let mut accountByType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("Spot Wallet".into()));
                 m.insert("swap".to_string(), Value::Str("Futures Wallet".into()));
                 m.insert("future".to_string(), Value::Str("Futures Wallet".into()));
             m
         });
-        return self.safe_string(accountByType, account.clone(), &[account.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(accountByType), account.clone(), &[account.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -4752,7 +4752,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut currency: Value = self.currency(code.clone());
         let mut fromAccountParsed: Value = self.parse_account_type(fromAccount).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut toAccountParsed: Value = self.parse_account_type(toAccount).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
                 m.insert("from".to_string(), fromAccountParsed.clone());
@@ -4763,7 +4763,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (fromAccountParsed.as_str() != Some("Spot Wallet")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer cannot transfer from ".into())).into()), fromAccountParsed).into()), Value::Str(" to ".into())).into()), toAccountParsed).into()), Value::Str(". Use krakenfutures instead to transfer from the futures account.".into()))));
         }
-        let __ws_arg_28 = self.extend(request, &[params]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_wallet_transfer(&[__ws_arg_28]).await;
         //
         //   {

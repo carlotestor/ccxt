@@ -933,12 +933,12 @@ impl FoxbitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_public_get_markets_market_ticker24hr(&[__ws_arg_0]).await;
         //  {
         //    "data": [
@@ -1094,13 +1094,13 @@ impl FoxbitCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut defaultLimit: Value = Value::Int(20);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("depth".to_string(), (if (limit == Value::Null) { defaultLimit } else { limit }));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_public_get_markets_market_orderbook(&[__ws_arg_1]).await;
         //  {
         //    "sequence_id": 1234567890,
@@ -1154,15 +1154,15 @@ impl FoxbitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
             if limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(200)); }
+                request.insert("page_size".into(), Value::Int(200));
             }
         }
         // [
@@ -1174,7 +1174,7 @@ impl FoxbitCore {
         //         "created_at": "2024-01-01T00:00:00Z"
         //     }
         // ]
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_public_get_markets_market_trades_history(&[__ws_arg_2]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[market, since, limit]);
@@ -1207,22 +1207,22 @@ impl FoxbitCore {
         }
         let mut market: Value = self.market(symbol);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("interval".to_string(), interval.clone());
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.iso8601(since.clone())); }
+            request.insert("start_time".into(), self.iso8601(since.clone()));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
             if limit.as_f64().unwrap_or(f64::NAN) > ((500i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::Int(500)); }
+                request.insert("limit".into(), Value::Int(500));
             }
         }
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await;
         return self.parse_ohlc_vs(self.to_array(response), &[market, interval, since, limit]);
 
@@ -1257,7 +1257,7 @@ impl FoxbitCore {
         //     ]
         // }
         let mut accounts: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
@@ -1280,11 +1280,11 @@ impl FoxbitCore {
                 m
             });
             if (currencyCode != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&currencyCode), balanceObj); }
+                result.insert(crate::runtime::stringify_param(&currencyCode), balanceObj);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1362,25 +1362,25 @@ impl FoxbitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), status);
             m
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market_symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("market_symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.iso8601(since)); }
+            request.insert("start_time".into(), self.iso8601(since));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
             if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(100)); }
+                request.insert("page_size".into(), Value::Int(100));
             }
         }
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_get_orders(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[]);
@@ -1423,7 +1423,7 @@ impl FoxbitCore {
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut triggerPrice: Value = self.safe_number_k(params.clone(), "triggerPrice", &[]);
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
@@ -1437,31 +1437,31 @@ impl FoxbitCore {
         }
         if (timeInForce != Value::Null) {
             if (timeInForce.as_str() == Some("PO")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("post_only".into(), Value::Bool(true)); }
+                request.insert("post_only".into(), Value::Bool(true));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), timeInForce); }
+                request.insert("time_in_force".into(), timeInForce);
             }
         }
         if postOnly.as_bool() == Some(true) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("post_only".into(), Value::Bool(true)); }
+            request.insert("post_only".into(), Value::Bool(true));
         }
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
+            request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice));
         }
         if (typeValue.as_str() == Some("INSTANT")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), self.price_to_precision(symbol.clone(), amount.clone())); }
+            request.insert("amount".into(), self.price_to_precision(symbol.clone(), amount.clone()));
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount)); }
+            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
         }
         if (typeValue.as_str() == Some("LIMIT")) || (typeValue.as_str() == Some("STOP_LIMIT")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
+            request.insert("price".into(), self.price_to_precision(symbol, price));
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId); }
+            request.insert("client_order_id".into(), clientOrderId);
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into())]), &[]);
-        let __ws_arg_5 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.v3_private_post_orders(&[__ws_arg_5]).await;
         return self.parse_order(response, &[market]);
 
@@ -1543,12 +1543,12 @@ impl FoxbitCore {
             ordersRequests.push(self.extend(request, &[orderParams]));
         }
         }
-        let mut createOrdersRequest: Value = Value::Map({
+        let mut createOrdersRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("data".to_string(), Value::from(ordersRequests));
             m
         });
-        let __ws_arg_6 = self.extend(createOrdersRequest, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(createOrdersRequest), &[params]);
         let mut response: Value = self.v3_private_post_orders_batch(&[__ws_arg_6]).await;
         // {
         //     "data": [
@@ -1590,13 +1590,13 @@ impl FoxbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.parse_number(id, &[]));
                 m.insert("type".to_string(), Value::Str("ID".into()));
             m
         });
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_put_orders_cancel(&[__ws_arg_7]).await;
         // {
         //     "data": [
@@ -1634,17 +1634,17 @@ impl FoxbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("ALL".into()));
             m
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("MARKET".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market_symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("type".into(), Value::Str("MARKET".into()));
+            request.insert("market_symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_put_orders_cancel(&[__ws_arg_8]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1674,12 +1674,12 @@ impl FoxbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
             m
         });
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_get_orders_by_order_id_id(&[__ws_arg_9]).await;
         return self.parse_order(response, &[]);
 
@@ -1711,24 +1711,24 @@ impl FoxbitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market_symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("market_symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.iso8601(since.clone())); }
+            request.insert("start_time".into(), self.iso8601(since.clone()));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
             if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(100)); }
+                request.insert("page_size".into(), Value::Int(100));
             }
         }
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_get_orders(&[__ws_arg_10]).await;
         // {
         //     "data": [
@@ -1785,21 +1785,21 @@ impl FoxbitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.iso8601(since.clone())); }
+            request.insert("start_time".into(), self.iso8601(since.clone()));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
             if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(100)); }
+                request.insert("page_size".into(), Value::Int(100));
             }
         }
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_get_trades(&[__ws_arg_11]).await;
         // {
         //     "data": [
@@ -1840,7 +1840,7 @@ impl FoxbitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
@@ -1849,9 +1849,9 @@ impl FoxbitCore {
         let mut networkCode: Value = networkCodeparamsOmitedVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsOmited: Value = networkCodeparamsOmitedVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network_code".into(), self.network_code_to_id(networkCode, &[code])); }
+            request.insert("network_code".into(), self.network_code_to_id(networkCode, &[code]));
         }
-        let __ws_arg_12 = self.extend(request, &[paramsOmited]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmited]);
         let mut response: Value = self.v3_private_get_deposits_address(&[__ws_arg_12]).await;
         return self.parse_deposit_address(response, &[currency]);
 
@@ -1880,7 +1880,7 @@ impl FoxbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1889,15 +1889,15 @@ impl FoxbitCore {
             currency = self.currency(code);
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
             if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(100)); }
+                request.insert("page_size".into(), Value::Int(100));
             }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.iso8601(since.clone())); }
+            request.insert("start_time".into(), self.iso8601(since.clone()));
         }
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_get_deposits(&[__ws_arg_13]).await;
         // {
         //     "data": [
@@ -1943,7 +1943,7 @@ impl FoxbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1952,15 +1952,15 @@ impl FoxbitCore {
             currency = self.currency(code);
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
             if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(100)); }
+                request.insert("page_size".into(), Value::Int(100));
             }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.iso8601(since.clone())); }
+            request.insert("start_time".into(), self.iso8601(since.clone()));
         }
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_get_withdrawals(&[__ws_arg_14]).await;
         // {
         //     "data": [
@@ -2065,7 +2065,7 @@ impl FoxbitCore {
     m
 })]);
         let mut statusRaw: Value = self.safe_string_k(attributes.clone(), "status", &[]);
-        let mut statusMap: Value = Value::Map({
+        let mut statusMap: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("NORMAL".to_string(), Value::Str("ok".into()));
                 m.insert("UNDER_MAINTENANCE".to_string(), Value::Str("maintenance".into()));
@@ -2073,7 +2073,7 @@ impl FoxbitCore {
         });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), self.safe_string(statusMap, statusRaw.clone(), &[statusRaw.clone()]));
+        m.insert("status".to_string(), self.safe_string(Value::Map(statusMap), statusRaw.clone(), &[statusRaw.clone()]));
         m.insert("updated".to_string(), self.parse8601(self.safe_string_k(attributes, "updatedAt", &[])));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2191,7 +2191,7 @@ impl FoxbitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.number_to_string(amount));
@@ -2199,15 +2199,15 @@ impl FoxbitCore {
             m
         });
         if (tagWithdrawTag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("destination_tag".into(), tagWithdrawTag); }
+            request.insert("destination_tag".into(), tagWithdrawTag);
         }
         let mut networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(paramsWithdrawTag);
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network_code".into(), self.network_code_to_id(networkCode, &[code])); }
+            request.insert("network_code".into(), self.network_code_to_id(networkCode, &[code]));
         }
-        let __ws_arg_16 = self.extend(request, &[paramsNetworkCode]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsNetworkCode]);
         let mut response: Value = self.v3_private_post_withdrawals(&[__ws_arg_16]).await;
         return self.parse_transaction(response, &[]);
 
@@ -2236,7 +2236,7 @@ impl FoxbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2244,17 +2244,17 @@ impl FoxbitCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a code argument".into()))));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
             if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(100)); }
+                request.insert("page_size".into(), Value::Int(100));
             }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), self.iso8601(since.clone())); }
+            request.insert("start_time".into(), self.iso8601(since.clone()));
         }
         let mut currency: Value = self.currency(code);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-        let __ws_arg_17 = self.extend(request, &[params]);
+        request.insert("symbol".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_get_accounts_symbol_transactions(&[__ws_arg_17]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_ledger(data, &[currency, since, limit]);
@@ -2452,7 +2452,7 @@ impl FoxbitCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PARTIALLY_CANCELED".to_string(), Value::Str("open".into()));
                 m.insert("ACTIVE".to_string(), Value::Str("open".into()));
@@ -2462,7 +2462,7 @@ impl FoxbitCore {
                 m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2552,7 +2552,7 @@ impl FoxbitCore {
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SUBMITTING".to_string(), Value::Str("pending".into()));
                 m.insert("SUBMITTED".to_string(), Value::Str("pending".into()));
@@ -2568,7 +2568,7 @@ impl FoxbitCore {
                 m.insert("DONE".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -2632,7 +2632,7 @@ impl FoxbitCore {
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("DEPOSITING".to_string(), Value::Str("transaction".into()));
                 m.insert("WITHDRAWING".to_string(), Value::Str("transaction".into()));
@@ -2641,7 +2641,7 @@ impl FoxbitCore {
                 m.insert("OTHERS".to_string(), Value::Str("transaction".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {

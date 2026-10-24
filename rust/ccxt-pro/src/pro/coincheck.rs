@@ -292,13 +292,13 @@ impl CoincheckCore {
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-orderbook".into())).into()));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         return orderbook.limit();
 
@@ -370,13 +370,13 @@ impl CoincheckCore {
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-trades".into())).into()));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {

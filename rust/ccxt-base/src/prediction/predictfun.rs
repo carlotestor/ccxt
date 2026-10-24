@@ -664,7 +664,7 @@ impl PredictfunCore {
             // the venue's semantic matches and cost one request per page
             rawTopics = self.fetch_raw_topics_by_queries(queries.clone(), &[paramsValue.clone()]).await;
         }  else {
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -672,11 +672,11 @@ impl PredictfunCore {
             let mut tagsLength: f64 = ((tags.len() as i64) as f64);
             if tagsLength > ((0i64) as f64) {
                 let mut tagsString: Value = join(&tags, &Value::Str(",".into()));
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tagIds".into(), tagsString); }
+                request.insert("tagIds".into(), tagsString);
             }
             postOmitKeys.push(Value::Str("limit".into()));
             let mut paramsCategories: Value = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("tags".into())]), &[]);
-            let mut extendedRequest: Value = self.extend(request, &[paramsCategories]);
+            let mut extendedRequest: Value = self.extend(Value::Map(request), &[paramsCategories]);
             let mut rawTopicsResponse: Value = self.predictfun_get_v1_categories(&[extendedRequest.clone()]).await;
             //
             //     {
@@ -1677,12 +1677,12 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(info.clone(), "marketId", &[]));
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.predictfun_get_v1_markets_id_orderbook(&[__ws_arg_3]).await;
         //
         //     {
@@ -1741,7 +1741,7 @@ impl PredictfunCore {
                 noBids.push(Value::from(vec![complementPrice, askSize]));
             }
             }
-            let mut noOrderbook: Value = Value::Map({
+            let mut noOrderbook: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("bids".to_string(), self.sort_by(Value::from(noBids), Value::Int(0), &[Value::Bool(true)]));
                     m.insert("asks".to_string(), self.sort_by(Value::from(noAsks), Value::Int(0), &[]));
@@ -1750,7 +1750,7 @@ impl PredictfunCore {
                     m.insert("nonce".to_string(), Value::Null);
                 m
             });
-            return self.safe_prediction_order_book(noOrderbook, &[outcomeObj]);
+            return self.safe_prediction_order_book(Value::Map(noOrderbook), &[outcomeObj]);
         }
 
     Value::Null
@@ -1776,7 +1776,7 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(info, "marketId", &[]));
             m
@@ -1784,7 +1784,7 @@ impl PredictfunCore {
         // the market detail carries a bestBid/bestAsk per outcome, already sided for the NO
         // outcome - last price and volume live behind /last-sale and /stats, one request each,
         // so they are left undefined rather than spending extra calls on them
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.predictfun_get_v1_markets_id(&[__ws_arg_4]).await;
         //
         //     {
@@ -1960,7 +1960,7 @@ impl PredictfunCore {
         if (signerAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a walletAddress, or a \"signerAddress\" parameter for any other address".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signerAddress".to_string(), signerAddress.clone());
             m
@@ -1973,12 +1973,12 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".into(), self.safe_string_k(info, "marketId", &[])); }
+            request.insert("marketId".into(), self.safe_string_k(info, "marketId", &[]));
         }
         let mut query: Value = self.omit(params, Value::Str("signerAddress".into()), &[]);
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
-        let __ws_arg_5 = self.extend(request, &[query]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.predictfun_get_v1_orders_matches(&[__ws_arg_5]).await;
         // the venue answers with the shape documented in fetchTrades below
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
@@ -2068,14 +2068,14 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), self.safe_string_k(info.clone(), "marketId", &[]));
             m
         });
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.predictfun_get_v1_orders_matches(&[__ws_arg_6]).await;
         //
         //     {
@@ -2384,14 +2384,14 @@ impl PredictfunCore {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() got an auth reply without the \"message\" field to sign".into()))));
         }
         let mut signature: Value = self.sign_hash(self.hash_message(message.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("message".to_string(), message);
                 m.insert("signature".to_string(), signature);
             m
         });
-        let mut response: Value = self.predictfun_post_v1_auth(&[request]).await;
+        let mut response: Value = self.predictfun_post_v1_auth(&[Value::Map(request)]).await;
         //
         //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
         //
@@ -2428,7 +2428,7 @@ impl PredictfunCore {
         // inside the domain literal to a local var, which would corrupt the domain type hash
         let mut chainIdValue: Value = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]);
         let mut verifyingContract: Value = self.exchange_address(isNegRisk, isYieldBearing).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut domain: Value = Value::Map({
+        let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("predict.fun CTF Exchange".into()));
                 m.insert("version".to_string(), Value::Str("1".into()));
@@ -2499,7 +2499,7 @@ impl PredictfunCore {
 })]);
         // ethEncodeStructuredData returns the EIP-712 digest, which is both what gets signed and
         // the order hash the venue indexes the order by
-        let mut encoded: Value = self.eth_encode_structured_data(domain, Value::Map({
+        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Order".to_string(), orderStruct);
             m
@@ -2696,12 +2696,12 @@ impl PredictfunCore {
         // extend below and is posted as a top level key next to 'data'
         let mut paramsOmitted: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("isPostOnly".into()), Value::Str("timeInForce".into()), Value::Str("isFillOrKill".into()), Value::Str("feeRateBps".into()), Value::Str("isNegRisk".into()), Value::Str("isYieldBearing".into()), Value::Str("slippageBps".into()), Value::Str("salt".into()), Value::Str("nonce".into()), Value::Str("expiration".into()), Value::Str("selfTradePrevention".into()), Value::Str("taker".into())]), &[]);
         // the JWT authorises the order, the api key only authorises the request
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("data".to_string(), data);
             m
         });
-        let __ws_arg_9 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.predictfun_post_v1_orders(&[__ws_arg_9]).await;
         //
         //     {
@@ -2777,13 +2777,13 @@ impl PredictfunCore {
         let mut response: Value = Value::Null;
         if (address != Value::Null) {
             // the by-address endpoint reads any wallet and is happy with just the api key
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("address".to_string(), address);
                 m
             });
             let mut rest: Value = self.omit(params.clone(), Value::Str("address".into()), &[]);
-            let __ws_arg_10 = self.extend(request, &[rest]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[rest]);
             response = self.predictfun_get_v1_positions_address(&[__ws_arg_10]).await;
         }  else {
             // the JWT is what names the wallet whose positions come back
@@ -2874,12 +2874,12 @@ impl PredictfunCore {
     m
 })]);
         // scope the call to the outcome's market so the wallet's other positions are not paged through
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), self.safe_string_k(info, "marketId", &[]));
             m
         });
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut positions: Value = self.fetch_positions(&[Value::from(vec![outcome]), __ws_arg_11]).await;
         return self.safe_dict(positions, Value::Int(0), &[]);
 
@@ -3033,7 +3033,7 @@ impl PredictfunCore {
         }
         // the JWT identifies the signer whose orders may be pulled
         self.authenticate(&[]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3043,7 +3043,7 @@ impl PredictfunCore {
             m
         });
         // this only pulls the orders off the book, it does not cancel them on chain
-        let __ws_arg_12 = self.extend(request, &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.predictfun_post_v1_orders_remove_by_hash(&[__ws_arg_12]).await;
         //
         //     {
@@ -3118,12 +3118,12 @@ impl PredictfunCore {
             outcomeObj = self.outcome(outcome.clone());
         }
         // the JWT identifies the wallet whose orders can be read
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hash".to_string(), id);
             m
         });
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.predictfun_get_v1_orders_hash(&[__ws_arg_13]).await;
         //
         //     {
@@ -3186,12 +3186,12 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("OPEN".into()));
             m
         });
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         return self.fetch_orders_helper(&[outcome, since, limit, __ws_arg_14]).await;
 
     Value::Null
@@ -3219,12 +3219,12 @@ impl PredictfunCore {
 }));
         // the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
         // orders cannot be asked for, so a closed order here means one that filled
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("FILLED".into()));
             m
         });
-        let __ws_arg_15 = self.extend(request, &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         return self.fetch_orders_helper(&[outcome, since, limit, __ws_arg_15]).await;
 
     Value::Null
@@ -3259,11 +3259,11 @@ impl PredictfunCore {
         }
         // the JWT identifies the wallet whose orders are returned
         self.authenticate(&[]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_16 = self.extend(request, &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.predictfun_get_v1_orders(&[__ws_arg_16]).await;
         //
         //     {
@@ -3425,7 +3425,7 @@ impl PredictfunCore {
  * @returns {string} the unified status
  */
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OPEN".to_string(), Value::Str("open".into()));
                 m.insert("PENDING".to_string(), Value::Str("open".into()));
@@ -3437,7 +3437,7 @@ impl PredictfunCore {
                 m.insert("REJECTED".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3779,7 +3779,7 @@ impl PredictfunCore {
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str("predictOrderbook/".into()), marketId).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcomeHandle).into());
         let mut requestId: Value = self.request_id();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("requestId".to_string(), requestId.clone());
@@ -3790,7 +3790,7 @@ impl PredictfunCore {
         // the request id, so every registered subscription is indexed on it - and indexBy cannot
         // look inside a boolean. both outcomes wait on this one topic, so a rejected request has to
         // be able to release both of them
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.number_to_string(requestId));
                 m.insert("topic".to_string(), topic.clone());
@@ -3799,8 +3799,8 @@ impl PredictfunCore {
             m
         });
         let mut url: Value = self.socket_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let __ws_arg_17 = self.extend(request, &[params]);
-        let mut orderbook: Value = self.watch(url, messageHash, &[__ws_arg_17, topic, subscription]).await;
+        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
+        let mut orderbook: Value = self.watch(url, messageHash, &[__ws_arg_17, topic, Value::Map(subscription)]).await;
         return orderbook.limit();
 
     Value::Null
@@ -3849,7 +3849,7 @@ impl PredictfunCore {
         }
         }
         let mut requestId: Value = self.request_id();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("requestId".to_string(), requestId.clone());
@@ -3858,7 +3858,7 @@ impl PredictfunCore {
         });
         // the acknowledgement carries the request id and nothing else - no topic - so the id is
         // what ties the reply back to this subscription, which travels with it as the last argument
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("id".to_string(), self.number_to_string(requestId));
@@ -3871,8 +3871,8 @@ impl PredictfunCore {
         });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::orderbook::".into()), self.safe_outcome_symbol(Value::Null, &[outcomeObj])).into());
         let mut url: Value = self.socket_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let __ws_arg_18 = self.extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_18, messageHash.clone(), subscription]).await;
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_18, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -4169,7 +4169,7 @@ impl PredictfunCore {
 }));
         let mut topic: Value = self.wallet_events_topic().await;
         let mut requestId: Value = self.request_id();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("requestId".to_string(), requestId.clone());
@@ -4178,7 +4178,7 @@ impl PredictfunCore {
         });
         let mut url: Value = self.socket_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.number_to_string(requestId));
                 m.insert("topic".to_string(), Value::Str("walletEvents".into()));
@@ -4186,8 +4186,8 @@ impl PredictfunCore {
                 m.insert("messageHashes".to_string(), self.wallet_event_message_hashes(client, &[messageHash.clone()]));
             m
         });
-        let __ws_arg_19 = self.extend(request, &[params]);
-        return self.watch(url, messageHash, &[__ws_arg_19, Value::Str("walletEvents".into()), subscription]).await;
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url, messageHash, &[__ws_arg_19, Value::Str("walletEvents".into()), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -4244,14 +4244,14 @@ impl PredictfunCore {
 }));
         let mut topic: Value = self.wallet_events_topic().await;
         let mut requestId: Value = self.request_id();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("requestId".to_string(), requestId.clone());
                 m.insert("params".to_string(), Value::from(vec![topic]));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("id".to_string(), self.number_to_string(requestId));
@@ -4264,8 +4264,8 @@ impl PredictfunCore {
         });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), channel).into());
         let mut url: Value = self.socket_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let __ws_arg_20 = self.extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_20, messageHash.clone(), subscription]).await;
+        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_20, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -4983,7 +4983,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut headersValue: Value = existingHeaders;
-        let mut authHeaders: Value = Value::Map({
+        let mut authHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4991,7 +4991,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
             // since sign () has a parameter of that name - ending the literal right after it avoids that
             let mut apiKeyHeader: Value = Value::Str(format!("{}{}", Value::Str("x-api".into()), Value::Str("-key".into())).into());
-            if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&apiKeyHeader), apiKey); }
+            authHeaders.insert(crate::runtime::stringify_param(&apiKeyHeader), apiKey);
         }
         // the API key authorises the request, the JWT authorises acting for a wallet - authenticate ()
         // caches it, so it is attached to every call once an order action has asked for one
@@ -5004,17 +5004,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // unlike the API key, the JWT IS required on the testnet - wallet endpoints there answer
         // 401 without it, so it is attached on both hosts
         if (jwtToken != Value::Null) && self.in_array(path, walletPaths).as_bool() == Some(true) {
-            if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), jwtToken).into())); }
+            authHeaders.insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), jwtToken).into()));
         }
         let mut bodyValue: Value = Value::Null;
         if (method.as_str() != Some("GET")) {
             if !(sandboxMode.as_bool() == Some(true)) {
                 self.check_required_credentials(&[]);
             }
-            if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+            authHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             bodyValue = json_stringify(&params);
         }
-        let mut headersExtended: Value = self.extend(headersValue, &[authHeaders]);
+        let mut headersExtended: Value = self.extend(headersValue, &[Value::Map(authHeaders)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

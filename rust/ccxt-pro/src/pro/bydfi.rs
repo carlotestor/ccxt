@@ -390,7 +390,7 @@ impl BydfiCore {
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut id: Value = self.request_id();
-        let mut subscriptionParams: Value = Value::Map({
+        let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
             m
@@ -400,18 +400,18 @@ impl BydfiCore {
         let mut paramsOmitted: Value = (if unsubscribe.as_bool() == Some(true) { self.omit(params.clone(), Value::Str("unsubscribe".into()), &[]) } else { params });
         if unsubscribe.as_bool() == Some(true) {
             method = Value::Str("UNSUBSCRIBE".into());
-            if let Value::Dict(__d) = &mut subscriptionParams { std::sync::Arc::make_mut(__d).insert("unsubscribe".into(), Value::Bool(true)); }
-            if let Value::Dict(__d) = &mut subscriptionParams { std::sync::Arc::make_mut(__d).insert("messageHashes".into(), messageHashes.clone()); }
+            subscriptionParams.insert("unsubscribe".into(), Value::Bool(true));
+            subscriptionParams.insert("messageHashes".into(), messageHashes.clone());
         }
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), channels);
             m
         });
-        let __ws_arg_0 = self.deep_extend(message, &[paramsOmitted]);
-        let __ws_arg_1 = self.extend(subscriptionParams, &[subscription]);
+        let __ws_arg_0 = self.deep_extend(Value::Map(message), &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(Value::Map(subscriptionParams), &[subscription]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), __ws_arg_1]).await;
 
     Value::Null
@@ -427,7 +427,7 @@ impl BydfiCore {
         let mut subHash: Value = Value::Str("private".into());
         let mut client: Value = self.client(&[url.clone()]);
         let mut privateSubscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), subHash, &[]);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -437,7 +437,7 @@ impl BydfiCore {
             let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
             let mut payload: Value = Value::Str(format!("{}{}", self.apiKey.clone(), timestamp).into());
             let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("method".to_string(), Value::Str("LOGIN".into()));
@@ -450,11 +450,11 @@ impl BydfiCore {
 }));
                 m
             });
-            paramsLogin = self.deep_extend(request, &[params.clone()]);
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("id".into(), id); }
+            paramsLogin = self.deep_extend(Value::Map(request), &[params.clone()]);
+            subscription.insert("id".into(), id);
         }
         let mut paramsResolved: Value = (if (paramsLogin != Value::Null) { paramsLogin } else { params });
-        return self.watch_multiple(url, messageHashes, &[paramsResolved, Value::from(vec![Value::Str("private".into())]), subscription]).await;
+        return self.watch_multiple(url, messageHashes, &[paramsResolved, Value::from(vec![Value::Str("private".into())]), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -570,7 +570,7 @@ impl BydfiCore {
         let mut messageHash: Value = Value::Str("unsubscribe::ticker::".into());
         let mut channels: Vec<Value> = Vec::new();
         let mut channel: Value = Value::Str("@ticker".into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ticker".into()));
             m
@@ -579,7 +579,7 @@ impl BydfiCore {
             // all tickers and tickers for specific symbols are different channels
             // we need to unsubscribe from all ticker channels
             let mut subHashes: Value = self.get_message_hashes_for_tickers_unsubscription();
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("subHashIsPrefix".into(), Value::Bool(true)); }
+            subscription.insert("subHashIsPrefix".into(), Value::Bool(true));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_218: bool = true;
@@ -609,14 +609,14 @@ impl BydfiCore {
                 channels.push(Value::Str(format!("{}{}", marketId, channel).into()));
             }
             }
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbols".into(), symbolsNormalized); }
+            subscription.insert("symbols".into(), symbolsNormalized);
         }
         let mut paramsExtended: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
         })]);
-        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, subscription]).await;
+        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -805,13 +805,13 @@ impl BydfiCore {
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
         })]);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
                 m.insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes);
             m
         });
-        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, subscription]).await;
+        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -993,7 +993,7 @@ impl BydfiCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe::orderbook::".into()), symbol).into()));
         }
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
                 m.insert("symbols".to_string(), symbolsNormalized);
@@ -1004,7 +1004,7 @@ impl BydfiCore {
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
         })]);
-        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, subscription]).await;
+        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1465,12 +1465,12 @@ impl BydfiCore {
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
-        let mut params: Value = Value::Map({
+        let mut params: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("swap".into()));
             m
         });
-        let mut response: Value = self.fetch_balance(&[params]).await;
+        let mut response: Value = self.fetch_balance(&[Value::Map(params)]).await;
         { let __t = self.extend(response, &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
         let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
@@ -1531,7 +1531,7 @@ impl BydfiCore {
 }) });
             let mut balances: Value = self.safe_list_k(data, "B", &[Value::from(vec![])]);
             let mut timestamp: Value = (match __pro_message.get("T").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), message);
                     m.insert("timestamp".to_string(), timestamp.clone());
@@ -1549,11 +1549,11 @@ impl BydfiCore {
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "wb", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "tfm", &[])); }
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                    result.insert(crate::runtime::stringify_param(&code), account);
                 }
             }
             }
-            let mut parsedBalance: Value = self.safe_balance(result);
+            let mut parsedBalance: Value = self.safe_balance(Value::Map(result));
             { let __t = self.extend(self.balance.clone(), &[parsedBalance]); self.balance = __t; }
             client.resolve(&[self.balance.clone(), messageHash.clone()]);
         }

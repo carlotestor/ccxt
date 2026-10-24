@@ -288,21 +288,21 @@ impl NdaxCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market, "id", &[]));
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
                 m.insert("n".to_string(), name);
-                m.insert("o".to_string(), json_stringify(&payload));
+                m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -379,22 +379,22 @@ impl NdaxCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market, "id", &[]));
                 m.insert("IncludeLastCount".to_string(), Value::Int(100));
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
                 m.insert("n".to_string(), name);
-                m.insert("o".to_string(), json_stringify(&payload));
+                m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -497,7 +497,7 @@ impl NdaxCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market, "id", &[]));
@@ -505,15 +505,15 @@ impl NdaxCore {
                 m.insert("IncludeLastCount".to_string(), Value::Int(100));
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
                 m.insert("n".to_string(), name);
-                m.insert("o".to_string(), json_stringify(&payload));
+                m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -686,22 +686,22 @@ impl NdaxCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
         let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market.clone(), "id", &[]));
                 m.insert("Depth".to_string(), limitValue.clone());
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId.clone());
                 m.insert("n".to_string(), name.clone());
-                m.insert("o".to_string(), json_stringify(&payload));
+                m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("messageHash".to_string(), messageHash.clone());
@@ -713,8 +713,8 @@ impl NdaxCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
-        let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
+        let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), Value::Map(subscription)]).await;
         return orderbook.limit();
 
     Value::Null
@@ -896,7 +896,7 @@ impl NdaxCore {
             return;
         }
         if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("o".into(), json_parse(&payload)); }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SubscribeLevel2".to_string(), Value::Str("handle_subscription_status".into()).clone());
                 m.insert("SubscribeLevel1".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -909,7 +909,7 @@ impl NdaxCore {
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "n", &[]);
-        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods, event, &[]) });
+        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(Value::Map(methods), event, &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }

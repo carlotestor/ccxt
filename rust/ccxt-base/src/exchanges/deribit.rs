@@ -1983,7 +1983,7 @@ impl DeribitCore {
 }
 
     pub fn parse_balance(&self, mut balance: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), balance.clone());
             m
@@ -2006,11 +2006,11 @@ impl DeribitCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(data.clone(), "maintenance_margin", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(data, "equity", &[])); }
             if (currencyCode != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&currencyCode), account); }
+                result.insert(crate::runtime::stringify_param(&currencyCode), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -2035,18 +2035,18 @@ impl DeribitCore {
         }
         let mut code: Value = self.safe_string_k(params.clone(), "code", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("code".into()), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), self.currency_id(code.clone())); }
+            request.insert("currency".into(), self.currency_id(code.clone()));
         }
         let mut response: Value = Value::Null;
         if (code == Value::Null) {
             response = self.private_get_get_account_summaries(&[paramsOmitted.clone()]).await;
         }  else {
-            let __ws_arg_1 = self.extend(request, &[paramsOmitted]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.private_get_get_account_summary(&[__ws_arg_1]).await;
         }
         //
@@ -2118,12 +2118,12 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_create_deposit_address(&[__ws_arg_2]).await;
         //
         //     {
@@ -2174,12 +2174,12 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_get_current_deposit_address(&[__ws_arg_3]).await;
         //
         //     {
@@ -2318,12 +2318,12 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_4]).await;
         //
         //     {
@@ -2406,7 +2406,7 @@ impl DeribitCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for".into()))));
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
@@ -2421,10 +2421,10 @@ impl DeribitCore {
                 requestType = Value::Str("option".into());
             }
             if (requestType != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("kind".into(), requestType); }
+                request.insert("kind".into(), requestType);
             }
         }
-        let __ws_arg_5 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_get_get_book_summary_by_currency(&[__ws_arg_5]).await;
         //
         //     {
@@ -2509,7 +2509,7 @@ impl DeribitCore {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(5000)]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
@@ -2523,22 +2523,22 @@ impl DeribitCore {
         let mut limitResolved: Value = (if ((since == Value::Null) && (limit == Value::Null)) { defaultLimit } else { limit.clone() });
         let mut sinceResolved: Value = (if (since == Value::Null) { Value::Null } else { crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)) });
         if (since == Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), (match (&(now), &((match (&((match (&(((match (&(windowLimit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), now.clone()); }
+            request.insert("start_timestamp".into(), (match (&(now), &((match (&((match (&(((match (&(windowLimit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("end_timestamp".into(), now.clone());
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), sinceResolved.clone()); }
+            request.insert("start_timestamp".into(), sinceResolved.clone());
             if (limit == Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), now); }
+                request.insert("end_timestamp".into(), now);
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), self.sum(&[sinceResolved.clone(), (match (&((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])); }
+                request.insert("end_timestamp".into(), self.sum(&[sinceResolved.clone(), (match (&((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             }
         }
         let mut until: Value = self.safe_integer_k(paramsPaginate.clone(), "until", &[]);
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::Str("until".into()), &[]) } else { paramsPaginate });
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), until); }
+            request.insert("end_timestamp".into(), until);
         }
-        let __ws_arg_6 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_get_get_tradingview_chart_data(&[__ws_arg_6]).await;
         //
         //     {
@@ -2768,13 +2768,13 @@ impl DeribitCore {
         }
         let mut code: Value = self.code_from_options(Value::Str("fetchTradingFees".into()), &[params.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("extended".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_get_account_summary(&[__ws_arg_9]).await;
         //
         //     {
@@ -2931,15 +2931,15 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".into(), limit); }
+            request.insert("depth".into(), limit);
         }
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_order_book(&[__ws_arg_10]).await;
         //
         //     {
@@ -2994,7 +2994,7 @@ impl DeribitCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("open".to_string(), Value::Str("open".into()));
                 m.insert("cancelled".to_string(), Value::Str("canceled".into()));
@@ -3003,22 +3003,22 @@ impl DeribitCore {
                 m.insert("untriggered".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
-        let mut timeInForces: Value = Value::Map({
+        let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("good_til_cancelled".to_string(), Value::Str("GTC".into()));
                 m.insert("fill_or_kill".to_string(), Value::Str("FOK".into()));
                 m.insert("immediate_or_cancel".to_string(), Value::Str("IOC".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(timeInForces), timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut orderType: Value) -> Option<String> {
-        let mut orderTypes: Value = Value::Map({
+        let mut orderTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stop_limit".to_string(), Value::Str("limit".into()));
                 m.insert("take_limit".to_string(), Value::Str("limit".into()));
@@ -3026,7 +3026,7 @@ impl DeribitCore {
                 m.insert("take_market".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(orderTypes, orderType.clone(), &[orderType.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(orderTypes), orderType.clone(), &[orderType.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -3152,7 +3152,7 @@ impl DeribitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
             m
@@ -3161,7 +3161,7 @@ impl DeribitCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_get_order_state(&[__ws_arg_11]).await;
         //
         //     {
@@ -3407,14 +3407,14 @@ impl DeribitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         });
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
+            request.insert("price".into(), self.price_to_precision(symbol, price));
         }
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]);
         let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
@@ -3423,9 +3423,9 @@ impl DeribitCore {
             paramsOmitted = self.omit(params, Value::Str("trigger_offset".into()), &[]);
         }
         if isTrailingAmountOrder {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount)); }
+            request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount));
         }
-        let __ws_arg_14 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_edit(&[__ws_arg_14]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3458,12 +3458,12 @@ impl DeribitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_15 = self.extend(request, &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_cancel(&[__ws_arg_15]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3638,12 +3638,12 @@ impl DeribitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_22 = self.extend(request, &[params]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_get_user_trades_by_order(&[__ws_arg_22]).await;
         //
         //     {
@@ -3812,15 +3812,15 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit.clone()); }
+            request.insert("count".into(), limit.clone());
         }
-        let __ws_arg_27 = self.extend(request, &[params.clone()]);
+        let __ws_arg_27 = self.extend(Value::Map(request), &[params.clone()]);
         let mut response: Value = self.private_get_get_deposits(&[__ws_arg_27]).await;
         //
         //     {
@@ -3878,15 +3878,15 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit.clone()); }
+            request.insert("count".into(), limit.clone());
         }
-        let __ws_arg_28 = self.extend(request, &[params.clone()]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[params.clone()]);
         let mut response: Value = self.private_get_get_withdrawals(&[__ws_arg_28]).await;
         //
         //     {
@@ -3923,13 +3923,13 @@ impl DeribitCore {
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("completed".to_string(), Value::Str("ok".into()));
                 m.insert("unconfirmed".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -4100,12 +4100,12 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_29 = self.extend(request, &[params]);
+        let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_get_position(&[__ws_arg_29]).await;
         //
         //     {
@@ -4164,16 +4164,16 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut code: Value = self.safe_string_k(params.clone(), "currency", &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut paramsOmitted: Value = (if (code != Value::Null) { self.omit(params.clone(), Value::Str("currency".into()), &[]) } else { params });
         if (code != Value::Null) {
             let mut currency: Value = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_30 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_30 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_positions(&[__ws_arg_30]).await;
         //
         //     {
@@ -4228,12 +4228,12 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_31 = self.extend(request, &[params]);
+        let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_historical_volatility(&[__ws_arg_31]).await;
         return self.parse_volatility_history(response);
 
@@ -4306,15 +4306,15 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit.clone()); }
+            request.insert("count".into(), limit.clone());
         }
-        let __ws_arg_32 = self.extend(request, &[params.clone()]);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[params.clone()]);
         let mut response: Value = self.private_get_get_transfers(&[__ws_arg_32]).await;
         //
         //     {
@@ -4469,7 +4469,7 @@ impl DeribitCore {
 }
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("prepared".to_string(), Value::Str("pending".into()));
                 m.insert("confirmed".to_string(), Value::Str("ok".into()));
@@ -4477,7 +4477,7 @@ impl DeribitCore {
                 m.insert("waiting_for_admin".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -4505,7 +4505,7 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("address".to_string(), address);
@@ -4513,9 +4513,9 @@ impl DeribitCore {
             m
         });
         if (self.twofa.clone() != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tfa".into(), totp(self.twofa.clone())); }
+            request.insert("tfa".into(), totp(self.twofa.clone()));
         }
-        let __ws_arg_35 = self.extend(request, &[paramsWithdrawTag]);
+        let __ws_arg_35 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
         let mut response: Value = self.private_get_withdraw(&[__ws_arg_35]).await;
         return self.parse_transaction(response, &[currency]);
 
@@ -4617,14 +4617,14 @@ impl DeribitCore {
         }
         let mut market: Value = self.market(symbol);
         let mut time: Value = self.milliseconds();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("start_timestamp".to_string(), (match (&(time), &(((match (&((match (&((match (&(Value::Int(8)), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
                 m.insert("end_timestamp".to_string(), time);
             m
         });
-        let __ws_arg_36 = self.extend(request, &[params]);
+        let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_funding_rate_value(&[__ws_arg_36]).await;
         return self.parse_funding_rate(response, &[market]);
 
@@ -4676,7 +4676,7 @@ impl DeribitCore {
         let mut defaultSince: Value = (match (&(now), &(month)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         let mut sinceResolved: Value = (if (since == Value::Null) { defaultSince } else { since.clone() });
         let mut time: Value = (if (since == Value::Null) { now } else { (match (&(since), &(month)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("start_timestamp".to_string(), (match (&(sinceResolved), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
@@ -4685,7 +4685,7 @@ impl DeribitCore {
         let mut until: Value = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]);
         let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
         let mut endTimestamp: Value = (if (until != Value::Null) { until } else { time });
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), endTimestamp.clone()); }
+        request.insert("end_timestamp".into(), endTimestamp.clone());
         let mut isPaginationCall: bool = matches!(&paramsUntil, Value::Dict(__d) if __d.contains_key("isDeribitPaginationCall"));
         let mut paramsOmitted: Value = paramsUntil.clone();
         if isPaginationCall {
@@ -4696,9 +4696,9 @@ impl DeribitCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a limit argument".into()))));
             }
             let mut maxUntil: Value = self.parse_to_int(self.sum(&[sinceResolved.clone(), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), (if (endTimestamp.as_f64().unwrap_or(f64::NAN) < maxUntil.as_f64().unwrap_or(f64::NAN)) { endTimestamp } else { maxUntil })); }
+            request.insert("end_timestamp".into(), (if (endTimestamp.as_f64().unwrap_or(f64::NAN) < maxUntil.as_f64().unwrap_or(f64::NAN)) { endTimestamp } else { maxUntil }));
         }
-        let __ws_arg_37 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_37 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_get_get_funding_rate_history(&[__ws_arg_37]).await;
         //
         //    {
@@ -4812,19 +4812,19 @@ impl DeribitCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLiquidations() does not support ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::Str("bankruptcy".into()));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("search_start_timestamp".into(), since.clone()); }
+            request.insert("search_start_timestamp".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit.clone()); }
+            request.insert("count".into(), limit.clone());
         }
-        let __ws_arg_38 = self.extend(request, &[paramsPaginate]);
+        let __ws_arg_38 = self.extend(Value::Map(request), &[paramsPaginate]);
         let mut response: Value = self.public_get_get_last_settlements_by_instrument(&[__ws_arg_38]).await;
         //
         //     {
@@ -4908,19 +4908,19 @@ impl DeribitCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyLiquidations() does not support ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::Str("bankruptcy".into()));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("search_start_timestamp".into(), since.clone()); }
+            request.insert("search_start_timestamp".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit.clone()); }
+            request.insert("count".into(), limit.clone());
         }
-        let __ws_arg_39 = self.extend(request, &[params]);
+        let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_get_settlement_history_by_instrument(&[__ws_arg_39]).await;
         //
         //     {
@@ -5006,12 +5006,12 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_40 = self.extend(request, &[params]);
+        let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_40]).await;
         //
         //     {
@@ -5161,12 +5161,12 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_41 = self.extend(request, &[params]);
+        let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_book_summary_by_instrument(&[__ws_arg_41]).await;
         //
         //     {
@@ -5228,13 +5228,13 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("kind".to_string(), Value::Str("option".into()));
             m
         });
-        let __ws_arg_42 = self.extend(request, &[params]);
+        let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_book_summary_by_currency(&[__ws_arg_42]).await;
         //
         //     {
@@ -5351,12 +5351,12 @@ impl DeribitCore {
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_43 = self.extend(request, &[params]);
+        let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_book_summary_by_instrument(&[__ws_arg_43]).await;
         //
         //     {

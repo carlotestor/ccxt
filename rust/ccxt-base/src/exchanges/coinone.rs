@@ -821,12 +821,12 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), Value::Str("KRW".into()));
             m
         });
-        let mut response: Value = self.v2_public_get_ticker_new_quote_currency(&[request]).await;
+        let mut response: Value = self.v2_public_get_ticker_new_quote_currency(&[Value::Map(request)]).await;
         //
         //     {
         //         "result": "success",
@@ -947,7 +947,7 @@ impl CoinoneCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
@@ -965,11 +965,11 @@ impl CoinoneCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "avail", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance, "balance", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1016,16 +1016,16 @@ impl CoinoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
                 m.insert("target_currency".to_string(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), limit); }; // only support 5, 10, 15, 16
+            request.insert("size".into(), limit); // only support 5, 10, 15, 16
         }
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_public_get_orderbook_quote_currency_target_currency(&[__ws_arg_0]).await;
         //
         //     {
@@ -1151,13 +1151,13 @@ impl CoinoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
                 m.insert("target_currency".to_string(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_3]).await;
         //
         //     {
@@ -1368,16 +1368,16 @@ impl CoinoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
                 m.insert("target_currency".to_string(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(200))); }
+            request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(200)));
         }
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_public_get_trades_quote_currency_target_currency(&[__ws_arg_4]).await;
         //
         //     {
@@ -1437,7 +1437,7 @@ impl CoinoneCore {
         // the v1 order/limit_buy and order/limit_sell endpoints were retired by
         // the exchange and return 404, the v2.1 order endpoint replaces them,
         // see https://github.com/ccxt/ccxt/issues/23174
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
                 m.insert("target_currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
@@ -1447,7 +1447,7 @@ impl CoinoneCore {
                 m.insert("qty".to_string(), self.amount_to_precision(symbol, amount));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_1_private_post_order_limit(&[__ws_arg_5]).await;
         return self.parse_order(response, &[market]);
 
@@ -1476,13 +1476,13 @@ impl CoinoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_private_post_order_query_order(&[__ws_arg_6]).await;
         return self.parse_order(response, &[market]);
 
@@ -1490,7 +1490,7 @@ impl CoinoneCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("live".to_string(), Value::Str("open".into()));
                 m.insert("partially_filled".to_string(), Value::Str("open".into()));
@@ -1499,7 +1499,7 @@ impl CoinoneCore {
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1660,13 +1660,13 @@ impl CoinoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
                 m.insert("target_currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_1_private_post_order_open_orders(&[__ws_arg_7]).await;
         //
         //     {
@@ -1716,12 +1716,12 @@ impl CoinoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_private_post_order_complete_orders(&[__ws_arg_8]).await;
         //
         // despite the name of the endpoint it returns trades which may have a duplicate orderId
@@ -1776,7 +1776,7 @@ impl CoinoneCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
                 m.insert("price".to_string(), price);
@@ -1785,7 +1785,7 @@ impl CoinoneCore {
                 m.insert("currency".to_string(), self.market_id(symbol));
             m
         });
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_private_post_order_cancel(&[__ws_arg_9]).await;
         return self.safe_order(response, &[]);
 

@@ -914,7 +914,7 @@ impl CoinspotCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
@@ -937,7 +937,7 @@ impl CoinspotCore {
                     let mut account: Value = self.account();
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance, "balance", &[])); }
                     if (code != Value::Null) {
-                        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
+                        result.insert(crate::runtime::stringify_param(&code), account.clone());
                     }
                 }
                 }
@@ -954,12 +954,12 @@ impl CoinspotCore {
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(balances.clone(), currencyId, &[])); }
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                    result.insert(crate::runtime::stringify_param(&code), account);
                 }
             }
             }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1012,12 +1012,12 @@ impl CoinspotCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.private_post_orders(&[__ws_arg_0]).await;
         return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]);
 
@@ -1196,12 +1196,12 @@ impl CoinspotCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_orders_history(&[__ws_arg_1]).await;
         //
         //     {
@@ -1239,7 +1239,7 @@ impl CoinspotCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1248,9 +1248,9 @@ impl CoinspotCore {
             market = self.market(symbol);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startdate".into(), self.yyyymmdd(since.clone(), &[])); }
+            request.insert("startdate".into(), self.yyyymmdd(since.clone(), &[]));
         }
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_ro_my_transactions(&[__ws_arg_2]).await;
         //  {
         //      "status": "ok",

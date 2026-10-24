@@ -636,15 +636,15 @@ impl RevolutxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
         if (region != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("region".into(), region); }
+            request.insert("region".into(), region);
         }
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get10_public_configuration_pairs(&[__ws_arg_0]).await;
         //
         //     {
@@ -763,15 +763,15 @@ impl RevolutxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
         if (region != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("region".into(), region); }
+            request.insert("region".into(), region);
         }
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get10_public_configuration_currencies(&[__ws_arg_1]).await;
         //
         //     {
@@ -889,7 +889,7 @@ impl RevolutxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -904,13 +904,13 @@ impl RevolutxCore {
                 marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into())); }
+            request.insert("symbols".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));
         }
         let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
         if (region != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("region".into(), region); }
+            request.insert("region".into(), region);
         }
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get10_public_tickers(&[__ws_arg_2]).await;
         //
         //     {
@@ -1020,19 +1020,19 @@ impl RevolutxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
+            request.insert("limit".into(), limit);
         }
         let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
         if (region != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("region".into(), region); }
+            request.insert("region".into(), region);
         }
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get20_public_order_book_symbol(&[__ws_arg_3]).await;
         //
         //     {
@@ -1105,26 +1105,26 @@ impl RevolutxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("interval".to_string(), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[Value::Int(5)]));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("since".into(), since.clone()); }
+            request.insert("since".into(), since.clone());
         }
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("until".into(), until); }
+            request.insert("until".into(), until);
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("until".into(), self.milliseconds()); }
+            request.insert("until".into(), self.milliseconds());
         }
         let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
         if (region != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("region".into(), region); }
+            request.insert("region".into(), region);
         }
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get10_public_candles_symbol(&[__ws_arg_4]).await;
         //
         //     {
@@ -1214,30 +1214,30 @@ impl RevolutxCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (market != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".into(), since.clone()); }
+            request.insert("start_date".into(), since.clone());
         }
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_date".into(), until); }
+            request.insert("end_date".into(), until);
         }  else if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_date".into(), self.milliseconds()); }
+            request.insert("end_date".into(), self.milliseconds());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); }
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
         let mut cursor: Value = self.safe_string_k(params.clone(), "cursor", &[]);
         if (cursor != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".into(), cursor); }
+            request.insert("cursor".into(), cursor);
         }
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get10_public_trades_all(&[__ws_arg_5]).await;
         //
         //     {
@@ -1290,7 +1290,7 @@ impl RevolutxCore {
         //     ]
         //
         let mut data: Value = (if (matches!(&response, Value::Arr(_))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]) });
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
@@ -1318,10 +1318,10 @@ impl RevolutxCore {
             }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), used); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance, "total", &[])); }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+            result.insert(crate::runtime::stringify_param(&code), account);
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1335,7 +1335,7 @@ impl RevolutxCore {
  * @returns {string|undefined} the unified order status
  */
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pending_new".to_string(), Value::Str("open".into()));
                 m.insert("new".to_string(), Value::Str("open".into()));
@@ -1347,7 +1347,7 @@ impl RevolutxCore {
                 m.insert("replaced".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1503,7 +1503,7 @@ impl RevolutxCore {
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), clientOrderId);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1511,7 +1511,7 @@ impl RevolutxCore {
                 m.insert("order_configuration".to_string(), orderConfiguration);
             m
         });
-        let __ws_arg_6 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("cost".into()), Value::Str("quote_size".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("executionInstructions".into()), Value::Str("execution_instructions".into())]), &[])]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("cost".into()), Value::Str("quote_size".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("executionInstructions".into()), Value::Str("execution_instructions".into())]), &[])]);
         let mut response: Value = self.private_post10_orders(&[__ws_arg_6]).await;
         //
         //     {
@@ -1567,12 +1567,12 @@ impl RevolutxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("venue_order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete10_orders_venue_order_id(&[__ws_arg_8]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1628,12 +1628,12 @@ impl RevolutxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("venue_order_id".to_string(), id);
             m
         });
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get10_orders_venue_order_id(&[__ws_arg_9]).await;
         //
         //     {
@@ -1687,34 +1687,34 @@ impl RevolutxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbols".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut cursor: Value = self.safe_string_k(params.clone(), "cursor", &[]);
         if (cursor != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".into(), cursor); }
+            request.insert("cursor".into(), cursor);
         }
         let mut orderStates: Value = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[]);
         if (orderStates != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_states".into(), Value::Str(orderStates.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
+            request.insert("order_states".into(), Value::Str(orderStates.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
         let mut orderTypes: Value = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]);
         if (orderTypes != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_types".into(), Value::Str(orderTypes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
+            request.insert("order_types".into(), Value::Str(orderTypes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
         let mut side: Value = self.safe_string_k(params.clone(), "side", &[]);
         if (side != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), side); }
+            request.insert("side".into(), side);
         }
-        let __ws_arg_10 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("side".into())]), &[])]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("side".into())]), &[])]);
         let mut response: Value = self.private_get10_orders_active(&[__ws_arg_10]).await;
         //
         //     {
@@ -1766,44 +1766,44 @@ impl RevolutxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbols".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut thirtyDays: Value = (match (&((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("until".into()), &[]);
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".into(), since.clone()); }
+            request.insert("start_date".into(), since.clone());
         }  else if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".into(), (match (&(until), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            request.insert("start_date".into(), (match (&(until), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_date".into(), until); }
+            request.insert("end_date".into(), until);
         }  else if (since != Value::Null) {
             let mut now: Value = self.milliseconds();
             let mut thirtyDaysAgo: Value = (match (&(now), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_date".into(), (if (since.as_f64().unwrap_or(f64::NAN) < thirtyDaysAgo.as_f64().unwrap_or(f64::NAN)) { (match (&(since), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { now })); }
+            request.insert("end_date".into(), (if (since.as_f64().unwrap_or(f64::NAN) < thirtyDaysAgo.as_f64().unwrap_or(f64::NAN)) { (match (&(since), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { now }));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut cursor: Value = self.safe_string_k(params.clone(), "cursor", &[]);
         if (cursor != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".into(), cursor); }
+            request.insert("cursor".into(), cursor);
         }
         let mut orderStates: Value = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[]);
         if (orderStates != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_states".into(), Value::Str(orderStates.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
+            request.insert("order_states".into(), Value::Str(orderStates.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
         let mut orderTypes: Value = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]);
         if (orderTypes != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_types".into(), Value::Str(orderTypes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
+            request.insert("order_types".into(), Value::Str(orderTypes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
-        let __ws_arg_11 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into())]), &[])]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into())]), &[])]);
         let mut response: Value = self.private_get10_orders_historical(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut result: Vec<Value> = Vec::new();
@@ -1930,7 +1930,7 @@ impl RevolutxCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol parameter".into()))));
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
@@ -1938,25 +1938,25 @@ impl RevolutxCore {
         let mut thirtyDays: Value = (match (&((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("until".into()), &[]);
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".into(), since.clone()); }
+            request.insert("start_date".into(), since.clone());
         }  else if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".into(), (match (&(until), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            request.insert("start_date".into(), (match (&(until), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_date".into(), until); }
+            request.insert("end_date".into(), until);
         }  else if (since != Value::Null) {
             let mut now: Value = self.milliseconds();
             let mut thirtyDaysAgo: Value = (match (&(now), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_date".into(), (if (since.as_f64().unwrap_or(f64::NAN) < thirtyDaysAgo.as_f64().unwrap_or(f64::NAN)) { (match (&(since), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { now })); }
+            request.insert("end_date".into(), (if (since.as_f64().unwrap_or(f64::NAN) < thirtyDaysAgo.as_f64().unwrap_or(f64::NAN)) { (match (&(since), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { now }));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
+            request.insert("limit".into(), limit);
         }
         let mut cursor: Value = self.safe_string_k(params.clone(), "cursor", &[]);
         if (cursor != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".into(), cursor); }
+            request.insert("cursor".into(), cursor);
         }
-        let __ws_arg_13 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("until".into())]), &[])]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("until".into())]), &[])]);
         let mut response: Value = self.private_get10_trades_private_symbol(&[__ws_arg_13]).await;
         //
         //     {
@@ -2020,27 +2020,27 @@ impl RevolutxCore {
         let mut cost: Value = self.safe_string2(params.clone(), Value::Str("cost".into()), Value::Str("quote_size".into()), &[]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut executionInstructions: Value = self.safe_list_k(params.clone(), "executionInstructions", &[self.safe_list(params.clone(), Value::Str("execution_instructions".into()), &[])]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), clientOrderId);
                 m.insert("venue_order_id".to_string(), id);
             m
         });
         if (cost != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quote_size".into(), self.cost_to_precision(symbol.clone(), cost)); }
+            request.insert("quote_size".into(), self.cost_to_precision(symbol.clone(), cost));
         }  else if (amount != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("base_size".into(), self.amount_to_precision(symbol.clone(), amount)); }
+            request.insert("base_size".into(), self.amount_to_precision(symbol.clone(), amount));
         }
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
+            request.insert("price".into(), self.price_to_precision(symbol, price));
         }
         if (timeInForce != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), timeInForce); }
+            request.insert("time_in_force".into(), timeInForce);
         }
         if (executionInstructions != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("execution_instructions".into(), executionInstructions); }
+            request.insert("execution_instructions".into(), executionInstructions);
         }
-        let __ws_arg_14 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("cost".into()), Value::Str("quote_size".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("executionInstructions".into()), Value::Str("execution_instructions".into())]), &[])]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("cost".into()), Value::Str("quote_size".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("executionInstructions".into()), Value::Str("execution_instructions".into())]), &[])]);
         let mut response: Value = self.private_put10_orders_venue_order_id(&[__ws_arg_14]).await;
         //
         //     {

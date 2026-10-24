@@ -431,7 +431,7 @@ impl WeexCore {
         if unsubscribe.as_bool() == Some(true) {
             method = Value::Str("UNSUBSCRIBE".into());
         }
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
                 m.insert("method".to_string(), method);
@@ -448,7 +448,7 @@ impl WeexCore {
             type_var = Value::Str("contract".into());
         }
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]), Value::Str("/public".into())).into());
-        let __ws_arg_0 = self.deep_extend(message, &[params]);
+        let __ws_arg_0 = self.deep_extend(Value::Map(message), &[params]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), subscriptionExtended]).await;
 
     Value::Null
@@ -476,7 +476,7 @@ impl WeexCore {
             method = Value::Str("UNSUBSCRIBE".into());
         }
         let mut id: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
                 m.insert("method".to_string(), method);
@@ -488,7 +488,7 @@ impl WeexCore {
                 m.insert("id".to_string(), id);
             m
         })]);
-        let __ws_arg_1 = self.deep_extend(message, &[params]);
+        let __ws_arg_1 = self.deep_extend(Value::Map(message), &[params]);
         return self.watch(url, messageHash, &[__ws_arg_1, subscribeHash, subscriptionExtended]).await;
 
     Value::Null
@@ -504,7 +504,7 @@ impl WeexCore {
         let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
         let mut originalHeaders: Value = self.safe_dict(crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), Value::Str("headers".into()), &[]);
         let mut userAgent: Value = self.safe_string_k(originalHeaders, "User-Agent", &[Value::Str("ccxt".into())]);
-        let mut extendedOptions: Value = Value::Map({
+        let mut extendedOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -525,11 +525,11 @@ impl WeexCore {
 }));
             m
         });
-        self.extend_exchange_options(&[extendedOptions]);
+        self.extend_exchange_options(&[Value::Map(extendedOptions)]);
         // instantiate client
         self.client(&[url]);
         // return headers to original state
-        let mut defaultOptions: Value = Value::Map({
+        let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -546,7 +546,7 @@ impl WeexCore {
 }));
             m
         });
-        self.extend_exchange_options(&[defaultOptions]);
+        self.extend_exchange_options(&[Value::Map(defaultOptions)]);
 }
 
 /*
@@ -614,15 +614,15 @@ impl WeexCore {
         }
         let mut newTicker: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[isContract, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
             if (newTickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -689,7 +689,7 @@ impl WeexCore {
             unSubHashes.push(unSubMessageHash);
         }
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbols".to_string(), symbolsNormalized);
@@ -698,7 +698,7 @@ impl WeexCore {
                 m.insert("topic".to_string(), topic);
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, params, subscription]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, params, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -940,7 +940,7 @@ impl WeexCore {
             unSubHashes.push(unSubMessageHash);
         }
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbols".to_string(), symbolsNormalized);
@@ -949,7 +949,7 @@ impl WeexCore {
                 m.insert("topic".to_string(), Value::Str("trades".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, params, subscription]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, params, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1235,7 +1235,7 @@ impl WeexCore {
             unSubHashes.push(unSubMessageHash);
         }
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes);
@@ -1244,7 +1244,7 @@ impl WeexCore {
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, paramsPriceType, subscription]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, paramsPriceType, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1397,12 +1397,12 @@ impl WeexCore {
             channels.push(channel);
         }
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let mut orderbook: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[isContract, paramsDepth, subscription]).await;
+        let mut orderbook: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[isContract, paramsDepth, Value::Map(subscription)]).await;
         return orderbook.limit();
 
     Value::Null
@@ -1477,7 +1477,7 @@ impl WeexCore {
             unSubHashes.push(unSubMessageHash);
         }
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbols".to_string(), symbolsNormalized);
@@ -1486,7 +1486,7 @@ impl WeexCore {
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, paramsDepth, subscription]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, paramsDepth, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1595,15 +1595,15 @@ impl WeexCore {
         }
         let mut newTicker: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[Value::Bool(false), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
             if (newTickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -1650,7 +1650,7 @@ impl WeexCore {
             unSubHashes.push(unSubMessageHash);
         }
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbols".to_string(), symbolsNormalized);
@@ -1659,7 +1659,7 @@ impl WeexCore {
                 m.insert("topic".to_string(), Value::Str("bidsasks".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[Value::Bool(false), params, subscription]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[Value::Bool(false), params, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1797,7 +1797,7 @@ impl WeexCore {
         }
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
         let mut channel: Value = Value::Str("fill".into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
@@ -1806,7 +1806,7 @@ impl WeexCore {
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, paramsMarketType, subscription]).await;
+        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, paramsMarketType, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -2053,7 +2053,7 @@ impl WeexCore {
         }
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
         let mut channel: Value = Value::Str("orders".into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
@@ -2062,7 +2062,7 @@ impl WeexCore {
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, paramsMarketType, subscription]).await;
+        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, paramsMarketType, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -2383,12 +2383,12 @@ impl WeexCore {
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value) -> Value {
-        let mut params: Value = Value::Map({
+        let mut params: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut response: Value = self.fetch_balance(&[params]).await;
+        let mut response: Value = self.fetch_balance(&[Value::Map(params)]).await;
         let __ws_arg_2 = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2608,7 +2608,7 @@ impl WeexCore {
         let mut subHash: Value = Value::Str("positions".into());
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
         let mut channel: Value = Value::Str("positions".into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
@@ -2617,7 +2617,7 @@ impl WeexCore {
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[Value::Bool(true), params, subscription]).await;
+        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[Value::Bool(true), params, Value::Map(subscription)]).await;
 
     Value::Null
 }

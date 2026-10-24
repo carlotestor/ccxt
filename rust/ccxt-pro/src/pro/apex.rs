@@ -590,13 +590,13 @@ impl ApexCore {
         let mut newTopicsLength: f64 = ((newTopics.len() as i64) as f64);
         let mut message: Value = Value::Null;
         if newTopicsLength > ((0i64) as f64) {
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("subscribe".into()));
                     m.insert("args".to_string(), Value::from(newTopics));
                 m
             });
-            message = self.extend(request, &[params]);
+            message = self.extend(Value::Map(request), &[params]);
         }
         return self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
 
@@ -772,15 +772,15 @@ impl ApexCore {
         }
         let mut ticker: Value = self.watch_topics(url, Value::from(messageHashes), Value::from(topics), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -1386,13 +1386,13 @@ impl ApexCore {
                     m.insert("signature".to_string(), signature);
                 m
             });
-            let mut message: Value = Value::Map({
+            let mut message: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("login".into()));
                     m.insert("args".to_string(), Value::from(vec![json_stringify(&request)]));
                 m
             });
-            self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
+            self.watch(url, messageHash.clone(), &[Value::Map(message), messageHash]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

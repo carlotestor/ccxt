@@ -722,7 +722,7 @@ impl BitoproCore {
         }));
         let mut payload: Value = self.string_to_base64(rawData, &[]);
         let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-        let mut defaultOptions: Value = Value::Map({
+        let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -739,7 +739,7 @@ impl BitoproCore {
             m
         });
         // this.options = this.extend (defaultOptions, this.options);
-        self.extend_exchange_options(&[defaultOptions]);
+        self.extend_exchange_options(&[Value::Map(defaultOptions)]);
         let mut originalHeaders: Value = crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), "headers");
         let mut headers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -825,7 +825,7 @@ impl BitoproCore {
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         let mut datetime: Value = self.safe_string_k(message, "datetime", &[]);
         let mut currencies: Value = object_keys(&data);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data.clone());
                 m.insert("timestamp".to_string(), timestamp);
@@ -847,18 +847,18 @@ impl BitoproCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "available", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "amount", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        { let __t = self.safe_balance(result); self.balance = __t; }
+        { let __t = self.safe_balance(Value::Map(result)); self.balance = __t; }
         client.resolve(&[self.balance.clone(), event]);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRADE".to_string(), Value::Str("handle_trade".into()).clone());
                 m.insert("TICKER".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -868,7 +868,7 @@ impl BitoproCore {
             m
         });
         let mut event: Value = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut method: Value = self.safe_value(methods, event, &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), event, &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }

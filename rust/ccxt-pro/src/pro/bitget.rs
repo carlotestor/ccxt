@@ -473,7 +473,7 @@ impl BitgetCore {
         let mut instTypeparamsValueVariable = self.get_inst_type(Value::Str("watchTicker".into()), market.clone(), &[uta.clone(), paramsUta]);
         let mut instType: Value = instTypeparamsValueVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = instTypeparamsValueVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut args: Value = Value::Map({
+        let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
             m
@@ -486,9 +486,9 @@ impl BitgetCore {
         if uta.as_bool() == Some(true) {
             symbolOrInstId = Value::Str("symbol".into());
         }
-        if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("ticker".into())); }
-        if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolOrInstId), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-        return self.watch_public(uta.is_truthy(), messageHash, args, &[paramsValue]).await;
+        args.insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("ticker".into()));
+        args.insert(crate::runtime::stringify_param(&symbolOrInstId), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        return self.watch_public(uta.is_truthy(), messageHash, Value::Map(args), &[paramsValue]).await;
 
     Value::Null
 }
@@ -572,15 +572,15 @@ impl BitgetCore {
         }
         let mut tickers: Value = self.watch_public_multiple(uta.is_truthy(), Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickersSymbol: Value = self.safe_string_k(tickers.clone(), "symbol", &[]);
             if (tickersSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickersSymbol), tickers.clone()); }
+                result.insert(crate::runtime::stringify_param(&tickersSymbol), tickers.clone());
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsList]);
 
@@ -859,15 +859,15 @@ impl BitgetCore {
         }
         let mut tickers: Value = self.watch_public_multiple(uta.is_truthy(), Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickersSymbol: Value = self.safe_string_k(tickers.clone(), "symbol", &[]);
             if (tickersSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickersSymbol), tickers); }
+                result.insert(crate::runtime::stringify_param(&tickersSymbol), tickers);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsList]);
 
@@ -974,22 +974,22 @@ impl BitgetCore {
                 m
             })]);
         }
-        let mut args: Value = Value::Map({
+        let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
             m
         });
         if matches!(&isStockOrUta, Value::Bool(true)) {
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("topic".into(), Value::Str("kline".into())); }
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("interval".into(), interval.clone()); }
+            args.insert("topic".into(), Value::Str("kline".into()));
+            args.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            args.insert("interval".into(), interval.clone());
             messageHash = Value::Str(format!("{}{}", Value::Str("kline:".into()), symbolValue).into());
         }  else {
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("channel".into(), Value::Str(format!("{}{}", Value::Str("candle".into()), interval).into())); }
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            args.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("candle".into()), interval).into()));
+            args.insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into());
         }
-        let mut ohlcv: Value = self.watch_public(isStockOrUta.is_truthy(), messageHash, args, &[paramsRequest]).await;
+        let mut ohlcv: Value = self.watch_public(isStockOrUta.is_truthy(), messageHash, Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -1046,21 +1046,21 @@ impl BitgetCore {
                 m
             })]);
         }
-        let mut args: Value = Value::Map({
+        let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
             m
         });
         if matches!(&isStockOrUta, Value::Bool(true)) {
             channel = Value::Str("kline".into());
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("topic".into(), channel.clone()); }
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("interval".into(), interval.clone()); }
+            args.insert("topic".into(), channel.clone());
+            args.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            args.insert("interval".into(), interval.clone());
             messageHash = Value::Str(format!("{}{}", channel, symbol).into());
         }  else {
             channel = Value::Str(format!("{}{}", Value::Str("candle".into()), interval).into());
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("channel".into(), channel.clone()); }
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            args.insert("channel".into(), channel.clone());
+            args.insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             messageHash = Value::Str(format!("{}{}", Value::Str("candles:".into()), interval).into());
         }
         return self.un_watch_channel(symbol, channel, messageHash, Value::Str("watchOHLCV".into()), &[paramsRequest]).await;
@@ -2013,7 +2013,7 @@ impl BitgetCore {
             instType = Value::Str("UTA".into());
         }
         messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", instType, Value::Str(":positions".into())).into()), messageHash).into());
-        let mut args: Value = Value::Map({
+        let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
             m
@@ -2026,7 +2026,7 @@ impl BitgetCore {
         if uta.as_bool() == Some(true) {
             channel = Value::Str("position".into());
         }
-        if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), channel); }
+        args.insert(crate::runtime::stringify_param(&topicOrChannel), channel);
         let mut paramsRequest: Value = paramsInstType.clone();
         if uta.as_bool() == Some(true) {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
@@ -2036,9 +2036,9 @@ impl BitgetCore {
             })]);
         }
         if !(uta.as_bool() == Some(true)) {
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), Value::Str("default".into())); }
+            args.insert("instId".into(), Value::Str("default".into()));
         }
-        let mut newPositions: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, args, &[paramsRequest]).await;
+        let mut newPositions: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, Value::Map(args), &[paramsRequest]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2391,7 +2391,7 @@ impl BitgetCore {
             channel = Value::Str("order".into());
         }
         subscriptionHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".into())).into()), instType).into());
-        let mut args: Value = Value::Map({
+        let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
             m
@@ -2400,7 +2400,7 @@ impl BitgetCore {
         if uta.as_bool() == Some(true) {
             topicOrChannel = Value::Str("topic".into());
         }
-        if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), channel); }
+        args.insert(crate::runtime::stringify_param(&topicOrChannel), channel);
         let mut paramsRequest: Value = paramsMarginMode.clone();
         if uta.as_bool() == Some(true) {
             paramsRequest = self.extend(paramsMarginMode, &[Value::Map({
@@ -2410,9 +2410,9 @@ impl BitgetCore {
             })]);
         }
         if !(uta.as_bool() == Some(true)) {
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), instId); }
+            args.insert("instId".into(), instId);
         }
-        let mut orders: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, args, &[paramsRequest]).await;
+        let mut orders: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -2863,7 +2863,7 @@ impl BitgetCore {
 }
 
     pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("new".to_string(), Value::Str("open".into()));
                 m.insert("live".to_string(), Value::Str("open".into()));
@@ -2873,7 +2873,7 @@ impl BitgetCore {
                 m.insert("not_trigger".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2924,7 +2924,7 @@ impl BitgetCore {
             instType = Value::Str("UTA".into());
         }
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("fill:".into()), instType).into());
-        let mut args: Value = Value::Map({
+        let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
             m
@@ -2933,7 +2933,7 @@ impl BitgetCore {
         if uta.as_bool() == Some(true) {
             topicOrChannel = Value::Str("topic".into());
         }
-        if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("fill".into())); }
+        args.insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("fill".into()));
         let mut paramsRequest: Value = paramsInstType.clone();
         if uta.as_bool() == Some(true) {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
@@ -2943,9 +2943,9 @@ impl BitgetCore {
             })]);
         }
         if !(uta.as_bool() == Some(true)) {
-            if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), Value::Str("default".into())); }
+            args.insert("instId".into(), Value::Str("default".into()));
         }
-        let mut trades: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, args, &[paramsRequest]).await;
+        let mut trades: Value = self.watch_private(uta.is_truthy(), messageHash, subscriptionHash, Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -3136,7 +3136,7 @@ impl BitgetCore {
         let mut stockparamsStockVariable = self.handle_option_bool_and_params(paramsUta, Value::Str("watchBalance".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
         let mut stock: Value = stockparamsStockVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsStock: Value = stockparamsStockVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut isStockOrUta: Value = (Value::Bool((stock.as_bool() == Some(true)) || (uta.as_bool() == Some(true))));
+        let mut isStockOrUta: bool = (stock.as_bool() == Some(true)) || (uta.as_bool() == Some(true));
         let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, paramsStock]);
         let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -3149,21 +3149,21 @@ impl BitgetCore {
             instTypeDefault = Value::Str("USDT-FUTURES".into());
         }  else if (marginMode != Value::Null) {
             instTypeDefault = Value::Str("MARGIN".into());
-            if !(matches!(&isStockOrUta, Value::Bool(true))) {
+            if !isStockOrUta {
                 if (marginMode.as_str() == Some("isolated")) {
                     channel = Value::Str("account-isolated".into());
                 }  else {
                     channel = Value::Str("account-crossed".into());
                 }
             }
-        }  else if !(matches!(&isStockOrUta, Value::Bool(true))) {
+        }  else if !isStockOrUta {
             instTypeDefault = Value::Str("SPOT".into());
         }
         let mut instTypeOptionparamsInstTypeVariable = self.handle_option_string_and_params(paramsMarginMode, Value::Str("watchBalance".into()), Value::Str("instType".into()), &[instTypeDefault]);
         let mut instTypeOption: Value = instTypeOptionparamsInstTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsInstType: Value = instTypeOptionparamsInstTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut instType: Value = instTypeOption;
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             instType = Value::Str("UTA".into());
         }
         let mut args: Value = Value::Map({
@@ -3172,24 +3172,24 @@ impl BitgetCore {
             m
         });
         let mut topicOrChannel: Value = Value::Str("channel".into());
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             topicOrChannel = Value::Str("topic".into());
         }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), channel); }
         let mut paramsRequest: Value = paramsInstType.clone();
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
             })]);
         }
-        if !(matches!(&isStockOrUta, Value::Bool(true))) {
+        if !isStockOrUta {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("coin".into(), Value::Str("default".into())); }
         }
         let mut instTypeLower: Value = self.safe_string_lower_k(args.clone(), "instType", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), instTypeLower).into());
-        return self.watch_private(isStockOrUta.is_truthy(), messageHash.clone(), messageHash.clone(), args, &[paramsRequest]).await;
+        return self.watch_private(isStockOrUta, messageHash.clone(), messageHash.clone(), args, &[paramsRequest]).await;
 
     Value::Null
 }
@@ -3372,13 +3372,13 @@ impl BitgetCore {
                 }
             }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -3401,13 +3401,13 @@ impl BitgetCore {
                 }
             }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -3436,13 +3436,13 @@ impl BitgetCore {
         m.insert("url".to_string(), url.clone());
     m
 })]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -3465,13 +3465,13 @@ impl BitgetCore {
                 url = (if uta { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("demo")).cloned().unwrap_or(Value::Null), "public") });
             }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), argsArray);
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
 
     Value::Null
@@ -3493,7 +3493,7 @@ impl BitgetCore {
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("GET".into())).into()), Value::Str("/user/verify".into())).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut operation: Value = Value::Str("login".into());
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), operation);
                     m.insert("args".to_string(), Value::from(vec![Value::Map({
@@ -3506,7 +3506,7 @@ impl BitgetCore {
 })]));
                 m
             });
-            let mut message: Value = self.extend(request, &[params]);
+            let mut message: Value = self.extend(Value::Map(request), &[params]);
             self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -3536,13 +3536,13 @@ impl BitgetCore {
         m.insert("url".to_string(), url.clone());
     m
 })]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash, &[message, subscriptionHash]).await;
 
     Value::Null
@@ -3700,7 +3700,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.handle_un_subscription_status(client.clone(), message.clone());
             return;
         }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
                 m.insert("trade".to_string(), Value::Str("handle_trades".into()).clone());
@@ -3725,7 +3725,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         })]);
         let mut topic: Value = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
-        let mut method: Value = self.safe_value(methods, topic.clone(), &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), topic.clone(), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }

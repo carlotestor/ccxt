@@ -367,7 +367,7 @@ impl BitrueCore {
 }));
         let mut url: Value = self.authenticate(&[]).await;
         let mut messageHash: Value = Value::Str("balance".into());
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -377,7 +377,7 @@ impl BitrueCore {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(message, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
@@ -514,7 +514,7 @@ impl BitrueCore {
         }
         let mut url: Value = self.authenticate(&[]).await;
         let mut messageHash: Value = Value::Str("orders".into());
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -524,7 +524,7 @@ impl BitrueCore {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(message, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut orders: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -668,7 +668,7 @@ impl BitrueCore {
             cbId = marketIdLowercase;
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         }
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -679,7 +679,7 @@ impl BitrueCore {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(message, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
@@ -855,7 +855,7 @@ impl BitrueCore {
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_trade_ticker".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -866,7 +866,7 @@ impl BitrueCore {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(message, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1006,7 +1006,7 @@ impl BitrueCore {
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_kline_".into())).into()), interval).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe).into());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1017,7 +1017,7 @@ impl BitrueCore {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(message, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1128,7 +1128,7 @@ impl BitrueCore {
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_ticker".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolValue).into());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1139,7 +1139,7 @@ impl BitrueCore {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(message, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
@@ -1287,13 +1287,13 @@ impl BitrueCore {
             self.handle_ping(client.clone(), message.clone());
         }  else {
             let mut event: Value = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-            let mut handlers: Value = Value::Map({
+            let mut handlers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("BALANCE".to_string(), Value::Str("handle_balance".into()).clone());
                     m.insert("ORDER".to_string(), Value::Str("handle_order".into()).clone());
                 m
             });
-            let mut handler: Value = self.safe_value(handlers, event, &[]);
+            let mut handler: Value = self.safe_value(Value::Map(handlers), event, &[]);
             if (handler != Value::Null) {
                 self.dispatch_ws_handler(&handler, &[client, message]);
             }
@@ -1383,16 +1383,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut listenKey: Value = self.safe_string_k(self.options.clone(), "listenKey", &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("listenKey".to_string(), listenKey);
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_0 = self.extend(request, &[params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
             self.parent.open_v1_private_put_poseidon_api_v1_listen_key_listen_key(&[__ws_arg_0]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".into(), Value::Null); }
             return Value::Null;

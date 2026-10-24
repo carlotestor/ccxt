@@ -876,7 +876,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // the statically typed ports (c#/go/java), same as the other call sites
             tickers = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".into()), Value::from(vec![])).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // choosing a symbol must never fail the run, keep the static choice
             tickers = Value::Null;
         }
@@ -2013,7 +2013,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         }
                         isNumber = Value::Bool(true);
                      #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                         isNumber = Value::Bool(false);
                     }
                     if isNumber.as_bool() == Some(true) {
@@ -2033,7 +2033,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             exchange.parse_to_numeric(sanitizedNewOutput.clone());
                             isNumber = Value::Bool(true);
                          #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                             // if we can't parse it to number, then it's not a number
                             isNumber = Value::Bool(false);
                         }
@@ -3183,7 +3183,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             spotOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -3195,7 +3195,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapInverseOrderRequest: Value = Value::Map({
@@ -3205,7 +3205,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapInverseOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         // linear swap
@@ -3227,7 +3227,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapNoSubTypeRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapNoSubTypeId: Value = swapNoSubTypeRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -3244,7 +3244,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapLinearRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapLinearId: Value = swapLinearRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -3261,7 +3261,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapInverseRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapInverseId: Value = swapInverseRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -3288,7 +3288,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientAlgoIdSwap: Value = swapAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
@@ -3306,7 +3306,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             inverseAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientAlgoIdInverse: Value = inverseAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
@@ -3335,7 +3335,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             crate::live_dispatch::dispatch(&mut exchange, "create_orders", vec![orders.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             createOrdersRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut batchOrders: Value = createOrdersRequest.as_map().and_then(|__m| __m.get("batchOrders")).cloned().unwrap_or(Value::Null);
@@ -3415,7 +3415,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USDT:USDT-261225".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(2000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             linearFutureOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdLinearFuture: Value = linearFutureOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -3427,7 +3427,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USD:ETH-261225".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(2000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             inverseFutureOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdInverseFuture: Value = inverseFutureOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -3440,7 +3440,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USDT:USDT-231229-800-C".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(100)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             optionOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut optionClientOrderId: Value = exchange.safe_string(optionOrderRequest.clone(), Value::Str("clientOrderId".into()), &[]);
@@ -3465,7 +3465,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitDapiOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitDapiClientOrderId: Value = implicitDapiOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -3490,7 +3490,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitDapiBatchRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitDapiBatchOrders: Value = exchange.safe_list(implicitDapiBatchRequest.clone(), Value::Str("batchOrders".into()), &[Value::from(vec![])]);
@@ -3520,7 +3520,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitFapiAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitFapiClientAlgoId: Value = exchange.safe_string(implicitFapiAlgoOrderRequest.clone(), Value::Str("clientAlgoId".into()), &[]);
@@ -3543,7 +3543,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitPapiUmOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitPapiUmClientOrderId: Value = exchange.safe_string(implicitPapiUmOrderRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
@@ -3565,7 +3565,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitPapiCmOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitPapiCmClientOrderId: Value = exchange.safe_string(implicitPapiCmOrderRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
@@ -3587,7 +3587,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitPapiMarginOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitPapiMarginClientOrderId: Value = exchange.safe_string(implicitPapiMarginOrderRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
@@ -3609,7 +3609,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitSapiMarginOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitSapiMarginClientOrderId: Value = exchange.safe_string(implicitSapiMarginOrderRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
@@ -3634,7 +3634,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitPapiUmAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitPapiUmClientAlgoId: Value = exchange.safe_string(implicitPapiUmAlgoOrderRequest.clone(), Value::Str("clientAlgoId".into()), &[]);
@@ -3658,7 +3658,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitPapiCmConditionalOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitPapiCmStrategyId: Value = exchange.safe_string(implicitPapiCmConditionalOrderRequest.clone(), Value::Str("newClientStrategyId".into()), &[]);
@@ -3681,7 +3681,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitPapiUmConditionalOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitPapiUmStrategyId: Value = exchange.safe_string(implicitPapiUmConditionalOrderRequest.clone(), Value::Str("newClientStrategyId".into()), &[]);
@@ -3703,7 +3703,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitEapiOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitEapiClientOrderId: Value = exchange.safe_string(implicitEapiOrderRequest.clone(), Value::Str("clientOrderId".into()), &[]);
@@ -3728,7 +3728,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitEapiBatchRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitEapiBatchOrders: Value = exchange.safe_list(implicitEapiBatchRequest.clone(), Value::Str("batchOrders".into()), &[Value::from(vec![])]);
@@ -3756,7 +3756,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitEquityOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitEquityClientOrderId: Value = exchange.safe_string(implicitEquityOrderRequest.clone(), Value::Str("clientOrderId".into()), &[]);
@@ -3780,7 +3780,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitOcoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut ocoListClientOrderId: Value = exchange.safe_string(implicitOcoListRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
@@ -3811,7 +3811,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitOtocoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut otocoWorkingClientOrderId: Value = exchange.safe_string(implicitOtocoListRequest.clone(), Value::Str("workingClientOrderId".into()), &[]);
@@ -3835,7 +3835,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitSapiMarginOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut sapiMarginOcoLimitClientOrderId: Value = exchange.safe_string(implicitSapiMarginOcoRequest.clone(), Value::Str("limitClientOrderId".into()), &[]);
@@ -3857,7 +3857,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitPapiMarginOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut papiMarginOcoListClientOrderId: Value = exchange.safe_string(implicitPapiMarginOcoRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
@@ -3881,7 +3881,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitLegacyOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut legacyOcoListClientOrderId: Value = exchange.safe_string(implicitLegacyOcoRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
@@ -3908,7 +3908,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitOtoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut otoListClientOrderId: Value = exchange.safe_string(implicitOtoListRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
@@ -3935,7 +3935,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitOpoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut opoListClientOrderId: Value = exchange.safe_string(implicitOpoListRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
@@ -3965,7 +3965,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitOpocoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut opocoListClientOrderId: Value = exchange.safe_string(implicitOpocoListRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
@@ -3995,7 +3995,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })])).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 implicitCancelReplaceRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut cancelReplaceClientOrderId: Value = exchange.safe_string(implicitCancelReplaceRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
@@ -4020,7 +4020,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".into())); // returns order inside array
@@ -4035,7 +4035,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdSwap: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".into()));
@@ -4061,7 +4061,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = get_value(&request.as_map().and_then(|__m| __m.get("params")).cloned().unwrap_or(Value::Null), &Value::Str("broker_id".into()));
@@ -4085,7 +4085,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // we expect an error here, we're only interested in the headers
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4112,7 +4112,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // default path: generation 2, the versioned (jwt-signed) endpoints
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/KRW".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // we expect an error here, we're only interested in the headers
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4132,7 +4132,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4147,7 +4147,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // public endpoints carry the partner header as well
             crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![Value::Str("BTC/KRW".into())]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4187,7 +4187,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderId: ".into()), request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" different from options: ".into())).into()), builderId).into())]);
@@ -4205,7 +4205,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0002".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderFee: ".into()), request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" does not take the params value 0.0002".into())).into())]);
@@ -4220,7 +4220,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         assert(Value::Bool(!(matches!(&request, Value::Dict(__d) if __d.contains_key("builderId")))), &[Value::Str("extended - sandbox attached builderId from options".into())]);
@@ -4236,7 +4236,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &Value::Str("999".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - sandbox builderId: ".into()), request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" does not take the params value 999".into())).into())]);
@@ -4267,7 +4267,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // we expect an error here, we're only interested in the headers
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4283,7 +4283,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4294,7 +4294,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4308,7 +4308,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4338,7 +4338,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("uta".into()), Value::Bool(false));
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4349,7 +4349,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("uta".into()), Value::Bool(true));
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4375,7 +4375,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4402,7 +4402,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4428,7 +4428,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("client-order-id")).cloned().unwrap_or(Value::Null);
@@ -4442,7 +4442,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapInverseOrderRequest: Value = Value::Map({
@@ -4452,7 +4452,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapInverseOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdSwap: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("channel_code")).cloned().unwrap_or(Value::Null);
@@ -4478,7 +4478,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("broker_id")).cloned().unwrap_or(Value::Null);
@@ -4496,7 +4496,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             stopOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdStop: Value = stopOrderRequest.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
@@ -4520,7 +4520,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // we expect an error here, we're only interested in the headers
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4546,7 +4546,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("clOrdID")).cloned().unwrap_or(Value::Null);
@@ -4570,7 +4570,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LTC/USDT:USDT".into()), Value::Str("market".into()), Value::Str("buy".into()), Value::Int(1)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
@@ -4616,7 +4616,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
             let mut url: Value = get_value(&exchange, &Value::Str("last_request_url".into()));
             let mut urlParts: Value = Value::Array(url.as_str().map(|__s| __s.split("?").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
@@ -4644,7 +4644,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("client_order_id")).cloned().unwrap_or(Value::Null);
@@ -4672,7 +4672,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("order_tag")).cloned().unwrap_or(Value::Null);
@@ -4695,7 +4695,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut spotMedia: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("media")).cloned().unwrap_or(Value::Null);
@@ -4707,7 +4707,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapMedia: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("clientMedia")).cloned().unwrap_or(Value::Null);
@@ -4766,7 +4766,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4791,7 +4791,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // we expect an error here, we're only interested in the headers
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4816,7 +4816,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("sell".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut tag: Value = Value::Str("ccxt".into());
@@ -4852,7 +4852,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), Value::Str("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5".into()));
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LBTC/USDC".into()), Value::Str("limit".into()), Value::Str("sell".into()), Value::Float(0.01), Value::Int(3000), params.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("referral_code")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("derive - referral_code: ".into()), id).into()), Value::Str(" not in request.".into())).into())]);
@@ -4879,7 +4879,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("order_tag")).cloned().unwrap_or(Value::Null);
@@ -4904,7 +4904,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(5000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // we expect an error here, we're only interested in the headers
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4930,7 +4930,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // we expect an error here, we're only interested in the headers
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4957,7 +4957,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -4965,7 +4965,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         clientOrderId = request.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
@@ -4984,7 +4984,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/BRL".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // we expect an error here, we're only interested in the headers
             reqHeaders = (if ((get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null) && (get_value(&exchange, &Value::Str("last_request_headers".into())) != Value::Null)) { get_value(&exchange, &Value::Str("last_request_headers".into())) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();

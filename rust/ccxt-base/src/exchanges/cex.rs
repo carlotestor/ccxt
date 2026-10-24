@@ -981,14 +981,14 @@ impl CexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbols != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pairs".into(), self.market_ids(&[symbols.clone()])); }
+            request.insert("pairs".into(), self.market_ids(&[symbols.clone()]));
         }
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_get_ticker(&[__ws_arg_0]).await;
         //
         //    {
@@ -1079,24 +1079,24 @@ impl CexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromDateISO".into(), self.iso8601(since.clone())); }
+            request.insert("fromDateISO".into(), self.iso8601(since.clone()));
         }
         let mut untilparamsUntilVariable = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toDateISO".into(), self.iso8601(until)); }
+            request.insert("toDateISO".into(), self.iso8601(until));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), crate::runtime::Math::min(&limit, &Value::Int(10000))); }; // has a bug, still returns more trades
+            request.insert("pageSize".into(), crate::runtime::Math::min(&limit, &Value::Int(10000))); // has a bug, still returns more trades
         }
-        let __ws_arg_1 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.public_post_get_trade_history(&[__ws_arg_1]).await;
         //
         //    {
@@ -1180,12 +1180,12 @@ impl CexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_get_order_book(&[__ws_arg_2]).await;
         //
         //    {
@@ -1246,7 +1246,7 @@ impl CexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("resolution".to_string(), self.timeframes.as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
@@ -1254,16 +1254,16 @@ impl CexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromISO".into(), self.iso8601(since.clone())); }
+            request.insert("fromISO".into(), self.iso8601(since.clone()));
         }
         let mut untilparamsUntilVariable = self.handle_param_integer2(paramsDataType, Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toISO".into(), self.iso8601(until.clone())); }
+            request.insert("toISO".into(), self.iso8601(until.clone()));
         }  else if (since == Value::Null) {
             // exchange still requires that we provide one of them
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toISO".into(), self.iso8601(self.milliseconds())); }
+            request.insert("toISO".into(), self.iso8601(self.milliseconds()));
         }
         if (since != Value::Null) && (until != Value::Null) && (limit != Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".into()))));
@@ -1271,9 +1271,9 @@ impl CexCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a limit parameter when fetching candles with since or until".into()))));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_3 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.public_post_get_candles(&[__ws_arg_3]).await;
         //
         //    {
@@ -1531,7 +1531,7 @@ impl CexCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
@@ -1554,11 +1554,11 @@ impl CexCore {
                 m
             });
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1587,35 +1587,35 @@ impl CexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut isClosedOrders: bool = status.as_str() == Some("closed");
         if isClosedOrders {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("archived".into(), Value::Bool(true)); }
+            request.insert("archived".into(), Value::Bool(true));
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }
+            request.insert("pageSize".into(), limit.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("serverCreateTimestampFrom".into(), since.clone()); }
+            request.insert("serverCreateTimestampFrom".into(), since.clone());
         }  else if isClosedOrders {
             // exchange requires a `since` parameter for closed orders, so set default to allowed 365
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("serverCreateTimestampFrom".into(), (match (&(self.milliseconds()), &((match (&((match (&((match (&((match (&(Value::Int(364)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            request.insert("serverCreateTimestampFrom".into(), (match (&(self.milliseconds()), &((match (&((match (&((match (&((match (&(Value::Int(364)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         let mut untilparamsUntilVariable = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("serverCreateTimestampTo".into(), until); }
+            request.insert("serverCreateTimestampTo".into(), until);
         }
-        let __ws_arg_4 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_post_get_my_orders(&[__ws_arg_4]).await;
         //
         // if called without `pair`
@@ -1730,12 +1730,12 @@ impl CexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut result: Value = self.fetch_open_orders(&[symbol, Value::Null, Value::Null, __ws_arg_5]).await;
         let mut order: Value = self.safe_dict(result, Value::Int(0), &[]);
         return order;
@@ -1762,12 +1762,12 @@ impl CexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut result: Value = self.fetch_closed_orders(&[symbol, Value::Null, Value::Null, __ws_arg_6]).await;
         let mut order: Value = self.safe_dict(result, Value::Int(0), &[]);
         return order;
@@ -1776,7 +1776,7 @@ impl CexCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING_NEW".to_string(), Value::Str("open".into()));
                 m.insert("NEW".to_string(), Value::Str("open".into()));
@@ -1788,7 +1788,7 @@ impl CexCore {
                 m.insert("CANCELLED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1912,7 +1912,7 @@ impl CexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("clientOrderId".to_string(), self.uuid(&[]));
                 m.insert("currency1".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
@@ -1928,17 +1928,17 @@ impl CexCore {
         let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (type_var.as_str() == Some("limit")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), timeInForce); }
+            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("timeInForce".into(), timeInForce);
         }
         let mut triggerPriceparamsTriggerPriceVariable = self.handle_param_string(paramsTimeInForce, Value::Str("triggerPrice".into()), &[]);
         let mut triggerPrice: Value = triggerPriceparamsTriggerPriceVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsTriggerPrice: Value = triggerPriceparamsTriggerPriceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("Stop Limit".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), triggerPrice); }
+            request.insert("type".into(), Value::Str("Stop Limit".into()));
+            request.insert("stopPrice".into(), triggerPrice);
         }
-        let __ws_arg_7 = self.extend(request, &[paramsTriggerPrice]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsTriggerPrice]);
         let mut response: Value = self.private_post_do_my_new_order(&[__ws_arg_7]).await;
         //
         // on success
@@ -2016,14 +2016,14 @@ impl CexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m.insert("cancelRequestId".to_string(), Value::Str(format!("{}{}", Value::Str("c_".into()), Value::Str(format!("{}", (self.milliseconds())).into())).into()));
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_do_cancel_my_order(&[__ws_arg_8]).await;
         //
         //      {"ok":"ok","data":{}}
@@ -2113,27 +2113,27 @@ impl CexCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dateFrom".into(), since.clone()); }
+            request.insert("dateFrom".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }
+            request.insert("pageSize".into(), limit.clone());
         }
         let mut untilparamsUntilVariable = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dateTo".into(), until); }
+            request.insert("dateTo".into(), until);
         }
-        let __ws_arg_9 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_post_get_my_transaction_history(&[__ws_arg_9]).await;
         //
         //    {
@@ -2196,14 +2196,14 @@ impl CexCore {
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
-        let mut ledgerType: Value = Value::Map({
+        let mut ledgerType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Str("deposit".into()));
                 m.insert("withdraw".to_string(), Value::Str("withdrawal".into()));
                 m.insert("commission".to_string(), Value::Str("fee".into()));
             m
         });
-        return self.safe_string(ledgerType, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(ledgerType), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2228,7 +2228,7 @@ impl CexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2237,18 +2237,18 @@ impl CexCore {
             currency = self.currency(code);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dateFrom".into(), since.clone()); }
+            request.insert("dateFrom".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }
+            request.insert("pageSize".into(), limit.clone());
         }
         let mut untilparamsUntilVariable = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]);
         let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dateTo".into(), until); }
+            request.insert("dateTo".into(), until);
         }
-        let __ws_arg_10 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_post_get_my_funding_history(&[__ws_arg_10]).await;
         //
         //    {
@@ -2319,14 +2319,14 @@ impl CexCore {
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("rejected".to_string(), Value::Str("rejected".into()));
                 m.insert("pending".to_string(), Value::Str("pending".into()));
                 m.insert("approved".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2353,15 +2353,15 @@ impl CexCore {
             transfer = self.transfer_between_main_and_sub_account(code, amount, fromAccount.clone(), toAccount.clone(), &[params]).await;
         }
         let mut fillResponseFromRequest: Value = self.handle_option(Value::Str("transfer".into()), Value::Str("fillResponseFromRequest".into()), &[Value::Bool(true)]);
-        let mut filled: Value = Value::Map({
+        let mut filled: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (match &(fillResponseFromRequest) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-            if let Value::Dict(__d) = &mut filled { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
-            if let Value::Dict(__d) = &mut filled { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
+            filled.insert("fromAccount".into(), fromAccount);
+            filled.insert("toAccount".into(), toAccount);
         }
-        return self.extend(transfer, &[filled]);
+        return self.extend(transfer, &[Value::Map(filled)]);
 
     Value::Null
 }
@@ -2428,7 +2428,7 @@ impl CexCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
@@ -2436,7 +2436,7 @@ impl CexCore {
                 m.insert("toAccountId".to_string(), toAccount);
             m
         });
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_do_my_internal_transfer(&[__ws_arg_13]).await;
         //
         //    {
@@ -2526,14 +2526,14 @@ impl CexCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId);
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
             m
         });
-        let __ws_arg_14 = self.extend(request, &[paramsNetworkCode]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsNetworkCode]);
         let mut response: Value = self.private_post_get_deposit_address(&[__ws_arg_14]).await;
         //
         //    {

@@ -412,12 +412,12 @@ impl IndependentreserveCore {
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("/orderbook/".into())).into()), limitString).into()), Value::Str("?subscribe=".into())).into()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into()), Value::Str(":".into())).into()), limitString).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("receivedSnapshot".to_string(), Value::Bool(false));
             m
         });
-        let mut orderbook: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), subscription]).await;
+        let mut orderbook: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), Value::Map(subscription)]).await;
         return orderbook.limit();
 
     Value::Null
@@ -585,7 +585,7 @@ impl IndependentreserveCore {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut event: Value = (match __pro_message.get("Event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut handlers: Value = Value::Map({
+        let mut handlers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Subscriptions".to_string(), Value::Str("handle_subscriptions".into()).clone());
                 m.insert("Heartbeat".to_string(), Value::Str("handle_heartbeat".into()).clone());
@@ -594,7 +594,7 @@ impl IndependentreserveCore {
                 m.insert("OrderBookChange".to_string(), Value::Str("handle_order_book".into()).clone());
             m
         });
-        let mut handler: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(handlers, event, &[]) });
+        let mut handler: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(Value::Map(handlers), event, &[]) });
         if (handler != Value::Null) {
             self.dispatch_ws_handler(&handler, &[client, message.clone()]);
             return;

@@ -20,7 +20,7 @@ pub async fn testFetchLastPrices(mut exchange: Value, mut skippedProperties: Val
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
         response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![Value::from(vec![symbol.clone()])]).await;
         checkedSymbol = symbol.clone();
     }

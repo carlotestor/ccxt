@@ -1377,7 +1377,7 @@ impl ToobitCore {
         //          ...
         //
         let mut coins: Value = self.safe_list_k(response, "coins", &[Value::from(vec![])]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1389,11 +1389,11 @@ impl ToobitCore {
             let mut parsed: Value = self.parse_currency(coin);
             if (parsed != Value::Null) {
                 let mut code: Value = parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), parsed); }
+                result.insert(crate::runtime::stringify_param(&code), parsed);
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -1773,15 +1773,15 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
+            request.insert("limit".into(), limit);
         }
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.common_get_quote_v1_depth(&[__ws_arg_0]).await;
         //
         //    {
@@ -1839,15 +1839,15 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.common_get_quote_v1_trades(&[__ws_arg_1]).await;
         return self.parse_trades(response, &[market, since, limit]);
 
@@ -2187,7 +2187,7 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2195,10 +2195,10 @@ impl ToobitCore {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
                 let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.common_get_quote_v1_ticker_price(&[__ws_arg_7]).await;
         return self.parse_last_prices(response, &[symbolsNormalized]);
 
@@ -2243,7 +2243,7 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2251,10 +2251,10 @@ impl ToobitCore {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
                 let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.common_get_quote_v1_ticker_book_ticker(&[__ws_arg_8]).await;
         return self.parse_bids_asks_custom(response, &[symbolsNormalized]);
 
@@ -2324,7 +2324,7 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2332,10 +2332,10 @@ impl ToobitCore {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
                 let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.common_get_api_v1_futures_funding_rate(&[__ws_arg_9]).await;
         return self.parse_funding_rates(response, &[symbolsNormalized]);
 
@@ -2408,15 +2408,15 @@ impl ToobitCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_10 = self.extend(request, &[paramsPaginate]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsPaginate]);
         let mut response: Value = self.common_get_api_v1_futures_history_funding_rate(&[__ws_arg_10]).await;
         return self.parse_funding_rate_histories(response, &[market, since, limit]);
 
@@ -2470,7 +2470,7 @@ impl ToobitCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), Value::Null);
@@ -2489,11 +2489,11 @@ impl ToobitCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string2(balance.clone(), Value::Str("total".into()), Value::Str("balance".into()), &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance, "locked", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -2800,7 +2800,7 @@ impl ToobitCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING_NEW".to_string(), Value::Str("open".into()));
                 m.insert("NEW".to_string(), Value::Str("open".into()));
@@ -2814,11 +2814,11 @@ impl ToobitCore {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("MARKET".to_string(), Value::Str("market".into()));
                 m.insert("LIMIT".to_string(), Value::Str("limit".into()));
@@ -2828,7 +2828,7 @@ impl ToobitCore {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3106,17 +3106,17 @@ impl ToobitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut market: Value = Value::Null;
@@ -3159,19 +3159,19 @@ impl ToobitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut marketType: Value = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), &[market.clone(), paramsUntil]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -3229,22 +3229,22 @@ impl ToobitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut market: Value = self.market(symbol);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+        request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), params]);
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, paramsMarketType, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsMarketType, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::from(vec![]);
@@ -3286,7 +3286,7 @@ impl ToobitCore {
 })]);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("quantity".to_string(), self.currency_to_precision(code, amount, &[]));
@@ -3294,7 +3294,7 @@ impl ToobitCore {
                 m.insert("toAccountType".to_string(), toId);
             m
         });
-        let __ws_arg_24 = self.extend(request, &[params]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_api_v1_sub_account_transfer(&[__ws_arg_24]).await;
         return self.parse_transfer(response, &[currency]);
 
@@ -3345,18 +3345,18 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (limit != Value::Null) {
@@ -3414,13 +3414,13 @@ impl ToobitCore {
 }
 
     pub fn parse_ledger_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("USER_ACCOUNT_TRANSFER".to_string(), Value::Str("transfer".into()));
                 m.insert("AIRDROP".to_string(), Value::Str("rebate".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3454,12 +3454,12 @@ impl ToobitCore {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees requires a params[\"symbol\"]".into()))));
             }
             market = self.market(symbol);
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m
             });
-            let __ws_arg_27 = self.extend(request, &[paramsSymbol]);
+            let __ws_arg_27 = self.extend(Value::Map(request), &[paramsSymbol]);
             response = self.private_get_api_v1_futures_commission_rate(&[__ws_arg_27]).await;
         }
         //
@@ -3558,18 +3558,18 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (limit != Value::Null) {
@@ -3705,7 +3705,7 @@ impl ToobitCore {
 
     pub fn parse_transaction_status(&self, mut status: Value, optional_args: &[Value]) -> Option<String> {
         let mut type_var = get_arg(optional_args, 0, Value::Null);
-        let mut statusesByType: Value = Value::Map({
+        let mut statusesByType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3732,7 +3732,7 @@ impl ToobitCore {
         if (status == Value::Null) {
             return None;
         }
-        let mut statuses: Value = self.safe_dict(statusesByType, type_var, &[Value::Map({
+        let mut statuses: Value = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3828,7 +3828,7 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("address".to_string(), address);
@@ -3838,9 +3838,9 @@ impl ToobitCore {
             m
         });
         if (tag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("addressExt".into(), tag); }
+            request.insert("addressExt".into(), tag);
         }
-        let __ws_arg_33 = self.extend(request, &[paramsNetworkCode]);
+        let __ws_arg_33 = self.extend(Value::Map(request), &[paramsNetworkCode]);
         let mut response: Value = self.private_post_api_v1_account_withdraw(&[__ws_arg_33]).await;
         return self.parse_transaction(response, &[currency]);
 
@@ -3874,13 +3874,13 @@ impl ToobitCore {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
         }
         let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("marginType".to_string(), marginModeValue);
             m
         });
-        let __ws_arg_34 = self.extend(request, &[params]);
+        let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_api_v1_futures_margin_type(&[__ws_arg_34]).await;
         return response;
 
@@ -3910,13 +3910,13 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let __ws_arg_35 = self.extend(request, &[params]);
+        let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_api_v1_futures_leverage(&[__ws_arg_35]).await;
         return response;
 
@@ -3941,12 +3941,12 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_36 = self.extend(request, &[params]);
+        let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_api_v1_futures_account_leverage(&[__ws_arg_36]).await;
         //
         // [
@@ -4003,7 +4003,7 @@ impl ToobitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4016,10 +4016,10 @@ impl ToobitCore {
             let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             if (firstSymbol != Value::Null) {
                 market = self.market(firstSymbol);
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
-        let __ws_arg_37 = self.extend(request, &[params]);
+        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_api_v1_futures_positions(&[__ws_arg_37]).await;
         return self.parse_positions(response, &[symbols]);
 

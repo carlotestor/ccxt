@@ -1031,7 +1031,7 @@ impl LatokenCore {
         //         }
         //     ]
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), Value::Null);
@@ -1063,13 +1063,13 @@ impl LatokenCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "available", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance, "blocked", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("timestamp".into(), maxTimestamp.clone()); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(maxTimestamp)); }
-        return self.safe_balance(result);
+        result.insert("timestamp".into(), maxTimestamp.clone());
+        result.insert("datetime".into(), self.iso8601(maxTimestamp));
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1094,16 +1094,16 @@ impl LatokenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }; // max 1000
+            request.insert("limit".into(), limit); // max 1000
         }
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_book_currency_quote(&[__ws_arg_0]).await;
         //
         //     {
@@ -1155,13 +1155,13 @@ impl LatokenCore {
             }
         }
         }
-        let mut filtered: Value = Value::Map({
+        let mut filtered: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ask".to_string(), Value::from(asks));
                 m.insert("bid".to_string(), Value::from(bids));
             m
         });
-        return self.parse_order_book(filtered, symbol, &[Value::Null, Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        return self.parse_order_book(Value::Map(filtered), symbol, &[Value::Null, Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
 
     Value::Null
 }
@@ -1251,13 +1251,13 @@ impl LatokenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("base".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker_base_quote(&[__ws_arg_1]).await;
         return self.parse_ticker(response, &[market]);
 
@@ -1408,16 +1408,16 @@ impl LatokenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); }; // default 100, limit 100
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); // default 100, limit 100
         }
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trade_history_currency_quote(&[__ws_arg_2]).await;
         return self.parse_trades(response, &[market, since, limit]);
 
@@ -1466,13 +1466,13 @@ impl LatokenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trade_fee_currency_quote(&[__ws_arg_3]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1497,13 +1497,13 @@ impl LatokenCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quote".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_auth_trade_fee_currency_quote(&[__ws_arg_4]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1567,35 +1567,35 @@ impl LatokenCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ORDER_STATUS_PLACED".to_string(), Value::Str("open".into()));
                 m.insert("ORDER_STATUS_CLOSED".to_string(), Value::Str("closed".into()));
                 m.insert("ORDER_STATUS_CANCELLED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ORDER_TYPE_MARKET".to_string(), Value::Str("market".into()));
                 m.insert("ORDER_TYPE_LIMIT".to_string(), Value::Str("limit".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
-        let mut timeInForces: Value = Value::Map({
+        let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ORDER_CONDITION_GOOD_TILL_CANCELLED".to_string(), Value::Str("GTC".into()));
                 m.insert("ORDER_CONDITION_IMMEDIATE_OR_CANCEL".to_string(), Value::Str("IOC".into()));
                 m.insert("ORDER_CONDITION_FILL_OR_KILL".to_string(), Value::Str("FOK".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(timeInForces), timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2046,11 +2046,11 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_23 = self.extend(request, &[params]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_auth_transaction(&[__ws_arg_23]).await;
         //
         //     {
@@ -2160,7 +2160,7 @@ impl LatokenCore {
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRANSACTION_STATUS_CONFIRMED".to_string(), Value::Str("ok".into()));
                 m.insert("TRANSACTION_STATUS_EXECUTED".to_string(), Value::Str("ok".into()));
@@ -2170,17 +2170,17 @@ impl LatokenCore {
                 m.insert("TRANSACTION_STATUS_REJECTED".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRANSACTION_TYPE_DEPOSIT".to_string(), Value::Str("deposit".into()));
                 m.insert("TRANSACTION_TYPE_WITHDRAWAL".to_string(), Value::Str("withdrawal".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2335,7 +2335,7 @@ impl LatokenCore {
 }
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRANSFER_STATUS_COMPLETED".to_string(), Value::Str("ok".into()));
                 m.insert("TRANSFER_STATUS_PENDING".to_string(), Value::Str("pending".into()));
@@ -2344,7 +2344,7 @@ impl LatokenCore {
                 m.insert("TRANSFER_STATUS_CANCELLED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

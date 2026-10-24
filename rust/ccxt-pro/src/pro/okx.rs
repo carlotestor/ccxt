@@ -504,13 +504,13 @@ impl OkxCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(args));
             m
         });
-        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
 
     Value::Null
 }
@@ -524,7 +524,7 @@ impl OkxCore {
             self.load_markets(&[]).await;
         }
         let mut url: Value = self.get_url(channel.clone(), &[access]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut firstArgument: Value = Value::Map({
+        let mut firstArgument: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), channel);
             m
@@ -533,15 +533,15 @@ impl OkxCore {
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
             messageHashResolved = Value::Str(format!("{}{}", messageHashResolved, Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())).into());
-            if let Value::Dict(__d) = &mut firstArgument { std::sync::Arc::make_mut(__d).insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            firstArgument.insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
-                m.insert("args".to_string(), Value::from(vec![self.deep_extend(firstArgument, &[params])]));
+                m.insert("args".to_string(), Value::from(vec![self.deep_extend(Value::Map(firstArgument), &[params])]));
             m
         });
-        return self.watch(url, messageHashResolved.clone(), &[request, messageHashResolved.clone()]).await;
+        return self.watch(url, messageHashResolved.clone(), &[Value::Map(request), messageHashResolved]).await;
 
     Value::Null
 }
@@ -617,7 +617,7 @@ impl OkxCore {
             topics.push(topic);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(topics));
@@ -633,7 +633,7 @@ impl OkxCore {
 })]).await;
         }
         let mut url: Value = self.get_url(channel, &[access]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut trades: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut trades: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
@@ -682,7 +682,7 @@ impl OkxCore {
             topics.push(topic);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("args".to_string(), Value::from(topics));
@@ -698,7 +698,7 @@ impl OkxCore {
 })]).await;
         }
         let mut url: Value = self.get_url(channel, &[access]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
 
     Value::Null
 }
@@ -849,14 +849,14 @@ impl OkxCore {
             topics.push(topic);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
         let mut url: Value = self.get_url(channel, &[Value::Str("public".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut fundingRate: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut fundingRate: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[]);
             let mut result: Value = Value::Map({
@@ -1094,14 +1094,14 @@ impl OkxCore {
             topics.push(topic);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
         let mut url: Value = self.get_url(channel, &[Value::Str("public".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
 
     Value::Null
 }
@@ -1209,23 +1209,23 @@ impl OkxCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(args));
             m
         });
-        let mut newTickers: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut newTickers: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
             if (newTickersSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers); }
+                tickers.insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -1382,7 +1382,7 @@ impl OkxCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchLiquidationsForSymbols() type is required".into()))));
         }
         let mut uppercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![Value::Map({
@@ -1394,7 +1394,7 @@ impl OkxCore {
             m
         });
         let mut url: Value = self.get_url(channel, &[Value::Str("public".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut newLiquidations: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut newLiquidations: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
@@ -1501,7 +1501,7 @@ impl OkxCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
         }
         let mut channel: Value = Value::Str("balance_and_position".into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![Value::Map({
@@ -1512,7 +1512,7 @@ impl OkxCore {
             m
         });
         let mut url: Value = self.get_url(channel, &[Value::Str("private".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let __ws_arg_0 = self.deep_extend(request, &[paramsOmitted]);
+        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[paramsOmitted]);
         let mut newLiquidations: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
@@ -1790,14 +1790,14 @@ impl OkxCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("multi:".into()), channel).into()), Value::Str(":".into())).into()), sym).into())); }
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
         let mut url: Value = self.get_url(Value::Str("candle".into()), &[Value::Str("public".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut symboltimeframecandlesVariable = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut symboltimeframecandlesVariable = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
@@ -1854,14 +1854,14 @@ impl OkxCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:multi:".into()), channel).into()), Value::Str(":".into())).into()), sym).into())); }
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
         let mut url: Value = self.get_url(Value::Str("candle".into()), &[Value::Str("public".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
 
     Value::Null
 }
@@ -2013,7 +2013,7 @@ impl OkxCore {
             topics.push(topic);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(topics.clone()));
@@ -2037,15 +2037,15 @@ impl OkxCore {
         }
         }
         if resyncNeeded {
-            let mut unsubscribeRequest: Value = Value::Map({
+            let mut unsubscribeRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("unsubscribe".into()));
                     m.insert("args".to_string(), Value::from(resyncTopics));
                 m
             });
-            self.watch_multiple(url.clone(), resyncHashes.clone(), &[unsubscribeRequest, resyncHashes.clone()]).await;
+            self.watch_multiple(url.clone(), resyncHashes.clone(), &[Value::Map(unsubscribeRequest), resyncHashes]).await;
         }
-        let mut orderbook: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut orderbook: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         return orderbook.limit();
 
     Value::Null
@@ -2106,14 +2106,14 @@ impl OkxCore {
             topics.push(topic);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
         let mut url: Value = self.get_url(depth, &[Value::Str("public".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
 
     Value::Null
 }
@@ -2313,7 +2313,7 @@ impl OkxCore {
         let mut marketId: Value = self.safe_string_k(arg, "instId", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut depths: Value = Value::Map({
+        let mut depths: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bbo-tbt".to_string(), Value::Int(1));
                 m.insert("books".to_string(), Value::Int(400));
@@ -2323,7 +2323,7 @@ impl OkxCore {
                 m.insert("books50-l2-tbt".to_string(), Value::Int(50));
             m
         });
-        let mut limit: Value = self.safe_integer(depths, channel.clone(), &[]);
+        let mut limit: Value = self.safe_integer(Value::Map(depths), channel.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol).into());
         if (action.as_deref() == Some("snapshot")) {
             {
@@ -2415,7 +2415,7 @@ impl OkxCore {
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), path).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut operation: Value = Value::Str("login".into());
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), operation);
                     m.insert("args".to_string(), Value::from(vec![Value::Map({
@@ -2430,9 +2430,9 @@ impl OkxCore {
             });
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
             if (matches!(&paramsOmitted, Value::Dict(__d) if __d.contains_key("access"))) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("access".into(), paramsOmitted.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null)); }
+                request.insert("access".into(), paramsOmitted.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null));
             }
-            self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+            self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -2672,12 +2672,12 @@ impl OkxCore {
                 uppercaseType = Value::Str("MARGIN".into());
             }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), uppercaseType);
             m
         });
-        let __ws_arg_1 = self.extend(request, &[paramsMarginMode]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsMarginMode]);
         let mut orders: Value = self.subscribe(Value::Str("private".into()), messageHash, channel, Value::Null, &[__ws_arg_1]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -2712,7 +2712,7 @@ impl OkxCore {
         }
         self.authenticate(&[params.clone()]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), Value::Str("ANY".into()));
             m
@@ -2720,23 +2720,23 @@ impl OkxCore {
         let mut channel: Value = Value::Str("positions".into());
         let mut newPositions: Value = Value::Null;
         if (symbolsNormalized == Value::Null) {
-            let mut arg: Value = Value::Map({
+            let mut arg: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), Value::Str("positions".into()));
                     m.insert("instType".to_string(), Value::Str("ANY".into()));
                 m
             });
-            let mut args: Value = Value::from(vec![self.extend(arg, &[params.clone()])]);
-            let mut nonSymbolRequest: Value = Value::Map({
+            let mut args: Value = Value::from(vec![self.extend(Value::Map(arg), &[params.clone()])]);
+            let mut nonSymbolRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("subscribe".into()));
                     m.insert("args".to_string(), args);
                 m
             });
             let mut url: Value = self.get_url(channel.clone(), &[Value::Str("private".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            newPositions = self.watch(url, channel.clone(), &[nonSymbolRequest, channel.clone()]).await;
+            newPositions = self.watch(url, channel.clone(), &[Value::Map(nonSymbolRequest), channel.clone()]).await;
         }  else {
-            let __ws_arg_2 = self.extend(request, &[params]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
             newPositions = self.subscribe_multiple(Value::Str("private".into()), channel, &[symbolsNormalized.clone(), __ws_arg_2]).await;
         }
         if self.newUpdates.as_bool() == Some(true) {
@@ -2917,7 +2917,7 @@ impl OkxCore {
                 uppercaseType = Value::Str("MARGIN".into());
             }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), uppercaseType);
             m
@@ -2926,7 +2926,7 @@ impl OkxCore {
         if isTrigger.as_bool() == Some(true) {
             channel = Value::Str("orders-algo".into());
         }
-        let __ws_arg_3 = self.extend(request, &[paramsMarginMode]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsMarginMode]);
         let mut orders: Value = self.subscribe(Value::Str("private".into()), channel.clone(), channel.clone(), symbolResolved.clone(), &[__ws_arg_3]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -3203,14 +3203,14 @@ impl OkxCore {
         if (op.as_str() != Some("order")) && (op.as_str() != Some("batch-orders")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("op".to_string(), op);
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash]).await;
 
     Value::Null
 }
@@ -3301,14 +3301,14 @@ impl OkxCore {
             remove(&mut args, &Value::Str("instId".into()));
             add_element_to_object(&mut args, &Value::Str("instIdCode".into()), instIdCode);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("op".to_string(), op);
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        let __ws_arg_4 = self.extend(request, &[paramsOp]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOp]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
 
     Value::Null
@@ -3344,24 +3344,24 @@ impl OkxCore {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]);
         let mut market: Value = self.market(symbol);
         let mut instIdCode: Value = self.safe_integer_k(market, "instIdCode", &[]);
-        let mut arg: Value = Value::Map({
+        let mut arg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instIdCode".to_string(), instIdCode);
             m
         });
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut arg { std::sync::Arc::make_mut(__d).insert("clOrdId".into(), clientOrderId); }
+            arg.insert("clOrdId".into(), clientOrderId);
         }  else {
-            if let Value::Dict(__d) = &mut arg { std::sync::Arc::make_mut(__d).insert("ordId".into(), id); }
+            arg.insert("ordId".into(), id);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("op".to_string(), Value::Str("cancel-order".into()));
-                m.insert("args".to_string(), Value::from(vec![self.extend(arg, &[paramsOmitted])]));
+                m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map(arg), &[paramsOmitted])]));
             m
         });
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash]).await;
 
     Value::Null
 }
@@ -3415,14 +3415,14 @@ impl OkxCore {
             args.push(arg);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("op".to_string(), Value::Str("batch-cancel-orders".into()));
                 m.insert("args".to_string(), Value::from(args));
             m
         });
-        let __ws_arg_5 = self.deep_extend(request, &[params]);
+        let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_5, messageHash.clone()]).await;
 
     Value::Null
@@ -3456,7 +3456,7 @@ impl OkxCore {
         }
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("op".to_string(), Value::Str("mass-cancel".into()));
@@ -3468,7 +3468,7 @@ impl OkxCore {
 }), &[params])]));
             m
         });
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash]).await;
 
     Value::Null
 }

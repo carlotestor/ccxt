@@ -757,12 +757,12 @@ impl UpbitCore {
 }));
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), id);
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_withdraws_chance(&[__ws_arg_0]).await;
         //
         //     {
@@ -887,12 +887,12 @@ impl UpbitCore {
 }));
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), id);
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_chance(&[__ws_arg_1]).await;
         //
         //     {
@@ -1112,7 +1112,7 @@ impl UpbitCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), Value::Null);
@@ -1130,11 +1130,11 @@ impl UpbitCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "balance", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance, "locked", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1193,15 +1193,15 @@ impl UpbitCore {
             let mut marketIds: Value = self.market_ids(&[symbols]);
             ids = Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("markets".to_string(), ids);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit); }
+            request.insert("count".into(), limit);
         }
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_orderbook(&[__ws_arg_2]).await;
         //
         //     [ {          market:   "BTC-ETH",
@@ -1398,12 +1398,12 @@ impl UpbitCore {
                 quoteCurrencies = Value::Str(format!("{}{}", quoteCurrencies, sortedQuoteIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
             }
             }
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quote_currencies".to_string(), quoteCurrencies);
                 m
             });
-            let __ws_arg_3 = self.extend(request, &[params.clone()]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);
             tickers = self.public_get_ticker_all(&[__ws_arg_3]).await;
         }  else {
             let mut ids: Value = self.market_ids(&[symbolsNormalized.clone()]);
@@ -1584,13 +1584,13 @@ impl UpbitCore {
         }
         let mut market: Value = self.market(symbol);
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(200) } else { limit });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("count".to_string(), limitResolved.clone());
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trades_ticks(&[__ws_arg_5]).await;
         return self.parse_trades(response, &[market, since, limitResolved]);
 
@@ -1616,12 +1616,12 @@ impl UpbitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_chance(&[__ws_arg_6]).await;
         //
         //     {
@@ -1693,7 +1693,7 @@ impl UpbitCore {
             self.load_markets(&[]).await;
         }
         let mut fetchMarketResponse: Value = self.fetch_markets(&[params]).await;
-        let mut response: Value = Value::Map({
+        let mut response: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1713,11 +1713,11 @@ impl UpbitCore {
             if let Value::Dict(__d) = &mut element { std::sync::Arc::make_mut(__d).insert("info".into(), fetchMarketResponse.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); }
             let mut feeSymbol: Value = self.safe_string(fetchMarketResponse.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
             if (feeSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut response { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&feeSymbol), element); }
+                response.insert(crate::runtime::stringify_param(&feeSymbol), element);
             }
         }
         }
-        return response;
+        return Value::Map(response);
 
     Value::Null
 }
@@ -1987,12 +1987,12 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("uuid".to_string(), id);
             m
         });
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_order(&[__ws_arg_11]).await;
         return self.parse_order(response, &[]);
 
@@ -2130,15 +2130,15 @@ impl UpbitCore {
         //     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
         //     new_order_identifier: '22'                               // new order data
         //   }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("uuid".into(), self.safe_string_k(response.clone(), "new_order_uuid", &[])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("identifier".into(), self.safe_string_k(response.clone(), "new_order_identifier", &[])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("side".into(), self.safe_string_k(response.clone(), "side", &[])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("market".into(), self.safe_string_k(response, "market", &[])); }
-        return self.parse_order(result, &[]);
+        result.insert("uuid".into(), self.safe_string_k(response.clone(), "new_order_uuid", &[]));
+        result.insert("identifier".into(), self.safe_string_k(response.clone(), "new_order_identifier", &[]));
+        result.insert("side".into(), self.safe_string_k(response.clone(), "side", &[]));
+        result.insert("market".into(), self.safe_string_k(response, "market", &[]));
+        return self.parse_order(Value::Map(result), &[]);
 
     Value::Null
 }
@@ -2166,19 +2166,19 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default is 100
+            request.insert("limit".into(), limit.clone()); // default is 100
         }
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_deposits(&[__ws_arg_13]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
@@ -2206,7 +2206,7 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("uuid".to_string(), id);
             m
@@ -2214,9 +2214,9 @@ impl UpbitCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_deposit(&[__ws_arg_14]).await;
         return self.parse_transaction(response, &[currency]);
 
@@ -2246,19 +2246,19 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default is 100
+            request.insert("limit".into(), limit.clone()); // default is 100
         }
-        let __ws_arg_15 = self.extend(request, &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_withdraws(&[__ws_arg_15]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
@@ -2286,7 +2286,7 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("uuid".to_string(), id);
             m
@@ -2294,9 +2294,9 @@ impl UpbitCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_16 = self.extend(request, &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_withdraw(&[__ws_arg_16]).await;
         return self.parse_transaction(response, &[currency]);
 
@@ -2304,7 +2304,7 @@ impl UpbitCore {
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("submitting".to_string(), Value::Str("pending".into()));
                 m.insert("submitted".to_string(), Value::Str("pending".into()));
@@ -2316,7 +2316,7 @@ impl UpbitCore {
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -2395,14 +2395,14 @@ impl UpbitCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("wait".to_string(), Value::Str("open".into()));
                 m.insert("done".to_string(), Value::Str("closed".into()));
                 m.insert("cancel".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2605,19 +2605,19 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_17 = self.extend(request, &[params]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_open(&[__ws_arg_17]).await;
         return self.parse_orders(response, &[market, since, limit]);
 
@@ -2648,7 +2648,7 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), Value::Str("done".into()));
             m
@@ -2656,15 +2656,15 @@ impl UpbitCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
+            request.insert("start_time".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_time".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_18 = self.extend(requestUntil, &[paramsUntil]);
@@ -2698,7 +2698,7 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), Value::Str("cancel".into()));
             m
@@ -2706,15 +2706,15 @@ impl UpbitCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
+            request.insert("start_time".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_time".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil]);
@@ -2744,12 +2744,12 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("uuid".to_string(), id);
             m
         });
-        let __ws_arg_20 = self.extend(request, &[params]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_order(&[__ws_arg_20]).await;
         return self.parse_order(response, &[]);
 
@@ -2867,13 +2867,13 @@ impl UpbitCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         // https://github.com/ccxt/ccxt/issues/6452
-        let __ws_arg_22 = self.extend(request, &[params]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_deposits_generate_coin_address(&[__ws_arg_22]).await;
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD

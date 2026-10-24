@@ -1457,12 +1457,12 @@ impl BitfinexCore {
 }));
         let mut labels: Value = Value::from(vec![Value::Str("pub:info:pair".into()), Value::Str("pub:info:pair:futures".into()), Value::Str("pub:list:pair:securities".into()), Value::Str("pub:list:pair:margin".into())]);
         let mut config: Value = Value::Str(labels.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("config".to_string(), config);
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_conf_config(&[__ws_arg_0]).await;
         let mut spotMarketsInfo: Value = self.safe_list(response.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut futuresMarketsInfo: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::from(vec![])]);
@@ -1601,12 +1601,12 @@ impl BitfinexCore {
 }));
         let mut labels: Value = Value::from(vec![Value::Str("pub:list:currency".into()), Value::Str("pub:map:currency:sym".into()), Value::Str("pub:map:currency:label".into()), Value::Str("pub:map:currency:unit".into()), Value::Str("pub:map:currency:undl".into()), Value::Str("pub:map:currency:pool".into()), Value::Str("pub:map:currency:explorer".into()), Value::Str("pub:map:currency:tx:fee".into()), Value::Str("pub:map:tx:method".into()), Value::Str("pub:info:tx:status".into()), Value::Str("pub:list:currency:margin".into())]);
         let mut config: Value = Value::Str(labels.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("config".to_string(), config);
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_conf_config(&[__ws_arg_1]).await;
         //
         //     [
@@ -1692,7 +1692,7 @@ impl BitfinexCore {
         //     ]
         //
         let mut networks: Value = self.safe_list(response.clone(), Value::Int(8), &[Value::from(vec![])]);
-        let mut indexed: Value = Value::Map({
+        let mut indexed: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sym".to_string(), self.index_by(self.safe_list(response.clone(), Value::Int(1), &[Value::from(vec![])]), Value::Int(0)));
                 m.insert("label".to_string(), self.index_by(self.safe_list(response.clone(), Value::Int(2), &[Value::from(vec![])]), Value::Int(0)));
@@ -1725,7 +1725,7 @@ impl BitfinexCore {
         }
         }
         let mut ids: Value = self.safe_list(response, Value::Int(0), &[Value::from(vec![])]);
-        return self.parse_currencies_custom(ids, indexed, indexedNetworks);
+        return self.parse_currencies_custom(ids, Value::Map(indexed), indexedNetworks);
 
     Value::Null
 }
@@ -1897,7 +1897,7 @@ impl BitfinexCore {
         let mut query: Value = self.omit(params, Value::Str("type".into()), &[]);
         let mut response: Value = self.private_post_auth_r_wallets(&[query]).await;
         let mut balances: Value = self.to_array(response.clone());
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
@@ -1922,12 +1922,12 @@ impl BitfinexCore {
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(balance.clone(), Value::Int(2), &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(balance, Value::Int(4), &[])); }
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                    result.insert(crate::runtime::stringify_param(&code), account);
                 }
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1973,7 +1973,7 @@ impl BitfinexCore {
         let mut toCurrencyId: Value = self.convert_derivatives_id(currency.clone(), toAccount).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut requestedAmount: Value = self.currency_to_precision(code, amount, &[]);
         // this request is slightly different from v1 fromAccount -> from
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), requestedAmount);
                 m.insert("currency".to_string(), fromCurrencyId);
@@ -1982,7 +1982,7 @@ impl BitfinexCore {
                 m.insert("to".to_string(), toId);
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_auth_w_transfer(&[__ws_arg_2]).await;
         //
         //     [
@@ -2073,14 +2073,14 @@ impl BitfinexCore {
 }
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
                 m.insert("ERROR".to_string(), Value::Str("failed".into()));
                 m.insert("FAILURE".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn convert_derivatives_id(&self, mut currency: Value, mut type_var: Value) -> Option<String> {
@@ -2130,16 +2130,16 @@ impl BitfinexCore {
         }
         let mut precision: Value = self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("precision".into()), &[Value::Str("R0".into())]);
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("precision".to_string(), precision);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("len".into(), limit); }
+            request.insert("len".into(), limit);
         }
-        let mut fullRequest: Value = self.extend(request, &[params]);
+        let mut fullRequest: Value = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.public_get_book_symbol_precision(&[fullRequest.clone()]).await;
         let mut timestamp: Value = self.milliseconds();
         let mut result: Value = Value::Map({
@@ -2317,17 +2317,17 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbolsNormalized != Value::Null) {
             let mut ids: Value = self.market_ids(&[symbolsNormalized.clone()]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
+            request.insert("symbols".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), Value::Str("ALL".into())); }
+            request.insert("symbols".into(), Value::Str("ALL".into()));
         }
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.public_get_tickers(&[__ws_arg_3]).await;
         return self.parse_tickers(tickers, &[symbolsNormalized]);
 
@@ -2352,12 +2352,12 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut ticker: Value = self.public_get_ticker_symbol(&[__ws_arg_4]).await;
         return self.parse_ticker(ticker, &[market]);
 
@@ -2488,20 +2488,20 @@ impl BitfinexCore {
         }
         let mut market: Value = self.market(symbol);
         let mut sort: Value = Value::Str("-1".into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), since); }
+            request.insert("start".into(), since);
             sort = Value::Str("1".into());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(10000))); }; // default 120, max 10000
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(10000))); // default 120, max 10000
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sort".into(), sort); }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), request, paramsPaginate, &[]);
+        request.insert("sort".into(), sort);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_5 = self.extend(requestUntil, &[paramsUntil]);
@@ -2568,7 +2568,7 @@ impl BitfinexCore {
         }
         let mut market: Value = self.market(symbol);
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(10000) } else { crate::runtime::Math::min(&limit, &Value::Int(10000)) });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("timeframe".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
@@ -2576,10 +2576,10 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), since.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sort".into(), Value::Int(1)); }
+            request.insert("start".into(), since.clone());
+            request.insert("sort".into(), Value::Int(1));
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), request, paramsPaginate, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_6 = self.extend(requestUntil, &[paramsUntil]);
@@ -2602,7 +2602,7 @@ impl BitfinexCore {
         }
         let mut parts: Value = Value::Array(status.as_str().map(|__s| __s.split(" ").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut state: Value = self.safe_string(parts, Value::Int(0), &[]);
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ACTIVE".to_string(), Value::Str("open".into()));
                 m.insert("PARTIALLY".to_string(), Value::Str("open".into()));
@@ -2616,7 +2616,7 @@ impl BitfinexCore {
                 m.insert("FILLORKILL CANCELED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, state, &[status]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), state, &[status]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_flags(&self, mut flags: Value) -> Value {
@@ -2634,7 +2634,7 @@ impl BitfinexCore {
 }
 
     pub fn parse_time_in_force(&self, mut orderType: Value) -> Option<String> {
-        let mut orderTypes: Value = Value::Map({
+        let mut orderTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("EXCHANGE IOC".to_string(), Value::Str("IOC".into()));
                 m.insert("EXCHANGE FOK".to_string(), Value::Str("FOK".into()));
@@ -2642,7 +2642,7 @@ impl BitfinexCore {
                 m.insert("FOK".to_string(), Value::Str("FOK".into()));
             m
         });
-        return self.safe_string(orderTypes, orderType, &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(orderTypes), orderType, &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2763,7 +2763,7 @@ impl BitfinexCore {
         let mut market: Value = self.market(symbol.clone());
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
         amountString = (if (side.as_str() == Some("buy")) { amountString.clone() } else { crate::precise::Precise::stringNeg(&amountString) });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amountString);
@@ -2778,13 +2778,13 @@ impl BitfinexCore {
         let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         if (trailingAmount != Value::Null) {
             orderType = Value::Str("TRAILING STOP".into());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_trailing".into(), trailingAmount); }
+            request.insert("price_trailing".into(), trailingAmount);
         }  else if (triggerPrice != Value::Null) {
             // request['price'] is taken as triggerPrice for stop orders
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            request.insert("price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             if (type_var.as_str() == Some("limit")) {
                 orderType = Value::Str("STOP LIMIT".into());
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_aux_limit".into(), self.price_to_precision(symbol.clone(), price.clone())); }
+                request.insert("price_aux_limit".into(), self.price_to_precision(symbol.clone(), price.clone()));
             }  else {
                 orderType = Value::Str("STOP".into());
             }
@@ -2799,7 +2799,7 @@ impl BitfinexCore {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not allow market IOC and FOK orders".into()))));
         }
         if (type_var.as_str() != Some("market")) && (triggerPrice == Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
+            request.insert("price".into(), self.price_to_precision(symbol, price));
         }
         if ioc {
             orderType = Value::Str("IOC".into());
@@ -2813,7 +2813,7 @@ impl BitfinexCore {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = Value::Str(format!("{}{}", Value::Str("EXCHANGE ".into()), orderType).into());
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), orderType); }
+        request.insert("type".into(), orderType);
         // flag values may be summed to combine flags
         let mut flags: Value = Value::Int(0);
         if postOnly && reduceOnly.as_bool() == Some(true) {
@@ -2824,13 +2824,13 @@ impl BitfinexCore {
             flags = Value::Int(1024);
         }
         if (flags.as_f64() != Some(0.0)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("flags".into(), flags); }
+            request.insert("flags".into(), flags);
         }
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cid".into(), clientOrderId); }
+            request.insert("cid".into(), clientOrderId);
         }
         let mut paramsOmitted: Value = self.omit(paramsMarginMode, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into())]), &[]);
-        return self.extend(request, &[paramsOmitted]);
+        return self.extend(Value::Map(request), &[paramsOmitted]);
 
     Value::Null
 }
@@ -2924,12 +2924,12 @@ impl BitfinexCore {
         }
         let mut orders: Value = self.safe_list(response, Value::Int(4), &[Value::from(vec![])]);
         let mut order: Value = self.safe_list(orders, Value::Int(0), &[]);
-        let mut newOrder: Value = Value::Map({
+        let mut newOrder: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("result".to_string(), order);
             m
         });
-        return self.parse_order(newOrder, &[market]);
+        return self.parse_order(Value::Map(newOrder), &[market]);
 
     Value::Null
 }
@@ -2970,12 +2970,12 @@ impl BitfinexCore {
             ordersRequests.push(Value::from(vec![Value::Str("on".into()), orderRequest]));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ops".to_string(), Value::from(ordersRequests));
             m
         });
-        let mut response: Value = self.private_post_auth_w_order_multi(&[request]).await;
+        let mut response: Value = self.private_post_auth_w_order_multi(&[Value::Map(request)]).await;
         //
         //     [
         //         1706762515553,
@@ -3039,12 +3039,12 @@ impl BitfinexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("all".to_string(), Value::Int(1));
             m
         });
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_auth_w_order_cancel_multi(&[__ws_arg_7]).await;
         let mut orders: Value = self.safe_list(response, Value::Int(4), &[Value::from(vec![])]);
         let mut ordersList: Vec<Value> = Vec::new();
@@ -3111,12 +3111,12 @@ impl BitfinexCore {
         let __ws_arg_8 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_auth_w_order_cancel(&[__ws_arg_8]).await;
         let mut order: Value = self.safe_value(response, Value::Int(4), &[]);
-        let mut newOrder: Value = Value::Map({
+        let mut newOrder: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("result".to_string(), order);
             m
         });
-        return self.parse_order(newOrder, &[market]);
+        return self.parse_order(Value::Map(newOrder), &[market]);
 
     Value::Null
 }
@@ -3149,7 +3149,7 @@ impl BitfinexCore {
             numericIds.push(self.parse_to_numeric(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(numericIds));
             m
@@ -3158,7 +3158,7 @@ impl BitfinexCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_auth_w_order_cancel_multi(&[__ws_arg_9]).await;
         //
         //     [
@@ -3245,12 +3245,12 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(vec![(match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })]));
             m
         });
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut orders: Value = self.fetch_open_orders(&[symbol, Value::Null, Value::Null, __ws_arg_10]).await;
         let mut order: Value = self.safe_dict(orders, Value::Int(0), &[]);
         if (order == Value::Null) {
@@ -3278,12 +3278,12 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(vec![(match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })]));
             m
         });
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut orders: Value = self.fetch_closed_orders(&[symbol, Value::Null, Value::Null, __ws_arg_11]).await;
         let mut order: Value = self.safe_dict(orders, Value::Int(0), &[]);
         if (order == Value::Null) {
@@ -3419,17 +3419,17 @@ impl BitfinexCore {
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), since.clone()); }
+            request.insert("start".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 25, max 2500
+            request.insert("limit".into(), limit.clone()); // default 25, max 2500
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), request, paramsPaginate, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut market: Value = Value::Null;
@@ -3526,14 +3526,14 @@ impl BitfinexCore {
         }
         let mut market: Value = self.market(symbol);
         let mut orderId: Value = (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), orderId);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         // valid for trades up to 10 days old
-        let __ws_arg_16 = self.extend(request, &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_auth_r_order_symbol_id_trades(&[__ws_arg_16]).await;
         let mut rawTrades: Value = self.to_array(response);
         let mut tradesList: Vec<Value> = Vec::new();
@@ -3632,12 +3632,12 @@ impl BitfinexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op_renew".to_string(), Value::Int(1));
             m
         });
-        let __ws_arg_19 = self.extend(request, &[params]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         return self.fetch_deposit_address(code, &[__ws_arg_19]).await;
 
     Value::Null
@@ -3675,14 +3675,14 @@ impl BitfinexCore {
         }
         let mut wallet: Value = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".into())]); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[Value::Str("wallet".into())]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), networkId);
                 m.insert("wallet".to_string(), wallet);
                 m.insert("op_renew".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_20 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_auth_w_deposit_address(&[__ws_arg_20]).await;
         //
         //     [
@@ -3722,7 +3722,7 @@ impl BitfinexCore {
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
                 m.insert("COMPLETED".to_string(), Value::Str("ok".into()));
@@ -3737,7 +3737,7 @@ impl BitfinexCore {
                 m.insert("USER APPROVED".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -4113,7 +4113,7 @@ impl BitfinexCore {
         }
         let mut wallet: Value = self.safe_string_k(paramsOmitted.clone(), "wallet", &[Value::Str("exchange".into())]); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::Str("network".into()), &[Value::Str("wallet".into())]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), networkId);
                 m.insert("wallet".to_string(), wallet);
@@ -4122,7 +4122,7 @@ impl BitfinexCore {
             m
         });
         if (tag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payment_id".into(), tag); }
+            request.insert("payment_id".into(), tag);
         }
         let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4130,9 +4130,9 @@ impl BitfinexCore {
 })]);
         let mut includeFee: Value = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]);
         if includeFee.as_bool() == Some(true) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fee_deduct".into(), Value::Int(1)); }
+            request.insert("fee_deduct".into(), Value::Int(1));
         }
-        let __ws_arg_23 = self.extend(request, &[paramsOmitted2]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted2]);
         let mut response: Value = self.private_post_auth_w_withdraw(&[__ws_arg_23]).await;
         //
         //     [
@@ -4536,17 +4536,17 @@ impl BitfinexCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchLedger".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(2500)]).await;
         }
         let mut currency: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), since.clone()); }
+            request.insert("start".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), request, paramsPaginate, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
@@ -4615,12 +4615,12 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("keys".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         });
-        let __ws_arg_26 = self.extend(request, &[params]);
+        let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_status_deriv(&[__ws_arg_26]).await;
         return self.parse_funding_rates(response, &[symbols]);
 
@@ -4661,15 +4661,15 @@ impl BitfinexCore {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone(), Value::Int(5000)]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), since.clone()); }
+            request.insert("start".into(), since.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), request, paramsPaginate, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_27 = self.extend(requestUntil, &[paramsUntil]);
@@ -4858,12 +4858,12 @@ impl BitfinexCore {
         if (symbolsNormalized != Value::Null) {
             marketIds = self.market_ids(&[symbolsNormalized.clone()]);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("keys".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         });
-        let __ws_arg_28 = self.extend(request, &[params]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_status_deriv(&[__ws_arg_28]).await;
         return self.parse_open_interests(response, &[symbolsNormalized]);
 
@@ -4888,12 +4888,12 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("keys".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_29 = self.extend(request, &[params]);
+        let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_status_deriv(&[__ws_arg_29]).await;
         //
         //     [
@@ -4963,18 +4963,18 @@ impl BitfinexCore {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone(), Value::Int(5000)]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), since.clone()); }
+            request.insert("start".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), request, paramsPaginate, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_30 = self.extend(requestUntil, &[paramsUntil]);
@@ -5092,17 +5092,17 @@ impl BitfinexCore {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchLiquidations".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone(), Value::Int(500)]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), since.clone()); }
+            request.insert("start".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), request, paramsPaginate, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_31 = self.extend(requestUntil, &[paramsUntil]);
@@ -5184,13 +5184,13 @@ impl BitfinexCore {
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin() only support swap markets".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("collateral".to_string(), self.parse_to_numeric(amount));
             m
         });
-        let __ws_arg_32 = self.extend(request, &[params]);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_auth_w_deriv_collateral_set(&[__ws_arg_32]).await;
         //
         //     [
@@ -5314,12 +5314,12 @@ impl BitfinexCore {
         //     ]
         //
         let mut order: Value = self.safe_list(response, Value::Int(0), &[]);
-        let mut newOrder: Value = Value::Map({
+        let mut newOrder: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("result".to_string(), order);
             m
         });
-        return self.parse_order(newOrder, &[market]);
+        return self.parse_order(Value::Map(newOrder), &[market]);
 
     Value::Null
 }
@@ -5356,7 +5356,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.parse_to_numeric(id.clone()));
             m
@@ -5364,7 +5364,7 @@ impl BitfinexCore {
         if (amount != Value::Null) {
             let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
             amountString = (if (side.as_str() == Some("buy")) { amountString.clone() } else { crate::precise::Precise::stringNeg(&amountString) });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), amountString); }
+            request.insert("amount".into(), amountString);
         }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
@@ -5373,17 +5373,17 @@ impl BitfinexCore {
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("cid".into()), Value::Str("clientOrderId".into()), &[]);
         if (trailingAmount != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_trailing".into(), trailingAmount); }
+            request.insert("price_trailing".into(), trailingAmount);
         }  else if (triggerPrice != Value::Null) {
             // request['price'] is taken as triggerPrice for stop orders
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            request.insert("price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             if (type_var.as_str() == Some("limit")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_aux_limit".into(), self.price_to_precision(symbol.clone(), price.clone())); }
+                request.insert("price_aux_limit".into(), self.price_to_precision(symbol.clone(), price.clone()));
             }
         }
         let mut postOnly: bool = postOnlyParam.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO"));
         if (type_var.as_str() != Some("market")) && (triggerPrice == Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
+            request.insert("price".into(), self.price_to_precision(symbol, price));
         }
         // flag values may be summed to combine flags
         let mut flags: i64 = 0;
@@ -5395,17 +5395,17 @@ impl BitfinexCore {
             flags = 1024;
         }
         if (((flags as f64) != 0.0)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("flags".into(), Value::Int(flags)); }
+            request.insert("flags".into(), Value::Int(flags));
         }
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cid".into(), clientOrderId); }
+            request.insert("cid".into(), clientOrderId);
         }
         let mut leverage: Value = self.safe_integer2(params.clone(), Value::Str("leverage".into()), Value::Str("lev".into()), &[]);
         if (leverage != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("lev".into(), leverage); }
+            request.insert("lev".into(), leverage);
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into()), Value::Str("leverage".into())]), &[]);
-        let __ws_arg_35 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_35 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_auth_w_order_update(&[__ws_arg_35]).await;
         //
         //     [
@@ -5459,12 +5459,12 @@ impl BitfinexCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), status).into()), Value::Str(": ".into())).into()), errorText).into()), Value::Str(" (#".into())).into()), errorCode).into()), Value::Str(")".into()))));
         }
         let mut order: Value = self.safe_list(response, Value::Int(4), &[Value::from(vec![])]);
-        let mut newOrder: Value = Value::Map({
+        let mut newOrder: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("result".to_string(), order);
             m
         });
-        return self.parse_order(newOrder, &[market]);
+        return self.parse_order(Value::Map(newOrder), &[market]);
 
     Value::Null
 }

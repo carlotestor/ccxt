@@ -1058,13 +1058,13 @@ impl OpinionCore {
         let mut priceResponsebookResponseVariable = promise_all(&promises).await;
         let mut priceResponse: Value = priceResponsebookResponseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut bookResponse: Value = priceResponsebookResponseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut response: Value = Value::Map({
+        let mut response: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("price".to_string(), priceResponse);
                 m.insert("book".to_string(), bookResponse);
             m
         });
-        return self.parse_prediction_ticker(response, &[outcomeObj]);
+        return self.parse_prediction_ticker(Value::Map(response), &[outcomeObj]);
 
     Value::Null
 }
@@ -1197,7 +1197,7 @@ impl OpinionCore {
         }
         }
         let mut responses: Value = promise_all(&Value::from(promises)).await;
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1219,11 +1219,11 @@ impl OpinionCore {
             let mut ticker: Value = self.parse_prediction_ticker(response, &[outcomeObj]);
             let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[]);
             if (symbolKey != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolKey), ticker); }
+                result.insert(crate::runtime::stringify_param(&symbolKey), ticker);
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -1246,12 +1246,12 @@ impl OpinionCore {
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
         let mut tokenId: Value = outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("token_id".to_string(), tokenId);
             m
         });
-        let __ws_arg_15 = self.extend(request, &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.opinion_public_get_token_orderbook(&[__ws_arg_15]).await;
         //
         //     {
@@ -1457,7 +1457,7 @@ impl OpinionCore {
 }
 
     pub fn sign_opinion_order(&self, mut order: Value, mut exchangeAddress: Value) -> Option<String> {
-        let mut domain: Value = Value::Map({
+        let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("OPINION CTF Exchange".into()));
                 m.insert("version".to_string(), Value::Str("1".into()));
@@ -1465,7 +1465,7 @@ impl OpinionCore {
                 m.insert("verifyingContract".to_string(), exchangeAddress);
             m
         });
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Order".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1530,7 +1530,7 @@ impl OpinionCore {
 })]));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, order);
+        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), order);
         let mut sig: Value = self.sign_message(encoded, self.privateKey.clone());
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(sig.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null))).into()), self.remove0x_prefix(sig.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null))).into()), self.int_to_base16(sig.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null), &[])).into()).as_str().map(str::to_owned);
 }
@@ -1616,10 +1616,10 @@ impl OpinionCore {
         self.check_required_credentials(&[]);
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Value = outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null);
-        let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("market")));
+        let mut isMarket: bool = type_var.as_str() == Some("market");
         let mut sideStr: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         if (price == Value::Null) {
-            if !(matches!(&isMarket, Value::Bool(true))) {
+            if !isMarket {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price for limit orders".into()))));
             }
             if (sideStr.as_str() == Some("SELL")) {
@@ -1627,7 +1627,7 @@ impl OpinionCore {
             }
         }
         let mut marketOrderPrice: Value = Value::Str("0".into());
-        if matches!(&isMarket, Value::Bool(true)) && (sideStr.as_str() == Some("SELL")) {
+        if isMarket && (sideStr.as_str() == Some("SELL")) {
             marketOrderPrice = self.number_to_string(price.clone());
         }
         let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
@@ -1639,7 +1639,7 @@ impl OpinionCore {
         let mut quoteToken: Value = self.load_quote_token(quoteTokenAddress.clone()).await;
         let mut exchangeAddress: Value = self.safe_string_k(quoteToken.clone(), "ctfExchangeAddress", &[Value::Str("".into())]);
         let mut decimals: Value = self.safe_integer_k(quoteToken, "decimal", &[Value::Int(18)]);
-        let mut amounts: Value = self.opinion_order_raw_amounts(isMarket.is_truthy(), sideStr.clone(), amount, price.clone(), decimals);
+        let mut amounts: Value = self.opinion_order_raw_amounts(isMarket.clone(), sideStr.clone(), amount, price.clone(), decimals);
         let mut makerAmount: Value = self.safe_string_k(amounts.clone(), "makerAmount", &[]);
         let mut takerAmount: Value = self.safe_string_k(amounts, "takerAmount", &[]);
         let mut sideInt: Value = (if (sideStr.as_str() == Some("BUY")) { Value::Int(0) } else { Value::Int(1) });
@@ -1653,7 +1653,7 @@ impl OpinionCore {
         let mut makerLower: Value = maker.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut walletAddressLower: Value = self.walletAddress.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut signatureType: Value = (if (makerLower.as_str() == walletAddressLower.as_str()) { Value::Int(0) } else { Value::Int(2) });
-        let mut order: Value = Value::Map({
+        let mut order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt.clone());
                 m.insert("maker".to_string(), maker.clone());
@@ -1669,7 +1669,7 @@ impl OpinionCore {
                 m.insert("signatureType".to_string(), signatureType.clone());
             m
         });
-        let mut signature: Value = self.sign_opinion_order(order, exchangeAddress).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut signature: Value = self.sign_opinion_order(Value::Map(order), exchangeAddress).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signatureNo0x: Value = self.remove0x_prefix(signature.clone());
         let __ws_arg_17 = self.number_to_string(price);
         let __ws_arg_18 = self.seconds();
@@ -1692,8 +1692,8 @@ impl OpinionCore {
                 m.insert("contractAddress".to_string(), Value::Str("".into()));
                 m.insert("currencyAddress".to_string(), quoteTokenAddress);
                 m.insert("topicId".to_string(), topicId);
-                m.insert("price".to_string(), (if matches!(&isMarket, Value::Bool(true)) { marketOrderPrice } else { __ws_arg_17 }));
-                m.insert("tradingMethod".to_string(), (if matches!(&isMarket, Value::Bool(true)) { Value::Int(1) } else { Value::Int(2) }));
+                m.insert("price".to_string(), (if isMarket { marketOrderPrice } else { __ws_arg_17 }));
+                m.insert("tradingMethod".to_string(), (if isMarket { Value::Int(1) } else { Value::Int(2) }));
                 m.insert("timestamp".to_string(), __ws_arg_18);
                 m.insert("safeRate".to_string(), Value::Str("0".into()));
                 m.insert("orderExpTime".to_string(), Value::Str("0".into()));
@@ -1731,12 +1731,12 @@ impl OpinionCore {
     m
 }));
         self.load_api_key().await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_19 = self.extend(request, &[params]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.opinion_private_post_order_cancel(&[__ws_arg_19]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1767,7 +1767,7 @@ impl OpinionCore {
  * @returns {string} a unified order status
  */
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Pending".to_string(), Value::Str("open".into()));
                 m.insert("Finished".to_string(), Value::Str("closed".into()));
@@ -1776,7 +1776,7 @@ impl OpinionCore {
                 m.insert("Failed".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1865,7 +1865,7 @@ impl OpinionCore {
 }));
         self.load_api_key().await;
         let mut outcomeObj: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1875,9 +1875,9 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".into(), self.safe_integer_k(info, "marketId", &[])); }
+            request.insert("marketId".into(), self.safe_integer_k(info, "marketId", &[]));
         }
-        let __ws_arg_20 = self.extend(request, &[params]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.opinion_private_get_order(&[__ws_arg_20]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1949,12 +1949,12 @@ impl OpinionCore {
     m
 }));
         // 1 = pending - open status
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("1".into()));
             m
         });
-        let __ws_arg_22 = self.extend(request, &[params]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
         return self.fetch_orders(&[outcome, since, limit, __ws_arg_22]).await;
 
     Value::Null
@@ -1980,12 +1980,12 @@ impl OpinionCore {
     m
 }));
         // 2 = filled, 3 = canceled, 4 = expired, 5 = failed
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("2,3,4,5".into()));
             m
         });
-        let __ws_arg_23 = self.extend(request, &[params]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         return self.fetch_orders(&[outcome, since, limit, __ws_arg_23]).await;
 
     Value::Null
@@ -2015,7 +2015,7 @@ impl OpinionCore {
         }
         self.load_api_key().await;
         let mut outcomeObj: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), self.walletAddress.clone());
             m
@@ -2026,9 +2026,9 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".into(), self.safe_integer_k(info.clone(), "marketId", &[])); }
+            request.insert("marketId".into(), self.safe_integer_k(info.clone(), "marketId", &[]));
         }
-        let __ws_arg_24 = self.extend(request, &[params]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.opinion_private_get_trade_user_wallet_address(&[__ws_arg_24]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2164,12 +2164,12 @@ impl OpinionCore {
     m
 }));
         self.load_api_key().await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("chain_id".to_string(), Value::Str("56".into()));
             m
         });
-        let __ws_arg_25 = self.extend(request, &[params]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.opinion_private_get_user_balance(&[__ws_arg_25]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2201,7 +2201,7 @@ impl OpinionCore {
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
@@ -2218,16 +2218,16 @@ impl OpinionCore {
             while { if !__for_first_1388 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1388 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut code: Value = self.safe_string_k(balance.clone(), "symbol", &[Value::Str("USDT".into())]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map({
+            result.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), self.safe_number_k(balance.clone(), "availableBalance", &[]));
         m.insert("used".to_string(), self.safe_number_k(balance.clone(), "frozenBalance", &[]));
         m.insert("total".to_string(), self.safe_number_k(balance, "totalBalance", &[]));
     m
-})); }
+}));
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -2256,12 +2256,12 @@ impl OpinionCore {
             outcomesLength = outcomes.len() as i64;
             self.load_outcomes(&[outcomes.clone()]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), self.walletAddress.clone());
             m
         });
-        let __ws_arg_26 = self.extend(request, &[params]);
+        let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.opinion_private_get_positions_user_wallet_address(&[__ws_arg_26]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2371,14 +2371,14 @@ impl OpinionCore {
 
     pub fn sign_api_key_auth(&self, mut walletAddress: Value, mut action: Value, mut timestamp: Value) -> Option<String> {
         // EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
-        let mut domain: Value = Value::Map({
+        let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("Opinion OpenAPI".into()));
                 m.insert("version".to_string(), Value::Str("1".into()));
                 m.insert("chainId".to_string(), Value::Int(56));
             m
         });
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OpinionApiKeyAuth".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2398,14 +2398,14 @@ impl OpinionCore {
 })]));
             m
         });
-        let mut messageData: Value = Value::Map({
+        let mut messageData: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), walletAddress);
                 m.insert("action".to_string(), action);
                 m.insert("timestamp".to_string(), timestamp);
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, messageData);
+        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
         let mut sig: Value = self.sign_message(encoded, self.privateKey.clone());
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(sig.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null))).into()), self.remove0x_prefix(sig.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null))).into()), self.int_to_base16(sig.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null), &[])).into()).as_str().map(str::to_owned);
 }
@@ -2508,7 +2508,7 @@ impl OpinionCore {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             creds = self.fetch_api_key(&[]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             // no key exists for this wallet yet (11010) - self-issue one; any other
             // failure (unregistered wallet, disabled issuance) surfaces from the create call
             creds = self.create_api_key(&[]).await;
@@ -2524,17 +2524,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         //     { "apiKey": "...", "walletAddress": "..." }
         //
-        let mut creds: Value = Value::Map({
+        let mut creds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("apiKey".to_string(), (match response.get("apiKey") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
                 m.insert("walletAddress".to_string(), (match response.get("walletAddress") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
             m
         });
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("apiKey".into(), match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("apiKey".into(), creds.get("apiKey").cloned().unwrap_or(Value::Null)); }
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        self.apiKey = match &creds { Value::Dict(__m15) => __m15.get("apiKey").cloned().unwrap_or(Value::Null), _ => Value::Null };
-        return creds;
+        self.apiKey = creds.get("apiKey").cloned().unwrap_or(Value::Null);
+        return Value::Map(creds);
 
     Value::Null
 }
@@ -2580,14 +2580,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.load_api_key().await;
         let mut url: Value = self.opinion_ws_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut subscriptionKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.number_to_string(marketId.clone())).into());
-        let mut subscribeMsg: Value = Value::Map({
+        let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("channel".to_string(), channel);
                 m.insert("marketId".to_string(), marketId);
             m
         });
-        return self.watch(url, messageHash, &[subscribeMsg, subscriptionKey]).await;
+        return self.watch(url, messageHash, &[Value::Map(subscribeMsg), subscriptionKey]).await;
 
     Value::Null
 }
@@ -2681,14 +2681,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isNewSubscription {
             self.seed_order_book(outcome, sym.clone(), &[limit.clone()]).await;
         }
-        let mut subscribeMsg: Value = Value::Map({
+        let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("channel".to_string(), channel);
                 m.insert("marketId".to_string(), marketId);
             m
         });
-        let mut future: Value = self.watch(url, messageHash.clone(), &[subscribeMsg, subscriptionKey]).await;
+        let mut future: Value = self.watch(url, messageHash.clone(), &[Value::Map(subscribeMsg), subscriptionKey]).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next delta
             client.resolve(&[self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash]);
@@ -3172,7 +3172,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("opinion")).cloned().unwrap_or(Value::Null)]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
-        let mut existingHeaders: Value = Value::Map({
+        let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3181,21 +3181,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
-        }), &[existingHeaders]);
+        }), &[Value::Map(existingHeaders)]);
         if (access.as_deref() == Some("private")) {
             if (path.as_str() == Some("auth/api-key")) {
                 // wallet-signature scheme: no apiKey involved, the signature itself is the credential
                 if (self.walletAddress.clone() == Value::Null) || (self.privateKey.clone() == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), path).into()), Value::Str(" requires a walletAddress and privateKey".into()))));
                 }
-                let mut actionByMethod: Value = Value::Map({
+                let mut actionByMethod: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("POST".to_string(), Value::Str("create".into()));
                         m.insert("GET".to_string(), Value::Str("get".into()));
                         m.insert("DELETE".to_string(), Value::Str("delete".into()));
                     m
                 });
-                let mut action: Value = self.safe_string(actionByMethod, method.clone(), &[Value::Str("get".into())]);
+                let mut action: Value = self.safe_string(Value::Map(actionByMethod), method.clone(), &[Value::Str("get".into())]);
                 let mut timestamp: Value = self.number_to_string(self.seconds());
                 add_element_to_object(&mut headersExtended, &Value::Str("OPINION_ADDRESS".into()), self.walletAddress.clone());
                 add_element_to_object(&mut headersExtended, &Value::Str("OPINION_SIGNATURE".into()), self.sign_api_key_auth(self.walletAddress.clone(), action, timestamp.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));

@@ -265,12 +265,12 @@ impl KucoinfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".into()));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         return self.fetch_tickers(&[symbols, __ws_arg_0]).await;
 
     Value::Null
@@ -334,12 +334,12 @@ impl KucoinfuturesCore {
 }
 
     pub fn parse_transfer_type(&self, mut transferType: Value) -> Option<String> {
-        let mut transferTypes: Value = Value::Map({
+        let mut transferTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("TRADE".into()));
                 m.insert("funding".to_string(), Value::Str("MAIN".into()));
             m
         });
-        return self.safe_string_upper(transferTypes, transferType.clone(), &[transferType.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_upper(Value::Map(transferTypes), transferType.clone(), &[transferType.clone()]).as_str().map(str::to_owned);
 }
 }

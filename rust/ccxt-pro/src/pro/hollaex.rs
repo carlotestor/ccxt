@@ -809,13 +809,13 @@ impl HollaexCore {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -843,21 +843,21 @@ impl HollaexCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("CONNECT".into()), Value::Str("/stream".into())).into()), expires).into());
         let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-        let mut authParams: Value = Value::Map({
+        let mut authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api-key".to_string(), self.apiKey.clone());
                 m.insert("api-signature".to_string(), signature);
                 m.insert("api-expires".to_string(), expires);
             m
         });
-        let mut signedUrl: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(authParams, &[])).into());
-        let mut request: Value = Value::Map({
+        let mut signedUrl: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(Value::Map(authParams), &[])).into());
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(signedUrl, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -983,7 +983,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_pong(client.clone(), message.clone());
             return;
         }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("trade".to_string(), Value::Str("handle_trades".into()).clone());
                 m.insert("orderbook".to_string(), Value::Str("handle_order_book".into()).clone());
@@ -993,7 +993,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut topic: Value = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut method: Value = self.safe_value(methods, topic, &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), topic, &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message.clone()]);
         }

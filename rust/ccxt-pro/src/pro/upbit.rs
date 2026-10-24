@@ -380,15 +380,15 @@ impl UpbitCore {
 }));
         let mut newTickers: Value = self.watch_public_multiple(symbols.clone(), Value::Str("ticker".into()), &[]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
             if (newTickersSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers); }
+                tickers.insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
 
@@ -849,7 +849,7 @@ impl UpbitCore {
 }
 
     pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("wait".to_string(), Value::Str("open".into()));
                 m.insert("done".to_string(), Value::Str("closed".into()));
@@ -861,7 +861,7 @@ impl UpbitCore {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1171,7 +1171,7 @@ impl UpbitCore {
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
                 m.insert("orderbook".to_string(), Value::Str("handle_order_book".into()).clone());
@@ -1182,7 +1182,7 @@ impl UpbitCore {
             m
         });
         let mut methodName: Value = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut method: Value = (if (methodName == Value::Null) { Value::Null } else { self.safe_value(methods, methodName, &[]) });
+        let mut method: Value = (if (methodName == Value::Null) { Value::Null } else { self.safe_value(Value::Map(methods), methodName, &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }

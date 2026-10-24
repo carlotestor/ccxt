@@ -383,7 +383,7 @@ impl DeriveCore {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(10) } else { limit.clone() });
         let mut market: Value = self.market(symbol.clone());
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".10.".into())).into()), self.number_to_string(limitResolved.clone())).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -393,7 +393,7 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic.clone());
                 m.insert("symbol".to_string(), symbol);
@@ -401,7 +401,7 @@ impl DeriveCore {
                 m.insert("params".to_string(), params);
             m
         });
-        let mut orderbook: Value = self.watch_public(topic, request, subscription).await;
+        let mut orderbook: Value = self.watch_public(topic, Value::Map(request), Value::Map(subscription)).await;
         return orderbook.limit();
 
     Value::Null
@@ -469,7 +469,7 @@ impl DeriveCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".100".into())).into()); // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -479,14 +479,14 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic.clone());
                 m.insert("symbol".to_string(), symbol);
                 m.insert("params".to_string(), params);
             m
         });
-        return self.watch_public(topic, request, subscription).await;
+        return self.watch_public(topic, Value::Map(request), Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -511,7 +511,7 @@ impl DeriveCore {
         let mut market: Value = self.market(symbol);
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".100".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -521,12 +521,12 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic);
             m
         });
-        return self.un_watch_public(messageHash, request, subscription).await;
+        return self.un_watch_public(messageHash, Value::Map(request), Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -563,7 +563,7 @@ impl DeriveCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id(url.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -574,14 +574,14 @@ impl DeriveCore {
                 m.insert("id".to_string(), requestId.clone());
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
-        let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), subscription]).await;
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), Value::Map(subscription)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -694,7 +694,7 @@ impl DeriveCore {
         let mut market: Value = self.market(symbol);
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".10.".into())).into()), self.number_to_string(limit)).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -704,12 +704,12 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic);
             m
         });
-        return self.un_watch_public(messageHash, request, subscription).await;
+        return self.un_watch_public(messageHash, Value::Map(request), Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -733,7 +733,7 @@ impl DeriveCore {
         let mut market: Value = self.market(symbol);
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         let mut messageHah: Value = Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -743,12 +743,12 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic);
             m
         });
-        return self.un_watch_public(messageHah, request, subscription).await;
+        return self.un_watch_public(messageHah, Value::Map(request), Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -889,7 +889,7 @@ impl DeriveCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -899,14 +899,14 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic.clone());
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("params".to_string(), params);
             m
         });
-        let mut trades: Value = self.watch_public(topic, request, subscription).await;
+        let mut trades: Value = self.watch_public(topic, Value::Map(request), Value::Map(subscription)).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit);
@@ -966,7 +966,7 @@ impl DeriveCore {
             let mut configuredWalletAddress: Value = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]);
             // v3: the owner wallet is the user's own EOA
             let mut deriveWalletAddress: Value = (if ((configuredWalletAddress == Value::Null) || (configuredWalletAddress.as_str() == Some(""))) { self.walletAddress.clone() } else { configuredWalletAddress });
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId);
                     m.insert("method".to_string(), Value::Str("public/login".into()));
@@ -984,7 +984,7 @@ impl DeriveCore {
             //     'symbol': symbol,
             //     'params': params,
             // }
-            let mut message: Value = self.extend(request, &[params]);
+            let mut message: Value = self.extend(Value::Map(request), &[params]);
             self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), message.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -1044,7 +1044,7 @@ impl DeriveCore {
         if (symbolResolved != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1054,14 +1054,14 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic);
                 m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[paramsDeriveSubaccountId]);
-        let mut orders: Value = self.watch_private(messageHash, message, subscription).await;
+        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut orders: Value = self.watch_private(messageHash, message, Value::Map(subscription)).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1185,7 +1185,7 @@ impl DeriveCore {
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId), Value::Str(".orders".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1195,13 +1195,13 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic);
             m
         });
-        let mut message: Value = self.extend(request, &[paramsDeriveSubaccountId]);
-        return self.un_watch_public(messageHash, message, subscription).await;
+        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        return self.un_watch_public(messageHash, message, Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -1238,7 +1238,7 @@ impl DeriveCore {
         if (symbolResolved != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1248,14 +1248,14 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic);
                 m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[paramsDeriveSubaccountId]);
-        let mut trades: Value = self.watch_private(messageHash, message, subscription).await;
+        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut trades: Value = self.watch_private(messageHash, message, Value::Map(subscription)).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -1318,7 +1318,7 @@ impl DeriveCore {
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId), Value::Str(".trades".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1328,13 +1328,13 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic);
             m
         });
-        let mut message: Value = self.extend(request, &[paramsDeriveSubaccountId]);
-        return self.un_watch_public(messageHash, message, subscription).await;
+        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        return self.un_watch_public(messageHash, message, Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -1373,22 +1373,22 @@ impl DeriveCore {
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         let mut subaccountIdKey: Value = self.number_to_string(subaccountId.clone());
         if fetchSnapshot.as_bool() == Some(true) && !(matches!((&self.balance, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut snapshotRequest: Value = Value::Map({
+            let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), subaccountId.clone());
                 m
             });
-            let mut snapshotParams: Value = self.extend(snapshotRequest, &[paramsDeriveSubaccountId.clone()]);
+            let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[paramsDeriveSubaccountId.clone()]);
             let mut snapshot: Value = self.fetch_balance(&[snapshotParams]).await;
-            let mut emptyBalance: Value = Value::Map({
+            let mut emptyBalance: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             }); // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
-            let mut seeded: Value = self.extend(snapshot, &[emptyBalance]); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
+            let mut seeded: Value = self.extend(snapshot, &[Value::Map(emptyBalance)]); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&subaccountIdKey), seeded); }
         }
         let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId), Value::Str(".balances".into())).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1398,14 +1398,14 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic.clone());
                 m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[paramsDeriveSubaccountId]);
-        return self.watch_private(topic, message, subscription).await;
+        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        return self.watch_private(topic, message, Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -1463,12 +1463,12 @@ impl DeriveCore {
             m
         })]);
         if fetchSnapshot.as_bool() == Some(true) && !(matches!((&loadedSnapshots, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut snapshotRequest: Value = Value::Map({
+            let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), subaccountId.clone());
                 m
             });
-            let mut snapshotParams: Value = self.extend(snapshotRequest, &[paramsDeriveSubaccountId.clone()]);
+            let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[paramsDeriveSubaccountId.clone()]);
             let mut positionsSnapshot: Value = self.fetch_positions(&[Value::Null, snapshotParams]).await;
             let mut cache: Value = self.positions.as_map().and_then(|__m| subaccountIdKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             {
@@ -1483,7 +1483,7 @@ impl DeriveCore {
         }
         let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId), Value::Str(".balances".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1493,14 +1493,14 @@ impl DeriveCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), topic);
                 m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[paramsDeriveSubaccountId]);
-        let mut newPositions: Value = self.watch_private(messageHash, message, subscription).await;
+        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut newPositions: Value = self.watch_private(messageHash, message, Value::Map(subscription)).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -1681,7 +1681,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderbook".to_string(), Value::Str("handle_order_book".into()).clone());
                 m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -1709,7 +1709,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
         }
-        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods, event, &[]) });
+        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(Value::Map(methods), event, &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;

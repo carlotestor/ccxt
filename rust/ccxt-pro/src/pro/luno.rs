@@ -300,7 +300,7 @@ impl LunoCore {
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbolValue.clone());
             m
@@ -311,14 +311,14 @@ impl LunoCore {
         }
         let mut url: Value = Value::Str(format!("{}{}", wsUrl, subscriptionHash).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api_key_id".to_string(), self.apiKey.clone());
                 m.insert("api_key_secret".to_string(), self.secret.clone());
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
-        let mut trades: Value = self.watch(url, messageHash, &[request, subscriptionHash, subscription]).await;
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
+        let mut trades: Value = self.watch(url, messageHash, &[request, subscriptionHash, Value::Map(subscription)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
@@ -437,7 +437,7 @@ impl LunoCore {
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbolValue.clone());
             m
@@ -448,14 +448,14 @@ impl LunoCore {
         }
         let mut url: Value = Value::Str(format!("{}{}", wsUrl, subscriptionHash).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api_key_id".to_string(), self.apiKey.clone());
                 m.insert("api_key_secret".to_string(), self.secret.clone());
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
-        let mut orderbook: Value = self.watch(url, messageHash, &[request, subscriptionHash, subscription]).await;
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
+        let mut orderbook: Value = self.watch(url, messageHash, &[request, subscriptionHash, Value::Map(subscription)]).await;
         return orderbook.limit();
 
     Value::Null

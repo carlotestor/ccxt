@@ -506,7 +506,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -522,19 +522,18 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_0 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut newTicker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
             if (newTickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsList]);
 
@@ -579,7 +578,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -595,8 +594,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_1 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_1, messageHashes.clone()]).await;
 
     Value::Null
@@ -688,7 +686,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -709,19 +707,18 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_2 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut newTicker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_2, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
             if (newTickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsList]);
 
@@ -765,7 +762,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -786,8 +783,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_3 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
 
     Value::Null
@@ -917,7 +913,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -933,19 +929,18 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut newTicker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_4, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
             if (newTickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsList]);
 
@@ -986,7 +981,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -1002,8 +997,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_5, messageHashes.clone()]).await;
 
     Value::Null
@@ -1147,7 +1141,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -1168,8 +1162,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trade::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_6 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut trades: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_6, messageHashes.clone()]).await;
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
@@ -1217,7 +1210,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -1233,8 +1226,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_7 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_7, messageHashes.clone()]).await;
 
     Value::Null
@@ -1522,7 +1514,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -1542,8 +1534,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_8 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut orderbook: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_8, messageHashes.clone()]).await;
         return orderbook.limit();
 
@@ -1588,7 +1579,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -1609,8 +1600,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_9 = self.extend(request, &[paramsOmitted2]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted2]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_9, messageHashes.clone()]).await;
 
     Value::Null
@@ -1752,7 +1742,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -1780,8 +1770,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_10 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut symboltimeframestoredVariable = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_10, messageHashes.clone()]).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
@@ -1832,7 +1821,7 @@ impl AsterCore {
         }
         let mut subscriptionArgs: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
                 m.insert("params".to_string(), subscriptionArgs.clone());
@@ -1860,8 +1849,7 @@ impl AsterCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
         }
         }
-        crate::set_value(&mut request, &crate::Value::Str("params".into()), subscriptionArgs);
-        let __ws_arg_11 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_11, messageHashes.clone()]).await;
 
     Value::Null
@@ -2130,12 +2118,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value) -> Value {
-        let mut params: Value = Value::Map({
+        let mut params: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut response: Value = self.fetch_balance(&[params]).await;
+        let mut response: Value = self.fetch_balance(&[Value::Map(params)]).await;
         let __ws_arg_12 = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2871,7 +2859,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut messageInner: Value = self.safe_dict_k(message.clone(), "data", &[message.clone()]); // can be either wrapped in 'data' or full object itself
         let mut event: Value = self.safe_string_k(messageInner.clone(), "e", &[]);
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("24hrTicker".to_string(), Value::Str("handle_ticker".into()).clone());
                 m.insert("aggTrade".to_string(), Value::Str("handle_trade".into()).clone());
@@ -2885,7 +2873,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("ORDER_TRADE_UPDATE".to_string(), Value::Str("handle_order_update".into()).clone());
             m
         });
-        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods, event, &[]) });
+        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(Value::Map(methods), event, &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, messageInner]);
         }

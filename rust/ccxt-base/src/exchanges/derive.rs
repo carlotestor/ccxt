@@ -1294,12 +1294,12 @@ impl DeriveCore {
         let mut deriveWalletAddressparamsDeriveWalletAddressVariable = self.handle_derive_wallet_address(Value::Str("fetchAccounts".into()), params);
         let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("wallet".to_string(), deriveWalletAddress);
             m
         });
-        let __ws_arg_0 = self.extend(request, &[paramsDeriveWalletAddress]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsDeriveWalletAddress]);
         let mut response: Value = self.private_post_get_subaccounts(&[__ws_arg_0]).await;
         //
         //     {
@@ -1536,13 +1536,13 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("expired".to_string(), Value::Bool(false));
                 m.insert("instrument_type".to_string(), Value::Str("erc20".into()));
             m
         });
-        let mut instruments: Value = self.get_markets_paginated(request, &[params]).await;
+        let mut instruments: Value = self.get_markets_paginated(Value::Map(request), &[params]).await;
         return self.parse_markets(instruments);
 
     Value::Null
@@ -1553,13 +1553,13 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("expired".to_string(), Value::Bool(false));
                 m.insert("instrument_type".to_string(), Value::Str("perp".into()));
             m
         });
-        let mut instruments: Value = self.get_markets_paginated(request, &[params]).await;
+        let mut instruments: Value = self.get_markets_paginated(Value::Map(request), &[params]).await;
         return self.parse_markets(instruments);
 
     Value::Null
@@ -1570,13 +1570,13 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("expired".to_string(), Value::Bool(false));
                 m.insert("instrument_type".to_string(), Value::Str("option".into()));
             m
         });
-        let mut instruments: Value = self.get_markets_paginated(request, &[params]).await;
+        let mut instruments: Value = self.get_markets_paginated(Value::Map(request), &[params]).await;
         return self.parse_markets(instruments);
 
     Value::Null
@@ -1784,12 +1784,12 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_get_ticker(&[__ws_arg_2]).await;
         //
         //     {
@@ -1849,12 +1849,12 @@ impl DeriveCore {
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_get_ticker(&[__ws_arg_3]).await;
         //
         //     {
@@ -1942,12 +1942,12 @@ impl DeriveCore {
         if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchGreeks() supports option markets only".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_get_ticker(&[__ws_arg_4]).await;
         //
         //     {
@@ -2053,12 +2053,12 @@ impl DeriveCore {
         if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOption() supports option markets only".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_get_ticker(&[__ws_arg_5]).await;
         // the response sample is listed in fetchGreeks, both methods read the same endpoint
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
@@ -2138,12 +2138,12 @@ impl DeriveCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchSettlementHistory() requires a symbol argument to resolve the underlying currency".into()))));
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_get_option_settlement_prices(&[__ws_arg_6]).await;
         //
         //     {
@@ -2201,12 +2201,12 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchMySettlementHistory".into()), params);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
-        let __ws_arg_7 = self.extend(request, &[paramsDeriveSubaccountId]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
         let mut response: Value = self.private_post_get_option_settlement_history(&[__ws_arg_7]).await;
         //
         //     {
@@ -2393,14 +2393,14 @@ impl DeriveCore {
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(1000)]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut limitResolved: Value = limit.clone();
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
@@ -2409,17 +2409,17 @@ impl DeriveCore {
         if (limit != Value::Null) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
             let mut pageSize: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > ((500i64) as f64)) { Value::Int(1000) } else { (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) }); // default 100, max 1000
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), pageSize); }
+            request.insert("page_size".into(), pageSize);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from_timestamp".into(), since.clone()); }
+            request.insert("from_timestamp".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(paramsPaginate.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to_timestamp".into(), until); }
+            request.insert("to_timestamp".into(), until);
         }
-        let __ws_arg_8 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_post_get_trade_history(&[__ws_arg_8]).await;
         //
         //     {
@@ -2767,20 +2767,20 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+            request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), until); }; // the venue silently ignores the to_timestamp spelling other endpoints use
+            request.insert("end_timestamp".into(), until); // the venue silently ignores the to_timestamp spelling other endpoints use
         }
-        let __ws_arg_11 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_post_get_funding_rate_history(&[__ws_arg_11]).await;
         //
         //     {
@@ -3222,7 +3222,7 @@ impl DeriveCore {
         let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut signature: Value = self.sign_order(Value::from(vec![ACTION_TYPEHASH, subaccountId.clone(), self.convert_to_big_int(nonce.clone()), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry.clone(), deriveWalletAddress, self.walletAddress.clone()]), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("order_id_to_cancel".to_string(), id.clone());
@@ -3238,23 +3238,23 @@ impl DeriveCore {
             m
         });
         if (reduceOnly != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), reduceOnly.clone()); }
+            request.insert("reduce_only".into(), reduceOnly.clone());
             if reduceOnly.as_bool() == Some(true) && (postOnly.as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".into()))));
             }
         }
         if (postOnly != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), Value::Str("post_only".into())); }
+            request.insert("time_in_force".into(), Value::Str("post_only".into()));
         }  else if (timeInForce != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), timeInForce); }
+            request.insert("time_in_force".into(), timeInForce);
         }
         let mut clientOrderId: Value = self.safe_string_k(paramsDeriveWalletAddress.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("label".into(), clientOrderId); }
+            request.insert("label".into(), clientOrderId);
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        request.insert("signature".into(), signature);
         let mut paramsOmitted: Value = self.omit(paramsDeriveWalletAddress, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into())]), &[]);
-        let __ws_arg_14 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_replace(&[__ws_arg_14]).await;
         //
         //     {
@@ -3447,7 +3447,7 @@ impl DeriveCore {
         //         }
         //     }
         //
-        let mut extendParams: Value = Value::Map({
+        let mut extendParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol);
             m
@@ -3457,10 +3457,10 @@ impl DeriveCore {
     m
 })]);
         if isByClientOrder {
-            if let Value::Dict(__d) = &mut extendParams { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderIdExchangeSpecific); }
+            extendParams.insert("client_order_id".into(), clientOrderIdExchangeSpecific);
         }
         let __ws_arg_18 = self.parse_order(order, &[market]);
-        return self.extend(__ws_arg_18, &[extendParams]);
+        return self.extend(__ws_arg_18, &[Value::Map(extendParams)]);
 
     Value::Null
 }
@@ -3553,7 +3553,7 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchCanceledAndClosedOrders".into()), paramsOmitted);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
@@ -3563,17 +3563,17 @@ impl DeriveCore {
             market = self.market(symbol.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(500)); }
+            request.insert("page_size".into(), Value::Int(500));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from_timestamp".into(), since.clone()); }
+            request.insert("from_timestamp".into(), since.clone());
         }
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to_timestamp".into(), until); }
+            request.insert("to_timestamp".into(), until);
         }
-        let __ws_arg_21 = self.extend(request, &[paramsDeriveSubaccountId.clone()]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[paramsDeriveSubaccountId.clone()]);
         let mut response: Value = self.private_post_get_order_history(&[__ws_arg_21]).await;
         //
         //     {
@@ -3669,13 +3669,13 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchOrder".into()), params);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
-        let __ws_arg_22 = self.extend(request, &[paramsDeriveSubaccountId]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
         let mut response: Value = self.private_post_get_order(&[__ws_arg_22]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3847,7 +3847,7 @@ impl DeriveCore {
 }
 
     pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
-        let mut timeInForces: Value = Value::Map({
+        let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ioc".to_string(), Value::Str("IOC".into()));
                 m.insert("fok".to_string(), Value::Str("FOK".into()));
@@ -3855,12 +3855,12 @@ impl DeriveCore {
                 m.insert("post_only".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce, &[]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(timeInForces), timeInForce, &[]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         if (status != Value::Null) {
-            let mut statuses: Value = Value::Map({
+            let mut statuses: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("open".to_string(), Value::Str("open".into()));
                     m.insert("untriggered".to_string(), Value::Str("open".into()));
@@ -3869,7 +3869,7 @@ impl DeriveCore {
                     m.insert("expired".to_string(), Value::Str("rejected".into()));
                 m
             });
-            return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+            return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
         }
         return None;
 }
@@ -4019,7 +4019,7 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchOrderTrades".into()), params);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
                 m.insert("subaccount_id".to_string(), subaccountId);
@@ -4028,15 +4028,15 @@ impl DeriveCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from_timestamp".into(), since.clone()); }
+            request.insert("from_timestamp".into(), since.clone());
         }
-        let __ws_arg_25 = self.extend(request, &[paramsDeriveSubaccountId.clone()]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[paramsDeriveSubaccountId.clone()]);
         let mut response: Value = self.private_post_get_trade_history(&[__ws_arg_25]).await;
         //
         //     {
@@ -4120,7 +4120,7 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchMyTrades".into()), paramsPaginate);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
@@ -4128,15 +4128,15 @@ impl DeriveCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from_timestamp".into(), since.clone()); }
+            request.insert("from_timestamp".into(), since.clone());
         }
-        let __ws_arg_26 = self.extend(request, &[paramsDeriveSubaccountId.clone()]);
+        let __ws_arg_26 = self.extend(Value::Map(request), &[paramsDeriveSubaccountId.clone()]);
         let mut response: Value = self.private_post_get_trade_history(&[__ws_arg_26]).await;
         //
         //     {
@@ -4242,13 +4242,13 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchPositions".into()), params);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("subaccount_id".into())]), &[]);
-        let __ws_arg_27 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_27 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_get_positions(&[__ws_arg_27]).await;
         //
         //     {
@@ -4416,7 +4416,7 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchFundingHistory".into()), paramsPaginate);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
@@ -4424,20 +4424,20 @@ impl DeriveCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+            request.insert("start_timestamp".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
         }
         let mut until: Value = self.safe_integer_k(paramsDeriveSubaccountId.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), until); }
+            request.insert("end_timestamp".into(), until);
         }
-        let __ws_arg_28 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_get_funding_history(&[__ws_arg_28]).await;
         //
         //     {
@@ -4539,13 +4539,13 @@ impl DeriveCore {
         }
         let mut subaccountId: Value = self.safe_integer_k(params.clone(), "subaccount_id", &[]);
         if (subaccountId != Value::Null) {
-            let mut subaccountRequest: Value = Value::Map({
+            let mut subaccountRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), subaccountId);
                 m
             });
             let mut subaccountParams: Value = self.omit(params.clone(), Value::Str("subaccount_id".into()), &[]);
-            let __ws_arg_29 = self.extend(subaccountRequest, &[subaccountParams]);
+            let __ws_arg_29 = self.extend(Value::Map(subaccountRequest), &[subaccountParams]);
             let mut subaccountResponse: Value = self.private_post_get_subaccount(&[__ws_arg_29]).await;
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             let mut subaccountResult: Value = self.safe_dict_k(subaccountResponse, "result", &[Value::Map({
@@ -4557,12 +4557,12 @@ impl DeriveCore {
         let mut deriveWalletAddressparamsDeriveWalletAddressVariable = self.handle_derive_wallet_address(Value::Str("fetchBalance".into()), params);
         let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("wallet".to_string(), deriveWalletAddress);
             m
         });
-        let __ws_arg_30 = self.extend(request, &[paramsDeriveWalletAddress]);
+        let __ws_arg_30 = self.extend(Value::Map(request), &[paramsDeriveWalletAddress]);
         let mut response: Value = self.private_post_get_all_portfolios(&[__ws_arg_30]).await;
         //
         //     {
@@ -4927,7 +4927,7 @@ impl DeriveCore {
         let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut signature: Value = self.sign_order(Value::from(vec![ACTION_TYPEHASH, fromId.clone(), self.convert_to_big_int(nonce.clone()), TRANSFER_MODULE_ADDRESS, transferModuleDataHash, signatureExpiry.clone(), deriveWalletAddress, self.walletAddress.clone()]), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), fromId.clone());
                 m.insert("to_subaccount_id".to_string(), toId.clone());
@@ -4942,7 +4942,7 @@ impl DeriveCore {
                 m.insert("signature_expiry_sec".to_string(), signatureExpiry);
             m
         });
-        let __ws_arg_31 = self.extend(request, &[paramsDeriveWalletAddress]);
+        let __ws_arg_31 = self.extend(Value::Map(request), &[paramsDeriveWalletAddress]);
         let mut response: Value = self.private_post_transfer_spot(&[__ws_arg_31]).await;
         //
         //     {
@@ -5022,20 +5022,20 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchTransfers".into()), params);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+            request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(paramsDeriveSubaccountId.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("until".into())]), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), until); }
+            request.insert("end_timestamp".into(), until);
         }
-        let __ws_arg_32 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_get_erc20_transfer_history(&[__ws_arg_32]).await;
         //
         //     {
@@ -5111,21 +5111,21 @@ impl DeriveCore {
         let mut riskUniverseIdparamsUniverseVariable = self.handle_option_and_params(params, Value::Str("fetchBorrowRateHistory".into()), Value::Str("risk_universe_id".into()), &[Value::Int(1)]);
         let mut riskUniverseId: Value = riskUniverseIdparamsUniverseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUniverse: Value = riskUniverseIdparamsUniverseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("risk_universe_id".to_string(), riskUniverseId);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+            request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(paramsUniverse.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsUniverse, Value::from(vec![Value::Str("until".into())]), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), until); }
+            request.insert("end_timestamp".into(), until);
         }
-        let __ws_arg_33 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_33 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_post_get_interest_rate_history(&[__ws_arg_33]).await;
         //
         //     {
@@ -5227,20 +5227,20 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchBorrowInterest".into()), params);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+            request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(paramsDeriveSubaccountId.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("until".into())]), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), until); }
+            request.insert("end_timestamp".into(), until);
         }
-        let __ws_arg_34 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_34 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_get_interest_history(&[__ws_arg_34]).await;
         //
         //     {
@@ -5352,7 +5352,7 @@ impl DeriveCore {
         let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut signature: Value = self.sign_order(Value::from(vec![ACTION_TYPEHASH, subaccountId.clone(), self.convert_to_big_int(nonce.clone()), WITHDRAWAL_MODULE_ADDRESS, withdrawalModuleDataHash, signatureExpiry.clone(), deriveWalletAddress, self.walletAddress.clone()]), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
                 m.insert("asset_name".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -5367,7 +5367,7 @@ impl DeriveCore {
             m
         });
         // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
-        let __ws_arg_35 = self.extend(request, &[paramsDeriveWalletAddress]);
+        let __ws_arg_35 = self.extend(Value::Map(request), &[paramsDeriveWalletAddress]);
         let mut response: Value = self.private_post_withdraw(&[__ws_arg_35]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5417,15 +5417,15 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchDeposits".into()), params);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+            request.insert("start_timestamp".into(), since.clone());
         }
-        let __ws_arg_36 = self.extend(request, &[paramsDeriveSubaccountId.clone()]);
+        let __ws_arg_36 = self.extend(Value::Map(request), &[paramsDeriveSubaccountId.clone()]);
         let mut response: Value = self.private_post_get_deposit_history(&[__ws_arg_36]).await;
         //
         //     {
@@ -5493,15 +5493,15 @@ impl DeriveCore {
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchWithdrawals".into()), params);
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+            request.insert("start_timestamp".into(), since.clone());
         }
-        let __ws_arg_37 = self.extend(request, &[paramsDeriveSubaccountId.clone()]);
+        let __ws_arg_37 = self.extend(Value::Map(request), &[paramsDeriveSubaccountId.clone()]);
         let mut response: Value = self.private_post_get_withdrawal_history(&[__ws_arg_37]).await;
         //
         //     {
@@ -5609,7 +5609,7 @@ impl DeriveCore {
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Batching".to_string(), Value::Str("pending".into()));
                 m.insert("Executing".to_string(), Value::Str("pending".into()));
@@ -5627,7 +5627,7 @@ impl DeriveCore {
                 m.insert("reverted".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn handle_derive_subaccount_id(&self, mut methodName: Value, mut params: Value) -> Value {

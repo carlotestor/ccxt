@@ -520,14 +520,14 @@ impl ToobitCore {
         }
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized]);
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[]), Value::Str("/quote/ws/v1".into())).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                 m.insert("topic".to_string(), Value::Str("trade".into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
@@ -674,14 +674,14 @@ impl ToobitCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbolStr).into()), Value::Str("::".into())).into()), unfiedTimeframe).into())); }
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));
                 m.insert("topic".to_string(), Value::Str(format!("{}{}", Value::Str("kline_".into()), selectedTimeframe).into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut symboltimeframestoredVariable = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_1, messageHashes.clone()]).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
@@ -842,25 +842,25 @@ impl ToobitCore {
         }
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[]), Value::Str("/quote/ws/v1".into())).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                 m.insert("topic".to_string(), Value::Str("realtimes".into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_2, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -1005,14 +1005,14 @@ impl ToobitCore {
         }
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized]);
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[]), Value::Str("/quote/ws/v1".into())).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                 m.insert("topic".to_string(), channel);
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_3 = self.extend(request, &[paramsChannel]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsChannel]);
         let mut orderbook: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
         return orderbook.limit();
 
@@ -1623,12 +1623,12 @@ impl ToobitCore {
 }
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value) -> Value {
-        let mut params: Value = Value::Map({
+        let mut params: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut positions: Value = self.fetch_positions(&[Value::Null, params]).await;
+        let mut positions: Value = self.fetch_positions(&[Value::Null, Value::Map(params)]).await;
         if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&type_var), ArrayCacheBySymbolBySide::new(Value::Null)); }
         let mut cache: Value = self.positions.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {

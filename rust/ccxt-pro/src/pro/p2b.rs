@@ -453,14 +453,14 @@ impl P2bCore {
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str(format!("{}{}", nameOption, Value::Str(".subscribe".into())).into()));
                 m.insert("params".to_string(), Value::from(args));
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_0 = self.extend(request, &[paramsName]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsName]);
         self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -524,14 +524,14 @@ impl P2bCore {
         }
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("deals.subscribe".into()));
                 m.insert("params".to_string(), marketIds);
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let mut query: Value = self.extend(subscribe, &[params]);
+        let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
         let mut trades: Value = self.watch_multiple(url, messageHashes.clone(), &[query, messageHashes.clone()]).await;
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
@@ -843,7 +843,7 @@ impl P2bCore {
             return;
         }
         let mut method: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("depth.update".to_string(), Value::Str("handle_order_book".into()).clone());
                 m.insert("price.update".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -852,7 +852,7 @@ impl P2bCore {
                 m.insert("deals.update".to_string(), Value::Str("handle_trade".into()).clone());
             m
         });
-        let mut endpoint: Value = self.safe_value(methods, method, &[]);
+        let mut endpoint: Value = self.safe_value(Value::Map(methods), method, &[]);
         if (endpoint != Value::Null) {
             self.dispatch_ws_handler(&endpoint, &[client, message]);
         }

@@ -1196,7 +1196,7 @@ impl DeltaCore {
 }
 
     pub fn index_by_stringified_numeric_id(&self, mut input: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1214,10 +1214,10 @@ impl DeltaCore {
             if (numericIdString == Value::Null) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&numericIdString), item); }
+            result.insert(crate::runtime::stringify_param(&numericIdString), item);
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -1746,12 +1746,12 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_0]).await;
         //
         // spot
@@ -2078,15 +2078,15 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".into(), limit); }
+            request.insert("depth".into(), limit);
         }
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_l2orderbook_symbol(&[__ws_arg_1]).await;
         //
         //     {
@@ -2251,12 +2251,12 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trades_symbol(&[__ws_arg_2]).await;
         //
         //     {
@@ -2309,7 +2309,7 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
@@ -2331,26 +2331,26 @@ impl DeltaCore {
             if untilIsDefined {
                 end = self.parse_to_int(until.clone());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), end.clone()); }
+            request.insert("end".into(), end.clone());
             if (end == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing end".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), (match (&(end), &(windowSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            request.insert("start".into(), (match (&(end), &(windowSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }  else {
             let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), start.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), (if untilIsDefined { until } else { self.sum(&[start, windowSeconds]) })); }
+            request.insert("start".into(), start.clone());
+            request.insert("end".into(), (if untilIsDefined { until } else { self.sum(&[start, windowSeconds]) }));
         }
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         if (price.as_deref() == Some("mark")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), Value::Str(format!("{}{}", Value::Str("MARK:".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())); }
+            request.insert("symbol".into(), Value::Str(format!("{}{}", Value::Str("MARK:".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
         }  else if (price.as_deref() == Some("index")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), crate::value::get_value_k(&crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "spot_index"), "symbol")); }
+            request.insert("symbol".into(), crate::value::get_value_k(&crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "spot_index"), "symbol"));
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]);
-        let __ws_arg_3 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_get_history_candles(&[__ws_arg_3]).await;
         //
         //     {
@@ -2434,12 +2434,12 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_positions(&[__ws_arg_4]).await;
         //
         //     {
@@ -2581,7 +2581,7 @@ impl DeltaCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("open".to_string(), Value::Str("open".into()));
                 m.insert("pending".to_string(), Value::Str("open".into()));
@@ -2589,7 +2589,7 @@ impl DeltaCore {
                 m.insert("cancelled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2752,7 +2752,7 @@ impl DeltaCore {
         self.load_markets(&[]).await;
         let mut orderType: Value = Value::Str(format!("{}{}", type_var, Value::Str("_order".into())).into());
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
                 m.insert("size".to_string(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount));
@@ -2761,19 +2761,19 @@ impl DeltaCore {
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".into(), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price)); }
+            request.insert("limit_price".into(), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price));
         }
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId); }
+            request.insert("client_order_id".into(), clientOrderId);
         }
         let mut reduceOnly: Value = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[]);
         if (reduceOnly.as_bool() == Some(true)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), reduceOnly.clone()); }
+            request.insert("reduce_only".into(), reduceOnly.clone());
         }
         let mut paramsOmitted2: Value = (if (reduceOnly.as_bool() == Some(true)) { self.omit(paramsOmitted.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsOmitted });
-        let __ws_arg_5 = self.extend(request, &[paramsOmitted2]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted2]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_5]).await;
         //
         //     {
@@ -2843,7 +2843,7 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
@@ -2854,12 +2854,12 @@ impl DeltaCore {
             if (sizeString == Value::Null) {
                 sizeString = Value::Str("0".into());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), (match &sizeString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })); }
+            request.insert("size".into(), (match &sizeString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
         }
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".into(), self.price_to_precision(symbol, price)); }
+            request.insert("limit_price".into(), self.price_to_precision(symbol, price));
         }
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_put_orders(&[__ws_arg_6]).await;
         //
         //     {
@@ -2908,13 +2908,13 @@ impl DeltaCore {
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_orders(&[__ws_arg_7]).await;
         //
         //     {
@@ -2981,12 +2981,12 @@ impl DeltaCore {
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_orders_all(&[__ws_arg_8]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3198,22 +3198,22 @@ impl DeltaCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("product_ids".into(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null)); }; // accepts a comma-separated list of ids
+            request.insert("product_ids".into(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null)); // accepts a comma-separated list of ids
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), Value::Str(format!("{}{}", Value::Str(format!("{}", since).into()), Value::Str("000".into())).into())); }
+            request.insert("start_time".into(), Value::Str(format!("{}{}", Value::Str(format!("{}", since).into()), Value::Str("000".into())).into()));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
         }
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_fills(&[__ws_arg_13]).await;
         //
         //     {
@@ -3286,19 +3286,19 @@ impl DeltaCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("asset_id".into(), currency.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null)); }
+            request.insert("asset_id".into(), currency.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
         }
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_wallet_transactions(&[__ws_arg_14]).await;
         //
         //     {
@@ -3328,7 +3328,7 @@ impl DeltaCore {
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pnl".to_string(), Value::Str("pnl".into()));
                 m.insert("deposit".to_string(), Value::Str("transaction".into()));
@@ -3339,7 +3339,7 @@ impl DeltaCore {
                 m.insert("commission_rebate".to_string(), Value::Str("rebate".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -3423,17 +3423,17 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let mut networkCode: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(networkCode.clone(), &[code])); }
+            request.insert("network".into(), self.network_code_to_id(networkCode.clone(), &[code]));
         }
         let mut paramsOmitted: Value = (if (networkCode != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
-        let __ws_arg_15 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_deposits_address(&[__ws_arg_15]).await;
         //
         //    {
@@ -3514,12 +3514,12 @@ impl DeltaCore {
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports swap contracts only".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_16 = self.extend(request, &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_16]).await;
         //
         //     {
@@ -3592,12 +3592,12 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contract_types".to_string(), Value::Str("perpetual_futures".into()));
             m
         });
-        let __ws_arg_17 = self.extend(request, &[params]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_tickers(&[__ws_arg_17]).await;
         //
         //     {
@@ -3775,13 +3775,13 @@ impl DeltaCore {
         let mut market: Value = self.market(symbol);
         let mut amountString: Value = Value::Str(format!("{}", amount).into());
         let mut deltaMargin: Value = (if (type_var.as_str() == Some("reduce")) { crate::precise::Precise::stringMul(&amountString, &Value::Str("-1".into())) } else { amountString.clone() });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
                 m.insert("delta_margin".to_string(), deltaMargin);
             m
         });
-        let __ws_arg_18 = self.extend(request, &[params]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_positions_change_margin(&[__ws_arg_18]).await;
         //
         //     {
@@ -3876,12 +3876,12 @@ impl DeltaCore {
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_19 = self.extend(request, &[params]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_19]).await;
         //
         //     {
@@ -4029,12 +4029,12 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_20 = self.extend(request, &[params]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_products_product_id_orders_leverage(&[__ws_arg_20]).await;
         //
         //     {
@@ -4096,13 +4096,13 @@ impl DeltaCore {
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let __ws_arg_21 = self.extend(request, &[params]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         return self.private_post_products_product_id_orders_leverage(&[__ws_arg_21]).await;
 
     Value::Null
@@ -4132,15 +4132,15 @@ impl DeltaCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("states".to_string(), Value::Str("expired".into()));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
+            request.insert("page_size".into(), limit.clone());
         }
-        let __ws_arg_22 = self.extend(request, &[params]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_products(&[__ws_arg_22]).await;
         //
         //     {
@@ -4307,12 +4307,12 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_23 = self.extend(request, &[params]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_23]).await;
         //
         //     {
@@ -4479,13 +4479,13 @@ impl DeltaCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("close_all_portfolio".to_string(), Value::Bool(true));
                 m.insert("close_all_isolated".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_24 = self.extend(request, &[params]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_positions_close_all(&[__ws_arg_24]).await;
         //
         // {"result":{},"success":true}
@@ -4628,12 +4628,12 @@ impl DeltaCore {
         self.check_required_argument(Value::Str("setMarginMode".into()), marginMode.clone(), Value::Str("marginMode".into()), &[Value::from(vec![Value::Str("isolated".into()), Value::Str("portfolio".into())])]);
         let mut subaccountUserId: Value = self.safe_string_k(params.clone(), "subaccount_user_id", &[]);
         self.check_required_argument(Value::Str("setMarginMode".into()), subaccountUserId, Value::Str("params[\"subaccount_user_id\"]".into()), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("margin_mode".to_string(), marginMode);
             m
         });
-        let __ws_arg_25 = self.extend(request, &[params]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
         return self.private_put_users_margin_mode(&[__ws_arg_25]).await;
 
     Value::Null
@@ -4655,12 +4655,12 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_26 = self.extend(request, &[params]);
+        let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_26]).await;
         //
         //     {

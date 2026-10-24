@@ -410,7 +410,7 @@ impl DeepcoinCore {
         if unWatch {
             action = Value::Str("0".into()); // unsubscribe
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sendTopicAction".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -423,7 +423,7 @@ impl DeepcoinCore {
 }));
             m
         });
-        return request;
+        return Value::Map(request);
 
     Value::Null
 }
@@ -437,14 +437,14 @@ impl DeepcoinCore {
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null));
         let mut requestId: Value = self.request_id();
         let mut request: Value = self.create_public_request(market, requestId.clone(), topicID, &[suffix]);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subHash".to_string(), messageHash.clone());
                 m.insert("id".to_string(), requestId);
             m
         });
         let __ws_arg_0 = self.deep_extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), subscription]).await;
+        return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -530,12 +530,12 @@ impl DeepcoinCore {
                 if getNewKey {
                     response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
                 }  else {
-                    let mut request: Value = Value::Map({
+                    let mut request: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("listenkey".to_string(), listenKey.clone());
                         m
                     });
-                    let __ws_arg_2 = self.extend(request, &[params]);
+                    let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
                     response = self.parent.private_get_deepcoin_listenkey_extend(&[__ws_arg_2]).await;
                 }
             }
@@ -613,12 +613,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str("::".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ticker".into()));
             m
         });
-        return self.un_watch_public(market, messageHash, Value::Str("7".into()), &[params, subscription]).await;
+        return self.un_watch_public(market, messageHash, Value::Str("7".into()), &[params, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -792,12 +792,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades".into()), Value::Str("::".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("trades".into()));
             m
         });
-        return self.un_watch_public(market, messageHash, Value::Str("2".into()), &[params, subscription]).await;
+        return self.un_watch_public(market, messageHash, Value::Str("2".into()), &[params, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1009,13 +1009,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut interval: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv".into()), Value::Str("::".into())).into()), symbolValue).into()), Value::Str("::".into())).into()), timeframe).into());
         let mut suffix: Value = Value::Str(format!("{}{}", Value::Str("_".into()), interval).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
                 m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbolValue, timeframe])]));
             m
         });
-        return self.un_watch_public(market, messageHash, Value::Str("11".into()), &[params, subscription, suffix]).await;
+        return self.un_watch_public(market, messageHash, Value::Str("11".into()), &[params, Value::Map(subscription), suffix]).await;
 
     Value::Null
 }
@@ -1140,12 +1140,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut suffixparamsValueVariable = self.order_book_suffix(market.clone(), Value::Str("unWatchOrderBook".into()), &[params]);
         let mut suffix: Value = suffixparamsValueVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = suffixparamsValueVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
             m
         });
-        return self.un_watch_public(market, messageHash, Value::Str("25".into()), &[paramsValue, subscription, suffix]).await;
+        return self.un_watch_public(market, messageHash, Value::Str("25".into()), &[paramsValue, Value::Map(subscription), suffix]).await;
 
     Value::Null
 }

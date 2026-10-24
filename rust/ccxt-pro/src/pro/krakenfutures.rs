@@ -360,13 +360,13 @@ impl KrakenfuturesCore {
         let mut future: Value = client.reusable_future(messageHash.clone());
         let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         if (authenticated == Value::Null) {
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), Value::Str("challenge".into()));
                     m.insert("api_key".to_string(), self.apiKey.clone());
                 m
             });
-            let mut message: Value = self.extend(request, &[params]);
+            let mut message: Value = self.extend(Value::Map(request), &[params]);
             self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -418,7 +418,7 @@ impl KrakenfuturesCore {
             self.load_markets(&[]).await;
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("feed".to_string(), name.clone());
@@ -440,8 +440,8 @@ impl KrakenfuturesCore {
             let mut market: Value = self.market(marketIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         }
-        if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("product_ids".into(), marketIds); }
-        let mut request: Value = self.extend(subscribe, &[params]);
+        subscribe.insert("product_ids".into(), marketIds);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
@@ -466,7 +466,7 @@ impl KrakenfuturesCore {
         }
         self.authenticate(&[]).await;
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("feed".to_string(), name);
@@ -475,7 +475,7 @@ impl KrakenfuturesCore {
                 m.insert("signed_challenge".to_string(), self.options.as_map().and_then(|__m| __m.get("signedChallenge")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut request: Value = self.extend(subscribe, &[params]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
@@ -526,15 +526,15 @@ impl KrakenfuturesCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[symbolsNormalized.clone(), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -558,15 +558,15 @@ impl KrakenfuturesCore {
 }));
         let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker_lite".into()), &[symbols.clone(), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbols]);
 
@@ -2007,7 +2007,7 @@ impl KrakenfuturesCore {
             if let Value::Dict(__r08a) = &mut self.balance { let __r08e = std::sync::Arc::make_mut(__r08a).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("info".to_string(), message.clone()); } };
             if let Value::Dict(__r08a) = &mut self.balance { let __r08e = std::sync::Arc::make_mut(__r08a).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("timestamp".to_string(), timestamp.clone()); } };
             { let __be_tmp = self.iso8601(timestamp.clone()); if let Value::Dict(__r08a) = &mut self.balance { let __r08e = std::sync::Arc::make_mut(__r08a).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("datetime".to_string(), __be_tmp); } }; };
-            let mut holdingCodes: Value = Value::Map({
+            let mut holdingCodes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -2020,12 +2020,12 @@ impl KrakenfuturesCore {
                 let mut newAccount: Value = self.account();
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), key.clone(), &[])); }
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut holdingCodes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Bool(true)); }
+                    holdingCodes.insert(crate::runtime::stringify_param(&code), Value::Bool(true));
                     if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount.clone()); } }
                 }
             }
             }
-            { let __be_tmp = self.prune_stale_balance_keys(crate::value::get_value_k(&self.balance, "cash"), holdingCodes); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
+            { let __be_tmp = self.prune_stale_balance_keys(crate::value::get_value_k(&self.balance, "cash"), Value::Map(holdingCodes)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
             { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "cash")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
             updatedBalance = self.balance.as_map().and_then(|__m| __m.get("cash")).cloned().unwrap_or(Value::Null);
         }
@@ -2089,7 +2089,7 @@ impl KrakenfuturesCore {
             if let Value::Dict(__r08a) = &mut self.balance { let __r08e = std::sync::Arc::make_mut(__r08a).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("info".to_string(), message); } };
             if let Value::Dict(__r08a) = &mut self.balance { let __r08e = std::sync::Arc::make_mut(__r08a).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("timestamp".to_string(), timestamp.clone()); } };
             { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__r08a) = &mut self.balance { let __r08e = std::sync::Arc::make_mut(__r08a).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("datetime".to_string(), __be_tmp); } }; };
-            let mut flexCodes: Value = Value::Map({
+            let mut flexCodes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -2105,12 +2105,12 @@ impl KrakenfuturesCore {
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(flexFuture.clone(), "collateral_value", &[])); }
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(flexFuture, "quantity", &[])); }
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut flexCodes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Bool(true)); }
+                    flexCodes.insert(crate::runtime::stringify_param(&code), Value::Bool(true));
                     if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount); } }
                 }
             }
             }
-            { let __be_tmp = self.prune_stale_balance_keys(crate::value::get_value_k(&self.balance, "flex"), flexCodes); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
+            { let __be_tmp = self.prune_stale_balance_keys(crate::value::get_value_k(&self.balance, "flex"), Value::Map(flexCodes)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
             { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "flex")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
             client.resolve(&[self.balance.as_map().and_then(|__m| __m.get("flex")).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", messageHash, Value::Str(":flex_futures".into())).into())]);
             if (updatedBalance == Value::Null) {
@@ -2388,7 +2388,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
         }  else if (event.is_none()) {
             let mut feed: Value = (match __pro_message.get("feed").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-            let mut methods: Value = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
                     m.insert("ticker_lite".to_string(), Value::Str("handle_bid_ask".into()).clone());
@@ -2407,7 +2407,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     m.insert("open_positions".to_string(), Value::Str("handle_positions".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(methods, feed, &[]);
+            let mut method: Value = self.safe_value(Value::Map(methods), feed, &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client, message]);
             }

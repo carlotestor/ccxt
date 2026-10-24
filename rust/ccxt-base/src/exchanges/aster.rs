@@ -2209,17 +2209,17 @@ impl AsterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1500))); }
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1500)));
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
@@ -2444,25 +2444,25 @@ impl AsterCore {
     m
 }));
         self.load_markets_and_sign_in().await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), params]);
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, paramsMarketType, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsMarketType, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
@@ -2916,12 +2916,12 @@ impl AsterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_15 = self.extend(request, &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_public_get_v3_premium_index(&[__ws_arg_15]).await;
         return self.parse_funding_rate(response, &[market]);
 
@@ -3002,22 +3002,22 @@ impl AsterCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since); }
+            request.insert("startTime".into(), since);
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_17 = self.extend(requestUntil, &[paramsUntil]);
@@ -3084,7 +3084,7 @@ impl AsterCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
@@ -3101,11 +3101,11 @@ impl AsterCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "locked", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance, "balance", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -3136,13 +3136,13 @@ impl AsterCore {
         }
         self.load_markets_and_sign_in().await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("marginType".to_string(), marginModeValue);
             m
         });
-        let __ws_arg_18 = self.extend(request, &[params]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_private_post_v3_margin_type(&[__ws_arg_18]).await;
         return response;
 
@@ -3195,12 +3195,12 @@ impl AsterCore {
         if hedged.as_bool() == Some(true) {
             strValue = Value::Str("true".into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("dualSidePosition".to_string(), strValue);
             m
         });
-        let __ws_arg_19 = self.extend(request, &[params]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         return self.fapi_private_post_v3_position_side_dual(&[__ws_arg_19]).await;
 
     Value::Null
@@ -3261,7 +3261,7 @@ impl AsterCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("open".into()));
                 m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".into()));
@@ -3271,11 +3271,11 @@ impl AsterCore {
                 m.insert("EXPIRED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("LIMIT".to_string(), Value::Str("limit".into()));
                 m.insert("MARKET".to_string(), Value::Str("market".into()));
@@ -3286,7 +3286,7 @@ impl AsterCore {
                 m.insert("TRAILING_STOP_MARKET".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -3509,18 +3509,18 @@ impl AsterCore {
         }
         self.load_markets_and_sign_in().await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
@@ -3682,12 +3682,12 @@ impl AsterCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" orders".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("batchOrders".to_string(), Value::from(ordersRequests));
             m
         });
-        let __ws_arg_30 = self.extend(request, &[params]);
+        let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_private_post_v3_batch_orders(&[__ws_arg_30]).await;
         return self.parse_orders(response, &[]);
 
@@ -4035,13 +4035,13 @@ impl AsterCore {
         }
         self.load_markets_and_sign_in().await;
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let __ws_arg_37 = self.extend(request, &[params]);
+        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_private_post_v3_leverage(&[__ws_arg_37]).await;
         return response;
 
@@ -4203,24 +4203,24 @@ impl AsterCore {
         let mut market: Value = self.market(symbol.clone());
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (type_var != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), (if (type_var.as_str() == Some("add")) { Value::Int(1) } else { Value::Int(2) })); }
+            request.insert("type".into(), (if (type_var.as_str() == Some("add")) { Value::Int(1) } else { Value::Int(2) }));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
         }
-        let __ws_arg_38 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_38 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.fapi_private_get_v3_position_margin_history(&[__ws_arg_38]).await;
         //
         //     [
@@ -4292,7 +4292,7 @@ impl AsterCore {
         self.load_markets_and_sign_in().await;
         let mut market: Value = self.market(symbol.clone());
         let mut amountValue: Value = self.amount_to_precision(symbol, amount);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), addOrReduce);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -4300,7 +4300,7 @@ impl AsterCore {
             m
         });
         let mut code: Value = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
-        let __ws_arg_39 = self.extend(request, &[params]);
+        let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_private_post_v3_position_margin(&[__ws_arg_39]).await;
         let __ws_arg_40 = self.parse_margin_modification(response, &[market]);
         return self.extend(__ws_arg_40, &[Value::Map({
@@ -4408,16 +4408,16 @@ impl AsterCore {
 }));
         self.load_markets_and_sign_in().await;
         let mut market: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("incomeType".to_string(), Value::Str("FUNDING_FEE".into()));
             m
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, params, &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
@@ -4484,7 +4484,7 @@ impl AsterCore {
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
-        let mut ledgerType: Value = Value::Map({
+        let mut ledgerType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRANSFER".to_string(), Value::Str("transfer".into()));
                 m.insert("WELCOME_BONUS".to_string(), Value::Str("cashback".into()));
@@ -4495,7 +4495,7 @@ impl AsterCore {
                 m.insert("MARKET_MERCHANT_RETURN_REWARD".to_string(), Value::Str("cashback".into()));
             m
         });
-        return self.safe_string(ledgerType, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(ledgerType), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -4523,22 +4523,22 @@ impl AsterCore {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }; // max 1000
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // max 1000
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
         }
-        let __ws_arg_42 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_42 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_42]).await;
         return self.parse_ledger(response, &[currency, since, limit]);
 
@@ -4755,11 +4755,11 @@ impl AsterCore {
         }
         self.load_markets_and_sign_in().await;
         self.load_leverage_brackets(&[Value::Bool(false), params.clone()]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_43 = self.extend(request, &[params]);
+        let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_private_get_v3_position_risk(&[__ws_arg_43]).await;
         //
         //     [
@@ -5192,7 +5192,7 @@ impl AsterCore {
 
     pub fn sign_withdraw_payload(&self, mut withdrawPayload: Value, mut network: Value) -> Option<String> {
         let mut chainId: Value = self.safe_integer_k(withdrawPayload.clone(), "chainId", &[]);
-        let mut domain: Value = Value::Map({
+        let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("chainId".to_string(), chainId);
                 m.insert("name".to_string(), Value::Str("Aster".into()));
@@ -5200,7 +5200,7 @@ impl AsterCore {
                 m.insert("version".to_string(), Value::Str("1".into()));
             m
         });
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Action".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5245,7 +5245,7 @@ impl AsterCore {
 })]));
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("Withdraw".into()));
                 m.insert("destination".to_string(), self.safe_string_k(withdrawPayload.clone(), "receiver", &[]));
@@ -5257,7 +5257,7 @@ impl AsterCore {
                 m.insert("aster chain".to_string(), Value::Str("Mainnet".into()));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(domain, messageTypes, request);
+        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(request));
         let mut signature: Value = self.sign_message(msg, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         return signature.as_str().map(str::to_owned);
 }
@@ -5382,7 +5382,7 @@ impl AsterCore {
 }));
         self.load_markets_and_sign_in().await;
         let mut currency: Value = self.currency(code.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
@@ -5401,9 +5401,9 @@ impl AsterCore {
         }
         let mut defaultClientTranId: Value = self.number_to_string(self.milliseconds());
         let mut clientTranId: Value = self.safe_string_k(params.clone(), "clientTranId", &[defaultClientTranId]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("kindType".into(), type_var); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientTranId".into(), clientTranId); }
-        let __ws_arg_46 = self.extend(request, &[params]);
+        request.insert("kindType".into(), type_var);
+        request.insert("clientTranId".into(), clientTranId);
+        let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sapi_private_post_v3_asset_wallet_transfer(&[__ws_arg_46]).await;
         return self.parse_transfer(response, &[currency]);
 
@@ -5431,12 +5431,12 @@ impl AsterCore {
 }
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn hash_message(&self, mut binaryMessage: Value) -> Option<String> {
@@ -5494,7 +5494,7 @@ impl AsterCore {
             if (signerAddress == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires signerAddress in options when use v3 api".into()))));
             }
-            let mut domain: Value = Value::Map({
+            let mut domain: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::Str("AsterSignTransaction".into()));
                     m.insert("version".to_string(), Value::Str("1".into()));
@@ -5572,7 +5572,7 @@ impl AsterCore {
                     m
                 });
             }
-            let mut encodedMessage: Value = self.eth_encode_structured_data(domain, messageTypes, paramsToEncode);
+            let mut encodedMessage: Value = self.eth_encode_structured_data(Value::Map(domain), messageTypes, paramsToEncode);
             let mut signature: Value = self.sign_message(encodedMessage, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut queryString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", paramString, Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), signature).into());
             if (method.as_str() == Some("GET")) {
@@ -5624,7 +5624,7 @@ impl AsterCore {
 }
 
     pub fn capitalize_keys(&self, mut dict: Value) -> Value {
-        let mut capitalized: Value = Value::Map({
+        let mut capitalized: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -5636,10 +5636,10 @@ impl AsterCore {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut value: Value = dict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut capitalizedKey: Value = self.capitalize(key);
-            if let Value::Dict(__d) = &mut capitalized { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&capitalizedKey), value); }
+            capitalized.insert(crate::runtime::stringify_param(&capitalizedKey), value);
         }
         }
-        return capitalized;
+        return Value::Map(capitalized);
 
     Value::Null
 }
@@ -5724,7 +5724,7 @@ impl AsterCore {
         if !(found) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut request: Value = Value::Map({
+                let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("builder".to_string(), self.safe_string_k(self.options.clone(), "builder", &[]));
                         m.insert("builderName".to_string(), self.safe_string_k(self.options.clone(), "builderName", &[Value::Str("ccxt".into())]));
@@ -5733,7 +5733,7 @@ impl AsterCore {
                         m.insert("asterChain".to_string(), Value::Str("Mainnet".into()));
                     m
                 });
-                let __ws_arg_47 = self.extend(request, &[params]);
+                let __ws_arg_47 = self.extend(Value::Map(request), &[params]);
                 let mut authResponse: Value = self.fapi_private_post_v3_approve_builder(&[__ws_arg_47]).await;
                 //
                 // {"code": 200,"msg": "success"}
@@ -5743,7 +5743,7 @@ impl AsterCore {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str("Builder authorization failed, ".into()), json_stringify(&authResponse))));
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(false)); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }; // disable if err
             }

@@ -519,20 +519,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(methodName, &[market, params]);
         let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut isContract: Value = (Value::Bool(type_var.as_str() != Some("spot")));
+        let mut isContract: bool = type_var.as_str() != Some("spot");
         let mut id: Value = Value::Str(format!("{}{}", self.number_to_string(self.milliseconds()), name).into()); // call back ID
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Str("SUBSCRIBE".into()) } else { Value::Str("subscribe".into()) }));
+                m.insert("method".to_string(), (if isContract { Value::Str("SUBSCRIBE".into()) } else { Value::Str("subscribe".into()) }));
                 m.insert("id".to_string(), id.clone());
             m
         });
         if privateAccess {
-            if !(matches!(&isContract, Value::Bool(true))) {
+            if !isContract {
                 if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
-                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.is_truthy()).await); }
+                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.clone()).await); }
             }  else {
-                let mut listenKey: Value = self.get_listen_key(isContract.is_truthy()).await;
+                let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
                 let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
                 if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
             }
@@ -540,7 +540,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
         }
         let mut tradeType: Value = Value::Str("spot".into());
-        if matches!(&isContract, Value::Bool(true)) {
+        if isContract {
             tradeType = Value::Str("contract".into());
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), tradeType).into());
@@ -549,10 +549,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut request: Value = self.extend(subscribe, &[paramsMarketType]);
         let mut tail: Value = access;
-        if matches!(&isContract, Value::Bool(true)) {
+        if isContract {
             tail = (if privateAccess { Value::Str("user".into()) } else { Value::Str("market".into()) });
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
             m
@@ -562,7 +562,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(apiUrls, tradeType, &[]), Value::Str("/".into())).into()), tail).into());
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), subscription]).await;
+        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -599,34 +599,34 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(methodName, &[market, params]);
         let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut isContract: Value = (Value::Bool(type_var.as_str() != Some("spot")));
+        let mut isContract: bool = type_var.as_str() != Some("spot");
         let mut id: Value = Value::Str(format!("{}{}", self.number_to_string(self.milliseconds()), name).into()); // call back ID
-        let mut unsubscribe: Value = Value::Map({
+        let mut unsubscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Str("UNSUBSCRIBE".into()) } else { Value::Str("unsubscribe".into()) }));
+                m.insert("method".to_string(), (if isContract { Value::Str("UNSUBSCRIBE".into()) } else { Value::Str("unsubscribe".into()) }));
                 m.insert("id".to_string(), id.clone());
             m
         });
         if privateAccess {
-            if !(matches!(&isContract, Value::Bool(true))) {
-                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
-                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.is_truthy()).await); }
+            if !isContract {
+                unsubscribe.insert("params".into(), Value::from(vec![name.clone()]));
+                unsubscribe.insert("listenKey".into(), self.get_listen_key(isContract.clone()).await);
             }  else {
-                let mut listenKey: Value = self.get_listen_key(isContract.is_truthy()).await;
+                let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
                 let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
-                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
+                unsubscribe.insert("params".into(), Value::from(vec![param]));
             }
         }  else {
-            if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
+            unsubscribe.insert("params".into(), Value::from(vec![name.clone()]));
         }
         let mut tradeType: Value = Value::Str("spot".into());
-        if matches!(&isContract, Value::Bool(true)) {
+        if isContract {
             tradeType = Value::Str("contract".into());
         }
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), tradeType).into());
-        let mut request: Value = self.extend(unsubscribe, &[paramsMarketType.clone()]);
+        let mut request: Value = self.extend(Value::Map(unsubscribe), &[paramsMarketType.clone()]);
         let mut tail: Value = access;
-        if matches!(&isContract, Value::Bool(true)) {
+        if isContract {
             tail = (if privateAccess { Value::Str("user".into()) } else { Value::Str("market".into()) });
         }
         let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
@@ -634,7 +634,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(apiUrls, tradeType, &[]), Value::Str("/".into())).into()), tail).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("id".to_string(), id);
@@ -646,11 +646,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut symbolsAndTimeframes: Value = self.safe_list_k(subscriptionParams.clone(), "symbolsAndTimeframes", &[]);
         if (symbolsAndTimeframes != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), symbolsAndTimeframes); }
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
         }
         let mut subscriptionParamsOmitted: Value = self.omit(subscriptionParams, Value::Str("symbolsAndTimeframes".into()), &[]);
         let __ws_arg_0 = self.extend(request, &[paramsMarketType]);
-        let __ws_arg_1 = self.extend(subscription, &[subscriptionParamsOmitted]);
+        let __ws_arg_1 = self.extend(Value::Map(subscription), &[subscriptionParamsOmitted]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), __ws_arg_1]).await;
 
     Value::Null
@@ -1199,13 +1199,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         if (marketId != Value::Null) {
-            let mut raw: Value = Value::Map({
+            let mut raw: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), marketId);
                     m.insert("fundingRate".to_string(), self.safe_string_k(data.clone(), "r", &[]));
                 m
             });
-            let mut fundingRate: Value = self.parse_funding_rate(raw, &[]);
+            let mut fundingRate: Value = self.parse_funding_rate(Value::Map(raw), &[]);
             let mut timestamp: Value = self.safe_integer_k(data, "t", &[]);
             if let Value::Dict(__rda) = &mut fundingRate { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
             if let Value::Dict(__rda) = &mut fundingRate { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
@@ -2156,7 +2156,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.on_pong(&[]);
         }  else if (event.is_some()) {
             let mut topic: Value = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-            let mut methods: Value = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("kline".to_string(), Value::Str("handle_ohlcv".into()).clone());
                     m.insert("depth".to_string(), Value::Str("handle_order_book".into()).clone());
@@ -2171,7 +2171,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("fund_rate".to_string(), Value::Str("handle_funding_rate".into()).clone());
                 m
             });
-            let mut method: Value = (if (topic == Value::Null) { Value::Null } else { self.safe_value(methods, topic.clone(), &[]) });
+            let mut method: Value = (if (topic == Value::Null) { Value::Null } else { self.safe_value(Value::Map(methods), topic.clone(), &[]) });
             if (topic.as_str() == Some("trade")) {
                 let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
                 if (data != Value::Null) && ((matches!(&data, Value::Dict(__d) if __d.contains_key("oi"))) || (matches!(&data, Value::Dict(__d) if __d.contains_key("orderId")))) {

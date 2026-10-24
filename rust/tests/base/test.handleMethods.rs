@@ -165,7 +165,7 @@ fn helperTestHandleTypedOptions() {
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.check_option_bool(Value::Str("fetchX".into()), Value::Str("wrongBool".into()), Value::Str("yes".into()));
      #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
         caught = Value::Bool(true);
     }
     assert!(ccxt::runtime::is_true(&(caught.clone())));

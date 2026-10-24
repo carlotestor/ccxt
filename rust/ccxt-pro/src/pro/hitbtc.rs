@@ -401,7 +401,7 @@ impl HitbtcCore {
                 timestampEncoded = Value::Str("".into());
             }
             let mut signature: Value = self.hmac(self.encode(timestampEncoded), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), Value::Str("login".into()));
                     m.insert("params".to_string(), Value::Map({
@@ -414,7 +414,7 @@ impl HitbtcCore {
 }));
                 m
             });
-            self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+            self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -455,20 +455,20 @@ impl HitbtcCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHashPrefix); }
         }
         let mut requestId: Value = self.incrementing_nonce();
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("ch".to_string(), name);
             m
         });
-        let mut request: Value = self.extend(subscribe, &[params]);
-        let mut subscription: Value = Value::Map({
+        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone(), subscription]).await;
+        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -497,19 +497,19 @@ impl HitbtcCore {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
         }
         let mut requestId: Value = self.incrementing_nonce();
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
                 m.insert("params".to_string(), params);
                 m.insert("id".to_string(), requestId.clone());
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch(url, messageHash.clone(), &[subscribe, messageHash.clone(), subscription]).await;
+        return self.watch(url, messageHash.clone(), &[Value::Map(subscribe), messageHash, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -531,14 +531,14 @@ impl HitbtcCore {
         self.authenticate().await;
         let mut url: Value = self.safe_string(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Str("private".into()), &[]);
         let mut messageHash: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
                 m.insert("params".to_string(), params);
                 m.insert("id".to_string(), messageHash.clone());
             m
         });
-        return self.watch(url, messageHash.clone(), &[subscribe, messageHash.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[Value::Map(subscribe), messageHash]).await;
 
     Value::Null
 }
@@ -578,7 +578,7 @@ impl HitbtcCore {
             name = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook/D".into()), depthValue).into()), Value::Str("/".into())).into()), speedValue).into()), Value::Str("ms/batch".into())).into());
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -587,7 +587,7 @@ impl HitbtcCore {
 }));
             m
         });
-        let mut orderbook: Value = self.subscribe_public(name, Value::Str("orderbooks".into()), &[Value::from(vec![symbol]), self.deep_extend(request, &[paramsOmitted])]).await;
+        let mut orderbook: Value = self.subscribe_public(name, Value::Str("orderbooks".into()), &[Value::from(vec![symbol]), self.deep_extend(Value::Map(request), &[paramsOmitted])]).await;
         return orderbook.limit();
 
     Value::Null
@@ -787,7 +787,7 @@ impl HitbtcCore {
             }
             }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -796,18 +796,18 @@ impl HitbtcCore {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name, Value::Str("tickers".into()), &[symbolsNormalized.clone(), self.deep_extend(request, &[paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name, Value::Str("tickers".into()), &[symbolsNormalized.clone(), self.deep_extend(Value::Map(request), &[paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
-                let mut tickers: Value = Value::Map({
+                let mut tickers: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
                 let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
                 if (newTickersSymbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers.clone()); }
+                    tickers.insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers.clone());
                 }
-                return tickers;
+                return Value::Map(tickers);
             }
         }
         return self.filter_by_array(newTickers, Value::Str("symbol".into()), &[symbolsNormalized]);
@@ -973,7 +973,7 @@ impl HitbtcCore {
         }));
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]);
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -982,18 +982,18 @@ impl HitbtcCore {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name, Value::Str("bidask".into()), &[symbolsNormalized.clone(), self.deep_extend(request, &[paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name, Value::Str("bidask".into()), &[symbolsNormalized.clone(), self.deep_extend(Value::Map(request), &[paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
-                let mut tickers: Value = Value::Map({
+                let mut tickers: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
                 let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
                 if (newTickersSymbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers.clone()); }
+                    tickers.insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers.clone());
                 }
-                return tickers;
+                return Value::Map(tickers);
             }
         }
         return self.filter_by_array(newTickers, Value::Str("symbol".into()), &[symbolsNormalized]);
@@ -1087,7 +1087,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1097,10 +1097,10 @@ impl HitbtcCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
         let mut name: Value = Value::Str("trades".into());
-        let mut trades: Value = self.subscribe_public(name, Value::Str("trades".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request, &[params])]).await;
+        let mut trades: Value = self.subscribe_public(name, Value::Str("trades".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
@@ -1697,12 +1697,12 @@ impl HitbtcCore {
         })]);
         let mut mode: Value = self.safe_string_k(paramsMarketType.clone(), "mode", &[Value::Str("batches".into())]);
         let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::Str("mode".into()), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("mode".to_string(), mode);
             m
         });
-        let __ws_arg_2 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
         return self.subscribe_private(name, &[Value::Null, __ws_arg_2]).await;
 
     Value::Null
@@ -2006,7 +2006,7 @@ impl HitbtcCore {
                     channel = Value::Str("orderbook/top".into());
                 }
             }
-            let mut methods: Value = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("candles".to_string(), Value::Str("handle_ohlcv".into()).clone());
                     m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -2023,7 +2023,7 @@ impl HitbtcCore {
                     m.insert("futures_balance".to_string(), Value::Str("handle_balance".into()).clone());
                 m
             });
-            let mut method: Value = (if (channel == Value::Null) { Value::Null } else { self.safe_value(methods, channel, &[]) });
+            let mut method: Value = (if (channel == Value::Null) { Value::Null } else { self.safe_value(Value::Map(methods), channel, &[]) });
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }

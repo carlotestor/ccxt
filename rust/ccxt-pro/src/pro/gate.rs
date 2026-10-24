@@ -940,13 +940,13 @@ impl GateCore {
             let mut stringLimit: Value = Value::Str(format!("{}", limitResolved).into());
             if let Value::Arr(__a) = &mut payload { std::sync::Arc::make_mut(__a).push(stringLimit); }
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbolValue);
                 m.insert("limit".to_string(), limitResolved);
             m
         });
-        let mut orderbook: Value = self.subscribe_public(url, messageHash, payload, channel, &[query, subscription]).await;
+        let mut orderbook: Value = self.subscribe_public(url, messageHash, payload, channel, &[query, Value::Map(subscription)]).await;
         return orderbook.limit();
 
     Value::Null
@@ -1433,15 +1433,15 @@ impl GateCore {
         }
         let mut tickerOrBidAsk: Value = self.subscribe_public_multiple(url, Value::from(messageHashes), marketIds, channel, &[paramsMethod]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut items: Value = Value::Map({
+            let mut items: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerOrBidAskSymbol: Value = self.safe_string_k(tickerOrBidAsk.clone(), "symbol", &[]);
             if (tickerOrBidAskSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut items { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerOrBidAskSymbol), tickerOrBidAsk); }
+                items.insert(crate::runtime::stringify_param(&tickerOrBidAskSymbol), tickerOrBidAsk);
             }
-            return items;
+            return Value::Map(items);
         }
         let mut result: Value = (if isWatchTickers { self.tickers.clone() } else { self.bidsasks.clone() });
         return self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(true)]);
@@ -3005,7 +3005,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut channelParts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut channelType: Value = self.safe_string(channelParts, Value::Int(1), &[]);
-        let mut v4Methods: Value = Value::Map({
+        let mut v4Methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("usertrades".to_string(), Value::Str("handle_my_trades".into()).clone());
                 m.insert("candlesticks".to_string(), Value::Str("handle_ohlcv".into()).clone());
@@ -3021,7 +3021,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("liquidates".to_string(), Value::Str("handle_liquidation".into()).clone());
             m
         });
-        let mut method: Value = self.safe_value(v4Methods, channelType, &[]);
+        let mut method: Value = self.safe_value(Value::Map(v4Methods), channelType, &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
@@ -3126,7 +3126,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscription = get_arg(optional_args, 1, Value::Null);
         let mut requestId: Value = self.request_id();
         let mut time: Value = self.seconds();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("time".to_string(), time);
@@ -3142,7 +3142,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &tempSubscriptionHash, messageHash.clone());
             }
         }
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), subscription]).await;
 
     Value::Null
@@ -3155,7 +3155,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut requestId: Value = self.request_id();
         let mut time: Value = self.seconds();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("time".to_string(), time);
@@ -3164,7 +3164,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("payload".to_string(), payload);
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch_multiple(url, messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
 
     Value::Null
@@ -3177,7 +3177,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut requestId: Value = self.request_id();
         let mut time: Value = self.seconds();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("time".to_string(), time);
@@ -3186,7 +3186,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("payload".to_string(), payload);
             m
         });
-        let mut sub: Value = Value::Map({
+        let mut sub: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
                 m.insert("topic".to_string(), topic);
@@ -3196,8 +3196,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbols".to_string(), symbols);
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[message.clone(), messageHashes.clone(), sub]).await;
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
+        return self.watch_multiple(url, messageHashes.clone(), &[message.clone(), messageHashes.clone(), Value::Map(sub)]).await;
 
     Value::Null
 }
@@ -3252,7 +3252,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })); }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestIdResolved.clone());
                 m.insert("time".to_string(), time);
@@ -3261,7 +3261,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("payload".to_string(), payload);
             m
         });
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), requestIdResolved]).await;
+        return self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash, requestIdResolved]).await;
 
     Value::Null
 }
@@ -3293,7 +3293,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut requestId: Value = self.request_id();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("time".to_string(), time);
@@ -3303,7 +3303,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (payloadValue != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payload".into(), payloadValue); }
+            request.insert("payload".into(), payloadValue);
         }
         let mut client: Value = self.client(&[url.clone()]);
         if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -3311,7 +3311,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // in case of authenticationError we will throw
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &tempSubscriptionHash, messageHash.clone());
         }
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), messageHash.clone()]).await;
 
     Value::Null

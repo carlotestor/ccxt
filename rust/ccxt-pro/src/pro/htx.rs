@@ -1065,7 +1065,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = self.get_url_by_market_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), Value::Bool(false), Value::Bool(true)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("req".to_string(), messageHash.clone());
                 m.insert("id".to_string(), requestId.clone());
@@ -1073,7 +1073,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         });
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
-        let mut snapshotSubscription: Value = Value::Map({
+        let mut snapshotSubscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("messageHash".to_string(), messageHash.clone());
@@ -1086,7 +1086,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut orderbook: Value = self.watch(url, requestId.clone(), &[request, requestId.clone(), snapshotSubscription]).await;
+            let mut orderbook: Value = self.watch(url, requestId.clone(), &[Value::Map(request), requestId, Value::Map(snapshotSubscription)]).await;
             return orderbook.limit();
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
@@ -1399,12 +1399,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", orderMessageHash, Value::Str(":".into())).into()), Value::Str("trade".into())).into());
             }
         }
-        let mut subscriptionParams: Value = Value::Map({
+        let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
-        trades = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, subscriptionParams]).await;
+        trades = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
         if (trades == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() trades is required".into()))));
         }
@@ -1564,12 +1564,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             channel = self.safe_string(channelAndMessageHash.clone(), Value::Int(0), &[]);
             messageHash = self.safe_string(channelAndMessageHash, Value::Int(1), &[]);
         }
-        let mut subscriptionParams: Value = Value::Map({
+        let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
-        let mut orders: Value = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, subscriptionParams]).await;
+        let mut orders: Value = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved, limit);
@@ -1796,7 +1796,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut rawTrades: Value = (match __pro_message.get("trade").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             let mut tradesLength: f64 = ((rawTrades.len() as i64) as f64);
             if tradesLength > ((0i64) as f64) {
-                let mut tradesObject: Value = Value::Map({
+                let mut tradesObject: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("trades".to_string(), rawTrades);
                         m.insert("ch".to_string(), messageHash.clone());
@@ -1804,7 +1804,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     m
                 });
                 // inject order params in every trade
-                let mut extendTradeParams: Value = Value::Map({
+                let mut extendTradeParams: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("order".to_string(), self.safe_string_k(parsedOrder.clone(), "id", &[]));
                         m.insert("type".to_string(), self.safe_string_k(parsedOrder.clone(), "type", &[]));
@@ -1814,7 +1814,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // trades arrive inside an order update
                 // we're forwarding them to handleMyTrade
                 // so they can be properly resolved
-                self.handle_my_trade(client.clone(), tradesObject, &[extendTradeParams]);
+                self.handle_my_trade(client.clone(), Value::Map(tradesObject), &[Value::Map(extendTradeParams)]);
             }
         }
         if (self.orders.clone() == Value::Null) {
@@ -2212,13 +2212,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             })]);
         }
-        let mut subscriptionParams: Value = Value::Map({
+        let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
                 m.insert("margin".to_string(), marginMode.clone());
             m
         });
-        let mut newPositions: Value = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, subscriptionParams]).await;
+        let mut newPositions: Value = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2504,7 +2504,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
         }
-        let mut subscriptionParams: Value = Value::Map({
+        let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("subType".to_string(), subType.clone());
@@ -2512,7 +2512,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
-        return self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, subscriptionParams]).await;
+        return self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
 
     Value::Null
 }
@@ -2940,7 +2940,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut type_var: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("market")) {
             let mut methodName: Value = self.safe_string(parts, Value::Int(2), &[]);
-            let mut methods: Value = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("depth".to_string(), Value::Str("handle_order_book".into()).clone());
                     m.insert("mbp".to_string(), Value::Str("handle_order_book".into()).clone());
@@ -2951,7 +2951,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     m.insert("kline".to_string(), Value::Str("handle_ohlcv".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(methods, methodName, &[]);
+            let mut method: Value = self.safe_value(Value::Map(methods), methodName, &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
@@ -3521,7 +3521,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let isFeed: bool = get_arg(optional_args, 2, Value::Bool(false)).is_truthy();
         let isV5: bool = get_arg(optional_args, 3, Value::Bool(false)).is_truthy();
         let mut api: Value = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]);
-        let mut hostname: Value = Value::Map({
+        let mut hostname: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hostname".to_string(), self.hostname.clone());
             m
@@ -3538,7 +3538,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     hostnameURL = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), "spot"), "public");
                 }
             }
-            url = self.implode_params(hostnameURL, hostname);
+            url = self.implode_params(hostnameURL, Value::Map(hostname));
         }  else {
             let mut baseUrl: Value = get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &api), &type_var);
             let mut subTypeUrl: Value = (if isLinear { crate::value::get_value_k(&baseUrl, "linear") } else { crate::value::get_value_k(&baseUrl, "inverse") });
@@ -3562,13 +3562,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub".to_string(), messageHash.clone());
                 m.insert("id".to_string(), requestId.clone());
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("messageHash".to_string(), messageHash.clone());
@@ -3577,10 +3577,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (method != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("method".into(), method); }
+            subscription.insert("method".into(), method);
         }
-        let __ws_arg_0 = self.extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), subscription]).await;
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -3591,7 +3591,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsub".to_string(), subMessageHash.clone());
                 m.insert("id".to_string(), requestId.clone());
@@ -3603,7 +3603,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unsubscribePublic() market is required".into()))));
         }
         let mut url: Value = self.get_url_by_market_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), Value::Bool(false), isFeed]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("id".to_string(), requestId);
@@ -3616,10 +3616,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolsAndTimeframes: Value = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]);
         let mut paramsOmitted: Value = (if (symbolsAndTimeframes != Value::Null) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params });
         if (symbolsAndTimeframes != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), symbolsAndTimeframes); }
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
         }
-        let __ws_arg_1 = self.extend(request, &[paramsOmitted]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone(), subscription]).await;
+        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -3634,14 +3634,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("messageHash".to_string(), messageHash.clone());
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut extendedSubsription: Value = self.extend(subscription, &[subscriptionParams.clone()]);
+        let mut extendedSubsription: Value = self.extend(Value::Map(subscription), &[subscriptionParams.clone()]);
         let mut request: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
             request = Value::Map({
@@ -3663,14 +3663,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isV5: Value = self.safe_bool_k(subscriptionParams, "isV5", &[Value::Bool(false)]);
         let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isLinear, Value::Bool(true), Value::Bool(false), isV5]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut hostname: Value = (if (type_var.as_str() == Some("spot")) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("hostnames")).cloned().unwrap_or(Value::Null), "spot") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("hostnames")).cloned().unwrap_or(Value::Null), "contract") });
-        let mut authParams: Value = Value::Map({
+        let mut authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var);
                 m.insert("url".to_string(), url.clone());
                 m.insert("hostname".to_string(), hostname);
             m
         });
-        self.authenticate(&[authParams]).await;
+        self.authenticate(&[Value::Map(authParams)]).await;
         let __ws_arg_2 = self.extend(request, &[params]);
         return self.watch(url, messageHash, &[__ws_arg_2, channel, extendedSubsription]).await;
 
@@ -3753,14 +3753,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 });
             }
             let mut requestId: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            let mut subscription: Value = Value::Map({
+            let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId);
                     m.insert("messageHash".to_string(), messageHash.clone());
                     m.insert("params".to_string(), params);
                 m
             });
-            self.watch(url, messageHash.clone(), &[request, messageHash.clone(), subscription]).await;
+            self.watch(url, messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscription)]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

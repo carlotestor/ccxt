@@ -864,14 +864,14 @@ impl PhemexCore {
         let mut requestId: Value = self.request_id();
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolValue).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), subscriptionHash.clone());
                 m.insert("id".to_string(), requestId);
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash, &[request, subscriptionHash]).await;
 
     Value::Null
@@ -918,25 +918,25 @@ impl PhemexCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), subscriptionHash);
                 m.insert("id".to_string(), requestId);
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -979,14 +979,14 @@ impl PhemexCore {
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
                 m.insert("id".to_string(), requestId);
                 m.insert("params".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1032,14 +1032,14 @@ impl PhemexCore {
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
                 m.insert("id".to_string(), requestId);
                 m.insert("params".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut orderbook: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         return orderbook.limit();
 
@@ -1084,14 +1084,14 @@ impl PhemexCore {
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
                 m.insert("id".to_string(), requestId);
                 m.insert("params".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), self.safe_integer(self.timeframes.clone(), timeframe, &[])]));
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -2099,7 +2099,7 @@ impl PhemexCore {
             let mut payload: Value = Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(format!("{}", expiration).into())).into());
             let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut method: Value = Value::Str("user.auth".into());
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), method);
                     m.insert("params".to_string(), Value::from(vec![Value::Str("API".into()), self.apiKey.clone(), signature, expiration]));
@@ -2107,7 +2107,7 @@ impl PhemexCore {
                 m
             });
             let mut subscriptionHash: Value = Value::Str(format!("{}", requestId).into());
-            let mut message: Value = self.extend(request, &[params]);
+            let mut message: Value = self.extend(Value::Map(request), &[params]);
             if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash, Value::Str("handle_authenticate".into()).clone());
             }

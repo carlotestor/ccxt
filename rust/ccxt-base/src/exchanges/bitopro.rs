@@ -876,12 +876,12 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_tickers_pair(&[__ws_arg_0]).await;
         let mut ticker: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -937,15 +937,15 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
+            request.insert("limit".into(), limit);
         }
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_order_book_pair(&[__ws_arg_1]).await;
         return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
 
@@ -1068,12 +1068,12 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trades_pair(&[__ws_arg_2]).await;
         let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[market, since, limit]);
@@ -1225,7 +1225,7 @@ impl BitoproCore {
         }
         let mut market: Value = self.market(symbol);
         let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("resolution".to_string(), resolution);
@@ -1238,16 +1238,16 @@ impl BitoproCore {
         let mut alignedSince: Value = Value::Null;
         if (since == Value::Null) {
             let mut toSeconds: Value = self.seconds();
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), toSeconds.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), (match (&(toSeconds), &(((match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            request.insert("to".into(), toSeconds.clone());
+            request.insert("from".into(), (match (&(toSeconds), &(((match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }  else {
             let mut timeframeInMilliseconds: Value = (match (&(timeframeInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             alignedSince = (match (&(self.parse_to_int(((match ((since).as_f64(), (timeframeInMilliseconds).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null))), &(timeframeInMilliseconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut fromSeconds: Value = ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), fromSeconds.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), self.sum(&[fromSeconds, (match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])); }
+            request.insert("from".into(), fromSeconds.clone());
+            request.insert("to".into(), self.sum(&[fromSeconds, (match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
         }
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trading_history_pair(&[__ws_arg_3]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         //
@@ -1322,7 +1322,7 @@ impl BitoproCore {
         //         "tradable":true
         //     }]
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
@@ -1343,11 +1343,11 @@ impl BitoproCore {
                 m
             });
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1513,7 +1513,7 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1524,29 +1524,29 @@ impl BitoproCore {
         });
         let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         if (orderType.as_str() == Some("LIMIT")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price.clone())); }
+            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
         if (orderType.as_str() == Some("STOP_LIMIT")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price)); }
+            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
             let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice)); }
+                request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice));
             }
             let mut condition: Value = self.safe_string_k(params.clone(), "condition", &[]);
             if (condition == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a condition parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("condition".into(), condition); }
+                request.insert("condition".into(), condition);
             }
         }
         let mut paramsOmitted: Value = (if (orderType.as_str() == Some("STOP_LIMIT")) { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params });
         let mut postOnly: Value = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[paramsOmitted.clone()]);
         if postOnly.as_bool() == Some(true) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("POST_ONLY".into())); }
+            request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }
-        let __ws_arg_4 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_orders_pair(&[__ws_arg_4]).await;
         return self.parse_order(response, &[market]);
 
@@ -1576,13 +1576,13 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_orders_pair_id(&[__ws_arg_5]).await;
         return self.parse_order(response, &[market]);
 
@@ -1643,14 +1643,14 @@ impl BitoproCore {
         }
         let mut market: Value = self.market(symbol);
         let mut id: Value = market.as_map().and_then(|__m| __m.get("uppercaseId")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (id != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), ids); }
+            request.insert(crate::runtime::stringify_param(&id), ids);
         }
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_put_orders(&[__ws_arg_6]).await;
         //
         //     {
@@ -1732,13 +1732,13 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_pair_order_id(&[__ws_arg_9]).await;
         return self.parse_order(response, &[market]);
 
@@ -1771,18 +1771,18 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".into(), since.clone()); }
+            request.insert("startTimestamp".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_all_pair(&[__ws_arg_10]).await;
         let mut orders: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         if (orders == Value::Null) {
@@ -1815,16 +1815,16 @@ impl BitoproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_open(&[__ws_arg_11]).await;
         let mut orders: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(orders, &[market, since, limit]);
@@ -1851,12 +1851,12 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("statusKind".to_string(), Value::Str("DONE".into()));
             m
         });
-        let __ws_arg_12 = self.extend(request, &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         return self.fetch_orders(&[symbol, since, limit, __ws_arg_12]).await;
 
     Value::Null
@@ -1888,12 +1888,12 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_trades_pair(&[__ws_arg_13]).await;
         let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[market, since, limit]);
@@ -1902,7 +1902,7 @@ impl BitoproCore {
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut states: Value = Value::Map({
+        let mut states: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("COMPLETE".to_string(), Value::Str("ok".into()));
                 m.insert("INVALID".to_string(), Value::Str("failed".into()));
@@ -1915,7 +1915,7 @@ impl BitoproCore {
                 m.insert("WAIT_CONFIRMATION".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(states, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(states), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -2034,18 +2034,18 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.safe_currency(code, &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".into(), since.clone()); }
+            request.insert("startTimestamp".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_wallet_deposit_history_currency(&[__ws_arg_14]).await;
         let mut result: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(result, &[currency, since, limit, Value::Map({
@@ -2083,18 +2083,18 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.safe_currency(code, &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".into(), since.clone()); }
+            request.insert("startTimestamp".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_15 = self.extend(request, &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_wallet_withdraw_history_currency(&[__ws_arg_15]).await;
         let mut result: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(result, &[currency, since, limit, Value::Map({
@@ -2129,13 +2129,13 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.safe_currency(code, &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("serial".to_string(), id);
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_16 = self.extend(request, &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_wallet_withdraw_currency_serial(&[__ws_arg_16]).await;
         let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2171,7 +2171,7 @@ impl BitoproCore {
         }
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.number_to_string(amount));
@@ -2193,12 +2193,12 @@ impl BitoproCore {
             if (networkId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork)));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("protocol".into(), networkId); }
+            request.insert("protocol".into(), networkId);
         }
         if (tagWithdrawTag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("message".into(), tagWithdrawTag); }
+            request.insert("message".into(), tagWithdrawTag);
         }
-        let __ws_arg_17 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await;
         let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2313,12 +2313,12 @@ impl BitoproCore {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
                 }
                 let mut nonce: Value = self.milliseconds();
-                let mut rawData: Value = Value::Map({
+                let mut rawData: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("nonce".to_string(), nonce);
                     m
                 });
-                let mut data: Value = json_stringify(&rawData);
+                let mut data: Value = json_stringify(&Value::Map(rawData));
                 let mut payload: Value = self.string_to_base64(data, &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone()); }

@@ -355,7 +355,7 @@ impl GrvtCore {
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("v1.ticker.s".to_string(), Value::Str("handle_ticker".into()).clone());
                 m.insert("v1.ticker.d".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -375,7 +375,7 @@ impl GrvtCore {
             return;
         }
         let mut channel: Value = (match __pro_message.get("stream").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut method: Value = self.safe_value(methods, channel, &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), channel, &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }
@@ -383,7 +383,7 @@ impl GrvtCore {
 
     pub async fn subscribe_multiple(&mut self, mut messageHashes: Value, mut request: Value, mut rawHashes: Value, optional_args: &[Value]) -> Value {
         let publicOrPrivate: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -396,7 +396,7 @@ impl GrvtCore {
             apiPart = Value::Str("publicMarket".into());
         }
         let __ws_arg_0 = crate::value::get_value_k(&self.urls, "api");
-        return self.watch_multiple(get_value(&crate::value::get_value_k(&__ws_arg_0, "ws"), &apiPart), messageHashes, &[payload, rawHashes]).await;
+        return self.watch_multiple(get_value(&crate::value::get_value_k(&__ws_arg_0, "ws"), &apiPart), messageHashes, &[Value::Map(payload), rawHashes]).await;
 
     Value::Null
 }
@@ -482,24 +482,24 @@ impl GrvtCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stream".to_string(), channel);
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_2 = self.extend(paramsInterval, &[request]);
+        let __ws_arg_2 = self.extend(paramsInterval, &[Value::Map(request)]);
         let mut ticker: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_2, Value::from(rawHashes), &[]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                tickers.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -666,13 +666,13 @@ impl GrvtCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stream".to_string(), Value::Str("v1.trade".into()));
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_3 = self.extend(params, &[request]);
+        let __ws_arg_3 = self.extend(params, &[Value::Map(request)]);
         let mut trades: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_3, Value::from(rawHashes), &[]).await;
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
@@ -804,13 +804,13 @@ impl GrvtCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stream".to_string(), Value::Str("v1.candle".into()));
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_4 = self.extend(params, &[request]);
+        let __ws_arg_4 = self.extend(params, &[Value::Map(request)]);
         let mut symboltimeframestoredVariable = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_4, Value::from(rawHashes), &[]).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
@@ -969,13 +969,13 @@ impl GrvtCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stream".to_string(), channel);
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[paramsInterval]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsInterval]);
         let mut orderbook: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_5, Value::from(rawHashes), &[]).await;
         return orderbook.limit();
 
@@ -1072,7 +1072,7 @@ impl GrvtCore {
             if (cookieValue == Value::Null) || (accountId == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" : at first, you need to authenticate with exchange using signIn() method.".into()))));
             }
-            let mut defaultOptions: Value = Value::Map({
+            let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1090,7 +1090,7 @@ impl GrvtCore {
 }));
                 m
             });
-            self.extend_exchange_options(&[defaultOptions]);
+            self.extend_exchange_options(&[Value::Map(defaultOptions)]);
             let __ws_arg_6 = crate::value::get_value_k(&self.urls, "api");
             self.client(&[crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "privateTrading")]);
         }
@@ -1133,13 +1133,13 @@ impl GrvtCore {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str("myTrades".into())); }
             rawHashes.push(subAccountId);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stream".to_string(), Value::Str("v1.fill".into()));
                 m.insert("selectors".to_string(), Value::from(rawHashes));
             m
         });
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.subscribe_multiple(messageHashes.clone(), __ws_arg_7, messageHashes.clone(), &[Value::Bool(false)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1251,13 +1251,13 @@ impl GrvtCore {
             messageHashes.push(Value::Str("positions".into()));
             rawHashes.push(subAccountId);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stream".to_string(), Value::Str("v1.position".into()));
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut newPositions: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_8, Value::from(rawHashes), &[Value::Bool(false)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
@@ -1352,13 +1352,13 @@ impl GrvtCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("order::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stream".to_string(), Value::Str("v1.order".into()));
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut orders: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_9, Value::from(rawHashes), &[Value::Bool(false)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {

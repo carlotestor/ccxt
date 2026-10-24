@@ -381,19 +381,19 @@ impl LighterCore {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), messageHash.clone());
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), subscription]).await;
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -404,19 +404,19 @@ impl LighterCore {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), messageHashes.clone());
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_1, messageHashes.clone(), subscription]).await;
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
+        return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_1, messageHashes.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -427,19 +427,19 @@ impl LighterCore {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), messageHash.clone());
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone(), subscription]).await;
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -565,13 +565,13 @@ impl LighterCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("order_book/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[symbolValue]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.subscribe_public(messageHash, &[__ws_arg_3]).await;
         return orderbook.limit();
 
@@ -597,14 +597,14 @@ impl LighterCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("order_book/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             m
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[symbolValue]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         return self.unsubscribe(messageHash, &[__ws_arg_4]).await;
 
     Value::Null
@@ -716,13 +716,13 @@ impl LighterCore {
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() is only supported for swap markets".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("market_stats/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[symbolValue]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         return self.subscribe_public(messageHash, &[__ws_arg_5]).await;
 
     Value::Null
@@ -750,14 +750,14 @@ impl LighterCore {
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTicker() is only supported for swap markets".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("market_stats/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             m
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[symbolValue]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         return self.unsubscribe(messageHash, &[__ws_arg_6]).await;
 
     Value::Null
@@ -786,7 +786,7 @@ impl LighterCore {
         if (firstMarket != Value::Null) && (firstMarket.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() is only supported for swap markets".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("market_stats/all".into()));
             m
@@ -808,18 +808,18 @@ impl LighterCore {
             }
             }
         }
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut newTicker: Value = self.subscribe_public_multiple(Value::from(messageHashes), &[__ws_arg_7]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
             if (newTickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -849,14 +849,14 @@ impl LighterCore {
         if (firstMarket != Value::Null) && (firstMarket.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTickers() is only supported for swap markets".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("market_stats/all".into()));
             m
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         return self.unsubscribe(messageHash, &[__ws_arg_8]).await;
 
     Value::Null
@@ -1092,13 +1092,13 @@ impl LighterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("trade/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[self.safe_string_k(market, "symbol", &[])]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.subscribe_public(messageHash, &[__ws_arg_9]).await;
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -1123,14 +1123,14 @@ impl LighterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("trade/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             m
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[self.safe_string_k(market, "symbol", &[])]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         return self.unsubscribe(messageHash, &[__ws_arg_10]).await;
 
     Value::Null
@@ -1353,12 +1353,12 @@ impl LighterCore {
             symbolResolved = self.safe_string_k(market, "symbol", &[]);
             messageHash = self.get_message_hash(Value::Str("myTrades".into()), &[symbolResolved.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_trades/".into()), self.number_to_string(accountIndex)).into()));
             m
         });
-        let __ws_arg_11 = self.extend(request, &[paramsAccountIndex]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsAccountIndex]);
         let mut trades: Value = self.subscribe_public(messageHash, &[__ws_arg_11]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1393,12 +1393,12 @@ impl LighterCore {
         let mut paramsAccountIndex: Value = accountIndexparamsAccountIndexVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("myTrades".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_trades/".into()), self.number_to_string(accountIndex)).into()));
             m
         });
-        let __ws_arg_12 = self.extend(request, &[paramsAccountIndex]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsAccountIndex]);
         return self.unsubscribe(messageHash, &[__ws_arg_12]).await;
 
     Value::Null
@@ -1553,13 +1553,13 @@ impl LighterCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("trade/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("liquidations".into()), &[symbol]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         return self.subscribe_public(messageHash, &[__ws_arg_13]).await;
 
     Value::Null
@@ -1742,19 +1742,19 @@ impl LighterCore {
         let mut accountIndex: Value = accountIndexparamsAccountIndexVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsAccountIndex: Value = accountIndexparamsAccountIndexVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             messageHash = self.get_message_hash(Value::Str("orders".into()), &[self.safe_string_k(market.clone(), "symbol", &[])]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str("/".into())).into()), self.number_to_string(accountIndex.clone())).into())); }
+            request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str("/".into())).into()), self.number_to_string(accountIndex.clone())).into()));
         }  else {
             messageHash = self.get_message_hash(Value::Str("orders".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), self.number_to_string(accountIndex)).into())); }
+            request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), self.number_to_string(accountIndex)).into()));
         }
-        let __ws_arg_16 = self.extend(request, &[paramsAccountIndex]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsAccountIndex]);
         let mut orders: Value = self.subscribe_private(messageHash, &[__ws_arg_16]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1787,20 +1787,20 @@ impl LighterCore {
         let mut accountIndex: Value = accountIndexparamsAccountIndexVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsAccountIndex: Value = accountIndexparamsAccountIndexVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut subMessageHash: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
             subMessageHash = self.get_message_hash(Value::Str("orders".into()), &[self.safe_string_k(market.clone(), "symbol", &[])]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str("/".into())).into()), self.number_to_string(accountIndex.clone())).into())); }
+            request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str("/".into())).into()), self.number_to_string(accountIndex.clone())).into()));
         }  else {
             subMessageHash = self.get_message_hash(Value::Str("orders".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), self.number_to_string(accountIndex)).into())); }
+            request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), self.number_to_string(accountIndex)).into()));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
-        let __ws_arg_17 = self.extend(request, &[paramsAccountIndex]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsAccountIndex]);
         return self.unsubscribe(messageHash, &[__ws_arg_17]).await;
 
     Value::Null
@@ -1852,7 +1852,7 @@ impl LighterCore {
         let mut order: Value = txTypetxInfoorderVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol);
         let mut parsedTx: Value = self.parse_json_value(txInfo);
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("jsonapi/sendtx".into()));
                 m.insert("data".to_string(), Value::Map({
@@ -1864,12 +1864,12 @@ impl LighterCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut rawMessage: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
+        let mut rawMessage: Value = self.watch(url, messageHash.clone(), &[Value::Map(message), messageHash, Value::Map(subscription)]).await;
         return self.parse_order(self.deep_extend(rawMessage, &[order]), &[market]);
 
     Value::Null
@@ -1901,7 +1901,7 @@ impl LighterCore {
         let mut txInfo: Value = txTypetxInfoVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol);
         let mut parsedTx: Value = self.parse_json_value(txInfo);
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("jsonapi/sendtx".into()));
                 m.insert("data".to_string(), Value::Map({
@@ -1913,12 +1913,12 @@ impl LighterCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut rawMessage: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
+        let mut rawMessage: Value = self.watch(url, messageHash.clone(), &[Value::Map(message), messageHash, Value::Map(subscription)]).await;
         return self.parse_order(rawMessage, &[market]);
 
     Value::Null
@@ -1948,7 +1948,7 @@ impl LighterCore {
         let mut txType: Value = txTypetxInfoVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut txInfo: Value = txTypetxInfoVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut parsedTx: Value = self.parse_json_value(txInfo);
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("jsonapi/sendtx".into()));
                 m.insert("data".to_string(), Value::Map({
@@ -1960,12 +1960,12 @@ impl LighterCore {
 }));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut rawMessage: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
+        let mut rawMessage: Value = self.watch(url, messageHash.clone(), &[Value::Map(message), messageHash, Value::Map(subscription)]).await;
         return self.parse_orders(Value::from(vec![rawMessage]), &[]);
 
     Value::Null
@@ -2085,12 +2085,12 @@ impl LighterCore {
             let mut messageParts: Value = Value::Array(notSubscribedMessage.as_str().map(|__s| __s.split(" : ").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut notSubscribedChannel: Value = self.safe_string(messageParts, Value::Int(1), &[]);
             if (notSubscribedChannel != Value::Null) {
-                let mut unsubscribed: Value = Value::Map({
+                let mut unsubscribed: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("channel".to_string(), notSubscribedChannel);
                     m
                 });
-                self.handle_un_subscription(client.clone(), unsubscribed);
+                self.handle_un_subscription(client.clone(), Value::Map(unsubscribed));
                 return Value::Bool(true);
             }
         }
@@ -2273,12 +2273,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &allMessageHash);
             }
             client.resolve(&[Value::Bool(true), allMessageHash]);
-            let mut tickersStructure: Value = Value::Map({
+            let mut tickersStructure: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("topic".to_string(), Value::Str("ticker".into()));
                 m
             });
-            self.clean_cache(tickersStructure);
+            self.clean_cache(Value::Map(tickersStructure));
             return;
         }
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
@@ -2304,12 +2304,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // one account-wide channel feeds the plural hash and every per-symbol hash
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("myTrades".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into());
         self.clean_unsubscription(client, Value::Str("myTrades".into()), messageHash, &[Value::Bool(true)]);
-        let mut myTradesStructure: Value = Value::Map({
+        let mut myTradesStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("myTrades".into()));
             m
         });
-        self.clean_cache(myTradesStructure);
+        self.clean_cache(Value::Map(myTradesStructure));
 }
 
     pub fn handle_orders_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
@@ -2325,12 +2325,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("orders".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
-        let mut ordersStructure: Value = Value::Map({
+        let mut ordersStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("orders".into()));
             m
         });
-        self.clean_cache(ordersStructure);
+        self.clean_cache(Value::Map(ordersStructure));
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {

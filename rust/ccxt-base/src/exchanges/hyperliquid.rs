@@ -746,12 +746,12 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("exchangeStatus".into()));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_0]).await;
         //
         //     {
@@ -784,12 +784,12 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("exchangeStatus".into()));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_1]).await;
         return self.safe_integer_k(response, "time", &[]);
 
@@ -812,12 +812,12 @@ impl HyperliquidCore {
         if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             self.initialize_client().await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("spotMeta".into()));
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_2]).await;
         //
         //     [
@@ -1154,12 +1154,12 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_6]).await;
         //
         //     [
@@ -1287,12 +1287,12 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("spotMetaAndAssetCtxs".into()));
             m
         });
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_9]).await;
         //
         // [
@@ -1675,13 +1675,13 @@ impl HyperliquidCore {
         let mut paramsValue: Value = isUnifiedEnabledparamsValueVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut dex: Option<String> = self.safe_string_k(paramsValue.clone(), "dex", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), (if (isSpot) { Value::Str("spotClearinghouseState".into()) } else { Value::Str("clearinghouseState".into()) }));
                 m.insert("user".to_string(), userAddress);
             m
         });
-        let __ws_arg_10 = self.extend(request, &[paramsValue]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsValue]);
         let mut response: Value = self.public_post_info(&[__ws_arg_10]).await;
         //
         //     {
@@ -1720,7 +1720,7 @@ impl HyperliquidCore {
         //
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[]);
         if (balances != Value::Null) {
-            let mut spotBalances: Value = Value::Map({
+            let mut spotBalances: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), response.clone());
                 m
@@ -1738,11 +1738,11 @@ impl HyperliquidCore {
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), total); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), used); }
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut spotBalances { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                    spotBalances.insert(crate::runtime::stringify_param(&code), account);
                 }
             }
             }
-            return self.safe_balance(spotBalances);
+            return self.safe_balance(Value::Map(spotBalances));
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "marginSummary", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1758,16 +1758,16 @@ impl HyperliquidCore {
         }  else {
             if let Value::Dict(__d) = &mut usdcBalance { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_number_k(data, "totalMarginUsed", &[])); }
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("USDC".to_string(), usdcBalance);
             m
         });
         let mut timestamp: Value = self.safe_integer_k(response, "time", &[]);
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(timestamp)); }
-        return self.safe_balance(result);
+        result.insert("timestamp".into(), timestamp.clone());
+        result.insert("datetime".into(), self.iso8601(timestamp));
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1792,13 +1792,13 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("l2Book".into()));
                 m.insert("coin".to_string(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { self.safe_string_k(market.clone(), "baseName", &[]) } else { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) }));
             m
         });
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_11]).await;
         //
         //     {
@@ -1823,14 +1823,14 @@ impl HyperliquidCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "levels", &[Value::from(vec![])]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), self.safe_list(data.clone(), Value::Int(0), &[Value::from(vec![])]));
                 m.insert("asks".to_string(), self.safe_list(data, Value::Int(1), &[Value::from(vec![])]));
             m
         });
         let mut timestamp: Value = self.safe_integer_k(response, "time", &[]);
-        return self.parse_order_book(result, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]);
+        return self.parse_order_book(Value::Map(result), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]);
 
     Value::Null
 }
@@ -1951,16 +1951,16 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
             m
         });
         let mut dexName: Value = self.get_dex_from_symbols(Value::Str("fetchFundingRates".into()), &[symbolsNormalized.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if (dexName != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
+            request.insert("dex".into(), dexName);
         }
-        let __ws_arg_12 = self.extend(request, &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_12]).await;
         //
         //     [
@@ -2159,7 +2159,7 @@ impl HyperliquidCore {
             }
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("candleSnapshot".into()));
                 m.insert("req".to_string(), Value::Map({
@@ -2172,7 +2172,7 @@ impl HyperliquidCore {
 }));
             m
         });
-        let __ws_arg_15 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_post_info(&[__ws_arg_15]).await;
         //
         //     [
@@ -2239,23 +2239,23 @@ impl HyperliquidCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("user".to_string(), userAddress);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFillsByTime".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("type".into(), Value::Str("userFillsByTime".into()));
+            request.insert("startTime".into(), since.clone());
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFills".into())); }
+            request.insert("type".into(), Value::Str("userFills".into()));
         }
         let mut until: Value = self.safe_integer_k(paramsPublicAddress.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
         }
-        let __ws_arg_16 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_post_info(&[__ws_arg_16]).await;
         //
         //     [
@@ -2403,7 +2403,7 @@ impl HyperliquidCore {
         // }
         let mut zeroAddress: Value = self.safe_string_k(self.options.clone(), "zeroAddress", &[]);
         let mut chainId: Value = Value::Int(1337); // check this out
-        let mut domain: Value = Value::Map({
+        let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("chainId".to_string(), chainId);
                 m.insert("name".to_string(), Value::Str("Exchange".into()));
@@ -2411,7 +2411,7 @@ impl HyperliquidCore {
                 m.insert("version".to_string(), Value::Str("1".into()));
             m
         });
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Agent".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2426,7 +2426,7 @@ impl HyperliquidCore {
 })]));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(domain, messageTypes, phantomAgent);
+        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), phantomAgent);
         let mut signature: Value = self.sign_message(msg, self.privateKey.clone());
         return signature;
 
@@ -2436,7 +2436,7 @@ impl HyperliquidCore {
     pub fn sign_user_signed_action(&self, mut messageTypes: Value, mut message: Value) -> Value {
         let mut zeroAddress: Value = self.safe_string_k(self.options.clone(), "zeroAddress", &[]);
         let mut chainId: Value = Value::Int(421614); // check this out
-        let mut domain: Value = Value::Map({
+        let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("chainId".to_string(), chainId);
                 m.insert("name".to_string(), Value::Str("HyperliquidSignTransaction".into()));
@@ -2444,7 +2444,7 @@ impl HyperliquidCore {
                 m.insert("version".to_string(), Value::Str("1".into()));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(domain, messageTypes, message);
+        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), messageTypes, message);
         let mut signature: Value = self.sign_message(msg, self.privateKey.clone());
         return signature;
 
@@ -2452,7 +2452,7 @@ impl HyperliquidCore {
 }
 
     pub fn build_usd_send_sig(&self, mut message: Value) -> Value {
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UsdSend".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2477,13 +2477,13 @@ impl HyperliquidCore {
 })]));
             m
         });
-        return self.sign_user_signed_action(messageTypes, message);
+        return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
     Value::Null
 }
 
     pub fn build_usd_class_send_sig(&self, mut message: Value) -> Value {
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UsdClassTransfer".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2508,13 +2508,13 @@ impl HyperliquidCore {
 })]));
             m
         });
-        return self.sign_user_signed_action(messageTypes, message);
+        return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
     Value::Null
 }
 
     pub fn build_send_asset_sig(&self, mut message: Value) -> Value {
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:SendAsset".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2559,13 +2559,13 @@ impl HyperliquidCore {
 })]));
             m
         });
-        return self.sign_user_signed_action(messageTypes, message);
+        return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
     Value::Null
 }
 
     pub fn build_withdraw_sig(&self, mut message: Value) -> Value {
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:Withdraw".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2590,13 +2590,13 @@ impl HyperliquidCore {
 })]));
             m
         });
-        return self.sign_user_signed_action(messageTypes, message);
+        return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
     Value::Null
 }
 
     pub fn build_user_dex_abstraction_sig(&self, mut message: Value) -> Value {
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UserDexAbstraction".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2621,13 +2621,13 @@ impl HyperliquidCore {
 })]));
             m
         });
-        return self.sign_user_signed_action(messageTypes, message);
+        return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
     Value::Null
 }
 
     pub fn build_user_abstraction_sig(&self, mut message: Value) -> Value {
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UserSetAbstraction".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2652,13 +2652,13 @@ impl HyperliquidCore {
 })]));
             m
         });
-        return self.sign_user_signed_action(messageTypes, message);
+        return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
     Value::Null
 }
 
     pub fn build_approve_builder_fee_sig(&self, mut message: Value) -> Value {
-        let mut messageTypes: Value = Value::Map({
+        let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:ApproveBuilderFee".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2683,7 +2683,7 @@ impl HyperliquidCore {
 })]));
             m
         });
-        return self.sign_user_signed_action(messageTypes, message);
+        return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
     Value::Null
 }
@@ -2701,7 +2701,7 @@ impl HyperliquidCore {
         });
         let mut nonce: Value = self.incrementing_nonce();
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce.clone(), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action);
                 m.insert("nonce".to_string(), nonce);
@@ -2710,10 +2710,10 @@ impl HyperliquidCore {
         });
         let mut success: Value = Value::Bool(false);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            self.private_post_exchange(&[request]).await;
+            self.private_post_exchange(&[Value::Map(request)]).await;
             success = Value::Bool(true);
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             success = Value::Bool(false); // ignore this
         }
         return success;
@@ -2743,7 +2743,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), Value::Str("approveBuilderFee".into()));
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action);
                 m.insert("nonce".to_string(), nonce);
@@ -2751,7 +2751,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
         });
-        return self.private_post_exchange(&[request]).await;
+        return self.private_post_exchange(&[Value::Map(request)]).await;
 
     Value::Null
 }
@@ -2763,7 +2763,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).await])).await; // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             return Value::Bool(false);
         }
         return Value::Bool(true);
@@ -2788,7 +2788,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.approve_builder_fee(builder, maxFeeRate).await;
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }; // disable builder fee if an error occurs
         }
         return Value::Bool(true);
@@ -2829,7 +2829,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsEnableUnifiedMargin: Value = enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut enableUnifiedMargin: Value = enableUnifiedMarginOption;
         if (enableUnifiedMargin == Value::Null) || shouldRefresh {
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("userAbstraction".into()));
                     m.insert("user".to_string(), userAddress);
@@ -2839,7 +2839,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
                 // type 'swap') must not overwrite the info query, which would silently fail here
-                let __ws_arg_17 = self.extend(paramsEnableUnifiedMargin.clone(), &[request]);
+                let __ws_arg_17 = self.extend(paramsEnableUnifiedMargin.clone(), &[Value::Map(request)]);
                 let mut rawResponse: Value = self.public_post_info(&[__ws_arg_17]).await;
                 if matches!(&rawResponse, Value::Str(_)) {
                     response = rawResponse.clone();
@@ -2907,7 +2907,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), type_var);
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action);
                 m.insert("nonce".to_string(), nonce);
@@ -2915,7 +2915,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
         });
-        return self.private_post_exchange(&[request]).await;
+        return self.private_post_exchange(&[Value::Map(request)]).await;
 
     Value::Null
 }
@@ -2959,7 +2959,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), type_var);
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action);
                 m.insert("nonce".to_string(), nonce);
@@ -2967,7 +2967,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
         });
-        return self.private_post_exchange(&[request]).await;
+        return self.private_post_exchange(&[Value::Map(request)]).await;
 
     Value::Null
 }
@@ -2986,7 +2986,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
@@ -2998,9 +2998,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        let __ws_arg_18 = self.extend(request, &[params]);
+        request.insert("action".into(), action);
+        request.insert("signature".into(), signature);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_18]).await;
         return response;
 
@@ -3098,7 +3098,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut signature: Value = self.sign_l1_action(orderAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), orderAction);
                 m.insert("nonce".to_string(), nonce);
@@ -3106,13 +3106,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
         let mut expiresAfter: Value = self.safe_integer_k(paramsVault, "expiresAfter", &[]);
         if (expiresAfter != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".into(), expiresAfter); }
+            request.insert("expiresAfter".into(), expiresAfter);
         }
-        let mut response: Value = self.private_post_exchange(&[request]).await;
+        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         // {
         //     "status":"ok",
         //     "response":{
@@ -3296,7 +3296,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })); }
         }
-        let mut orderObj: Value = Value::Map({
+        let mut orderObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("a".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)));
                 m.insert("b".to_string(), isBuy);
@@ -3307,9 +3307,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("c".into(), clientOrderId); }
+            orderObj.insert("c".into(), clientOrderId);
         }
-        return orderObj;
+        return Value::Map(orderObj);
 
     Value::Null
 }
@@ -3467,7 +3467,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })); }
         }
         let mut signature: Value = self.sign_l1_action(orderAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), orderAction);
                 m.insert("nonce".to_string(), nonce);
@@ -3476,9 +3476,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (vaultAddress != Value::Null) {
             params2 = self.omit(params2.clone(), Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
-        return request;
+        return Value::Map(request);
 
     Value::Null
 }
@@ -3617,7 +3617,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut nonce: Value = self.incrementing_nonce();
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce.clone(), &[vaultAddress.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action);
                 m.insert("nonce".to_string(), nonce);
@@ -3626,14 +3626,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (vaultAddress != Value::Null) {
             params2 = self.omit(params2.clone(), Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
         let mut expiresAfter: Value = self.safe_integer_k(params2.clone(), "expiresAfter", &[]);
         if (expiresAfter != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".into(), expiresAfter); }
+            request.insert("expiresAfter".into(), expiresAfter);
             params2 = self.omit(params2, Value::Str("expiresAfter".into()), &[]);
         }
-        let mut response: Value = self.private_post_exchange(&[request]).await;
+        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         //
         //  {
         //     "status":"ok",
@@ -3685,7 +3685,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
@@ -3736,13 +3736,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        request.insert("action".into(), cancelAction);
+        request.insert("signature".into(), signature);
         if (vaultAddress != Value::Null) {
             params2 = self.omit(params2.clone(), Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
-        return request;
+        return Value::Map(request);
 
     Value::Null
 }
@@ -3770,7 +3770,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         self.initialize_client().await;
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
@@ -3817,12 +3817,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        request.insert("action".into(), cancelAction);
+        request.insert("signature".into(), signature);
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
-        let mut response: Value = self.private_post_exchange(&[request]).await;
+        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
@@ -3854,7 +3854,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.initialize_client().await;
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
@@ -3869,13 +3869,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelAllOrdersAfter".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        request.insert("action".into(), cancelAction);
+        request.insert("signature".into(), signature);
         if (vaultAddress != Value::Null) {
             params2 = self.omit(params2, Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
-        let mut response: Value = self.private_post_exchange(&[request]).await;
+        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         return response;
 
     Value::Null
@@ -4034,7 +4034,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("editOrder".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(modifyAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), modifyAction);
                 m.insert("nonce".to_string(), nonce);
@@ -4042,9 +4042,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
-        return request;
+        return Value::Map(request);
 
     Value::Null
 }
@@ -4182,7 +4182,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
@@ -4198,9 +4198,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        let __ws_arg_21 = self.extend(request, &[params]);
+        request.insert("action".into(), action);
+        request.insert("signature".into(), signature);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_21]).await;
         return response;
 
@@ -4234,24 +4234,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("fundingHistory".into()));
                 m.insert("coin".to_string(), self.safe_string_k(market.clone(), "baseName", &[]));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }  else {
             let mut maxLimit: Value = (if (limit == Value::Null) { Value::Int(500) } else { limit.clone() });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), (match (&(self.milliseconds()), &((match (&((match (&((match (&(maxLimit), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            request.insert("startTime".into(), (match (&(self.milliseconds()), &((match (&((match (&((match (&(maxLimit), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
         }
-        let __ws_arg_22 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_post_info(&[__ws_arg_22]).await;
         //
         //     [
@@ -4335,7 +4335,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), method);
                 m.insert("user".to_string(), userAddress);
@@ -4347,10 +4347,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // check if is hip3 symbol
             let mut dexName: Value = self.get_dex_from_hip3_symbol(market.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             if (dexName != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
+                request.insert("dex".into(), dexName);
             }
         }
-        let __ws_arg_23 = self.extend(request, &[paramsMethod]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[paramsMethod]);
         let mut response: Value = self.public_post_info(&[__ws_arg_23]).await;
         //
         //     [
@@ -4505,7 +4505,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("historicalOrders".into()));
                 m.insert("user".to_string(), userAddress);
@@ -4516,10 +4516,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // check if is hip3 symbol
             let mut dexName: Value = self.get_dex_from_hip3_symbol(market.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             if (dexName != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
+                request.insert("dex".into(), dexName);
             }
         }
-        let __ws_arg_24 = self.extend(request, &[paramsPublicAddress]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[paramsPublicAddress]);
         let mut response: Value = self.public_post_info(&[__ws_arg_24]).await;
         //
         //     [
@@ -4605,7 +4605,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = self.market(symbol);
         }
         let mut clientOrderId: Value = self.safe_string_k(params2.clone(), "clientOrderId", &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("orderStatus".into()));
                 m.insert("user".to_string(), userAddress);
@@ -4613,12 +4613,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (clientOrderId != Value::Null) {
             params2 = self.omit(params2.clone(), Value::Str("clientOrderId".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".into(), clientOrderId); }
+            request.insert("oid".into(), clientOrderId);
         }  else {
             let mut isClientOrderId: bool = ((id.len() as i64) as f64) >= ((34i64) as f64);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".into(), (if isClientOrderId { id.clone() } else { self.parse_to_numeric(id) })); }
+            request.insert("oid".into(), (if isClientOrderId { id.clone() } else { self.parse_to_numeric(id) }));
         }
-        let __ws_arg_25 = self.extend(request, &[params2]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[params2]);
         let mut response: Value = self.public_post_info(&[__ws_arg_25]).await;
         //
         //     {
@@ -4842,7 +4842,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (status == Value::Null) {
             return None;
         }
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("triggered".to_string(), Value::Str("open".into()));
                 m.insert("filled".to_string(), Value::Str("closed".into()));
@@ -4858,17 +4858,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (status.as_str().is_some_and(|__s| __s.ends_with("Canceled"))) {
             return Value::Str("canceled".into()).as_str().map(str::to_owned);
         }
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stop limit".to_string(), Value::Str("limit".into()));
                 m.insert("stop market".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -4903,23 +4903,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("user".to_string(), userAddress);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFillsByTime".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("type".into(), Value::Str("userFillsByTime".into()));
+            request.insert("startTime".into(), since.clone());
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFills".into())); }
+            request.insert("type".into(), Value::Str("userFills".into()));
         }
         let mut until: Value = self.safe_integer_k(paramsPublicAddress.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
         }
-        let __ws_arg_26 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_26 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_post_info(&[__ws_arg_26]).await;
         //
         //     [
@@ -5233,7 +5233,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("clearinghouseState".into()));
                 m.insert("user".to_string(), userAddress);
@@ -5241,9 +5241,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut dexName: Value = self.get_dex_from_symbols(Value::Str("fetchPositions".into()), &[symbolsNormalized.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if (dexName != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
+            request.insert("dex".into(), dexName);
         }
-        let __ws_arg_28 = self.extend(request, &[paramsPublicAddress]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsPublicAddress]);
         let mut response: Value = self.public_post_info(&[__ws_arg_28]).await;
         //
         //     {
@@ -5451,7 +5451,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut signature: Value = self.sign_l1_action(updateAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), updateAction);
                 m.insert("nonce".to_string(), nonce);
@@ -5459,9 +5459,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
-        let mut response: Value = self.private_post_exchange(&[request]).await;
+        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         return response;
 
     Value::Null
@@ -5507,7 +5507,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_string_and_params2(params2.clone(), Value::Str("setLeverage".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(updateAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), updateAction);
                 m.insert("nonce".to_string(), nonce);
@@ -5516,9 +5516,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (vaultAddress != Value::Null) {
             params2 = self.omit(params2, Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
-        let mut response: Value = self.private_post_exchange(&[request]).await;
+        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         return response;
 
     Value::Null
@@ -5592,7 +5592,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("modifyMargin".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(updateAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), updateAction);
                 m.insert("nonce".to_string(), nonce);
@@ -5600,9 +5600,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            request.insert("vaultAddress".into(), vaultAddress);
         }
-        let mut response: Value = self.private_post_exchange(&[request]).await;
+        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         let __ws_arg_29 = self.parse_margin_modification(response.clone(), &[market]);
         let __ws_arg_30 = self.safe_string_k(response, "status", &[]);
         return self.extend(__ws_arg_29, &[Value::Map({
@@ -5688,7 +5688,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut transferSig: Value = self.build_usd_class_send_sig(transferPayload.clone());
-            let mut transferRequest: Value = Value::Map({
+            let mut transferRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5704,7 +5704,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("signature".to_string(), transferSig);
                 m
             });
-            let mut transferResponse: Value = self.private_post_exchange(&[transferRequest]).await;
+            let mut transferResponse: Value = self.private_post_exchange(&[Value::Map(transferRequest)]).await;
             //
             // {'response': {'type': 'default'}, 'status': 'ok'}
             //
@@ -5765,7 +5765,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut sendAssetSig: Value = self.build_send_asset_sig(sendAssetPayload.clone());
-            let mut sendAssetRequest: Value = Value::Map({
+            let mut sendAssetRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5785,7 +5785,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("signature".to_string(), sendAssetSig);
                 m
             });
-            let mut sendAssetResponse: Value = self.private_post_exchange(&[sendAssetRequest]).await;
+            let mut sendAssetResponse: Value = self.private_post_exchange(&[Value::Map(sendAssetRequest)]).await;
             return self.parse_transfer(sendAssetResponse, &[sendAssetCurrency]);
         }
         // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
@@ -5937,14 +5937,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action);
                 m.insert("nonce".to_string(), nonce);
                 m.insert("signature".to_string(), sig);
             m
         });
-        let mut response: Value = self.private_post_exchange(&[request]).await;
+        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         return self.parse_transaction(response, &[]);
 
     Value::Null
@@ -6036,13 +6036,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userFees".into()));
                 m.insert("user".to_string(), userAddress);
             m
         });
-        let __ws_arg_31 = self.extend(request, &[paramsPublicAddress]);
+        let __ws_arg_31 = self.extend(Value::Map(request), &[paramsPublicAddress]);
         let mut response: Value = self.public_post_info(&[__ws_arg_31]).await;
         //
         //     {
@@ -6079,13 +6079,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "activeReferralDiscount": "0.0"
         //     }
         //
-        let mut data: Value = Value::Map({
+        let mut data: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("userCrossRate".to_string(), self.safe_string_k(response.clone(), "userCrossRate", &[]));
                 m.insert("userAddRate".to_string(), self.safe_string_k(response, "userAddRate", &[]));
             m
         });
-        return self.parse_trading_fee(data, &[market]);
+        return self.parse_trading_fee(Value::Map(data), &[market]);
 
     Value::Null
 }
@@ -6168,21 +6168,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userAddress: Value = Value::Null;
         let mut params2: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchLedger".into()), params); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
                 m.insert("user".to_string(), userAddress);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(params2.clone(), "until", &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
             params2 = self.omit(params2.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
         }
-        let __ws_arg_32 = self.extend(request, &[params2]);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[params2]);
         let mut response: Value = self.public_post_info(&[__ws_arg_32]).await;
         return self.parse_ledger(response, &[Value::Null, since, limit]);
 
@@ -6243,13 +6243,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
-        let mut ledgerType: Value = Value::Map({
+        let mut ledgerType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("internalTransfer".to_string(), Value::Str("transfer".into()));
                 m.insert("accountClassTransfer".to_string(), Value::Str("transfer".into()));
             m
         });
-        return self.safe_string(ledgerType, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(ledgerType), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -6279,24 +6279,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userAddress: Value = Value::Null;
         let mut params2: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchDepositsWithdrawals".into()), params); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
                 m.insert("user".to_string(), userAddress);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(params2.clone(), "until", &[]);
         if (until != Value::Null) {
             if (since == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits requires since while until is set".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
             params2 = self.omit(params2.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
         }
-        let __ws_arg_33 = self.extend(request, &[params2.clone()]);
+        let __ws_arg_33 = self.extend(Value::Map(request), &[params2.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_33]).await;
         //
         // [
@@ -6372,21 +6372,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userAddress: Value = Value::Null;
         let mut params2: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchDepositsWithdrawals".into()), params); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
                 m.insert("user".to_string(), userAddress);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(params2.clone(), "until", &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
             params2 = self.omit(params2.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
         }
-        let __ws_arg_34 = self.extend(request, &[params2.clone()]);
+        let __ws_arg_34 = self.extend(Value::Map(request), &[params2.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_34]).await;
         //
         // [
@@ -6454,15 +6454,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut dexName: Value = self.get_dex_from_symbols(Value::Str("fetchOpenInterests".into()), &[symbolsNormalized.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if (dexName != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
+            request.insert("dex".into(), dexName);
         }
-        let __ws_arg_35 = self.extend(request, &[params]);
+        let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
         let mut swapMarkets: Value = self.fetch_swap_markets(&[__ws_arg_35]).await;
         return self.parse_open_interests(swapMarkets, &[symbolsNormalized]);
 
@@ -6567,21 +6567,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userAddressparamsPublicAddressVariable = self.handle_public_address(Value::Str("fetchFundingHistory".into()), params);
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("user".to_string(), userAddress);
                 m.insert("type".to_string(), Value::Str("userFunding".into()));
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         let mut until: Value = self.safe_integer_k(paramsPublicAddress.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
         }
-        let __ws_arg_36 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_36 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_post_info(&[__ws_arg_36]).await;
         return self.parse_incomes(response, &[market, since, limit]);
 
@@ -6646,7 +6646,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
@@ -6658,9 +6658,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        let __ws_arg_37 = self.extend(request, &[params]);
+        request.insert("action".into(), action);
+        request.insert("signature".into(), signature);
+        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_37]).await;
         return response;
 
@@ -6682,7 +6682,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
@@ -6695,12 +6695,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut expiresAfter: Value = self.safe_integer_k(params.clone(), "expiresAfter", &[]);
         if (expiresAfter != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".into(), expiresAfter.clone()); }
+            request.insert("expiresAfter".into(), expiresAfter.clone());
         }
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[Value::Null, expiresAfter]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        let __ws_arg_38 = self.extend(request, &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
+        request.insert("action".into(), action);
+        request.insert("signature".into(), signature);
+        let __ws_arg_38 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_38]).await;
         return response;
 

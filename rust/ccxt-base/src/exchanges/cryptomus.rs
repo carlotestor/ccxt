@@ -907,7 +907,7 @@ impl CryptomusCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currencyPair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
@@ -916,8 +916,8 @@ impl CryptomusCore {
         let mut levelOptionparamsLevelVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("level".into()), &[level]);
         let mut levelOption: Value = levelOptionparamsLevelVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsLevel: Value = levelOptionparamsLevelVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("level".into(), levelOption); }
-        let __ws_arg_0 = self.extend(request, &[paramsLevel]);
+        request.insert("level".into(), levelOption);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsLevel]);
         let mut response: Value = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_0]).await;
         //
         //     {
@@ -970,12 +970,12 @@ impl CryptomusCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currencyPair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_v1_exchange_market_trades_currency_pair(&[__ws_arg_1]).await;
         //
         //     {
@@ -1056,11 +1056,11 @@ impl CryptomusCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_v2_user_api_exchange_account_balance(&[__ws_arg_2]).await;
         //
         //     {
@@ -1087,7 +1087,7 @@ impl CryptomusCore {
         //         "held": "0.00000000"
         //     }
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), balance.clone());
             m
@@ -1103,11 +1103,11 @@ impl CryptomusCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balanceEntry.clone(), "available", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balanceEntry, "held", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                result.insert(crate::runtime::stringify_param(&code), account);
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1216,12 +1216,12 @@ impl CryptomusCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
-        let __ws_arg_5 = self.extend(request, &[params]);
+        request.insert("orderId".into(), id);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_v2_user_api_exchange_orders_order_id(&[__ws_arg_5]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1259,19 +1259,19 @@ impl CryptomusCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
+            request.insert("limit".into(), limit);
         }
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_v2_user_api_exchange_orders_history(&[__ws_arg_6]).await;
         //
         //     {
@@ -1358,14 +1358,14 @@ impl CryptomusCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (market != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_v2_user_api_exchange_orders(&[__ws_arg_7]).await;
         //
         //     {
@@ -1514,7 +1514,7 @@ impl CryptomusCore {
 
     pub fn parse_order_status(&self, optional_args: &[Value]) -> Option<String> {
         let mut status = get_arg(optional_args, 0, Value::Null);
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("active".to_string(), Value::Str("open".into()));
                 m.insert("completed".to_string(), Value::Str("closed".into()));
@@ -1524,7 +1524,7 @@ impl CryptomusCore {
                 m.insert("failed".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*

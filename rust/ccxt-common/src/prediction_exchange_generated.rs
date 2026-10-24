@@ -597,7 +597,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             return outcomeObj;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
-        let mut outcomeObjValue: Value = Value::Map({
+        let mut outcomeObjValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("outcome".to_string(), outcomeIdOrSymbol.clone());
                 m.insert("outcomeId".to_string(), outcomeIdOrSymbol);
@@ -610,7 +610,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 }));
             m
         });
-        return outcomeObjValue;
+        return Value::Map(outcomeObjValue);
 
     Value::Null
 }
@@ -2106,7 +2106,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         let mut fallback: Value = self.safe_string2(orderbook.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
-        let mut identity: Value = Value::Map({
+        let mut identity: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("outcome".to_string(), (if (outcomeObj == Value::Null) { fallback.clone() } else { self.safe_string_k(outcomeObj.clone(), "outcome", &[fallback]) }));
                 m.insert("outcomeId".to_string(), (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "outcomeId", &[]) } else { self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]) }));
@@ -2114,7 +2114,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let __ws_arg_0 = self.omit(orderbook, Value::Str("symbol".into()), &[]);
-        return self.extend(__ws_arg_0, &[identity]);
+        return self.extend(__ws_arg_0, &[Value::Map(identity)]);
 
     Value::Null
 }
@@ -2444,7 +2444,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     fn eth_rpc(&mut self, mut rpcUrl: Value, mut method: Value, mut rpcParams: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("id".to_string(), Value::Int(1));
@@ -2452,12 +2452,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), rpcParams);
             m
         });
-        let mut headers: Value = Value::Map({
+        let mut headers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
         });
-        let mut response: Value = self.fetch(rpcUrl, &[Value::Str("POST".into()), headers, json_stringify(&payload)]).await;
+        let mut response: Value = self.fetch(rpcUrl, &[Value::Str("POST".into()), Value::Map(headers), json_stringify(&Value::Map(payload))]).await;
         let mut rpcError: Value = self.safe_value_k(response.clone(), "error", &[]);
         if (rpcError != Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" rpc ".into())).into()), method).into()), Value::Str(" error: ".into())).into()), json_stringify(&rpcError))));
@@ -2470,7 +2470,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn send_evm_transaction(&mut self, mut rpcUrl: Value, mut chainId: Value, mut fromAddress: Value, mut to: Value, mut value: Value, mut data: Value, mut gasLimit: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut nonce: Value = self.eth_rpc(rpcUrl.clone(), Value::Str("eth_getTransactionCount".into()), Value::from(vec![fromAddress, Value::Str("pending".into())])).await;
         let mut gasPrice: Value = self.eth_rpc(rpcUrl.clone(), Value::Str("eth_gasPrice".into()), Value::from(vec![])).await;
-        let mut tx: Value = Value::Map({
+        let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("chainId".to_string(), chainId);
                 m.insert("nonce".to_string(), nonce);
@@ -2482,7 +2482,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("data".to_string(), data);
             m
         });
-        let mut signed: Value = self.sign_evm_transaction(tx, self.privateKey.clone());
+        let mut signed: Value = self.sign_evm_transaction(Value::Map(tx), self.privateKey.clone());
         return self.eth_rpc(rpcUrl, Value::Str("eth_sendRawTransaction".into()), Value::from(vec![signed])).await;
 
     Value::Null

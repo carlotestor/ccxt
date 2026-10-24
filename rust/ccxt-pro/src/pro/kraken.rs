@@ -625,7 +625,7 @@ impl KrakenCore {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
         let mut requestId: Value = self.request_id();
         let mut messageHash: Value = self.number_to_string(requestId.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("add_order".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -640,7 +640,7 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let mut requestValueparamsValueVariable = self.order_request_ws(Value::Str("createOrderWs".into()), symbol, type_var, request, amount, &[price, params]);
+        let mut requestValueparamsValueVariable = self.order_request_ws(Value::Str("createOrderWs".into()), symbol, type_var, Value::Map(request), amount, &[price, params]);
         let mut requestValue: Value = requestValueparamsValueVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = requestValueparamsValueVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_0 = self.extend(requestValue, &[paramsValue]);
@@ -713,7 +713,7 @@ impl KrakenCore {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
         let mut requestId: Value = self.request_id();
         let mut messageHash: Value = self.number_to_string(requestId.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("amend_order".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -726,7 +726,7 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let mut requestValueparamsValueVariable = self.order_request_ws(Value::Str("editOrderWs".into()), symbol, type_var, request, amount, &[price, params]);
+        let mut requestValueparamsValueVariable = self.order_request_ws(Value::Str("editOrderWs".into()), symbol, type_var, Value::Map(request), amount, &[price, params]);
         let mut requestValue: Value = requestValueparamsValueVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = requestValueparamsValueVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_1 = self.extend(requestValue, &[paramsValue]);
@@ -759,7 +759,7 @@ impl KrakenCore {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
         let mut requestId: Value = self.request_id();
         let mut messageHash: Value = self.number_to_string(requestId.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("cancel_order".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -771,7 +771,7 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone()]).await;
 
     Value::Null
@@ -801,7 +801,7 @@ impl KrakenCore {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
         let mut requestId: Value = self.request_id();
         let mut messageHash: Value = self.number_to_string(requestId.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("cancel_order".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -813,7 +813,7 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_3, messageHash.clone()]).await;
 
     Value::Null
@@ -861,7 +861,7 @@ impl KrakenCore {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
         let mut requestId: Value = self.request_id();
         let mut messageHash: Value = self.number_to_string(requestId.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("cancel_all".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -872,7 +872,7 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
 
     Value::Null
@@ -1118,15 +1118,15 @@ impl KrakenCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[symbolsNormalized.clone(), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -1153,15 +1153,15 @@ impl KrakenCore {
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("event_trigger".into(), Value::Str("bbo".into())); }
         let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker".into()), &[symbolsNormalized.clone(), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -1258,13 +1258,13 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requiredParams: Value = Value::Map({
+        let mut requiredParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (limit != Value::Null) {
             if self.in_array(limit.clone(), Value::from(vec![Value::Int(10), Value::Int(25), Value::Int(100), Value::Int(500), Value::Int(1000)])).as_bool() == Some(true) {
-                if let Value::Dict(__d) = &mut requiredParams { std::sync::Arc::make_mut(__d).insert("depth".into(), limit.clone()); }; // default 10, valid options 10, 25, 100, 500, 1000
+                requiredParams.insert("depth".into(), limit.clone()); // default 10, valid options 10, 25, 100, 500, 1000
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only".into()))));
             }
@@ -1273,7 +1273,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), limit.clone());
     m
-}), self.extend(requiredParams, &[params])]).await;
+}), self.extend(Value::Map(requiredParams), &[params])]).await;
         return orderbook.limit();
 
     Value::Null
@@ -1306,7 +1306,7 @@ impl KrakenCore {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
         let mut requestId: Value = self.request_id();
         let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, symbolValue.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1319,7 +1319,7 @@ impl KrakenCore {
                 m.insert("req_id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1369,16 +1369,16 @@ impl KrakenCore {
 
     pub fn ping(&self, mut client: Value) -> Value {
         let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if Value::Int(url.as_str().and_then(|__s| __s.find("v2")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("method".into(), Value::Str("ping".into())); }
+            request.insert("method".into(), Value::Str("ping".into()));
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("event".into(), Value::Str("ping".into())); }
+            request.insert("event".into(), Value::Str("ping".into()));
         }
-        return request;
+        return Value::Map(request);
 
     Value::Null
 }
@@ -2175,7 +2175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = Value::Str("balances".into());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
         let mut requestId: Value = self.request_id();
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("req_id".to_string(), requestId);
@@ -2187,7 +2187,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
@@ -2218,7 +2218,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), message);
             m
@@ -2232,11 +2232,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut account: Value = self.account();
             let mut eq: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("balance".into()), &[]);
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), eq); }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+            result.insert(crate::runtime::stringify_param(&code), account);
         }
         }
         let mut type_var: Value = Value::Str("spot".into());
-        let mut balance: Value = self.safe_balance(result);
+        let mut balance: Value = self.safe_balance(Value::Map(result));
         let mut oldBalance: Value = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

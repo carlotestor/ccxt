@@ -1144,12 +1144,12 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
             m
         });
-        let __ws_arg_2 = self.extend(request, &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_products(&[__ws_arg_2]).await;
         return self.parse_currencies(response);
 
@@ -1221,12 +1221,12 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_instruments(&[__ws_arg_3]).await;
         return self.parse_markets(response);
 
@@ -1384,14 +1384,14 @@ impl NdaxCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit }); // default 100
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("Depth".to_string(), limitValue);
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_l2_snapshot(&[__ws_arg_4]).await;
         return self.parse_order_book(response, symbol, &[]);
 
@@ -1547,13 +1547,13 @@ impl NdaxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_level1(&[__ws_arg_5]).await;
         return self.parse_ticker(response, &[market]);
 
@@ -1592,7 +1592,7 @@ impl NdaxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1603,18 +1603,18 @@ impl NdaxCore {
         let mut now: Value = self.milliseconds();
         if (since == Value::Null) {
             if (limit != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("FromDate".into(), self.ymdhms((match (&(now), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[])); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".into(), self.ymdhms(now.clone(), &[])); }
+                request.insert("FromDate".into(), self.ymdhms((match (&(now), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]));
+                request.insert("ToDate".into(), self.ymdhms(now.clone(), &[]));
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("FromDate".into(), self.ymdhms(since.clone(), &[])); }
+            request.insert("FromDate".into(), self.ymdhms(since.clone(), &[]));
             if (limit == Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".into(), self.ymdhms(now, &[])); }
+                request.insert("ToDate".into(), self.ymdhms(now, &[]));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".into(), self.ymdhms(self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]), &[])); }
+                request.insert("ToDate".into(), self.ymdhms(self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]), &[]));
             }
         }
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_ticker_history(&[__ws_arg_6]).await;
         //
         //     [
@@ -1836,16 +1836,16 @@ impl NdaxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Count".into(), limit.clone()); }
+            request.insert("Count".into(), limit.clone());
         }
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_last_trades(&[__ws_arg_7]).await;
         return self.parse_trades(response, &[market, since, limit]);
 
@@ -1870,14 +1870,14 @@ impl NdaxCore {
         }
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
         self.check_required_credentials(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("UserId".to_string(), self.uid.clone());
                 m.insert("UserName".to_string(), self.login.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_get_user_accounts(&[__ws_arg_8]).await;
         //
         //     [ 449 ] // comma-separated list of account ids
@@ -1904,7 +1904,7 @@ impl NdaxCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), Value::Null);
@@ -1923,12 +1923,12 @@ impl NdaxCore {
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "Amount", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance, "Hold", &[])); }
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                    result.insert(crate::runtime::stringify_param(&code), account);
                 }
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1957,13 +1957,13 @@ impl NdaxCore {
             accountId = self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
             m
         });
-        let __ws_arg_9 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_account_positions(&[__ws_arg_9]).await;
         return self.parse_balance(response);
 
@@ -1971,7 +1971,7 @@ impl NdaxCore {
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Trade".to_string(), Value::Str("trade".into()));
                 m.insert("Deposit".to_string(), Value::Str("transaction".into()));
@@ -1988,7 +1988,7 @@ impl NdaxCore {
                 m.insert("MarginQuoteHold".to_string(), Value::Str("trade".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -2080,16 +2080,16 @@ impl NdaxCore {
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".into(), limit.clone()); }
+            request.insert("Depth".into(), limit.clone());
         }
-        let __ws_arg_10 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_account_transactions(&[__ws_arg_10]).await;
         //
         //     [
@@ -2119,7 +2119,7 @@ impl NdaxCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accepted".to_string(), Value::Str("open".into()));
                 m.insert("Rejected".to_string(), Value::Str("rejected".into()));
@@ -2132,7 +2132,7 @@ impl NdaxCore {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2277,7 +2277,7 @@ impl NdaxCore {
         let mut market: Value = self.market(symbol.clone());
         let mut orderSide: Value = (if (side.as_str() == Some("buy")) { Value::Int(0) } else { Value::Int(1) });
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("InstrumentId".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
                 m.insert("omsId".to_string(), omsId);
@@ -2294,15 +2294,15 @@ impl NdaxCore {
             if (limitPriceString == Value::Null) {
                 limitPriceString = Value::Str("0".into());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("LimitPrice".into(), self.parse_number(limitPriceString, &[])); }
+            request.insert("LimitPrice".into(), self.parse_number(limitPriceString, &[]));
         }
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClientOrderId".into(), clientOrderId); }
+            request.insert("ClientOrderId".into(), clientOrderId);
         }
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StopPrice".into(), triggerPrice); }
+            request.insert("StopPrice".into(), triggerPrice);
         }
-        let __ws_arg_11 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_send_order(&[__ws_arg_11]).await;
         return self.parse_order(response, &[market]);
 
@@ -2342,7 +2342,7 @@ impl NdaxCore {
         let mut market: Value = self.market(symbol.clone());
         let mut orderSide: Value = (if (side.as_str() == Some("buy")) { Value::Int(0) } else { Value::Int(1) });
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OrderIdToReplace".to_string(), self.parse_to_int(id));
                 m.insert("InstrumentId".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
@@ -2360,12 +2360,12 @@ impl NdaxCore {
             if (limitPriceString == Value::Null) {
                 limitPriceString = Value::Str("0".into());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("LimitPrice".into(), self.parse_number(limitPriceString, &[])); }
+            request.insert("LimitPrice".into(), self.parse_number(limitPriceString, &[]));
         }
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClientOrderId".into(), clientOrderId); }
+            request.insert("ClientOrderId".into(), clientOrderId);
         }
-        let __ws_arg_12 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_cancel_replace_order(&[__ws_arg_12]).await;
         return self.parse_order(response, &[market]);
 
@@ -2399,7 +2399,7 @@ impl NdaxCore {
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
@@ -2408,15 +2408,15 @@ impl NdaxCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("InstrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("InstrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StartTimeStamp".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            request.insert("StartTimeStamp".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".into(), limit.clone()); }
+            request.insert("Depth".into(), limit.clone());
         }
-        let __ws_arg_13 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_trades_history(&[__ws_arg_13]).await;
         return self.parse_trades(response, &[market, since, limit]);
 
@@ -2446,7 +2446,7 @@ impl NdaxCore {
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
@@ -2454,9 +2454,9 @@ impl NdaxCore {
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("IntrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("IntrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_14 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_cancel_all_orders(&[__ws_arg_14]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2496,19 +2496,19 @@ impl NdaxCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
             m
         });
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("ClOrderId".into()), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClOrderId".into(), clientOrderId.clone()); }
+            request.insert("ClOrderId".into(), clientOrderId.clone());
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("OrderId".into(), self.parse_to_int(id.clone())); }
+            request.insert("OrderId".into(), self.parse_to_int(id.clone()));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("ClOrderId".into())]), &[]);
-        let __ws_arg_15 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_cancel_order(&[__ws_arg_15]).await;
         let mut order: Value = self.parse_order(response, &[market]);
         return self.extend(order, &[Value::Map({
@@ -2552,13 +2552,13 @@ impl NdaxCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
             m
         });
-        let __ws_arg_16 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_open_orders(&[__ws_arg_16]).await;
         return self.parse_orders(response, &[market, since, limit]);
 
@@ -2592,7 +2592,7 @@ impl NdaxCore {
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
@@ -2601,15 +2601,15 @@ impl NdaxCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("InstrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("InstrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StartTimeStamp".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            request.insert("StartTimeStamp".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".into(), limit.clone()); }
+            request.insert("Depth".into(), limit.clone());
         }
-        let __ws_arg_17 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_orders_history(&[__ws_arg_17]).await;
         return self.parse_orders(response, &[market, since, limit]);
 
@@ -2644,14 +2644,14 @@ impl NdaxCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("OrderId".to_string(), self.parse_to_int(id));
             m
         });
-        let __ws_arg_18 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_order_status(&[__ws_arg_18]).await;
         return self.parse_order(response, &[market]);
 
@@ -2690,13 +2690,13 @@ impl NdaxCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), self.parse_to_int(omsId));
                 m.insert("OrderId".to_string(), self.parse_to_int(id));
             m
         });
-        let __ws_arg_19 = self.extend(request, &[params]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_get_order_history_by_order_id(&[__ws_arg_19]).await;
         //
         //     [
@@ -2777,7 +2777,7 @@ impl NdaxCore {
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
         let mut currency: Value = self.currency(code);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
@@ -2785,7 +2785,7 @@ impl NdaxCore {
                 m.insert("GenerateNewKey".to_string(), Value::Bool(false));
             m
         });
-        let __ws_arg_20 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_deposit_info(&[__ws_arg_20]).await;
         return self.parse_deposit_address(response, &[currency]);
 
@@ -2846,12 +2846,12 @@ impl NdaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("GenerateNewKey".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_21 = self.extend(request, &[params]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         return self.fetch_deposit_address(code, &[__ws_arg_21]).await;
 
     Value::Null
@@ -2888,13 +2888,13 @@ impl NdaxCore {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
             m
         });
-        let __ws_arg_22 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_deposits(&[__ws_arg_22]).await;
         //
         //    "[
@@ -2963,13 +2963,13 @@ impl NdaxCore {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
             m
         });
-        let __ws_arg_23 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_withdraws(&[__ws_arg_23]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
 
@@ -2979,7 +2979,7 @@ impl NdaxCore {
     pub fn parse_transaction_status_by_type(&self, optional_args: &[Value]) -> Option<String> {
         let mut status = get_arg(optional_args, 0, Value::Null);
         let mut type_var = get_arg(optional_args, 1, Value::Null);
-        let mut statusesByType: Value = Value::Map({
+        let mut statusesByType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3032,7 +3032,7 @@ impl NdaxCore {
         let mut statuses: Value = (if (type_var == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_dict(statusesByType, type_var, &[Value::Map({
+}) } else { self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -3191,14 +3191,14 @@ impl NdaxCore {
         let mut accountId: Value = self.safe_integer2(paramsWithdrawTag.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
         let mut currency: Value = self.currency(code);
-        let mut withdrawTemplateTypesRequest: Value = Value::Map({
+        let mut withdrawTemplateTypesRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
                 m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut withdrawTemplateTypesResponse: Value = self.private_get_get_withdraw_template_types(&[withdrawTemplateTypesRequest]).await;
+        let mut withdrawTemplateTypesResponse: Value = self.private_get_get_withdraw_template_types(&[Value::Map(withdrawTemplateTypesRequest)]).await;
         //
         //     {
         //         "result": true,
@@ -3217,7 +3217,7 @@ impl NdaxCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".into())).into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
         }
         let mut templateName: Value = self.safe_string_k(firstTemplateType.clone(), "TemplateName", &[]);
-        let mut withdrawTemplateRequest: Value = Value::Map({
+        let mut withdrawTemplateRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
@@ -3226,7 +3226,7 @@ impl NdaxCore {
                 m.insert("AccountProviderId".to_string(), firstTemplateType.as_map().and_then(|__m| __m.get("AccountProviderId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut withdrawTemplateResponse: Value = self.private_get_get_withdraw_template(&[withdrawTemplateRequest]).await;
+        let mut withdrawTemplateResponse: Value = self.private_get_get_withdraw_template(&[Value::Map(withdrawTemplateRequest)]).await;
         //
         //     {
         //         "result": true,
@@ -3246,7 +3246,7 @@ impl NdaxCore {
                 add_element_to_object(&mut withdrawTemplate, &Value::Str("Memo".into()), tagWithdrawTag);
             }
         }
-        let mut withdrawPayload: Value = Value::Map({
+        let mut withdrawPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId);
                 m.insert("AccountId".to_string(), accountId);
@@ -3255,14 +3255,14 @@ impl NdaxCore {
                 m.insert("TemplateType".to_string(), templateName);
             m
         });
-        let mut withdrawRequest: Value = Value::Map({
+        let mut withdrawRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TfaType".to_string(), Value::Str("Google".into()));
                 m.insert("TFaCode".to_string(), totp(self.twofa.clone()));
-                m.insert("Payload".to_string(), json_stringify(&withdrawPayload));
+                m.insert("Payload".to_string(), json_stringify(&Value::Map(withdrawPayload)));
             m
         });
-        let mut response: Value = self.private_post_create_withdraw_ticket(&[self.deep_extend(withdrawRequest, &[paramsOmitted])]).await;
+        let mut response: Value = self.private_post_create_withdraw_ticket(&[self.deep_extend(Value::Map(withdrawRequest), &[paramsOmitted])]).await;
         return self.parse_transaction(response, &[currency]);
 
     Value::Null

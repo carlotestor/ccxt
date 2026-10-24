@@ -320,7 +320,7 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("topic".to_string(), topic);
@@ -328,7 +328,7 @@ impl HashkeyCore {
             m
         });
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let __ws_arg_0 = self.deep_extend(request, &[params]);
+        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
 
     Value::Null
@@ -1290,13 +1290,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (listenKey == Value::Null) {
             return Value::Null;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("listenKey".to_string(), listenKey.clone());
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_2 = self.extend(request, &[params.clone()]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[params.clone()]);
             self.parent.private_put_api_v1_user_data_stream(&[__ws_arg_2]).await;
             let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]);
             self.delay(listenKeyRefreshRate, &[Value::Str("keep_alive_listen_key".into()).clone(), listenKey.clone(), params]).await;

@@ -566,7 +566,7 @@ impl CoinbaseCore {
 }
 
     pub fn create_ws_auth(&mut self, mut name: Value, mut productIds: Value) -> Value {
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -575,9 +575,9 @@ impl CoinbaseCore {
         let mut isCloudAPiKey: bool = (Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (self.secret.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN")));
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, name).into()), Value::Str(productIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
         if !isCloudAPiKey {
-            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("api_key".into(), self.apiKey.clone()); }
-            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp); }
-            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])); }
+            subscribe.insert("api_key".into(), self.apiKey.clone());
+            subscribe.insert("timestamp".into(), timestamp);
+            subscribe.insert("signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
         }  else {
             if (self.apiKey.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN"))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
@@ -592,9 +592,9 @@ impl CoinbaseCore {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".into(), token); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), seconds); }
             }
-            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("jwt".into(), self.safe_string_k(self.options.clone(), "wsToken", &[])); }
+            subscribe.insert("jwt".into(), self.safe_string_k(self.options.clone(), "wsToken", &[]));
         }
-        return subscribe;
+        return Value::Map(subscribe);
 
     Value::Null
 }

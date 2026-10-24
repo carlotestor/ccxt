@@ -412,7 +412,7 @@ impl BingxCore {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[]);
         }
         let mut id: Value = self.uuid(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
                 m.insert("dataType".to_string(), dataType);
@@ -423,7 +423,7 @@ impl BingxCore {
         if (market != Value::Null) {
             symbols.push(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("id".to_string(), id);
@@ -435,11 +435,11 @@ impl BingxCore {
         });
         let mut symbolsAndTimeframes: Value = self.safe_list_k(query.clone(), "symbolsAndTimeframes", &[]);
         if (symbolsAndTimeframes != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), symbolsAndTimeframes); }
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
             query = self.omit(query.clone(), Value::Str("symbolsAndTimeframes".into()), &[]);
         }
-        let __ws_arg_0 = self.extend(request, &[query]);
-        return self.watch(url, messageHash, &[__ws_arg_0, subscribeHash, subscription]).await;
+        let __ws_arg_0 = self.extend(Value::Map(request), &[query]);
+        return self.watch(url, messageHash, &[__ws_arg_0, subscribeHash, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -479,23 +479,23 @@ impl BingxCore {
         let mut dataType: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@ticker".into())).into());
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[self.safe_string_k(market, "symbol", &[])]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut uuid: Value = self.uuid(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), uuid.clone());
                 m.insert("dataType".to_string(), dataType);
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reqType".into(), Value::Str("sub".into())); }
+            request.insert("reqType".into(), Value::Str("sub".into()));
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), uuid);
             m
         });
-        let __ws_arg_1 = self.extend(request, &[paramsSubType]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone(), subscription]).await;
+        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsSubType]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -744,23 +744,23 @@ impl BingxCore {
         let mut rawHash: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@trade".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade::".into()), symbolValue).into());
         let mut uuid: Value = self.uuid(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), uuid.clone());
                 m.insert("dataType".to_string(), rawHash);
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reqType".into(), Value::Str("sub".into())); }
+            request.insert("reqType".into(), Value::Str("sub".into()));
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), uuid);
             m
         });
-        let __ws_arg_2 = self.extend(request, &[paramsSubType]);
-        let mut trades: Value = self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone(), subscription]).await;
+        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsSubType]);
+        let mut trades: Value = self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone(), Value::Map(subscription)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
@@ -966,14 +966,14 @@ impl BingxCore {
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), Value::Str("depth".into())).into()), self.number_to_string(depth)).into());
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[self.safe_string_k(market.clone(), "symbol", &[])]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut uuid: Value = self.uuid(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), uuid.clone());
                 m.insert("dataType".to_string(), subscriptionHash.clone());
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reqType".into(), Value::Str("sub".into())); }
+            request.insert("reqType".into(), Value::Str("sub".into()));
         }
         let mut subscriptionArgs: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -998,7 +998,7 @@ impl BingxCore {
                 m
             });
         }
-        let __ws_arg_3 = self.deep_extend(request, &[paramsSubType]);
+        let __ws_arg_3 = self.deep_extend(Value::Map(request), &[paramsSubType]);
         let mut orderbook: Value = self.watch(url, messageHash, &[__ws_arg_3, subscriptionHash, subscriptionArgs]).await;
         return orderbook.limit();
 
@@ -1388,16 +1388,16 @@ impl BingxCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[self.safe_string_k(market.clone(), "symbol", &[]), timeframe]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), rawTimeframe).into());
         let mut uuid: Value = self.uuid(&[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), uuid.clone());
                 m.insert("dataType".to_string(), subscriptionHash.clone());
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reqType".into(), Value::Str("sub".into())); }
+            request.insert("reqType".into(), Value::Str("sub".into()));
         }
-        let mut subscriptionArgs: Value = Value::Map({
+        let mut subscriptionArgs: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), uuid);
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
@@ -1405,8 +1405,8 @@ impl BingxCore {
                 m.insert("params".to_string(), paramsSubType.clone());
             m
         });
-        let __ws_arg_4 = self.extend(request, &[paramsSubType]);
-        let mut result: Value = self.watch(url, messageHash, &[__ws_arg_4, subscriptionHash, subscriptionArgs]).await;
+        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsSubType]);
+        let mut result: Value = self.watch(url, messageHash, &[__ws_arg_4, subscriptionHash, Value::Map(subscriptionArgs)]).await;
         let mut ohlcv: Value = get_value(&result, &Value::Int(2));
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1532,13 +1532,13 @@ impl BingxCore {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a websocket URL and a listen key".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), uuid);
             m
         });
-        let mut orders: Value = self.watch(url, messageHash, &[request, subscriptionHash, subscription]).await;
+        let mut orders: Value = self.watch(url, messageHash, &[request, subscriptionHash, Value::Map(subscription)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1621,13 +1621,13 @@ impl BingxCore {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a websocket URL and a listen key".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey).into());
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), uuid);
             m
         });
-        let mut trades: Value = self.watch(url, messageHash, &[request, subscriptionHash, subscription]).await;
+        let mut trades: Value = self.watch(url, messageHash, &[request, subscriptionHash, Value::Map(subscription)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -1708,13 +1708,13 @@ impl BingxCore {
         if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), uuid);
             m
         });
-        return self.watch(url, messageHash, &[request, subscriptionHash, subscription]).await;
+        return self.watch(url, messageHash, &[request, subscriptionHash, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1817,7 +1817,7 @@ impl BingxCore {
         let mut paramsFetchPositionsSnapshot: Value = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut awaitPositionsSnapshot: Value = self.handle_option_bool_and_params(paramsFetchPositionsSnapshot, Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(false)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut uuid: Value = self.uuid(&[]);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), uuid);
@@ -1827,7 +1827,7 @@ impl BingxCore {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into())])).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.watch(url, messageHash, &[Value::Null, subscriptionHash, subscription]).await;
+        let mut newPositions: Value = self.watch(url, messageHash, &[Value::Null, subscriptionHash, Value::Map(subscription)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

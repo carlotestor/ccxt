@@ -1413,7 +1413,7 @@ pub trait ExchangeBase:
 }
 
     fn parse_currencies(&self, mut rawCurrencies: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1427,10 +1427,10 @@ pub trait ExchangeBase:
                 continue;
             }
             let mut code: Value = parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), parsed); }
+            result.insert(crate::runtime::stringify_param(&code), parsed);
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -2135,7 +2135,7 @@ pub trait ExchangeBase:
         }
         let mut useLeaky: bool = (self.rollingWindowSize.as_f64() == Some(0.0)) || (self.rateLimiterAlgorithm.as_str() == Some("leakyBucket"));
         let mut algorithm: Value = (if useLeaky { Value::Str("leakyBucket".into()) } else { Value::Str("rollingWindow".into()) });
-        let mut defaultBucket: Value = Value::Map({
+        let mut defaultBucket: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("delay".to_string(), Value::Float(0.001));
                 m.insert("capacity".to_string(), Value::Int(1));
@@ -2150,7 +2150,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.tokenBucket.clone() });
-        { let __t = self.extend(defaultBucket, &[existingBucket]); self.tokenBucket = __t; }
+        { let __t = self.extend(Value::Map(defaultBucket), &[existingBucket]); self.tokenBucket = __t; }
         self.init_throttler();
 }
 
@@ -3605,7 +3605,7 @@ pub trait ExchangeBase:
 }
 
     fn invert_flat_string_dictionary(&self, mut dict: Value) -> Value {
-        let mut reversed: Value = Value::Map({
+        let mut reversed: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3618,11 +3618,11 @@ pub trait ExchangeBase:
             let mut value: Value = get_value(&dict, &key);
             let mut value: Value = get_value(&dict, &key);
             if matches!(&value, Value::Str(_)) {
-                if let Value::Dict(__d) = &mut reversed { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&value), key); }
+                reversed.insert(crate::runtime::stringify_param(&value), key);
             }
         }
         }
-        return reversed;
+        return Value::Map(reversed);
 
     Value::Null
 }
@@ -8112,12 +8112,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (self.has.as_map().and_then(|__m| __m.get("fetchMarkOHLCV")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarkOHLCV")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("mark".into()));
                 m
             });
-            return self.fetch_ohlcv(symbol, &[timeframe, since, limit, self.extend(request, &[params])]).await;
+            return self.fetch_ohlcv(symbol, &[timeframe, since, limit, self.extend(Value::Map(request), &[params])]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkOHLCV () is not supported yet".into()))));
         }
@@ -8143,12 +8143,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (self.has.as_map().and_then(|__m| __m.get("fetchIndexOHLCV")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchIndexOHLCV")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("index".into()));
                 m
             });
-            return self.fetch_ohlcv(symbol, &[timeframe, since, limit, self.extend(request, &[params])]).await;
+            return self.fetch_ohlcv(symbol, &[timeframe, since, limit, self.extend(Value::Map(request), &[params])]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchIndexOHLCV () is not supported yet".into()))));
         }
@@ -8179,12 +8179,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (self.has.as_map().and_then(|__m| __m.get("fetchPremiumIndexOHLCV")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPremiumIndexOHLCV")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("premiumIndex".into()));
                 m
             });
-            return self.fetch_ohlcv(symbol, &[timeframe, since, limit, self.extend(request, &[params])]).await;
+            return self.fetch_ohlcv(symbol, &[timeframe, since, limit, self.extend(Value::Map(request), &[params])]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPremiumIndexOHLCV () is not supported yet".into()))));
         }
@@ -8290,7 +8290,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {str} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
-        let mut depositWithdrawFees: Value = Value::Map({
+        let mut depositWithdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -8313,11 +8313,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut currency: Value = self.safe_currency(currencyId, &[]);
             let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
             if (codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true) {
-                if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), <Self as crate::exchange_generated::ExchangeBase>::parse_deposit_withdraw_fee(self, dictionary, &[currency])); }
+                depositWithdrawFees.insert(crate::runtime::stringify_param(&code), <Self as crate::exchange_generated::ExchangeBase>::parse_deposit_withdraw_fee(self, dictionary, &[currency]));
             }
         }
         }
-        return depositWithdrawFees;
+        return Value::Map(depositWithdrawFees);
 
     Value::Null
 }
@@ -9050,7 +9050,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> Value {
         let mut keys: Value = object_keys(&dict);
-        let mut newDict: Value = Value::Map({
+        let mut newDict: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -9060,11 +9060,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_166 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_166 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if !(self.in_array(key.clone(), removeKeys.clone()).as_bool() == Some(true)) {
-                if let Value::Dict(__d) = &mut newDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), dict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
+                newDict.insert(crate::runtime::stringify_param(&key), dict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             }
         }
         }
-        return newDict;
+        return Value::Map(newDict);
 
     Value::Null
 }
@@ -9424,7 +9424,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Null;
         }
         // parse 03JAN24 to 240103.
-        let mut monthMappping: Value = Value::Map({
+        let mut monthMappping: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("JAN".to_string(), Value::Str("01".into()));
                 m.insert("FEB".to_string(), Value::Str("02".into()));
@@ -9447,7 +9447,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut year: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut monthName: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(5); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut month: Value = self.safe_string(monthMappping, monthName, &[]);
+        let mut month: Value = self.safe_string(Value::Map(monthMappping), monthName, &[]);
         let mut day: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(5); let __j = __l.min(7); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         if (month == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid expiry date ".into())).into()), date)));

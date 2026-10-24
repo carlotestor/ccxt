@@ -847,7 +847,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -859,7 +859,7 @@ impl PacificaCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request, &[paramsAggLevel]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsAggLevel]);
         let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         return orderbook.limit();
 
@@ -899,7 +899,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -911,7 +911,7 @@ impl PacificaCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request, &[paramsAggLevel]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsAggLevel]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -961,14 +961,14 @@ impl PacificaCore {
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut levels: Value = self.safe_list_k(entry.clone(), "l", &[Value::from(vec![])]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), self.safe_list(levels.clone(), Value::Int(0), &[Value::from(vec![])]));
                 m.insert("asks".to_string(), self.safe_list(levels, Value::Int(1), &[Value::from(vec![])]));
             m
         });
         let mut timestamp: Value = self.safe_integer_k(entry.clone(), "t", &[]);
-        let mut snapshot: Value = self.parse_order_book(result, symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
+        let mut snapshot: Value = self.parse_order_book(Value::Map(result), symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
         let mut nonce: Value = self.safe_integer_k(entry, "li", &[]);
         if (nonce != Value::Null) && (nonce.as_f64() != Some(0.0)) {
             if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce); }
@@ -1033,7 +1033,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1043,7 +1043,7 @@ impl PacificaCore {
 }));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
@@ -1083,7 +1083,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1093,7 +1093,7 @@ impl PacificaCore {
 }));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
 
     Value::Null
@@ -1140,7 +1140,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1151,7 +1151,7 @@ impl PacificaCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request, &[paramsOriginAndSingleAddress]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1197,7 +1197,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1208,7 +1208,7 @@ impl PacificaCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request, &[paramsOriginAndSingleAddress]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -1367,7 +1367,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1378,7 +1378,7 @@ impl PacificaCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1419,7 +1419,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1430,7 +1430,7 @@ impl PacificaCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -1611,7 +1611,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1624,7 +1624,7 @@ impl PacificaCore {
             m
         });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), parsedTf).into()), Value::Str(":".into())).into()), symbolValue).into());
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1665,7 +1665,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1679,7 +1679,7 @@ impl PacificaCore {
         });
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into());
         let mut messagehash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messagehash.clone(), &[message, messagehash.clone()]).await;
 
     Value::Null
@@ -1781,7 +1781,7 @@ impl PacificaCore {
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1792,7 +1792,7 @@ impl PacificaCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request, &[paramsOriginAndSingleAddress]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
         let mut orders: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1838,7 +1838,7 @@ impl PacificaCore {
         let mut userAddressparamsOriginAndSingleAddressVariable = self.parent.handle_origin_and_single_address(Value::Str("unWatchOrders".into()), params);
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
@@ -1849,7 +1849,7 @@ impl PacificaCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request, &[paramsOriginAndSingleAddress]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -2024,24 +2024,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subHash: Value = Value::Str("order".into());
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into());
         self.clean_unsubscription(client, subHash, unSubHash, &[Value::Bool(true)]);
-        let mut topicStructure: Value = Value::Map({
+        let mut topicStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("orders".into()));
             m
         });
-        self.clean_cache(topicStructure);
+        self.clean_cache(Value::Map(topicStructure));
 }
 
     pub fn handle_my_trades_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut subHash: Value = Value::Str("myTrades".into());
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into());
         self.clean_unsubscription(client, subHash, unSubHash, &[Value::Bool(true)]);
-        let mut topicStructure: Value = Value::Map({
+        let mut topicStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("myTrades".into()));
             m
         });
-        self.clean_cache(topicStructure);
+        self.clean_cache(Value::Map(topicStructure));
 }
 
     pub fn handle_subscription_response(&mut self, mut client: Value, mut message: Value) {

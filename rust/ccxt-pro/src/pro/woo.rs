@@ -441,14 +441,14 @@ impl WooCore {
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]), urlUid).into());
         let mut requestId: Value = self.request_id(url.clone());
         let mut unsubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("topic".to_string(), subHash.clone());
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
@@ -461,10 +461,10 @@ impl WooCore {
         let mut symbolsAndTimeframes: Value = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]);
         let mut paramsOmitted: Value = (if (symbolsAndTimeframes != Value::Null) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params });
         if (symbolsAndTimeframes != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), symbolsAndTimeframes); }
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
         }
-        let __ws_arg_0 = self.extend(message, &[paramsOmitted]);
-        return self.watch(url, unsubHash.clone(), &[__ws_arg_0, unsubHash.clone(), subscription]).await;
+        let __ws_arg_0 = self.extend(Value::Map(message), &[paramsOmitted]);
+        return self.watch(url, unsubHash.clone(), &[__ws_arg_0, unsubHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -501,14 +501,14 @@ impl WooCore {
         }
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]), urlUid).into());
         let mut requestId: Value = self.request_id(url.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
                 m.insert("id".to_string(), requestId.clone());
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
                 m.insert("name".to_string(), method.clone());
@@ -518,10 +518,10 @@ impl WooCore {
             m
         });
         if (method.as_str() == Some("orderbookupdate")) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("method".into(), Value::Str("handle_order_book_subscription".into()).clone()); }
+            subscription.insert("method".into(), Value::Str("handle_order_book_subscription".into()).clone());
         }
-        let __ws_arg_1 = self.extend(request, &[paramsMethod]);
-        let mut orderbook: Value = self.watch(url, topic.clone(), &[__ws_arg_1, topic.clone(), subscription]).await;
+        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsMethod]);
+        let mut orderbook: Value = self.watch(url, topic.clone(), &[__ws_arg_1, topic.clone(), Value::Map(subscription)]).await;
         return orderbook.limit();
 
     Value::Null
@@ -748,13 +748,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut name: Value = Value::Str("ticker".into());
         let mut market: Value = self.market(symbol);
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), name).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch_public(topic.clone(), message.clone()).await;
 
     Value::Null
@@ -872,13 +872,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut name: Value = Value::Str("tickers".into());
         let mut topic: Value = name;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch_public(topic.clone(), message.clone()).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -989,13 +989,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut name: Value = Value::Str("bbos".into());
         let mut topic: Value = name;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut bidsasks: Value = self.watch_public(topic.clone(), message.clone()).await;
         if self.newUpdates.as_bool() == Some(true) {
             return bidsasks;
@@ -1132,13 +1132,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut name: Value = Value::Str("kline".into());
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), name).into()), Value::Str("_".into())).into()), interval).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch_public(topic.clone(), message.clone()).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1249,13 +1249,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@trade".into())).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch_public(topic.clone(), message.clone()).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1445,7 +1445,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str("|".into()), ts).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), event);
                     m.insert("params".to_string(), Value::Map({
@@ -1457,7 +1457,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 }));
                 m
             });
-            let mut message: Value = self.extend(request, &[params]);
+            let mut message: Value = self.extend(Value::Map(request), &[params]);
             self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), message.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -1538,13 +1538,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (symbolResolved != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut orders: Value = self.watch_private(messageHash, message.clone(), &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1590,13 +1590,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (symbolResolved != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut trades: Value = self.watch_private(messageHash, message.clone(), &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1920,13 +1920,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), Value::Str("position".into()));
             m
         });
-        let mut newPositions: Value = self.watch_private_multiple(Value::from(messageHashes), request, &[params]).await;
+        let mut newPositions: Value = self.watch_private_multiple(Value::from(messageHashes), Value::Map(request), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2051,13 +2051,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut topic: Value = Value::Str("balance".into());
         let mut messageHash: Value = topic.clone();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch_private(messageHash, message.clone(), &[]).await;
 
     Value::Null
@@ -2148,13 +2148,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut market: Value = self.market(symbol);
         let mut topic: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@estfundingrate".into())).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch_public(topic.clone(), message.clone()).await;
 
     Value::Null

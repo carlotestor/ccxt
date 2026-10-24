@@ -450,15 +450,15 @@ impl BithumbCore {
         }
         let mut newTicker: Value = self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
             if (newTickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker); }
+                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsResolved]);
 
@@ -1533,7 +1533,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut topic: Value = self.safe_string_k(message.clone(), "type", &[]);
         if (topic != Value::Null) {
-            let mut methods: Value = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
                     m.insert("orderbookdepth".to_string(), Value::Str("handle_order_book".into()).clone());
@@ -1544,7 +1544,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     m.insert("myOrder".to_string(), Value::Str("handle_orders".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(methods, topic, &[]);
+            let mut method: Value = self.safe_value(Value::Map(methods), topic, &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client, message.clone()]);
             }

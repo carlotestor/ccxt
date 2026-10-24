@@ -375,7 +375,7 @@ impl DeribitCore {
             channels.push(Value::Str(format!("{}{}", Value::Str("user.portfolio.".into()), currencyCode).into()));
         }
         }
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("private/subscribe".into()));
@@ -387,7 +387,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash.clone(), &[request.clone(), messageHash.clone(), request.clone()]).await;
 
     Value::Null
@@ -487,7 +487,7 @@ impl DeribitCore {
             self.authenticate(&[]).await;
         }
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), interval).into());
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
@@ -499,7 +499,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         return self.watch(url, channel.clone(), &[request.clone(), channel.clone(), request.clone()]).await;
 
     Value::Null
@@ -543,7 +543,7 @@ impl DeribitCore {
             if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), interval).into())); };
         }
         }
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
@@ -555,18 +555,18 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         let mut newTickers: Value = self.watch_multiple(url, channels.clone(), &[request.clone(), channels.clone(), request.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
             if (newTickersSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers); }
+                tickers.insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -650,7 +650,7 @@ impl DeribitCore {
             if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())); };
         }
         }
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
@@ -662,18 +662,18 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut newTickers: Value = self.watch_multiple(url, channels.clone(), &[request.clone(), channels.clone(), request.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
             if (newTickersSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers); }
+                tickers.insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -881,7 +881,7 @@ impl DeribitCore {
         let mut interval: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("interval".into()), &[]);
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str("user.trades.any.any.".into()), interval).into());
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("private/subscribe".into()));
@@ -893,7 +893,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         let mut trades: Value = self.watch(url, channel.clone(), &[request.clone(), channel.clone(), request.clone()]).await;
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit, Value::Bool(true)]);
 
@@ -1200,7 +1200,7 @@ impl DeribitCore {
         let mut kind: Value = self.safe_string_k(params.clone(), "kind", &[Value::Str("any".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("interval".into()), &[Value::Str("currency".into()), Value::Str("kind".into())]);
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), kind).into()), Value::Str(".".into())).into()), currency).into()), Value::Str(".".into())).into()), interval).into());
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("private/subscribe".into()));
@@ -1212,7 +1212,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         let mut orders: Value = self.watch(url, channel.clone(), &[request.clone(), channel.clone(), request.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1468,7 +1468,7 @@ impl DeribitCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("|".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("|".into())).into()), currentDescriptor).into()));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
@@ -1480,7 +1480,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut extendedRequest: Value = self.deep_extend(request, &[params]);
+        let mut extendedRequest: Value = self.deep_extend(Value::Map(request), &[params]);
         let mut maxMessageByteLimit: f64 = ((32767i64) as f64); // 'Message Too Big: limit 32768B'
         let mut jsonedText: Value = json_stringify(&extendedRequest);
         if ((jsonedText.len() as i64) as f64) >= maxMessageByteLimit {
@@ -1562,24 +1562,24 @@ impl DeribitCore {
         if (channel != Value::Null) {
             let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut channelId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
-            let mut userHandlers: Value = Value::Map({
+            let mut userHandlers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("trades".to_string(), Value::Str("handle_my_trades".into()).clone());
                     m.insert("portfolio".to_string(), Value::Str("handle_balance".into()).clone());
                     m.insert("orders".to_string(), Value::Str("handle_orders".into()).clone());
                 m
             });
-            let mut handlers: Value = Value::Map({
+            let mut handlers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
                     m.insert("quote".to_string(), Value::Str("handle_bid_ask".into()).clone());
                     m.insert("book".to_string(), Value::Str("handle_order_book".into()).clone());
                     m.insert("trades".to_string(), Value::Str("handle_trades".into()).clone());
                     m.insert("chart".to_string(), Value::Str("handle_ohlcv".into()).clone());
-                    m.insert("user".to_string(), self.safe_value(userHandlers, self.safe_string(parts, Value::Int(1), &[]), &[]));
+                    m.insert("user".to_string(), self.safe_value(Value::Map(userHandlers), self.safe_string(parts, Value::Int(1), &[]), &[]));
                 m
             });
-            let mut handler: Value = self.safe_value(handlers, channelId, &[]);
+            let mut handler: Value = self.safe_value(Value::Map(handlers), channelId, &[]);
             if (handler != Value::Null) {
                 self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
                 return;
@@ -1638,7 +1638,7 @@ impl DeribitCore {
             let mut requestId: Value = self.request_id();
             let mut lineBreak: Value = Value::Str("\n".into()); // eslint-disable-line quotes
             let mut signature: Value = self.hmac(self.encode(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeString, lineBreak).into()), nonce).into()), lineBreak).into())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                     m.insert("id".to_string(), requestId);
@@ -1655,7 +1655,7 @@ impl DeribitCore {
 }));
                 m
             });
-            let __ws_arg_0 = self.extend(request, &[params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
             future = self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash, future.clone());
         }

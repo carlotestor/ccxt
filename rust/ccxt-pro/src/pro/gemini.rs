@@ -1075,12 +1075,12 @@ impl GeminiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut authParams: Value = Value::Map({
+        let mut authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("url".to_string(), url.clone());
             m
         });
-        self.authenticate(&[authParams]).await;
+        self.authenticate(&[Value::Map(authParams)]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
@@ -1228,7 +1228,7 @@ impl GeminiCore {
 }
 
     pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accepted".to_string(), Value::Str("open".into()));
                 m.insert("booked".to_string(), Value::Str("open".into()));
@@ -1238,18 +1238,18 @@ impl GeminiCore {
                 m.insert("rejected".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ws_order_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("exchange limit".to_string(), Value::Str("limit".into()));
                 m.insert("market buy".to_string(), Value::Str("market".into()));
                 m.insert("market sell".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn handle_error(&self, mut client: Value, mut message: Value) {
@@ -1301,7 +1301,7 @@ impl GeminiCore {
         if (reason.as_deref() == Some("error")) {
             self.handle_error(client.clone(), message.clone());
         }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("l2_updates".to_string(), Value::Str("handle_l2_updates".into()).clone());
                 m.insert("trade".to_string(), Value::Str("handle_trade".into()).clone());
@@ -1314,7 +1314,7 @@ impl GeminiCore {
             self.handle_ohlcv(client.clone(), message.clone());
             return;
         }
-        let mut method: Value = self.safe_value(methods, type_var.clone(), &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), type_var.clone(), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
@@ -1385,15 +1385,15 @@ impl GeminiCore {
         let mut urlLength: Value = Value::Int(url.len() as i64);
         let mut endIndex: Value = (if (urlParamsIndex.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) { urlParamsIndex } else { urlLength });
         let mut request: Value = (match (&(url), (match &(startIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(endIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("request".to_string(), request);
                 m.insert("nonce".to_string(), self.incrementing_nonce());
             m
         });
-        let mut b64: Value = self.string_to_base64(json_stringify(&payload), &[]);
+        let mut b64: Value = self.string_to_base64(json_stringify(&Value::Map(payload)), &[]);
         let mut signature: Value = self.hmac(self.encode(b64.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[Value::Str("hex".into())]);
-        let mut defaultOptions: Value = Value::Map({
+        let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1410,7 +1410,7 @@ impl GeminiCore {
             m
         });
         // this.options = this.extend (defaultOptions, this.options);
-        self.extend_exchange_options(&[defaultOptions]);
+        self.extend_exchange_options(&[Value::Map(defaultOptions)]);
         let mut originalHeaders: Value = crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), "headers");
         let mut headers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

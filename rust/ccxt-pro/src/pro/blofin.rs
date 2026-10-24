@@ -612,15 +612,15 @@ impl BlofinCore {
         }
         let mut ticker: Value = self.watch_multiple_wrapper(true.clone(), Value::Str("tickers".into()), Value::Str("watchTickers".into()), &[symbols.clone(), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                tickers.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
 
@@ -715,15 +715,15 @@ impl BlofinCore {
         let __ws_arg_0 = self.deep_extend(request, &[paramsMarketType]);
         let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if (tickerSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+                tickers.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -1360,7 +1360,7 @@ impl BlofinCore {
         let mut nonce: Value = Value::Str(format!("{}{}", Value::Str("n_".into()), timestamp).into());
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/users/self/verify".into()), Value::Str("GET".into())).into()), timestamp).into()), Value::Str("".into())).into()), nonce).into());
         let mut signature: Value = self.string_to_base64(self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]), &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("login".into()));
                 m.insert("args".to_string(), Value::from(vec![Value::Map({
@@ -1376,7 +1376,7 @@ impl BlofinCore {
         });
         let mut marketType: Value = Value::Str("swap".into()); // for now
         let mut url: Value = crate::value::get_value_k(&get_value(&(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), "private");
-        let __ws_arg_4 = self.deep_extend(request, &[params]);
+        let __ws_arg_4 = self.deep_extend(Value::Map(request), &[params]);
         self.watch(url, messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
 
     Value::Null

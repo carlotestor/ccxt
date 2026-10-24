@@ -424,13 +424,13 @@ impl ModetradeCore {
         let mut name: Value = Value::Str("orderbook".into());
         let mut market: Value = self.market(symbol);
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), name).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.watch_public(topic, message).await;
         return orderbook.limit();
 
@@ -499,13 +499,13 @@ impl ModetradeCore {
         let mut name: Value = Value::Str("ticker".into());
         let mut market: Value = self.market(symbol);
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), name).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch_public(topic, message).await;
 
     Value::Null
@@ -599,13 +599,13 @@ impl ModetradeCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut name: Value = Value::Str("tickers".into());
         let mut topic: Value = name;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch_public(topic, message).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -678,13 +678,13 @@ impl ModetradeCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut name: Value = Value::Str("bbos".into());
         let mut topic: Value = name;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch_public(topic, message).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -785,13 +785,13 @@ impl ModetradeCore {
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut name: Value = Value::Str("kline".into());
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), name).into()), Value::Str("_".into())).into()), interval).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch_public(topic, message).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -876,13 +876,13 @@ impl ModetradeCore {
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@trade".into())).into());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch_public(topic, message).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1070,7 +1070,7 @@ impl ModetradeCore {
                 secret = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
             let mut signature: Value = eddsa(self.encode(auth), self.base58_to_binary(secret, &[]), Value::Str("ed25519".into()));
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), event);
                     m.insert("params".to_string(), Value::Map({
@@ -1082,7 +1082,7 @@ impl ModetradeCore {
 }));
                 m
             });
-            let mut message: Value = self.extend(request, &[params]);
+            let mut message: Value = self.extend(Value::Map(request), &[params]);
             self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -1173,13 +1173,13 @@ impl ModetradeCore {
             symbolResolved = self.safe_string_k(market, "symbol", &[]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut message: Value = self.extend(request, &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut orders: Value = self.watch_private(messageHash, message, &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1227,13 +1227,13 @@ impl ModetradeCore {
             symbolResolved = self.safe_string_k(market, "symbol", &[]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut message: Value = self.extend(request, &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut orders: Value = self.watch_private(messageHash, message, &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1560,13 +1560,13 @@ impl ModetradeCore {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), Value::Str("position".into()));
             m
         });
-        let mut newPositions: Value = self.watch_private_multiple(Value::from(messageHashes), request, &[params]).await;
+        let mut newPositions: Value = self.watch_private_multiple(Value::from(messageHashes), Value::Map(request), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -1772,13 +1772,13 @@ impl ModetradeCore {
         }
         let mut topic: Value = Value::Str("balance".into());
         let mut messageHash: Value = topic.clone();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch_private(messageHash, message, &[]).await;
 
     Value::Null

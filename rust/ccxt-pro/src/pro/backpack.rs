@@ -578,13 +578,13 @@ impl BackpackCore {
         if unwatch {
             method = Value::Str("UNSUBSCRIBE".into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), topics);
             m
         });
-        let mut message: Value = self.deep_extend(request, &[params]);
+        let mut message: Value = self.deep_extend(Value::Map(request), &[params]);
         if unwatch {
             self.handle_unsubscriptions(url.clone(), messageHashes.clone(), message.clone()).await;
             return Value::Null;
@@ -613,14 +613,14 @@ impl BackpackCore {
         let mut secretBytes: Value = self.base64_to_binary(self.secret.clone(), &[]);
         let mut seed: Value = self.array_slice(secretBytes, Value::Int(0), &[Value::Int(32)]);
         let mut signature: Value = eddsa(self.encode(payload), seed, Value::Str("ed25519".into()));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), topics);
                 m.insert("signature".to_string(), Value::from(vec![self.apiKey.clone(), signature, ts, recvWindow]));
             m
         });
-        let mut message: Value = self.deep_extend(request, &[params]);
+        let mut message: Value = self.deep_extend(Value::Map(request), &[params]);
         if unwatch {
             self.handle_unsubscriptions(url.clone(), messageHashes.clone(), message.clone()).await;
             return Value::Null;
@@ -2020,7 +2020,7 @@ impl BackpackCore {
         let mut quoteEvent: bool = Value::Int(event.as_str().and_then(|__s| __s.find("quote")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0);
         let mut microseconds: Value = self.safe_integer_k(data.clone(), "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int((match ((microseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("rfqId".to_string(), self.safe_string_k(data.clone(), "R", &[]));
                 m.insert("clientId".to_string(), self.safe_string_k(data.clone(), "C", &[]));
@@ -2037,10 +2037,10 @@ impl BackpackCore {
             m
         });
         if quoteEvent {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("id".into(), self.safe_string_k(data.clone(), "u", &[])); }
+            request.insert("id".into(), self.safe_string_k(data.clone(), "u", &[]));
         }
         let mut marketResolved: Value = self.safe_market(&[self.safe_string_k(data.clone(), "s", &[]), market]);
-        let mut parsed: Value = self.parse_order(request, &[marketResolved]);
+        let mut parsed: Value = self.parse_order(Value::Map(request), &[marketResolved]);
         if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), data.clone()); }
         if (event.as_str() == Some("rfqFilled")) {
             let mut tradeMicroseconds: Value = self.safe_integer_k(data, "T", &[Value::Int(0)]);
@@ -2081,7 +2081,7 @@ impl BackpackCore {
         })]);
         if stock.as_bool() == Some(true) {
             let mut securities: Value = self.safe_list_k(self.options.clone(), "securities", &[Value::from(vec![])]);
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer_k(balances.clone(), "timestamp", &[]));
                     m.insert("datetime".to_string(), self.safe_string_k(balances.clone(), "datetime", &[]));
@@ -2102,11 +2102,11 @@ impl BackpackCore {
                 }
                 let mut account: Value = self.safe_dict(balances.clone(), code.clone(), &[]);
                 if (account != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                    result.insert(crate::runtime::stringify_param(&code), account);
                 }
             }
             }
-            return self.safe_balance(result);
+            return self.safe_balance(Value::Map(result));
         }
         return self.safe_balance(balances);
 
@@ -2271,7 +2271,7 @@ impl BackpackCore {
 
     pub fn parse_ws_order_status(&self, mut status: Value, optional_args: &[Value]) -> Option<String> {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("New".to_string(), Value::Str("open".into()));
                 m.insert("Filled".to_string(), Value::Str("closed".into()));
@@ -2282,17 +2282,17 @@ impl BackpackCore {
                 m.insert("TriggerFailed".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ws_order_side(&self, mut side: Value) -> Option<String> {
-        let mut sides: Value = Value::Map({
+        let mut sides: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Bid".to_string(), Value::Str("buy".into()));
                 m.insert("Ask".to_string(), Value::Str("sell".into()));
             m
         });
-        return self.safe_string(sides, side.clone(), &[side.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(sides), side.clone(), &[side.clone()]).as_str().map(str::to_owned);
 }
 
 /*

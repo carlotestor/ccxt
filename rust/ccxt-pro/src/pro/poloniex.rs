@@ -384,7 +384,7 @@ impl PoloniexCore {
             let mut accessPath: Value = Value::Str("/ws".into());
             let mut requestString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("GET\n".into()), accessPath).into()), Value::Str("\nsignTimestamp=".into())).into()), timestamp).into());
             let mut signature: Value = self.hmac(self.encode(requestString), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), Value::Str("subscribe".into()));
                     m.insert("channel".to_string(), Value::from(vec![Value::Str("auth".into())]));
@@ -399,7 +399,7 @@ impl PoloniexCore {
 }));
                 m
             });
-            let mut message: Value = self.extend(request, &[params]);
+            let mut message: Value = self.extend(Value::Map(request), &[params]);
             future = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
             //
             //    {
@@ -499,14 +499,14 @@ impl PoloniexCore {
 }));
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
         let mut messageHash: Value = Value::Str(format!("{}", self.nonce()).into());
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("event".to_string(), name);
                 m.insert("params".to_string(), params);
             m
         });
-        return self.watch(url, messageHash.clone(), &[subscribe, messageHash.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[Value::Map(subscribe), messageHash]).await;
 
     Value::Null
 }
@@ -553,7 +553,7 @@ impl PoloniexCore {
         if isPostOnly.as_bool() == Some(true) {
             uppercaseType = Value::Str("LIMIT_MAKER".into());
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
@@ -583,14 +583,14 @@ impl PoloniexCore {
             }  else {
                 quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), quoteAmount); }
+            request.insert("amount".into(), quoteAmount);
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount)); }
+            request.insert("quantity".into(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount));
             if (price != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
+                request.insert("price".into(), self.price_to_precision(symbol, price));
             }
         }
-        let __ws_arg_0 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut orders: Value = self.trade_request(Value::Str("createOrder".into()), &[__ws_arg_0]).await;
         let mut order: Value = self.safe_dict(orders, Value::Int(0), &[]);
         return order;
@@ -648,12 +648,12 @@ impl PoloniexCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderIds".to_string(), ids);
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         return self.trade_request(Value::Str("cancelOrders".into()), &[__ws_arg_1]).await;
 
     Value::Null
@@ -854,14 +854,14 @@ impl PoloniexCore {
         let mut name: Value = Value::Str("trades".into());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::from(vec![name.clone()]));
                 m.insert("symbols".to_string(), marketIds);
             m
         });
-        let mut request: Value = self.extend(subscribe, &[params]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
         let mut messageHashes: Value = Value::from(vec![]);
         if (symbolsNormalized != Value::Null) {
             {
@@ -1267,7 +1267,7 @@ impl PoloniexCore {
 }
 
     pub fn parse_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("open".into()));
                 m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".into()));
@@ -1277,7 +1277,7 @@ impl PoloniexCore {
                 m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1859,7 +1859,7 @@ impl PoloniexCore {
         if (event.as_deref() == Some("pong")) {
             crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
         }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("candles_minute_1".to_string(), Value::Str("handle_ohlcv".into()).clone());
                 m.insert("candles_minute_5".to_string(), Value::Str("handle_ohlcv".into()).clone());
@@ -1887,7 +1887,7 @@ impl PoloniexCore {
                 m.insert("auth".to_string(), Value::Str("handle_authenticate".into()).clone());
             m
         });
-        let mut method: Value = (if (type_var == Value::Null) { Value::Null } else { self.safe_value(methods, type_var.clone(), &[]) });
+        let mut method: Value = (if (type_var == Value::Null) { Value::Null } else { self.safe_value(Value::Map(methods), type_var.clone(), &[]) });
         if (type_var.as_str() == Some("auth")) {
             self.handle_authenticate(client.clone(), message.clone());
         }  else if (type_var == Value::Null) {
