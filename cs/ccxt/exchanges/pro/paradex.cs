@@ -939,7 +939,7 @@ public partial class paradex : ccxt.paradex
         }
     }
 
-    public virtual Dictionary<string, object> parseFundingRateWs(IDictionary<string, object> contract, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFundingRateWs(IDictionary<string, object> contract, IDictionary<string, object>? market = null)
     {
         //
         //     {

@@ -1911,7 +1911,7 @@ public partial class foxbit : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object entry, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object entry, IDictionary<string, object>? market = null)
     {
         return new Dictionary<string, object>() {
             { "info", entry },

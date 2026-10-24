@@ -317,7 +317,7 @@ public partial class bitget : ccxt.bitget
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object message, string? market = null)
+    public virtual ccxt.Ticker parseWsTicker(object message, IDictionary<string, object>? market = null)
     {
         //
         // spot
@@ -531,7 +531,7 @@ public partial class bitget : ccxt.bitget
         client.resolve(ticker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object>? market = null)
     {
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         List<object> data = this.safeList(message, "data", new List<object>() {});
@@ -1754,7 +1754,7 @@ public partial class bitget : ccxt.bitget
         client.resolve(newPositions, (instType + ":positions"));
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         //
         //     {

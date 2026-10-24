@@ -305,7 +305,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), ("ticker::" + symbol));
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, IDictionary<string, object>? market = null)
     {
         // same dict as REST api
         return this.parseTicker(message, market);
@@ -832,7 +832,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(this.myTrades, "myTrades");
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         return ccxt.BaseExchange.FromTrade(this.parseTrade(trade, market));
     }
@@ -930,7 +930,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(newPositions, "positions");
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
     {
         // same as REST api
         return this.parsePosition(position, market);

@@ -714,7 +714,7 @@ public partial class bybit : ccxt.bybit
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsValue));
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(ccxt.pro.IOrderBook orderbook, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(ccxt.pro.IOrderBook orderbook, IDictionary<string, object>? market = null)
     {
         Int64? timestamp = this.safeInteger(orderbook, "timestamp");
         List<object> bids = this.sortBy(this.aggregate(orderbook?.bids), 0);
@@ -1750,7 +1750,7 @@ public partial class bybit : ccxt.bybit
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, IList<object>? symbols = null)
     {
         if ((this.positions != null))
         {
@@ -2023,7 +2023,7 @@ public partial class bybit : ccxt.bybit
         }
     }
 
-    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsLiquidation(IDictionary<string, object> liquidation, IDictionary<string, object>? market = null)
     {
         //
         //     {

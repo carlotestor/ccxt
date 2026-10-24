@@ -231,7 +231,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(this.tickers, "tickers");
     }
 
-    public virtual ccxt.Ticker parseWSTicker(object ticker, IDictionary<string, object> market = null)
+    public virtual ccxt.Ticker parseWSTicker(object ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -566,7 +566,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(this.orders, "orders");
     }
 
-    public virtual Dictionary<string, object> parseTradingOrder(object order, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingOrder(object order, IDictionary<string, object>? market = null)
     {
         //
         //     {

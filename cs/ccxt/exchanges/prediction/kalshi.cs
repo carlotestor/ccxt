@@ -436,13 +436,13 @@ public partial class kalshi : PredictionExchange
                                 { "markets", new List<object>() {} },
                             };
                         }
-                        object eventEntry = (eventKey != null && eventsDict.ContainsKey(eventKey) ? eventsDict[eventKey] : null);
+                        IDictionary<string, object> eventEntry = ((IDictionary<string, object>)(eventKey != null && eventsDict.ContainsKey(eventKey) ? eventsDict[eventKey] : null));
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
-                        object entryMarkets = getValue(eventEntry, "markets");
+                        object entryMarkets = (eventEntry != null && eventEntry.ContainsKey("markets") ? eventEntry["markets"] : null);
                         ((IList<object>)entryMarkets).Add(m);
-                        ((IDictionary<string,object>)eventEntry)["markets"] = entryMarkets;
+                        eventEntry["markets"] = entryMarkets;
                     }
                 }
             }
@@ -1369,7 +1369,7 @@ public partial class kalshi : PredictionExchange
      * @param {object[]} asks array of [price, size] ask levels
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public virtual object sortedOrders(string? outcome, object timestamp, object bids, object asks)
+    public virtual object sortedOrders(string? outcome, object timestamp, IList<object> bids, IList<object> asks)
     {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
         List<object> bidsValue = this.sortBy(bids, 0, true);
@@ -1724,7 +1724,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a unified trade structure
      */
-    public virtual object parseMyTrade(object fill, IDictionary<string, object> market = null)
+    public virtual object parseMyTrade(object fill, IDictionary<string, object>? market = null)
     {
         string? id = this.safeString2(fill, "fill_id", "trade_id");
         string? orderId = this.safeString(fill, "order_id");
@@ -1959,7 +1959,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
     {
         object ticker = this.safeString(settlement, "ticker");
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)

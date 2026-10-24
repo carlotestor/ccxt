@@ -1612,10 +1612,10 @@ public partial class opinion : PredictionExchange
         int rawBalancesLength = rawBalances.Count;
         for (int i = 0; i < rawBalancesLength; i++)
         {
-            object rawBalance = (rawBalances != null && i < rawBalances.Count ? rawBalances[i] : null);
+            IDictionary<string, object> rawBalance = ((IDictionary<string, object>)(rawBalances != null && i < rawBalances.Count ? rawBalances[i] : null));
             string? quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
             IDictionary<string, object> quoteToken = await this.loadQuoteToken(quoteTokenAddress);
-            ((IDictionary<string,object>)rawBalance)["symbol"] = this.safeString(quoteToken, "symbol", "USDT");
+            rawBalance["symbol"] = this.safeString(quoteToken, "symbol", "USDT");
         }
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }

@@ -970,7 +970,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null, object volume = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null, object volume = null)
     {
         //
         //    {
@@ -2171,7 +2171,7 @@ public partial class krakenfutures : Exchange
         return this.safeString(typesMap, orderType, orderType);
     }
 
-    public virtual void verifyOrderActionSuccess(object status, string? method, object omit = null)
+    public virtual void verifyOrderActionSuccess(object status, string? method, IList<object>? omit = null)
     {
         omit ??= new List<object>();
         Dictionary<string, object> errors = new Dictionary<string, object>() {
@@ -3940,8 +3940,8 @@ public partial class krakenfutures : Exchange
             if ((i != 0))
             {
                 int tiersLength = (tiers?.Count ?? 0);
-                object previousTier = (tiers != null && (tiersLength - 1) < tiers.Count ? tiers[(tiersLength - 1)] : null);
-                ((IDictionary<string,object>)previousTier)["maxNotional"] = minNotional;
+                IDictionary<string, object> previousTier = ((IDictionary<string, object>)(tiers != null && (tiersLength - 1) < tiers.Count ? tiers[(tiersLength - 1)] : null));
+                previousTier["maxNotional"] = minNotional;
             }
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },

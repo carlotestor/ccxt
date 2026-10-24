@@ -1370,12 +1370,12 @@ public partial class mudrex : Exchange
             List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
             for (int i = 0; i < (positions?.Count ?? 0); i++)
             {
-                object p = positions[i];
-                if ((side != null) && !isEqual(getValue(p, "side"), side))
+                IDictionary<string, object> p = ((IDictionary<string, object>)positions[i]);
+                if ((side != null) && !isEqual((p != null && p.ContainsKey("side") ? p["side"] : null), side))
                 {
                     continue;
                 }
-                if (isEqual(getValue(p, "symbol"), (market.ContainsKey("symbol") ? market["symbol"] : null)))
+                if (isEqual((p != null && p.ContainsKey("symbol") ? p["symbol"] : null), (market.ContainsKey("symbol") ? market["symbol"] : null)))
                 {
                     positionId = this.safeString(p, "id");
                     break;
@@ -1434,8 +1434,8 @@ public partial class mudrex : Exchange
             List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
             for (int i = 0; i < (positions?.Count ?? 0); i++)
             {
-                object p = positions[i];
-                if (isEqual(getValue(p, "symbol"), symbol))
+                IDictionary<string, object> p = ((IDictionary<string, object>)positions[i]);
+                if (isEqual((p != null && p.ContainsKey("symbol") ? p["symbol"] : null), symbol))
                 {
                     positionId = this.safeString(p, "id");
                     break;

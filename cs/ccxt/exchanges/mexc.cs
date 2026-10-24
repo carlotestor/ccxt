@@ -6547,7 +6547,7 @@ public partial class mexc : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> parseTransactionFee(object transaction, Dictionary<string, object> currency = null)
+    public virtual Dictionary<string, object> parseTransactionFee(object transaction, IDictionary<string, object>? currency = null)
     {
         //
         //    {

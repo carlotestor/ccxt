@@ -1739,7 +1739,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToBalances(balanceResult);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
     {
         //
         //      {

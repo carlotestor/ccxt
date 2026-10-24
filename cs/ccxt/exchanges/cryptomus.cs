@@ -1282,7 +1282,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseFeeTiers(IList<object> feeTiers, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFeeTiers(IList<object> feeTiers, IDictionary<string, object>? market = null)
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};

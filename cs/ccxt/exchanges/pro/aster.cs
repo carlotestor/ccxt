@@ -648,7 +648,7 @@ public partial class aster : ccxt.aster
         client.resolve(ticker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object>? market = null)
     {
         Int64? timestamp = this.safeInteger(message, "T");
         object bidAskSymbol = null;
@@ -1923,7 +1923,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -2140,10 +2140,10 @@ public partial class aster : ccxt.aster
                             bool insertNewFeeCurrency = true;
                             for (int i = 0; i < fees.Count; i++)
                             {
-                                object orderFee = fees[i];
+                                IDictionary<string, object> orderFee = ((IDictionary<string, object>)fees[i]);
                                 if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
                                 {
-                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), getValue(orderFee, "cost"));
+                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), (orderFee != null && orderFee.ContainsKey("cost") ? orderFee["cost"] : null));
                                     string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
                                     ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = ((feeCostString == null)) ? null : parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;

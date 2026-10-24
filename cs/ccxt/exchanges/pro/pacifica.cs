@@ -874,7 +874,7 @@ public partial class pacifica : ccxt.pacifica
         return true;
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object rawTicker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object rawTicker, IDictionary<string, object>? market = null)
     {
         return this.parseTicker(rawTicker, market);
     }

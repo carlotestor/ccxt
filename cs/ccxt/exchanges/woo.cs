@@ -1246,7 +1246,7 @@ public partial class woo : Exchange
         }, marketResolved);
     }
 
-    public virtual Dictionary<string, object> parseTokenAndFeeTemp(object item, object feeTokenKeys, object feeAmountKeys)
+    public virtual Dictionary<string, object> parseTokenAndFeeTemp(object item, IList<object> feeTokenKeys, IList<object> feeAmountKeys)
     {
         string? feeCost = this.safeStringN(item, feeAmountKeys);
         Dictionary<string, object> fee = null;
@@ -1262,7 +1262,7 @@ public partial class woo : Exchange
         return fee;
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(fee, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
@@ -1397,7 +1397,7 @@ public partial class woo : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        Task<Dictionary<string, object>> tokenResponsePromise = this.v1PublicGetToken(parameters);
+        var tokenResponsePromise = this.v1PublicGetToken(parameters);
         //
         //    {
         //      "rows": [
@@ -1443,7 +1443,7 @@ public partial class woo : Exchange
         // }
         //
         // only make one request for currencies...
-        Task<Dictionary<string, object>> tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork(parameters);
+        var tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork(parameters);
         //
         // {
         //     "rows": [
@@ -1472,9 +1472,10 @@ public partial class woo : Exchange
         //     "success": true
         // }
         //
-        var tokenResponsetokenNetworkResponseVariable = new List<object>(await Task.WhenAll(new List<Task<Dictionary<string, object>>>() {tokenResponsePromise, tokenNetworkResponsePromise}));
-        var tokenResponse = ((IList<object>) tokenResponsetokenNetworkResponseVariable)[0];
-        var tokenNetworkResponse = ((IList<object>) tokenResponsetokenNetworkResponseVariable)[1];
+        await Task.WhenAll(tokenResponsePromise, tokenNetworkResponsePromise);
+        List<object> tokenResponsetokenNetworkResponseVariable = new List<object> { tokenResponsePromise.Result, tokenNetworkResponsePromise.Result };
+        var tokenResponse = tokenResponsetokenNetworkResponseVariable[0];
+        var tokenNetworkResponse = tokenResponsetokenNetworkResponseVariable[1];
         List<object> tokenRows = this.safeList(tokenResponse, "rows", new List<object>() {});
         List<object> tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new List<object>() {});
         Dictionary<string, object> networksById = this.groupBy(tokenNetworkRows, "token");
@@ -3005,7 +3006,7 @@ public partial class woo : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Task<Dictionary<string, object>> mainAccountPromise = this.v3PrivateGetAccountInfo(parameters);
+        var mainAccountPromise = this.v3PrivateGetAccountInfo(parameters);
         //
         //     {
         //         "success": true,
@@ -3035,7 +3036,7 @@ public partial class woo : Exchange
         //         "timestamp": 1752062807915
         //     }
         //
-        Task<Dictionary<string, object>> subAccountPromise = this.v3PrivateGetAccountSubAccountsAll(parameters);
+        var subAccountPromise = this.v3PrivateGetAccountSubAccountsAll(parameters);
         //
         //     {
         //         "success": true,
@@ -3051,9 +3052,10 @@ public partial class woo : Exchange
         //         "timestamp": 1721295317627
         //     }
         //
-        var mainAccountResponsesubAccountResponseVariable = new List<object>(await Task.WhenAll(new List<Task<Dictionary<string, object>>>() {mainAccountPromise, subAccountPromise}));
-        var mainAccountResponse = ((IList<object>) mainAccountResponsesubAccountResponseVariable)[0];
-        var subAccountResponse = ((IList<object>) mainAccountResponsesubAccountResponseVariable)[1];
+        await Task.WhenAll(mainAccountPromise, subAccountPromise);
+        List<object> mainAccountResponsesubAccountResponseVariable = new List<object> { mainAccountPromise.Result, subAccountPromise.Result };
+        var mainAccountResponse = mainAccountResponsesubAccountResponseVariable[0];
+        var subAccountResponse = mainAccountResponsesubAccountResponseVariable[1];
         IDictionary<string, object> mainData = this.safeDict(mainAccountResponse, "data", new Dictionary<string, object>() {});
         List<object> mainRows = new List<object>() {mainData};
         IDictionary<string, object> subData = this.safeDict(subAccountResponse, "data", new Dictionary<string, object>() {});
@@ -3837,7 +3839,7 @@ public partial class woo : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, Dictionary<string, object> currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, IDictionary<string, object>? currency = null)
     {
         //
         //     {

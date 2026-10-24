@@ -1993,7 +1993,7 @@ public partial class pacifica : Exchange
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         //
-        int lenActions = (actions?.Count ?? 0);
+        int lenActions = actions?.Count ?? 0;
         object maxLenOption = this.handleOption("batchOrdersRequest", "batchOrdersMax");
         if ((maxLenOption != null))
         {
@@ -3402,7 +3402,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         //
         //   {

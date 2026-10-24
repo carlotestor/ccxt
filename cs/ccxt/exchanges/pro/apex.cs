@@ -887,7 +887,7 @@ public partial class apex : ccxt.apex
         client.resolve(orders, messageHash);
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, IList<object>? symbols = null)
     {
         if ((this.positions != null))
         {

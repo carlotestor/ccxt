@@ -2097,9 +2097,9 @@ public partial class dydx : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public async virtual Task<Dictionary<string, object>> estimateTxFee(object message, string? memo, object account)
+    public async virtual Task<Dictionary<string, object>> estimateTxFee(IDictionary<string, object> message, string? memo, IDictionary<string, object> account)
     {
-        string? txBytes = ((string)this.encodeDydxTxForSimulation(message, memo, getValue(account, "sequence"), getValue(account, "pub_key")));
+        string? txBytes = ((string)this.encodeDydxTxForSimulation(message, memo, (account != null && account.ContainsKey("sequence") ? account["sequence"] : null), (account != null && account.ContainsKey("pub_key") ? account["pub_key"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "txBytes", txBytes },
         };

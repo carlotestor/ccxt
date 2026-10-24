@@ -1568,7 +1568,7 @@ public partial class blofin : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -2349,7 +2349,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit, paramsUntil));
     }
 
-    public virtual string? networkCodeToChainId(string? networkCode, object currency = null)
+    public virtual string? networkCodeToChainId(string? networkCode, IDictionary<string, object>? currency = null)
     {
         IDictionary<string, object> aliases = this.safeDict(this.options, "networkCodeAliases", new Dictionary<string, object>() {});
         string? aliasedCode = this.safeString(aliases, networkCode, networkCode);

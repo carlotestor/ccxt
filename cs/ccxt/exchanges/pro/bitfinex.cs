@@ -669,7 +669,7 @@ public partial class bitfinex : ccxt.bitfinex
         client.resolve(ccxt.BaseExchange.FromTicker(parsed), messageHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
     {
         //
         //     [
