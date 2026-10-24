@@ -29,8 +29,6 @@ public class PredictionExchange extends BaseExchange implements PredictionTypedS
     public volatile Object outcomes_by_id = null;
     public volatile Object events = null;
     public volatile Object events_by_slug = null;
-    public volatile boolean reloadingEvents = false;
-    public volatile java.util.concurrent.CompletableFuture<Object> eventsLoading = null;
 
     public PredictionExchange () {
         super();

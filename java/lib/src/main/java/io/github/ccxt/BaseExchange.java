@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
@@ -154,6 +153,62 @@ public class BaseExchange {
         return CompletableFuture.supplyAsync(supplier, executor);
     }
 
+    // ------------------------------------------------------------------------------------------
+    // State owner. One thread executes every mutation and every read of the mutable header state
+    // below (the options store, the loadMarkets single-flight and its currency hand-off, the
+    // request stamp, the fetch cache); callers hand a task over and take its reply. Nothing else
+    // touches that state, so it needs no lock, no atomic and no volatile publication. An owner
+    // task never waits on a future, so this thread cannot block on a caller, and a hand-off made
+    // from the owner itself runs inline instead of deadlocking on itself.
+    // ------------------------------------------------------------------------------------------
+    // The owner is a platform thread on purpose: callers hand off while they may already hold a
+    // monitor (Helpers.addElementToObject/objectKeys synchronize on the map they were given), and a
+    // virtual owner could be starved of a carrier by those pinned callers and never answer.
+    private static final java.util.concurrent.ExecutorService STATE_OWNER =
+            java.util.concurrent.Executors.newSingleThreadExecutor (BaseExchange::stateOwnerThread);
+
+    private static Thread stateOwnerThread (Runnable task) {
+        Thread thread = new Thread (task, "ccxt-state-owner");
+        thread.setDaemon (true);
+        return thread;
+    }
+
+    // One unit of owner work. An explicit class rather than a lambda keeps the hand-off call
+    // sites plain Java and stops the printer seeing pasted inline bodies where there are none.
+    private abstract static class OwnedTask<T> {
+        abstract T run ();
+    }
+
+    private static final ThreadLocal<Boolean> ON_STATE_OWNER = new ThreadLocal<Boolean> () {
+        @Override protected Boolean initialValue () { return Boolean.FALSE; }
+    };
+
+    private static <T> T owned (OwnedTask<T> task) {
+        if (Boolean.TRUE.equals (ON_STATE_OWNER.get ())) {
+            return task.run ();
+        }
+        try {
+            return STATE_OWNER.submit (new java.util.concurrent.Callable<T> () {
+                @Override public T call () {
+                    ON_STATE_OWNER.set (Boolean.TRUE);
+                    try {
+                        return task.run ();
+                    } finally {
+                        ON_STATE_OWNER.set (Boolean.FALSE);
+                    }
+                }
+            }).get ();
+        } catch (InterruptedException e) {
+            Thread.currentThread ().interrupt ();
+            throw new RuntimeException (e);
+        } catch (java.util.concurrent.ExecutionException e) {
+            Throwable cause = e.getCause ();
+            if (cause instanceof RuntimeException runtime) throw runtime;
+            if (cause instanceof Error error) throw error;
+            throw new RuntimeException (cause);
+        }
+    }
+
     public Object timeout = 10000; // default timeout 10s
     // If you have these constants elsewhere, remove these placeholders.
     // HTTP
@@ -170,7 +225,8 @@ public class BaseExchange {
     public boolean verbose = false;
     public boolean validateServerSsl = true;
     public boolean enableRateLimit = true;
-    public volatile long lastRestRequestTimestamp = 0L;
+    // request stamp — owner-confined (see `owned`), written only by the owner thread
+    private long lastRestRequestTimestamp = 0L;
     public String url = "";
     public String hostname = "";
     public List<Object> countries = new ArrayList<>();
@@ -180,9 +236,7 @@ public class BaseExchange {
 
     // Currencies/markets API structures
     public Map<String, Object> baseCurrencies = new HashMap<>();
-    public volatile boolean reloadingMarkets = false;
-    public volatile CompletableFuture<Object> marketsLoading = null;
-    public volatile boolean marketsLoaded = false;
+    // loadMarkets single-flight + its currency hand-off are owner-confined: see MarketsLoadState
 
     public Map<String, Object> quoteCurrencies = new HashMap<>();
     public Map<String, Object> api = new HashMap<>();
@@ -214,62 +268,92 @@ public class BaseExchange {
     public Object number = Float.class;                   // C# typeof(float) → Java Class<?> for Float
     public Map<String, Object> has = new HashMap<>();
     public Map<String, Object> features = new HashMap<>();
-    // Single owner of `options`: one writer publishes an immutable snapshot, readers never lock,
-    // and a null value removes the key (the element-write contract every options site prints).
+    // Single owner of `options`: the map itself lives on the state-owner thread, so a writer
+    // hands over its write and a reader takes the reply (a value or an immutable snapshot);
+    // there is no lock and no volatile publication, and `put(key, null)` removes the key, which
+    // is the element-write contract every options site prints.
     public Map<String, Object> options = new SynchronizedOptions ();
 
     public static final class SynchronizedOptions extends java.util.AbstractMap<String, Object> {
-        private final Object writer = new Object ();
-        private volatile Map<String, Object> published = java.util.Collections.emptyMap ();
+        // op codes for the owner-side switch: every public Map call becomes one hand-off
+        private static final int OP_GET = 0;
+        private static final int OP_CONTAINS = 1;
+        private static final int OP_SIZE = 2;
+        private static final int OP_IS_EMPTY = 3;
+        private static final int OP_ENTRY_SET = 4;
+        private static final int OP_PUT = 5;
+        private static final int OP_REMOVE = 6;
+        private static final int OP_PUT_ALL = 7;
+        private static final int OP_CLEAR = 8;
+        private static final int OP_FILL = 9;
+
+        private final Map<String, Object> owner = new LinkedHashMap<String, Object> ();
 
         public static SynchronizedOptions of (Map<String, Object> source) {
             SynchronizedOptions store = new SynchronizedOptions ();
             if (source == null) return store;
-            for (Map.Entry<String, Object> entry : source.entrySet ()) {
-                if (entry.getKey () != null && entry.getValue () != null) store.put (entry.getKey (), entry.getValue ());
-            }
+            store.ownedApply (OP_FILL, null, source);
             return store;
         }
 
-        @Override public Object get (Object key) { return this.published.get (key); }
-        @Override public boolean containsKey (Object key) { return this.published.containsKey (key); }
-        @Override public int size () { return this.published.size (); }
-        @Override public boolean isEmpty () { return this.published.isEmpty (); }
-        @Override public java.util.Set<Map.Entry<String, Object>> entrySet () { return this.published.entrySet (); }
+        private Object ownedApply (final int op, final Object key, final Object value) {
+            return owned (new OwnedTask<Object> () {
+                @Override Object run () { return SynchronizedOptions.this.ownerApply (op, key, value); }
+            });
+        }
+
+        // runs on the state-owner thread only: `owner` is that thread's map
+        private Object ownerApply (int op, Object key, Object value) {
+            switch (op) {
+                case OP_GET: return this.owner.get (key);
+                case OP_CONTAINS: return Boolean.valueOf (this.owner.containsKey (key));
+                case OP_SIZE: return Integer.valueOf (this.owner.size ());
+                case OP_IS_EMPTY: return Boolean.valueOf (this.owner.isEmpty ());
+                case OP_ENTRY_SET: return java.util.Collections.unmodifiableMap (new LinkedHashMap<String, Object> (this.owner)).entrySet ();
+                case OP_PUT: return (value == null) ? this.owner.remove (key) : this.owner.put ((String) key, value);
+                case OP_REMOVE: return this.owner.remove (key);
+                case OP_PUT_ALL:
+                case OP_FILL: {
+                    Map<?, ?> entries = (Map<?, ?>) value;
+                    if (op == OP_FILL) this.owner.clear ();
+                    for (Map.Entry<?, ?> entry : entries.entrySet ()) {
+                        Object entryKey = entry.getKey ();
+                        Object entryValue = entry.getValue ();
+                        if (entryKey == null) continue;
+                        if (entryValue == null) this.owner.remove (entryKey);
+                        else this.owner.put (String.valueOf (entryKey), entryValue);
+                    }
+                    return (op == OP_FILL) ? this : null;
+                }
+                case OP_CLEAR: this.owner.clear (); return null;
+                default: throw new IllegalArgumentException ("unknown options owner op: " + op);
+            }
+        }
+
+        @Override public Object get (Object key) { return this.ownedApply (OP_GET, key, null); }
+        @Override public boolean containsKey (Object key) { return Boolean.TRUE.equals (this.ownedApply (OP_CONTAINS, key, null)); }
+        @Override public int size () { return ((Integer) this.ownedApply (OP_SIZE, null, null)).intValue (); }
+        @Override public boolean isEmpty () { return Boolean.TRUE.equals (this.ownedApply (OP_IS_EMPTY, null, null)); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Set<Map.Entry<String, Object>> entrySet () {
+            return (java.util.Set<Map.Entry<String, Object>>) this.ownedApply (OP_ENTRY_SET, null, null);
+        }
 
         @Override public Object put (String key, Object value) {
             if (key == null) return null;
-            synchronized (this.writer) {
-                Map<String, Object> next = new LinkedHashMap<String, Object> (this.published);
-                Object previous = (value == null) ? next.remove (key) : next.put (key, value);
-                this.published = java.util.Collections.unmodifiableMap (next);
-                return previous;
-            }
+            return this.ownedApply (OP_PUT, key, value);
         }
 
         @Override public Object remove (Object key) {
-            synchronized (this.writer) {
-                Map<String, Object> next = new LinkedHashMap<String, Object> (this.published);
-                Object previous = next.remove (key);
-                this.published = java.util.Collections.unmodifiableMap (next);
-                return previous;
-            }
+            return this.ownedApply (OP_REMOVE, key, null);
         }
 
         @Override public void putAll (Map<? extends String, ? extends Object> entries) {
-            synchronized (this.writer) {
-                Map<String, Object> next = new LinkedHashMap<String, Object> (this.published);
-                for (Map.Entry<? extends String, ? extends Object> entry : entries.entrySet ()) {
-                    if (entry.getKey () == null) continue;
-                    if (entry.getValue () == null) next.remove (entry.getKey ());
-                    else next.put (entry.getKey (), entry.getValue ());
-                }
-                this.published = java.util.Collections.unmodifiableMap (next);
-            }
+            this.ownedApply (OP_PUT_ALL, null, entries);
         }
 
         @Override public void clear () {
-            synchronized (this.writer) { this.published = java.util.Collections.emptyMap (); }
+            this.ownedApply (OP_CLEAR, null, null);
         }
     }
     public boolean isSandboxModeEnabled = false;
@@ -316,14 +400,16 @@ public class BaseExchange {
     public String agent;
     // public Object timeout = 10000;                         // Integer by autoboxing
 
-    // Last responses — volatile for visibility across async callbacks (last-writer-wins)
-    public volatile Object last_response_headers;
-    public volatile Object last_request_headers;
-    public volatile Object last_json_response;
-    public volatile Object last_http_response;
-    public volatile Object last_request_body;
-    public volatile Object last_request_url;
-    public final ConcurrentLinkedQueue<Map<String, Object>> fetchHistoryCache = new ConcurrentLinkedQueue<>();
+    // Last responses — written and read on the request's own call chain (the caller sees the
+    // value through the request future, not through the field), so no volatile publish is needed
+    public Object last_response_headers;
+    public Object last_request_headers;
+    public Object last_json_response;
+    public Object last_http_response;
+    public Object last_request_body;
+    public Object last_request_url;
+    // fetch cache — owner-confined (see `owned`); addFetchCache/getFetchCache hand off
+    private final java.util.ArrayDeque<Map<String, Object>> fetchHistoryCache = new java.util.ArrayDeque<>();
     public int fetchHistoryCacheSize = 0;
 
     public boolean returnResponseHeaders = false;
@@ -475,14 +561,8 @@ public class BaseExchange {
         } else {
             initialOptions = (Map<String, Object>) this.getDefaultOptions();
         }
-        SynchronizedOptions opts = new SynchronizedOptions();
-        for (Map.Entry<String, Object> e : initialOptions.entrySet()) {
-            // a null value means "not set"; the store drops the key instead of holding the null
-            if (e.getKey() != null && e.getValue() != null) {
-                opts.put(e.getKey(), e.getValue());
-            }
-        }
-        this.options = opts;
+        // one hand-off fills the store; a null value means "not set" and is dropped
+        this.options = SynchronizedOptions.of(initialOptions);
 
         Boolean verboseTmp = (Boolean) this.safeValue(extendedProperties, "verbose", Boolean.FALSE);
         this.verbose = (verboseTmp != null) ? verboseTmp : false;
@@ -693,22 +773,30 @@ public class BaseExchange {
     }
 
     public void addFetchCache(Object data) {
-        if (fetchHistoryCacheSize <= 0) {
-            return;
-        }
-
         @SuppressWarnings("unchecked")
-        Map<String, Object> mapData = (Map<String, Object>) data;
-        
-        fetchHistoryCache.offer(mapData);
-        
-        while (fetchHistoryCache.size() > fetchHistoryCacheSize) {
-            fetchHistoryCache.poll(); // drops oldest
-        }
+        final Map<String, Object> mapData = (Map<String, Object>) data;
+        // the cache and its size knob are owner state: the write is handed over, the entry is
+        // dropped oldest-first so the store never holds more than fetchHistoryCacheSize entries
+        owned (new OwnedTask<Object> () {
+            @Override Object run () {
+                if (BaseExchange.this.fetchHistoryCacheSize <= 0) {
+                    return null;
+                }
+                while (BaseExchange.this.fetchHistoryCache.size () >= BaseExchange.this.fetchHistoryCacheSize) {
+                    BaseExchange.this.fetchHistoryCache.poll ();
+                }
+                BaseExchange.this.fetchHistoryCache.offer (mapData);
+                return null;
+            }
+        });
     }
 
     public List<Map<String, Object>> getFetchCache() {
-        return new ArrayList<>(fetchHistoryCache);
+        return owned (new OwnedTask<List<Map<String, Object>>> () {
+            @Override List<Map<String, Object>> run () {
+                return new ArrayList<Map<String, Object>> (BaseExchange.this.fetchHistoryCache);
+            }
+        });
     }
 
     // === HELPERS === //
@@ -1414,6 +1502,8 @@ public class BaseExchange {
     // test harness that can bury the frame injector beneath a watch task that
     // only the injector itself can release, deadlocking the run. the test
     // runner flips this flag so injector sleeps can never be steal points.
+    // process-wide test hook, not exchange state: it stays volatile because an external harness
+    // may flip it while worker threads are already running (out of this unit's ownership scope).
     public static volatile boolean syncSleep = false;
 
     public CompletableFuture<Object> sleep(Object milliseconds) {
@@ -1748,17 +1838,34 @@ public class BaseExchange {
         return Helpers.parseJson(input);
     }
 
-    // Single owner of the loadMarkets → fetchMarkets currency hand-off: only the in-flight load
-    // chain (single-flight under marketsLock) writes it, and it is cleared before the next load.
-    private volatile Map<String, Object> pendingCachedCurrencies = null;
+    // The loadMarkets single-flight and the currencies it hands to setMarkets are owner state:
+    // only the state-owner thread touches these fields, and a caller reads them through the
+    // owner's reply, so the hand-off needs neither a lock nor a volatile field.
+    private static final class MarketsLoadState {
+        private Map<String, Object> pendingCurrencies = null;
+        private CompletableFuture<Object> inFlight = null;
+        private boolean running = false;
+        private boolean loaded = false;
+    }
+
+    private final MarketsLoadState loadState = new MarketsLoadState();
 
     public Map<String, Object> cachedCurrenciesForLoad() {
-        return this.pendingCachedCurrencies;
+        return owned (new OwnedTask<Map<String, Object>> () {
+            @Override Map<String, Object> run () { return BaseExchange.this.loadState.pendingCurrencies; }
+        });
     }
 
     public Map<String, Object> cachedCurrenciesForLoadOrEmpty() {
-        Map<String, Object> currencies = this.pendingCachedCurrencies;
+        Map<String, Object> currencies = this.cachedCurrenciesForLoad ();
         return (currencies == null) ? new java.util.HashMap<String, Object>() : currencies;
+    }
+
+    // the only writer of the hand-off: the load chain sets it, the same chain clears it
+    private void setPendingCurrencies (final Map<String, Object> currencies) {
+        owned (new OwnedTask<Object> () {
+            @Override Object run () { BaseExchange.this.loadState.pendingCurrencies = currencies; return null; }
+        });
     }
 
     public java.util.concurrent.CompletableFuture<Object> loadMarketsHelper(boolean reload) throws ExecutionException, InterruptedException {
@@ -1770,7 +1877,7 @@ public class BaseExchange {
             return java.util.concurrent.CompletableFuture.completedFuture(this.markets);
         }
 
-        this.pendingCachedCurrencies = null;
+        this.setPendingCurrencies (null);
 
         // Chain: fetchCurrencies (if supported) → fetchMarkets → setMarkets
         // No thread blocked at any point
@@ -1790,9 +1897,9 @@ public class BaseExchange {
         }
 
         return currenciesFuture.thenCompose(currencies -> {
-            this.pendingCachedCurrencies = (currencies == null) ? null : (Map<String, Object>) currencies;
+            this.setPendingCurrencies ((currencies == null) ? null : (Map<String, Object>) currencies);
             return this.fetchMarkets(new java.util.HashMap<String, Object>()).thenApply(markets -> {
-                this.pendingCachedCurrencies = null;
+                this.setPendingCurrencies (null);
                 // Pass currencies through so setMarkets() can merge fetched currencies
                 // (including ones not appearing as a base/quote/settle in any market —
                 // e.g. AGLD/WBTC for bigone/apex, USDC for aftermath). The previous
@@ -1803,8 +1910,6 @@ public class BaseExchange {
         });
 
     }
-
-    private final Object marketsLock = new Object();
 
     private final java.util.concurrent.locks.ReentrantLock lastNonceReentrantLock = new java.util.concurrent.locks.ReentrantLock();
 
@@ -1820,45 +1925,57 @@ public class BaseExchange {
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object reload2, Object params) {
 
         boolean reload = Boolean.TRUE.equals(reload2);
-        if (this.marketsLoaded && !reload) {
-            return this.marketsLoading;
-        }
-        synchronized (marketsLock) {
-            // Re-check under the lock to collapse concurrent first-callers onto the same future.
-            if (this.marketsLoaded && !reload) {
-                return this.marketsLoading;
-            }
-            // Collapse concurrent callers onto the same in-flight reload regardless
-            // of the reload flag. The previous `|| reload` short-circuit caused 20
-            // concurrent loadMarkets(true) callers to spawn 20 sequential fetches.
-            // The cache-vs-fetch decision still respects `reload` via the early
-            // `marketsLoaded && !reload` guard above; this branch only decides
-            // whether to start a *new* fetch when none is in-flight.
-            if (!this.reloadingMarkets) {
-                this.reloadingMarkets = true;
-                try {
-                    this.marketsLoading = this.loadMarketsHelper(reload)
-                            .thenApply(res -> {
-                                synchronized (marketsLock) {
-                                    this.reloadingMarkets = false;
-                                    this.marketsLoaded = true;
-                                }
-                                return res;
-                            })
-                            .exceptionallyCompose(ex -> {
-                                synchronized (marketsLock) {
-                                    this.reloadingMarkets = false;
-                                    this.marketsLoading = null;
-                                }
-                                return CompletableFuture.failedFuture(ex);
-                            });
-                } catch (ExecutionException | InterruptedException e) {
-                    this.reloadingMarkets = false;
-                    throw new RuntimeException(e);
+        // One owner task decides: serve the in-flight load, or claim the right to start one by
+        // publishing its placeholder future. The loser gets the winner's future as the reply,
+        // which is the single-flight — no lock, and the caller that claimed starts the fetch
+        // outside the owner so venue code never runs on the owner thread.
+        final CompletableFuture<Object> claim = new CompletableFuture<Object>();
+        CompletableFuture<Object> inFlight = owned (new OwnedTask<CompletableFuture<Object>> () {
+            @Override CompletableFuture<Object> run () {
+                if (BaseExchange.this.loadState.loaded && !reload && BaseExchange.this.loadState.inFlight != null) {
+                    return BaseExchange.this.loadState.inFlight;
                 }
+                if (BaseExchange.this.loadState.running) {
+                    return BaseExchange.this.loadState.inFlight;
+                }
+                BaseExchange.this.loadState.running = true;
+                BaseExchange.this.loadState.inFlight = claim;
+                return null;
             }
-            return this.marketsLoading;
+        });
+        if (inFlight != null) {
+            return inFlight;
         }
+        try {
+            this.loadMarketsHelper(reload).whenComplete((result, failure) -> {
+                owned (new OwnedTask<Object> () {
+                    @Override Object run () {
+                        BaseExchange.this.loadState.running = false;
+                        if (failure != null) {
+                            BaseExchange.this.loadState.inFlight = null;
+                        } else {
+                            BaseExchange.this.loadState.loaded = true;
+                        }
+                        return null;
+                    }
+                });
+                if (failure != null) {
+                    claim.completeExceptionally(failure);
+                } else {
+                    claim.complete(result);
+                }
+            });
+        } catch (ExecutionException | InterruptedException e) {
+            owned (new OwnedTask<Object> () {
+                @Override Object run () {
+                    BaseExchange.this.loadState.running = false;
+                    BaseExchange.this.loadState.inFlight = null;
+                    return null;
+                }
+            });
+            throw new RuntimeException(e);
+        }
+        return claim;
     }
 
     public CompletableFuture<Object> fetchCurrencies(Map<String, Object> params) {
@@ -2174,14 +2291,23 @@ public class BaseExchange {
     // together with fetchRestOrderBookSafe, since both belong to the Exchange trading tier
     // (BaseExchange no longer declares fetchRestOrderBookSafe/fetchOrderBook that it depends on).
 
-    /** Hand-written (not transpiled): lastRestRequestTimestamp is a volatile long,
-     *  so a plain assignment is already safe against concurrent requests. */
+    /** Hand-written (not transpiled): the request stamp is owner state — the write is handed to
+     *  the state-owner thread and read back through the same hand-off, so no volatile is needed. */
     public void setLastRestRequestTimestamp() {
-        this.lastRestRequestTimestamp = this.milliseconds();
+        final long now = this.milliseconds();
+        owned (new OwnedTask<Object> () {
+            @Override Object run () { BaseExchange.this.lastRestRequestTimestamp = now; return null; }
+        });
     }
 
-    /** Hand-written (not transpiled): the last_request_* fields are volatile,
-     *  so plain assignments are already safe against concurrent requests. */
+    public long getLastRestRequestTimestamp() {
+        return owned (new OwnedTask<Long> () {
+            @Override Long run () { return Long.valueOf (BaseExchange.this.lastRestRequestTimestamp); }
+        });
+    }
+
+    /** Hand-written (not transpiled): the last_request_* fields are written and read on the
+     *  request's own call chain, so plain assignments need no volatile publication. */
     public void setLastRequest(Object request) {
         this.last_request_headers = Helpers.GetValue(request, "headers");
         this.last_request_body = Helpers.GetValue(request, "body");
