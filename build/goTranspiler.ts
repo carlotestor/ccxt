@@ -6374,7 +6374,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, (hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ())))))
+            fs.writeFileSync (goPredictionBase, hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))))
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
