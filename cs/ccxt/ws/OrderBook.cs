@@ -77,7 +77,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
 
     // The thread that last mutated the book: the client's receive loop in production.
     // limit() trims in place only on that thread; anyone else gets a trimmed snapshot.
-    private int _ownerThread;
+    protected int _ownerThread;
 
     // The pair a caller copies from: one hand-off, so the two halves can never come
     // from different book states.
