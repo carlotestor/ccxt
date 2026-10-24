@@ -50,6 +50,11 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     private BookRows _publishedRows;
 
+    // Thread that last mutated this book: the ws receive loop once a book is live. A
+    // limit() call from that same thread is single-threaded use (tests, local books) and
+    // may trim in place; any other thread gets a trimmed copy instead of a live write.
+    private int _mutatorThread = -1;
+
     // The pair a caller copies from: one publication, so the two halves can never
     // come from different book states.
     internal BookRows PublishedRows()
@@ -72,14 +77,13 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     // sides to depth, then freezes the pair. Nothing off the loop calls this.
     internal void PublishRows()
     {
+        this._mutatorThread = Thread.CurrentThread.ManagedThreadId;
         var askSide = this.asks as OrderBookSide;
         var bidSide = this.bids as OrderBookSide;
         if (askSide == null || bidSide == null)
         {
             return;
         }
-        askSide.TrimToDepth();
-        bidSide.TrimToDepth();
         // refresh both sides' own publications from the live lists, so a reset that
         // cleared them without going through storeArray cannot leave a stale pair
         askSide.Publish();
@@ -218,10 +222,33 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     public IOrderBook limit()
     {
-        // Trimming is the owner loop's job (PublishRows trims both sides after every
-        // mutation), so a caller never mutates the live book here.
-        return this;
+        // The receive loop owns the live book, so a caller cannot trim it. When a trim
+        // is still needed, hand back a trimmed copy instead; the loop trims its own
+        // copy at the next reset/update.
+        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        if (depth <= 0 || ((this.asks.Count <= depth) && (this.bids.Count <= depth)))
+        {
+            return this;
+        }
+        if (this._mutatorThread == Thread.CurrentThread.ManagedThreadId)
+        {
+            // this thread is the one that mutates the book, so trimming in place is not
+            // concurrent with anything
+            (this.asks as OrderBookSide)?.TrimToDepth();
+            (this.bids as OrderBookSide)?.TrimToDepth();
+            this.PublishRows();
+            return this;
+        }
+        var copy = this.Copy();
+        copy.asks.limit();
+        copy.bids.limit();
+        if (copy is OrderBook bookCopy)
+        {
+            bookCopy.PublishRows();
+        }
+        return copy;
     }
+
 
 
     public IOrderBook update(object snapshot)
@@ -277,6 +304,11 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             this["outcomeId"] = Exchange.SafeValue(snapshot as dict, "outcomeId");
             this["market"] = Exchange.SafeValue(snapshot as dict, "market");
         }
+        // depth is enforced at message level, the way the ported limit() call sites and
+        // the ws order-book test expect: a delta beyond the trimmed tail survives until
+        // the next message boundary trims again
+        (this.asks as OrderBookSide)?.TrimToDepth();
+        (this.bids as OrderBookSide)?.TrimToDepth();
     }
 
     public void reset(object snapshot = null)
@@ -344,10 +376,33 @@ public class CountedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        // Trimming is the owner loop's job (PublishRows trims both sides after every
-        // mutation), so a caller never mutates the live book here.
-        return this;
+        // The receive loop owns the live book, so a caller cannot trim it. When a trim
+        // is still needed, hand back a trimmed copy instead; the loop trims its own
+        // copy at the next reset/update.
+        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        if (depth <= 0 || ((this.asks.Count <= depth) && (this.bids.Count <= depth)))
+        {
+            return this;
+        }
+        if (this._mutatorThread == Thread.CurrentThread.ManagedThreadId)
+        {
+            // this thread is the one that mutates the book, so trimming in place is not
+            // concurrent with anything
+            (this.asks as OrderBookSide)?.TrimToDepth();
+            (this.bids as OrderBookSide)?.TrimToDepth();
+            this.PublishRows();
+            return this;
+        }
+        var copy = this.Copy();
+        copy.asks.limit();
+        copy.bids.limit();
+        if (copy is OrderBook bookCopy)
+        {
+            bookCopy.PublishRows();
+        }
+        return copy;
     }
+
 
 
     public IOrderBook Copy()
@@ -401,10 +456,33 @@ public class IndexedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        // Trimming is the owner loop's job (PublishRows trims both sides after every
-        // mutation), so a caller never mutates the live book here.
-        return this;
+        // The receive loop owns the live book, so a caller cannot trim it. When a trim
+        // is still needed, hand back a trimmed copy instead; the loop trims its own
+        // copy at the next reset/update.
+        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        if (depth <= 0 || ((this.asks.Count <= depth) && (this.bids.Count <= depth)))
+        {
+            return this;
+        }
+        if (this._mutatorThread == Thread.CurrentThread.ManagedThreadId)
+        {
+            // this thread is the one that mutates the book, so trimming in place is not
+            // concurrent with anything
+            (this.asks as OrderBookSide)?.TrimToDepth();
+            (this.bids as OrderBookSide)?.TrimToDepth();
+            this.PublishRows();
+            return this;
+        }
+        var copy = this.Copy();
+        copy.asks.limit();
+        copy.bids.limit();
+        if (copy is OrderBook bookCopy)
+        {
+            bookCopy.PublishRows();
+        }
+        return copy;
     }
+
 
 
     public IOrderBook Copy()
