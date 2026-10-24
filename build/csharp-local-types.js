@@ -16016,7 +16016,18 @@ export function installCsharpParameterTypes (transpiler) {
 
 const CSHARP_PARAMETER_ALIAS_TYPES = {
     'Dict': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Dict|undefined': { 'type': 'IDictionary<string, object>', 'value': false },
+    'NullableDict': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Market': { 'type': 'IDictionary<string, object>', 'value': false },
+    'MarketInterface': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Currency': { 'type': 'IDictionary<string, object>', 'value': false },
     'List': { 'type': 'IList<object>', 'value': false },
+    'Strings': { 'type': 'IList<object>', 'value': false },
+    'string[]': { 'type': 'IList<object>', 'value': false },
+    'any[]': { 'type': 'IList<object>', 'value': false },
+    'object[]': { 'type': 'IList<object>', 'value': false },
+    'Dict[]': { 'type': 'IList<object>', 'value': false },
+    'Dict[]|undefined': { 'type': 'IList<object>', 'value': false },
     'Str': { 'type': 'string', 'value': false },
     'Int': { 'type': 'Int64', 'value': true },
     'Num': { 'type': 'double', 'value': true },
