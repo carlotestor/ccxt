@@ -272,7 +272,7 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 
 			// Insert into Data array - ensure it grows with Length
 			obs.Data = append(obs.Data, nil)
-			copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
+			copy(obs.Data[index+1:], obs.Data[index:obs.Length-1])
 			if isArray {
 				obs.Data[index] = []any{deltaArray[0], deltaArray[1]}
 			} else if isOB {
@@ -447,7 +447,7 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 
 			// Insert into Data array - ensure it grows with Length
 			obs.Data = append(obs.Data, nil)
-			copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
+			copy(obs.Data[index+1:], obs.Data[index:obs.Length-1])
 			if isArray {
 				obs.Data[index] = []any{deltaArray[0], deltaArray[1], deltaArray[2]}
 			} else if isOB {
