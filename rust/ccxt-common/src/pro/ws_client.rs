@@ -981,6 +981,61 @@ pub fn client_value(url: &str) -> Value {
     Value::Map(m)
 }
 
+/// Typed client handle for the ws drive loop (units R01/R10).
+///
+/// The loop owns one per frame and hands it to the venue's `handle_message`;
+/// venues read the four fields it exposes instead of `get_value` on a box.
+/// Writes to `subscriptions`/`futures` reach the live client by tag.
+#[allow(dead_code)]
+#[derive(Clone)]
+pub struct ClientHandle {
+    /// `client.url` — `Value::Str` when the handle names a url, else `Null`.
+    pub url: Value,
+    /// `client.subscriptions`, exactly what `get_value` used to read.
+    pub subscriptions: Value,
+    /// `client.futures` (open single-flights on this client).
+    pub futures: Value,
+    /// `client.rejections`.
+    pub rejections: Value,
+    value: Value,
+}
+
+#[allow(dead_code)]
+impl ClientHandle {
+    pub fn from_value(value: Value) -> ClientHandle {
+        let read = |k: &str| crate::get_value(&value, &Value::Str(k.to_string().into()));
+        ClientHandle {
+            url: read("url"),
+            subscriptions: read("subscriptions"),
+            futures: read("futures"),
+            rejections: read("rejections"),
+            value,
+        }
+    }
+
+    pub fn url(&self) -> Option<String> {
+        match &self.url { Value::Str(s) => Some(s.to_string()), _ => None }
+    }
+
+    /// The `Value` handle the untyped generated handlers take.
+    pub fn as_value(&self) -> Value { self.value.clone() }
+
+    pub fn resolve(&self, args: &[Value]) -> Value { value_resolve(&self.value, args) }
+    pub fn reject(&self, args: &[Value]) -> Value { value_reject(&self.value, args) }
+    pub fn send(&self, args: &[Value]) -> Value { value_send(&self.value, args) }
+    pub fn reset(&self, error: Value) -> Value { value_reset(&self.value, error) }
+    pub fn on_pong(&self) -> Value { value_on_pong(&self.value) }
+    pub fn as_map(&self) -> Option<&indexmap::IndexMap<String, Value>> {
+        self.value.as_map()
+    }
+    pub fn future(&self, args: &[Value]) -> Value {
+        self.value.future(args)
+    }
+    pub fn reusable_future(&self, msg_hash: Value) -> Value {
+        self.value.reusable_future(msg_hash)
+    }
+}
+
 /// Open-or-join the single-flight for `hash` on `url`, creating the registry
 /// slot if the client has not been dialed yet (venue `authenticate` parks its
 /// flights on a never-dialed pseudo-url, because the real user-data url embeds

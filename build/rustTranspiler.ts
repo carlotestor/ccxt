@@ -23,6 +23,7 @@ import { r04Callee } from './hx10w3-R04.js'; // hx10w3 R04
 import { r06Push } from './hx10w2-r06.js';
 import { r06w3Push } from './hx10w3-R06.js'; // hx10 W3 R06
 import { r08DictReads } from './hx10w3-R08.js';
+import { r10ClientHandle } from './hx10w6-R10.js'; // hx10 wave-6 R10
 
 ansi.nice;
 
@@ -9074,6 +9075,9 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = r05FieldChainInserts(rustContent); // hx10 R05
                 rustContent = bf03PlainDictChains(rustContent); // hx10w4 BF03
                 rustContent = r08DictReads(rustContent); // hx10w3 R08
+                // hx10w6 R10: venue reads of the ws client go through the typed
+                // handle the drive loop owns (field reads, no `get_value` lookup).
+                rustContent = r10ClientHandle(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
