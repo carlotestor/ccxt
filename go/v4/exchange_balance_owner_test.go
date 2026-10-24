@@ -47,13 +47,19 @@ func TestWsBalanceOwnerKeepsTheHandlerMap(t *testing.T) {
 	exchange.WsCacheSetScalar("Balance", "spot", map[string]any{})
 
 	// handler code runs on the loop and writes the same map the owner serves
-	handlerView, ok := exchange.Balance.(map[string]any)
-	if !ok {
-		t.Fatalf("the owner must leave a plain map in the field, got %T", exchange.Balance)
-	}
+	handlerView := exchange.Balance
 	handlerView["info"] = "raw"
 	if got := exchange.WsCacheGetScalar("Balance", "info"); got != "raw" {
 		t.Fatalf("owner read = %v, want the handler's write", got)
+	}
+
+	// a handler's whole-map assignment moves entries into the same map, it never swaps the field
+	exchange.WsBalanceReplace(map[string]any{"free": "2"})
+	if handlerView["free"] != "2" {
+		t.Fatalf("replace must land in the handler's map, got %v", handlerView["free"])
+	}
+	if len(handlerView) != 1 {
+		t.Fatalf("replace must drop the earlier entries, %d left", len(handlerView))
 	}
 
 	// a whole-map replace moves entries instead of swapping the map handlers already point at
@@ -76,13 +82,17 @@ func TestWsBalanceOwnerNormalisesABoxedSyncMap(t *testing.T) {
 	defer exchange.wsCacheStop()
 	raw := &sync.Map{}
 	raw.Store("spot", "1")
-	exchange.Balance = raw
+	// a whole-map assignment can still hand the owner a box: its entries move into the field's map
+	exchange.WsCacheReplace("Balance", raw)
 
 	if got := exchange.WsCacheGetScalar("Balance", "spot"); got != "1" {
 		t.Fatalf("read = %v, want the seeded value", got)
 	}
-	if _, ok := exchange.Balance.(map[string]any); !ok {
-		t.Fatalf("the owner must replace a *sync.Map box with a plain map, got %T", exchange.Balance)
+	if exchange.Balance == nil {
+		t.Fatalf("the owner must leave a plain map in the field")
+	}
+	if _, ok := exchange.Balance["spot"]; !ok {
+		t.Fatalf("the boxed entries must land in the field's own map")
 	}
 }
 

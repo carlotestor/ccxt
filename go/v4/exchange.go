@@ -203,7 +203,9 @@ type BaseExchange struct {
 	wsStore         *wsCacheStore
 	wsStoreOnce     sync.Once
 	wsStoreStopOnce sync.Once
-	Balance         any
+	// a plain map: a handler's read is the map's own index; entries stay boxed because TS `balance` is a
+	// Dict of Dicts, and the loop's views type one level at a time
+	Balance         map[string]any
 	Positions       any
 	// the ws client registry: the dispatch loop is its only reader and writer, so a use site needs
 	// no lock; user-path reads ask the loop for a copy (WsClientsSnapshot)

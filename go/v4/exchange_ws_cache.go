@@ -139,20 +139,14 @@ func (this *BaseExchange) wsCacheObjectField(name string) *any {
 	return nil
 }
 
-// wsBalanceMap answers the balance map the owner works on. Balance is boxed in `any` because
-// exchanges assign helper results to it; a box that is not a plain map is replaced by one here, so
-// every later operation writes the map handler code reads. Runs on the dispatch goroutine, or on the
-// caller once the loop is gone (wsCacheDo's fallback), never concurrently with it.
+// wsBalanceMap answers the balance map the owner works on. The field is a plain map, and a cleared
+// field is refilled here so every later operation writes the map handler code reads. Runs on the
+// dispatch goroutine, or on the caller once the loop is gone (wsCacheDo's fallback).
 func (this *BaseExchange) wsBalanceMap() map[string]any {
-	if asMap, ok := this.Balance.(map[string]any); ok {
-		return asMap
+	if this.Balance == nil {
+		this.Balance = map[string]any{}
 	}
-	asMap := MapTyped(this.Balance)
-	if asMap == nil {
-		asMap = map[string]any{}
-	}
-	this.Balance = asMap
-	return asMap
+	return this.Balance
 }
 
 // wsCacheApply runs one map operation on the dispatch goroutine. Keys are pointer-carried in
@@ -513,4 +507,45 @@ func (this *BaseExchange) WsCacheReplace(field string, value any) {
 func (this *BaseExchange) WsCacheApplyOrderBookSnapshot(stored any, orderBook any) bool {
 	applied, _ := this.wsCacheDo(wsOpApplySnapshot, "Orderbooks", stored, orderBook).(bool)
 	return applied
+}
+
+// WsBalanceReplace moves value's entries into the balance map in place: handler code and anything a
+// handler already resolved keep one map. A value that is not a dictionary empties it, like the
+// assignment of a fresh map did. Runs on the dispatch goroutine, the field's only writer.
+func (this *BaseExchange) WsBalanceReplace(value any) {
+	source, _ := derefScalar(value).(map[string]any)
+	current := this.wsBalanceMap()
+	for key := range current {
+		delete(current, key)
+	}
+	for key, entry := range source {
+		current[key] = entry
+	}
+}
+
+// WsBalanceEntry answers the account entry a handler reads through: the entry's own map, or nil for an
+// absent entry, which is what the read helper answered. Runs on the dispatch goroutine.
+func (this *BaseExchange) WsBalanceEntry(key any) map[string]any {
+	name, ok := derefScalar(key).(string)
+	if !ok {
+		return nil
+	}
+	entry, _ := this.Balance[name].(map[string]any)
+	return entry
+}
+
+// WsBalanceEntryForWrite answers the account entry a handler writes into, creating the map an absent
+// entry needs: indexing created it under TS too. Runs on the dispatch goroutine, the field's only writer.
+func (this *BaseExchange) WsBalanceEntryForWrite(key any) map[string]any {
+	name, ok := derefScalar(key).(string)
+	if !ok {
+		return nil
+	}
+	balance := this.wsBalanceMap()
+	if entry, isMap := balance[name].(map[string]any); isMap {
+		return entry
+	}
+	entry := map[string]any{}
+	balance[name] = entry
+	return entry
 }
