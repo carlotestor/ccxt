@@ -138,8 +138,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         }
     }
 
-    // the ported API treats Add as an upsert (CustomConcurrentDictionary hid
-    // Dictionary.Add that way); a duplicate key must not throw
+    // the ported API treats Add as an upsert, so a duplicate key must not throw
     public new void Add(string key, object value)
     {
         this[key] = value;
@@ -254,10 +253,10 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
     {
         var depth = (depth2 == null) ? Int32.MaxValue : Convert.ToInt32(depth2);
 
-        var snapshotCopy = new CustomConcurrentDictionary<string, object> { };
+        var snapshotCopy = new Dictionary<string, object> { };
         if (snapshot != null)
         {
-            snapshotCopy = new CustomConcurrentDictionary<string, object>(snapshot as dict);
+            snapshotCopy = new Dictionary<string, object>(snapshot as dict);
         }
         var rawAsks = Exchange.SafeValue(snapshotCopy, "asks", new SlimConcurrentList<object>());
         var rawBids = Exchange.SafeValue(snapshotCopy, "bids", new SlimConcurrentList<object>());
@@ -400,7 +399,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
         set { base.bids = value; }
     }
 
-    public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string, object>(), new CustomConcurrentDictionary<string, object> {
+    public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string, object>(), new Dictionary<string, object> {
        {"asks", new CountedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
        {"bids", new CountedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)
@@ -459,7 +458,7 @@ public class IndexedOrderBook : OrderBook, IOrderBook
         get { return base.bids as IndexedBids; }
         set { base.bids = value; }
     }
-    public IndexedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string, object>(), new CustomConcurrentDictionary<string, object> {
+    public IndexedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string, object>(), new Dictionary<string, object> {
        {"asks", new IndexedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
        {"bids", new IndexedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)
