@@ -2074,26 +2074,24 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     } else if (guardedPointer (key) && (typeAt (key, k) === '*string')) {
         keyOut = '*' + key;
     }
-    // a nil *string key makes the helper a no-op: guard the write when the value reads no call
+    // a nil *string key makes the helper a no-op: `if k != nil { m[*k] = v }` is its map
+    // branch, so the write can be guarded instead of demanding a non-nil proof.
+    const nilKeyGuardable = (keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string')
+        && notRebound (key) && (lastLine === k);
     let nilKeyGuard = false;
-    if ((keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string') && notRebound (key) && (lastLine === k)
-        && /^(?:\w+|"[^"\\\n]*"|-?\d+(?:\.\d+)?)$/.test (value)) {
-        keyOut = '*' + key;
-        nilKeyGuard = true;
-    }
     const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
     // SafeString with a string default never answers nil (exchange_safe.go)
     const defaulted = /^this\.SafeString\((\w+(?:\[\"[^\"\\\n]*\"\])?|this\.\w+), (\w+|"[^"\\\n]*"), (\w+|"[^"\\\n]*")\)$/.exec (value);
     const defaultedOk = (defaulted !== null) && (defaulted[3].startsWith ('"') || (typeAt (defaulted[3], k) === 'string'));
     let valueOut: string | undefined = undefined;
-    if (keyOut === undefined) {
+    if ((keyOut === undefined) && !nilKeyGuardable) {
         return;
     }
     if (/^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false|nil)$/.test (value) || goMapWritePlainValueExpr (valueMasked)) {
         valueOut = value;
     } else if ((valueType !== undefined) && (GO_ACCESS_SCALAR_TYPES.indexOf (valueType) >= 0)) {
         valueOut = value;
-    } else if ((valueType !== undefined) && keyOut.startsWith ('"') && (GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0)) {
+    } else if ((valueType !== undefined) && (keyOut !== undefined) && keyOut.startsWith ('"') && (GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0)) {
         valueOut = value; // container locals under a literal key, as the typed-container pass always printed them
     } else if ((valueType === 'map[string]any') && goMapWriteLocalNeverNil (maskedFunc, declOf (value), value, declOf)) {
         valueOut = value; // the helper would store a typed-nil map as untyped nil
@@ -2103,11 +2101,15 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = '*' + value;
     } else if ((valueType === 'any') && notRebound (value) && goMapWriteMapResultLocal (lines, declOf (value))) {
         valueOut = value; // every return of the producer is a fresh non-nil map
-    } else if (!nilKeyGuard && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
+    } else if (!nilKeyGuardable && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
         valueOut = value;
     }
-    if ((valueOut === undefined) && !nilKeyGuard && (lastLine === k)) {
+    if ((valueOut === undefined) && !nilKeyGuardable && (lastLine === k)) {
         valueOut = hx4G39PointerValue (lines, value, valueMasked, typeAt (value, k))?.replace (/\n/g, '\n' + head[1]);  // hx4 G39
+    }
+    if ((valueOut !== undefined) && (keyOut === undefined) && nilKeyGuardable && (valueOut.indexOf ('\n') < 0)) {
+        keyOut = '*' + key;  // hx10w7 G06: guarded *string key, exact copy of the helper's map branch
+        nilKeyGuard = true;
     }
     if ((keyOut === undefined) || (valueOut === undefined)) {
         return;
