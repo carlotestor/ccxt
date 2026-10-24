@@ -3319,7 +3319,7 @@ public class Polymarket extends PolymarketApi
         return result;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         if (java.util.Objects.equals(path, "account/orders"))
         {
@@ -3352,10 +3352,6 @@ public class Polymarket extends PolymarketApi
             return 20;
         }
         return this.safeValue(config, "cost", 1);
-    }
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
-    {
-        return this.calculateRateLimiterCost(api, method, path, parameters, (Object) (config));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
