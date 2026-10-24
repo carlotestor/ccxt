@@ -4901,6 +4901,7 @@ class NewTranspiler {
         javaSource = nativeJavaBF02FieldOps(javaSource) // hx10 w4 BF02
         javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
         javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
+        javaSource = nativeJ05CallReceiverReads(javaSource) // hx10 wave-7 J05
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
