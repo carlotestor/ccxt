@@ -986,11 +986,8 @@ export default class bitget extends bitgetRest {
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const data = this.safeValue (message, 'data');
-        let rawOrderBook = this.safeDict (data, 0);
-        if (rawOrderBook === undefined) {
-            // tokenized stock snapshots arrive as a plain dict instead of a list
-            rawOrderBook = this.safeDict (message, 'data');
-        }
+        // tokenized stock snapshots arrive as a plain dict instead of a list
+        const rawOrderBook = this.safeDict (data, 0, this.safeDict (message, 'data'));
         if (rawOrderBook === undefined) {
             return;
         }

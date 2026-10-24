@@ -523,36 +523,19 @@ export default class deribit extends Exchange {
 
     override createExpiredOptionMarket (symbol: string): MarketInterface {
         // support expired option contracts
-        let quote = 'USD';
-        let settle: Str = undefined;
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base: Str = undefined;
-        let expiry: Str = undefined;
-        if (symbol.indexOf ('/') > -1) {
-            base = this.safeString (symbolBase, 0);
-            expiry = this.safeString (optionParts, 1);
-            if (symbol.indexOf ('USDC') > -1) {
-                base = base + '_USDC';
-            }
-        } else {
-            base = this.safeString (optionParts, 0);
-            expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
-        }
-        if (symbol.indexOf ('USDC') > -1) {
-            quote = 'USDC';
-            settle = 'USDC';
-        } else {
-            settle = base;
-        }
-        let splitBase = base;
+        const hasSlash = symbol.indexOf ('/') > -1;
+        const basePart = hasSlash ? this.safeString (symbolBase, 0) : this.safeString (optionParts, 0);
+        const base = (hasSlash && symbol.indexOf ('USDC') > -1) ? basePart + '_USDC' : basePart;
+        const expiry = hasSlash ? this.safeString (optionParts, 1) : this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
+        const isUsdc = symbol.indexOf ('USDC') > -1;
+        const quote = isUsdc ? 'USDC' : 'USD';
+        const settle = isUsdc ? 'USDC' : base;
         if (base === undefined) {
             throw new ExchangeError (this.id + ' createExpiredOptionMarket() missing base');
         }
-        if (base.indexOf ('_') > -1) {
-            const splitSymbol = base.split ('_');
-            splitBase = this.safeString (splitSymbol, 0);
-        }
+        const splitBase = (base.indexOf ('_') > -1) ? this.safeString (base.split ('_'), 0) : base;
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
         const datetime = this.convertExpireDate (expiry);
