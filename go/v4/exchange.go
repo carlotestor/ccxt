@@ -1699,8 +1699,6 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	}
 
 	client := this.Client(url)
-	// todo: calculate the backoff using the clients cache
-	backoffDelay := 0
 	//
 	//  watchOrderBook ---- future ----+---------------+----→ user
 	//                                 |               |
@@ -1713,13 +1711,10 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	//                             subscribe -----→ receive
 	//
 	if subscribeHash == nil {
-		client.FuturesMu.RLock()
-		// Use read lock when checking for existing futures
-		if fut, ok := client.Futures[messageHash]; ok {
-			client.FuturesMu.RUnlock()
-			return fut.(*Future).Await()
+		// the client store hands back the pending consumer channel, nil when none
+		if pending := client.AwaitExistingFuture(messageHash); pending != nil {
+			return pending
 		}
-		client.FuturesMu.RUnlock()
 	}
 	future := client.NewFuture(messageHash)
 	// read and write subscription, this is done before connecting the client
@@ -1738,13 +1733,11 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
-	client.ConnectMu.Lock()
-	if !client.StartedConnecting {
-		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
-		backoffDelay = this.CalculateWsBackoffDelay(url)
-	}
-	connected, err := client.Connect(backoffDelay)
-	client.ConnectMu.Unlock()
+	// the client dial owner runs the first-dial decision, so counting real dials
+	// only (see https://github.com/ccxt/ccxt/pull/29627) needs no lock
+	connected, err := client.ConnectWithBackoff(func() int {
+		return this.CalculateWsBackoffDelay(url)
+	})
 	if err != nil {
 		client.SubscriptionDel(subscribeHash.(string))
 		future.Reject(err)
@@ -2014,8 +2007,6 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 	}
 
 	client := this.Client(url)
-	// todo: calculate the backoff using the clients cache
-	backoffDelay := 0
 	//
 	//  watchOrderBook ---- future ----+---------------+----→ user
 	//                                 |               |
@@ -2064,13 +2055,11 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
-	client.ConnectMu.Lock()
-	if !client.StartedConnecting {
-		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
-		backoffDelay = this.CalculateWsBackoffDelay(url)
-	}
-	connected, err := client.Connect(backoffDelay)
-	client.ConnectMu.Unlock()
+	// the client dial owner runs the first-dial decision, so counting real dials
+	// only (see https://github.com/ccxt/ccxt/pull/29627) needs no lock
+	connected, err := client.ConnectWithBackoff(func() int {
+		return this.CalculateWsBackoffDelay(url)
+	})
 	if err != nil {
 		future.Reject(err)
 		for _, h := range missingSubscriptions {
