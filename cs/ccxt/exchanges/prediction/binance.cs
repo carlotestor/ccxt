@@ -423,7 +423,7 @@ public partial class binance : PredictionExchange
         object rawTopics = new List<object>() {};
         if (allQueriesLength > 0)
         {
-            rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(allQueries,ccxt.BaseExchange.ToInt64Arg(fetchCap), rest));
+            rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(allQueries, fetchCap, rest));
         } else if ((eventId != null))
         {
             Dictionary<string, object> detail = ccxt.BaseExchange.FromDict(await this.FetchRawTopicDetail(eventId, rest));
@@ -1975,7 +1975,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", side,ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", side, cost,ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**

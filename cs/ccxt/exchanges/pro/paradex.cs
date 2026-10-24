@@ -1168,7 +1168,7 @@ public partial class paradex : ccxt.paradex
                 break;
             }
         }
-        return ((string?)((object)(("0x" + slice(raw, start, 64)))));
+        return ((string?)((object)(("0x" + ((raw == null) ? null : raw.Substring(Math.Max(Math.Min((start < 0 ? raw.Length + (start) : start), raw.Length), 0), Math.Max(Math.Min(64, raw.Length) - Math.Max(Math.Min((start < 0 ? raw.Length + (start) : start), raw.Length), 0), 0)))))));
     }
 
     public virtual List<object> sbeReadVarStrings(object frameHex, object offset, object count, object frameLength)

@@ -1214,7 +1214,7 @@ public partial class hollaex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "open", true },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1234,7 +1234,7 @@ public partial class hollaex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "open", false },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**

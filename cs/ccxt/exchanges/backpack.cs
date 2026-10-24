@@ -2285,7 +2285,7 @@ public partial class backpack : Exchange
                     { "assetClass", "STOCK" },
                     { "stock", false },
                 });
-                List<object> venueTrades = ccxt.BaseExchange.FromTradeList(await this.FetchMyTrades(((string)null),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), venueParams));
+                List<object> venueTrades = ccxt.BaseExchange.FromTradeList(await this.FetchMyTrades(((string)null), since, limit, venueParams));
                 rfqTrades = this.arrayConcat(rfqTrades, venueTrades);
             }
             if ((stock == true))

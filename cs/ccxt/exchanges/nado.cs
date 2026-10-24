@@ -1191,7 +1191,7 @@ public partial class nado : Exchange
         bool? trigger = this.safeBool2(paramsSubaccount, "stop", "trigger");
         if ((trigger == true))
         {
-            return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(paramsSubaccount, new Dictionary<string, object>() {
+            return await this.FetchOrders(symbol, since, limit, this.extend(paramsSubaccount, new Dictionary<string, object>() {
                 { "status_types", new List<object>() {"waiting_price", "waiting_dependency"} },
             }));
         }
@@ -1273,7 +1273,7 @@ public partial class nado : Exchange
         bool? trigger = this.safeBool2(paramsSubaccount, "stop", "trigger");
         if ((trigger == true))
         {
-            return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(paramsSubaccount, new Dictionary<string, object>() {
+            return await this.FetchOrders(symbol, since, limit, this.extend(paramsSubaccount, new Dictionary<string, object>() {
                 { "status_types", new List<object>() {"triggered", "triggering", "twap_executing", "twap_completed"} },
             }));
         }
@@ -1343,7 +1343,7 @@ public partial class nado : Exchange
     public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
+        return await this.FetchOrders(symbol, since, limit, this.extend(parameters, new Dictionary<string, object>() {
             { "trigger", true },
             { "status_types", new List<object>() {"cancelled", "internal_error"} },
         }));
@@ -1363,7 +1363,7 @@ public partial class nado : Exchange
     public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
+        return await this.FetchOrders(symbol, since, limit, this.extend(parameters, new Dictionary<string, object>() {
             { "trigger", true },
             { "status_types", new List<object>() {"cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"} },
         }));

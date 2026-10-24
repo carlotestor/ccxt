@@ -3859,13 +3859,13 @@ public partial class kucoin : Exchange
         }
         if ((uta == true))
         {
-            return await this.FetchUTAOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchUTAOHLCV(symbol,timeframeVar, since, limit, paramsRequest);
         } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
-            return await this.FetchContractOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchContractOHLCV(symbol,timeframeVar, since, limit, paramsRequest);
         } else
         {
-            return await this.FetchSpotOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchSpotOHLCV(symbol,timeframeVar, since, limit, paramsRequest);
         }
     }
 
@@ -4615,13 +4615,13 @@ public partial class kucoin : Exchange
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable.Item2);
         if ((utaOption == true))
         {
-            return await this.CreateUtaOrder(symbol, type, side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsUta);
+            return await this.CreateUtaOrder(symbol, type, side, amount, price, paramsUta);
         } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             return await this.CreateSpotOrder(symbol, type, side, amount, price, paramsUta);
         } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
-            return await this.CreateContractOrder(symbol, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), paramsUta);
+            return await this.CreateContractOrder(symbol, type, side, amount, price, paramsUta);
         } else
         {
             throw new NotSupported ((string)((this.id + " createOrder() does not support market ") + ((market.ContainsKey("type") ? market["type"] : null)))) ;
@@ -5374,7 +5374,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market",side, cost,ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -5395,7 +5395,7 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.CreateMarketOrderWithCost(symbol, "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost), parameters);
+        return await this.CreateMarketOrderWithCost(symbol, "buy", cost, parameters);
     }
 
     /**
@@ -5416,7 +5416,7 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.CreateMarketOrderWithCost(symbol, "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost), parameters);
+        return await this.CreateMarketOrderWithCost(symbol, "sell", cost, parameters);
     }
 
     /**
@@ -6338,13 +6338,13 @@ public partial class kucoin : Exchange
             paramsRequest = this.extend(paramsRequest, new Dictionary<string, object>() {
                 { "marketType", marketType },
             });
-            return await this.FetchUtaOrdersByStatus(status, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchUtaOrdersByStatus(status, symbol, since, limit, paramsRequest);
         } else if (((marketType is "spot")) || ((marketType is "margin")))
         {
-            return await this.FetchSpotOrdersByStatus(status, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchSpotOrdersByStatus(status, symbol, since, limit, paramsRequest);
         } else
         {
-            return await this.FetchContractOrdersByStatus(status, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchContractOrdersByStatus(status, symbol, since, limit, paramsRequest);
         }
     }
 
@@ -6783,7 +6783,7 @@ public partial class kucoin : Exchange
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate));
         }
-        return await this.FetchOrdersByStatus("done", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsPaginate);
+        return await this.FetchOrdersByStatus("done", symbol, since, limit, paramsPaginate);
     }
 
     /**
@@ -6827,7 +6827,7 @@ public partial class kucoin : Exchange
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate));
         }
-        return await this.FetchOrdersByStatus("active", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsPaginate);
+        return await this.FetchOrdersByStatus("active", symbol, since, limit, paramsPaginate);
     }
 
     /**
@@ -7744,7 +7744,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchMyTrades(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -7789,14 +7789,14 @@ public partial class kucoin : Exchange
             paramsRequest = this.extend(paramsRequest, new Dictionary<string, object>() {
                 { "marketType", marketType },
             });
-            return await this.FetchMyUtaTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchMyUtaTrades(symbol, since, limit, paramsRequest);
         }
         if ((marketType == "spot") || (marketType == "margin"))
         {
-            return await this.FetchMySpotTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchMySpotTrades(symbol, since, limit, paramsRequest);
         } else
         {
-            return await this.FetchMyContractTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchMyContractTrades(symbol, since, limit, paramsRequest);
         }
     }
 
@@ -8973,7 +8973,7 @@ public partial class kucoin : Exchange
         accountType = this.safeString(accountsByType, accountType, accountType);
         if (accountType == "contract")
         {
-            return await this.FetchContractDeposits(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchContractDeposits(code, since, limit, paramsRequest);
         }
         bool? paginate = false;
         (bool?, object) paginateparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "fetchDeposits", "paginate", false);
@@ -9156,7 +9156,7 @@ public partial class kucoin : Exchange
         accountType = this.safeString(accountsByType, accountType, accountType);
         if (accountType == "contract")
         {
-            return await this.FetchContractWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
+            return await this.FetchContractWithdrawals(code, since, limit, paramsRequest);
         }
         int maxLimit = 500;
         bool? paginate = false;

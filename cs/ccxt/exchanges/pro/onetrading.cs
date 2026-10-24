@@ -317,7 +317,7 @@ public partial class onetrading : ccxt.onetrading
         int numTrades = getArrayLength(trades);
         if ((numTrades == 0))
         {
-            return await this.WatchMyTrades(symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
+            return await this.WatchMyTrades(symbolResolved, since,ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
         }
         return ccxt.BaseExchange.ToTradeList(trades);
     }
@@ -503,7 +503,7 @@ public partial class onetrading : ccxt.onetrading
         int numOrders = getArrayLength(orders);
         if ((numOrders == 0))
         {
-            return await this.WatchOrders(symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
+            return await this.WatchOrders(symbolResolved, since,ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }

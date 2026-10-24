@@ -1261,7 +1261,7 @@ public partial class kucoin : ccxt.kucoin
             }
             return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
         }
-        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsUta);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, paramsUta);
     }
 
     /**
@@ -1593,7 +1593,7 @@ public partial class kucoin : ccxt.kucoin
             ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublicUta(messageHash, channel, symbolResolved, paramsExtended, subscription));
             return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
         }
-        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), paramsUta);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, paramsUta);
     }
 
     /**

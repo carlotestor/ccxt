@@ -2311,8 +2311,8 @@ public partial class bybit : Exchange
                 this.options["unifiedMarginStatus"] = 6;
                 return new List<object>() {(this.options.ContainsKey("enableUnifiedMargin") ? this.options["enableUnifiedMargin"] : null), (this.options.ContainsKey("enableUnifiedAccount") ? this.options["enableUnifiedAccount"] : null)};
             }
-            List<object> rawPromises = new List<object> {this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)};
-            List<object> promises = await promiseAll(rawPromises);
+            List<Task<Dictionary<string, object>>> rawPromises = new List<Task<Dictionary<string, object>>> {this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)};
+            List<object> promises = new List<object>(await Task.WhenAll(rawPromises));
             IDictionary<string, object> response = this.safeDict(promises, 0);
             IDictionary<string, object> accountInfo = this.safeDict(promises, 1);
             //
@@ -2990,10 +2990,10 @@ public partial class bybit : Exchange
             response = await this.privateGetV5MarketInstrumentsInfo(paramsExtended);
         } else
         {
-            List<object> linearPromises = new List<object> {this.publicGetV5MarketInstrumentsInfo(paramsExtended), this.publicGetV5MarketInstrumentsInfo(this.extend(paramsExtended, new Dictionary<string, object>() {
+            List<Task<Dictionary<string, object>>> linearPromises = new List<Task<Dictionary<string, object>>> {this.publicGetV5MarketInstrumentsInfo(paramsExtended), this.publicGetV5MarketInstrumentsInfo(this.extend(paramsExtended, new Dictionary<string, object>() {
     { "status", "PreLaunch" },
 }))};
-            List<object> promises = await promiseAll(linearPromises);
+            List<object> promises = new List<object>(await Task.WhenAll(linearPromises));
             response = this.safeDict(promises, 0, new Dictionary<string, object>() {});
             preLaunchMarkets = this.safeDict(promises, 1, new Dictionary<string, object>() {});
         }
@@ -6994,7 +6994,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderStatus", "Filled" },
         };
-        return await this.FetchCanceledAndClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -7025,7 +7025,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderStatus", "Cancelled" },
         };
-        return await this.FetchCanceledAndClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -7187,7 +7187,7 @@ public partial class bybit : Exchange
             request["orderId"] = id;
         }
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "orderLinkId"}));
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, paramsOmitted));
+        return await this.FetchMyTrades(symbol, since, limit, this.extend(request, paramsOmitted));
     }
 
     /**
@@ -9012,7 +9012,7 @@ public partial class bybit : Exchange
         {
             request["limit"] = limit;
         }
-        return await this.FetchDerivativesOpenInterestHistory(symbol,((string)timeframeVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchDerivativesOpenInterestHistory(symbol,((string)timeframeVar), since, limit, parameters);
     }
 
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)

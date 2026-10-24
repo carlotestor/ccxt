@@ -228,7 +228,7 @@ public partial class hyperliquid : PredictionExchange
             int colonIndex = (part?.IndexOf(":", StringComparison.Ordinal) ?? -1);
             if (colonIndex > -1)
             {
-                string? key = slice(part, 0, colonIndex);
+                string? key = ((part == null) ? null : part.Substring(0, Math.Max(Math.Min((colonIndex < 0 ? part.Length + (colonIndex) : colonIndex), part.Length), 0)));
                 string? value = slice(part, (colonIndex + 1L), null);
                 result[(string)key] = value;
             }
@@ -1144,10 +1144,10 @@ public partial class hyperliquid : PredictionExchange
         // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
         // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
         // value / entry price / pnl, so they are computed from the current mid prices
-        List<object> promises = new List<object> {this.publicPostInfo(this.extend(request, paramsPublicAddress)), this.publicPostInfo(new Dictionary<string, object>() {
+        List<Task<object>> promises = new List<Task<object>> {this.publicPostInfo(this.extend(request, paramsPublicAddress)), this.publicPostInfo(new Dictionary<string, object>() {
     { "type", "allMids" },
 })};
-        List<object> results = await promiseAll(promises);
+        List<object> results = new List<object>(await Task.WhenAll(promises));
         IDictionary<string, object> response = this.safeDict(results, 0);
         object midsResponse = (results != null && 1 < results.Count ? results[1] : null);
         List<object> balances = this.safeList(response, "balances", new List<object>() {});

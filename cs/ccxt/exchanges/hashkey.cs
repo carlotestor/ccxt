@@ -2772,7 +2772,7 @@ public partial class hashkey : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -3385,10 +3385,10 @@ public partial class hashkey : Exchange
         }, paramsMarketType);
         if ((marketTypeOption == "spot"))
         {
-            return await this.FetchOpenSpotOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
+            return await this.FetchOpenSpotOrders(symbol, since, limit, paramsExtended);
         } else if ((marketTypeOption == "swap"))
         {
-            return await this.FetchOpenSwapOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
+            return await this.FetchOpenSwapOrders(symbol, since, limit, paramsExtended);
         } else
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeOption) + " type of markets")) ;

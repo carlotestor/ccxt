@@ -484,10 +484,10 @@ public partial class bitrue : ccxt.bitrue
         return null;
     }
 
-    public virtual List<object> parseContractBidsAsks(object bidsAsks, object symbol)
+    public virtual List<object> parseContractBidsAsks(IList<object> bidsAsks, object symbol)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(bidsAsks); i++)
+        for (int i = 0; i < (bidsAsks?.Count ?? 0); i++)
         {
             List<object> level = this.safeList(bidsAsks, i);
             double? price = this.safeNumber(level, 0);

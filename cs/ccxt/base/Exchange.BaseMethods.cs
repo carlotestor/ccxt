@@ -1060,7 +1060,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (!((this.has.ContainsKey("watchLiquidationsForSymbols") ? this.has["watchLiquidationsForSymbols"] : null) == null) && (((this.has.ContainsKey("watchLiquidationsForSymbols") ? this.has["watchLiquidationsForSymbols"] : null) as bool?) != false))
         {
-            return await this.WatchLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+            return await this.WatchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
         }
         throw new NotSupported ((this.id + " watchLiquidations() is not supported yet")) ;
     }
@@ -1076,7 +1076,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (!((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) == null) && (((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) as bool?) != false))
         {
-            return ccxt.BaseExchange.ToLiquidationList(this.WatchMyLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+            return ccxt.BaseExchange.ToLiquidationList(this.WatchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters));
         }
         throw new NotSupported ((this.id + " watchMyLiquidations() is not supported yet")) ;
     }
@@ -1609,7 +1609,7 @@ public partial class BaseExchange
 
     public virtual void initRestRateLimiter()
     {
-        if ((((object)(this.rateLimit)) == null) || ((this.id != null) && isEqual(this.rateLimit, -1)))
+        if ((((object)(this.rateLimit)) == null) || ((this.id != null) && (this.rateLimit == -1)))
         {
             throw new ExchangeError ((this.id + ".rateLimit property is not configured")) ;
         }
@@ -1618,7 +1618,7 @@ public partial class BaseExchange
         {
             refillRate = (1 / this.rateLimit);
         }
-        bool useLeaky = (isEqual(this.rollingWindowSize, 0)) || ((this.rateLimiterAlgorithm == "leakyBucket"));
+        bool useLeaky = ((this.rollingWindowSize == 0)) || ((this.rateLimiterAlgorithm == "leakyBucket"));
         string algorithm = useLeaky ? "leakyBucket" : "rollingWindow";
         Dictionary<string, object> defaultBucket = new Dictionary<string, object>() {
             { "delay", 0.001 },
@@ -6830,7 +6830,7 @@ public partial class BaseExchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "mark" },
             };
-            return await this.FetchOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+            return await this.FetchOHLCV(symbol,timeframeVar, since, limit, this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((this.id + " fetchMarkOHLCV () is not supported yet")) ;
@@ -7152,7 +7152,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (!((this.has.ContainsKey("fetchDepositsWithdrawals") ? this.has["fetchDepositsWithdrawals"] : null) == null) && (((this.has.ContainsKey("fetchDepositsWithdrawals") ? this.has["fetchDepositsWithdrawals"] : null) as bool?) != false))
         {
-            return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+            return await this.FetchDepositsWithdrawals(code, since, limit, parameters);
         } else
         {
             throw new NotSupported ((this.id + " fetchTransactions () is not supported yet")) ;

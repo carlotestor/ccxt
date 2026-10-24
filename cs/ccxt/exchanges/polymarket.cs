@@ -465,8 +465,8 @@ public partial class polymarket : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> promises = new List<object> {this.publicGetInfoInstruments(parameters), this.publicGetInfoAssets(parameters)};
-        List<object> responses = await promiseAll(promises);
+        List<Task<List<object>>> promises = new List<Task<List<object>>> {this.publicGetInfoInstruments(parameters), this.publicGetInfoAssets(parameters)};
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         object instruments = (responses != null && 0 < responses.Count ? responses[0] : null);
         object assets = (responses != null && 1 < responses.Count ? responses[1] : null);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -692,8 +692,8 @@ public partial class polymarket : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        List<object> promises = new List<object> {this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)};
-        List<object> responses = await promiseAll(promises);
+        List<Task<List<object>>> promises = new List<Task<List<object>>> {this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)};
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         //
         // tickers
         //

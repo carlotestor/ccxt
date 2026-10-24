@@ -508,7 +508,7 @@ public partial class bydfi : ccxt.bydfi
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
     /**
@@ -665,7 +665,7 @@ public partial class bydfi : ccxt.bydfi
         {
             symbols = new List<object>() {symbol};
         }
-        return await this.WatchOrdersForSymbols(symbols,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.WatchOrdersForSymbols(symbols, since, limit, parameters);
     }
 
     /**

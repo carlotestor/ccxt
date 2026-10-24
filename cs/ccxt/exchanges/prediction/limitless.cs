@@ -1067,10 +1067,10 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "addressOrSlug", slug },
         };
-        List<object> promises = new List<object> {this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new Dictionary<string, object>() {
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>> {this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new Dictionary<string, object>() {
     { "slug", slug },
 })};
-        List<object> responses = await promiseAll(promises);
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         object response = (responses != null && 0 < responses.Count ? responses[0] : null);
         //
         //     {
@@ -1824,7 +1824,7 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "statuses", new List<object>() {"LIVE"} },
         });
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
+        return await this.FetchOrders(outcome, since, limit, paramsExtended);
     }
 
     /**
@@ -1849,7 +1849,7 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "statuses", new List<object>() {"MATCHED"} },
         });
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
+        return await this.FetchOrders(outcome, since, limit, paramsExtended);
     }
 
     /**

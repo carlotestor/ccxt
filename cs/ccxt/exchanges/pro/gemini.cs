@@ -371,7 +371,7 @@ public partial class gemini : ccxt.gemini
         string? type = this.safeString(message, "type", "");
         string? timeframeIdFull = ((type == null) ? null : type.Substring(Math.Min(8, type.Length)));
         int timeframeEndIndex = (timeframeIdFull?.IndexOf("_", StringComparison.Ordinal) ?? -1);
-        string? timeframeId = slice(timeframeIdFull, 0, timeframeEndIndex);
+        string? timeframeId = ((timeframeIdFull == null) ? null : timeframeIdFull.Substring(0, Math.Max(Math.Min((timeframeEndIndex < 0 ? timeframeIdFull.Length + (timeframeEndIndex) : timeframeEndIndex), timeframeIdFull.Length), 0)));
         string marketId = this.safeString(message, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId, market);

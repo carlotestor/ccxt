@@ -4487,7 +4487,7 @@ public partial class gate : Exchange
         }
         if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
         {
-            return await this.FetchOptionOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsPaginate);
+            return await this.FetchOptionOHLCV(symbol,timeframeVar, since, limit, paramsPaginate);
         }
         object price = this.safeString(paramsPaginate, "price");
         var requestparamsRequestVariable = this.prepareRequest(market, null, paramsPaginate);
@@ -4859,7 +4859,7 @@ public partial class gate : Exchange
         //          }
         //      ]
         //
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), new Dictionary<string, object>() {
+        return await this.FetchMyTrades(symbol, since, limit, new Dictionary<string, object>() {
             { "order_id", id },
         });
     }
@@ -6104,7 +6104,7 @@ public partial class gate : Exchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "createMarketBuyOrderRequiresPrice", false },
         });
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), paramsExtended);
+        return await this.CreateOrder(symbol, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(null), paramsExtended);
     }
 
     public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
@@ -6748,7 +6748,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByStatus("open", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStatus("open", symbol, since, limit, parameters);
     }
 
     /**
@@ -6804,7 +6804,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsHistorical = ((IDictionary<string, object>)useHistoricalparamsHistoricalVariable.Item2);
         if (!(useHistorical == true) && (((since == null) && (until == null)) || (type != "swap")))
         {
-            return await this.FetchOrdersByStatus("finished", symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsHistorical);
+            return await this.FetchOrdersByStatus("finished", symbolResolved, since, limit, paramsHistorical);
         }
         var requestparamsRequestVariable = this.prepareRequest(market, type, this.omit(paramsHistorical, "type"));
         Dictionary<string, object> request = (Dictionary<string, object>)requestparamsRequestVariable[0];

@@ -1920,7 +1920,7 @@ public partial class btse : Exchange
                 { "clOrderID", clientOrderId },
             };
         }
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, orderIdParams));
+        return await this.FetchMyTrades(symbol, since, limit, this.extend(parameters, orderIdParams));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -2069,7 +2069,7 @@ public partial class btse : Exchange
             return await this.CreateSpotOrder(symbol, type, side, amount, price, parameters);
         } else
         {
-            return await this.CreateContractOrder(symbol, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateContractOrder(symbol, type, side, amount, price, parameters);
         }
     }
 

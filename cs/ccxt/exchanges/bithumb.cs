@@ -2033,7 +2033,7 @@ public partial class bithumb : Exchange
             throw new BadRequest ((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
         }
         paramsGeneration["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), paramsGeneration);
+        return await this.CreateOrder(symbol, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(null), paramsGeneration);
     }
 
     /**
@@ -2551,7 +2551,7 @@ public partial class bithumb : Exchange
             {
                 paramsGeneration["state"] = "wait";
             }
-            List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsGeneration));
+            List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol, since, limit, paramsGeneration));
             return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limit));
         } else
         {
@@ -2709,7 +2709,7 @@ public partial class bithumb : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["state"] = "done";
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol, since, limit, parameters));
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limit));
     }
 
@@ -2732,7 +2732,7 @@ public partial class bithumb : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["state"] = "cancel";
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol, since, limit, parameters));
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limit));
     }
 

@@ -1190,7 +1190,7 @@ public partial class pacifica : Exchange
 
     public virtual Dictionary<string, object> parseAccountSettings(IList<object> settings)
     {
-        int settingsLen = settings?.Count ?? 0;
+        int settingsLen = (settings?.Count ?? 0);
         if ((settingsLen == 0))
         {
             return new Dictionary<string, object>() {};

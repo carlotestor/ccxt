@@ -860,7 +860,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
     }
 
-    public virtual void handleChecksum(WebSocketClient client, object message, object subscription)
+    public virtual void handleChecksum(WebSocketClient client, IList<object> message, object subscription)
     {
         //
         // [ 173904, "cs", -890884919 ]

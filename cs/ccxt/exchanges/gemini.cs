@@ -1119,7 +1119,7 @@ public partial class gemini : Exchange
                     if (marketIdWithoutPerp.EndsWith(quoteCurrency))
                     {
                         Int64? quoteLength = this.parseToInt(((Int64)(-1) * quoteCurrency.Length));
-                        baseId = slice(marketIdWithoutPerp, 0, quoteLength);
+                        baseId = ((marketIdWithoutPerp == null) ? null : marketIdWithoutPerp.Substring(0, ((int)Math.Max(Math.Min(((quoteLength ?? 0L) < 0 ? ((Int64)marketIdWithoutPerp.Length) + ((quoteLength ?? 0L)) : (quoteLength ?? 0L)), ((Int64)marketIdWithoutPerp.Length)), 0L))));
                         quoteId = quoteCurrency;
                         if (isPerp)
                         {

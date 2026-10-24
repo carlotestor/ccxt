@@ -983,7 +983,7 @@ public partial class backpack : ccxt.backpack
     {
         parameters ??= new Dictionary<string, object>();
         object query = await this.prepareWsStockParams("watchTrades", parameters);
-        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), query);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, query);
     }
 
     /**
@@ -1207,7 +1207,7 @@ public partial class backpack : ccxt.backpack
     {
         parameters ??= new Dictionary<string, object>();
         object query = await this.prepareWsStockParams("watchOrderBook", parameters);
-        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), query);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, query);
     }
 
     /**

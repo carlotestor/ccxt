@@ -7885,10 +7885,10 @@ public partial class binance : Exchange
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            return await this.EditSpotOrder(id, symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.EditSpotOrder(id, symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
         } else
         {
-            return await this.EditContractOrder(id, symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.EditContractOrder(id, symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
         }
     }
 
@@ -9719,7 +9719,7 @@ public partial class binance : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market",side, cost,ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -9747,7 +9747,7 @@ public partial class binance : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -9773,7 +9773,7 @@ public partial class binance : Exchange
             throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
-        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
+        return await this.CreateOrder(symbol, "market", "sell", cost,ccxt.BaseExchange.ToDoubleArg(null), parameters);
     }
 
     /**
@@ -10785,7 +10785,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)paramsStock)["stock"] = true;
             ((IDictionary<string,object>)paramsStock)["orderStatus"] = "FILLED";
         }
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), paramsStock));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol, since,ccxt.BaseExchange.ToInt64Arg(null), paramsStock));
         List<object> filteredOrders = this.filterBy(orders, "status", "closed");
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filteredOrders, since, limit));
     }
@@ -10840,7 +10840,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)paramsStock)["stock"] = true;
             ((IDictionary<string,object>)paramsStock)["orderStatus"] = "CANCELED";
         }
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), paramsStock));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol, since,ccxt.BaseExchange.ToInt64Arg(null), paramsStock));
         List<object> filteredOrders = this.filterBy(orders, "status", "canceled");
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filteredOrders, since, limit));
     }
@@ -10895,7 +10895,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)paramsStock)["stock"] = true;
             ((IDictionary<string,object>)paramsStock)["orderStatus"] = "FILLED,CANCELED";
         }
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), paramsStock));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol, since,ccxt.BaseExchange.ToInt64Arg(null), paramsStock));
         List<object> canceledOrders = this.filterBy(orders, "status", "canceled");
         List<object> closedOrders = this.filterBy(orders, "status", "closed");
         List<object> filteredOrders = this.arrayConcat(canceledOrders, closedOrders);
@@ -11360,7 +11360,7 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, paramsOmitted));
+        return await this.FetchMyTrades(symbol, since, limit, this.extend(request, paramsOmitted));
     }
 
     /**

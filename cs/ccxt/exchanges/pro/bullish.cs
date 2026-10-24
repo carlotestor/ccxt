@@ -391,7 +391,7 @@ public partial class bullish : ccxt.bullish
         // 302 ='53714.0000000'
         for (int i = 0; i < (entry?.Count ?? 0); i++)
         {
-            if (!(((Int64)i % 2L) == 0))
+            if (((Int64)i % 2L != 0))
             {
                 continue;
             }

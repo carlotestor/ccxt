@@ -1909,7 +1909,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "with_cancelled_and_rejected", true },
         };
-        return await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOpenOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**

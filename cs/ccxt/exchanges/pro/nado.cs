@@ -209,7 +209,7 @@ public partial class nado : ccxt.nado
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         if (!((this.orderbooks != null && (market.ContainsKey("symbol") ? market["symbol"] : null) is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))))
         {
-            Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit)));
+            Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol, limit));
             ((IDictionary<string,object>)this.orderbooks)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.orderBook(snapshot, limit);
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic("book_depth", market, messageHash, parameters));
@@ -263,7 +263,7 @@ public partial class nado : ccxt.nado
             messageHashes.Add(messageHash);
             if (!((this.orderbooks != null && (market.ContainsKey("symbol") ? market["symbol"] : null) is string inOpKey1 && this.orderbooks.ContainsKey(inOpKey1))))
             {
-                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit)));
+                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol, limit));
                 ((IDictionary<string,object>)this.orderbooks)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.orderBook(snapshot, limit);
             }
         }

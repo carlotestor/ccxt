@@ -2370,7 +2370,7 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(paramsResolved, new Dictionary<string, object>() {
+        return await this.FetchDepositsWithdrawals(code, since, limit, this.extend(paramsResolved, new Dictionary<string, object>() {
             { "query", "withdrawal" },
         }));
     }
@@ -2398,7 +2398,7 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(paramsResolved, new Dictionary<string, object>() {
+        return await this.FetchDepositsWithdrawals(code, since, limit, this.extend(paramsResolved, new Dictionary<string, object>() {
             { "query", "deposit" },
         }));
     }
@@ -3618,7 +3618,7 @@ public partial class coinbaseinternational : Exchange
             int quesPos = getIndexOf(uri, "?");
             if (quesPos > 0)
             {
-                uri = slice(uri, 0, quesPos);
+                uri = ((uri == null) ? null : ((string)uri).Substring(0, Math.Max(Math.Min((quesPos < 0 ? ((string)uri).Length + (quesPos) : quesPos), ((string)uri).Length), 0)));
             }
         }
         object nonce = this.randomBytes(16);

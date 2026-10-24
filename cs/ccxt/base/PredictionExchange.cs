@@ -953,7 +953,7 @@ public partial class PredictionExchange : BaseExchange
         int colonIndex = ((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal);
         if (colonIndex >= 0)
         {
-            marketPart = slice(outcomeSymbol, 0, colonIndex);
+            marketPart = ((outcomeSymbol == null) ? null : ((string)outcomeSymbol).Substring(0, Math.Max(Math.Min((colonIndex < 0 ? ((string)outcomeSymbol).Length + (colonIndex) : colonIndex), ((string)outcomeSymbol).Length), 0)));
         }
         if ((getIndexOf(marketPart, "0x") == 0))
         {
@@ -1094,7 +1094,7 @@ public partial class PredictionExchange : BaseExchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToOHLCVList(await base.FetchOHLCV(outcome,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        return ccxt.BaseExchange.ToOHLCVList(await base.FetchOHLCV(outcome,timeframeVar, since, limit, parameters));
     }
 
     /**
@@ -1373,7 +1373,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false) == true) || (this.safeBool(this.has, "createMarketBuyOrderWithCost", false) == true))
         {
-            return await this.CreateOrder(outcome, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
+            return await this.CreateOrder(outcome, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
         throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
     }
@@ -1392,7 +1392,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false) == true) || (this.safeBool(this.has, "createMarketSellOrderWithCost", false) == true))
         {
-            return await this.CreateOrder(outcome, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
+            return await this.CreateOrder(outcome, "market", "sell", cost,ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
         throw new NotSupported ((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
     }
@@ -1947,7 +1947,7 @@ public partial class PredictionExchange : BaseExchange
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         int hexLength = hex.Length;
-        if (!isEqual((((Int64)hexLength % 2L)), 0))
+        if (((Int64)hexLength % 2L != 0))
         {
             return ((string?)((object)(("0" + hex))));
         }

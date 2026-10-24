@@ -2437,7 +2437,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended2 = this.extend(paramsExtended, new Dictionary<string, object>() {
             { "state", "canceled" },
         });
-        return await this.FetchCanceledAndClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended2);
+        return await this.FetchCanceledAndClosedOrders(symbol, since, limit, paramsExtended2);
     }
 
     /**
@@ -2462,7 +2462,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended2 = this.extend(paramsExtended, new Dictionary<string, object>() {
             { "state", "filled" },
         });
-        return await this.FetchCanceledAndClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended2);
+        return await this.FetchCanceledAndClosedOrders(symbol, since, limit, paramsExtended2);
     }
 
     /**
@@ -3514,7 +3514,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended = this.extend(new Dictionary<string, object>() {
             { "ordId", id },
         }, parameters);
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
+        return await this.FetchMyTrades(symbol, since, limit, paramsExtended);
     }
 
     /**

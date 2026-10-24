@@ -1194,7 +1194,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("watchTrades", parameters);
-        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsResolved);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, paramsResolved);
     }
 
     /**
@@ -1335,7 +1335,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("watchOrderBook", parameters);
-        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), paramsResolved);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, paramsResolved);
     }
 
     /**

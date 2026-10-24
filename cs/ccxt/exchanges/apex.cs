@@ -1442,7 +1442,7 @@ public partial class apex : Exchange
         string? symbolChar = this.safeString(symbol, (index - 1));
         if (index > 0 && symbolChar != "-")
         {
-            return ((string?)((object)(((slice(symbol, 0, index) + "-") + slice(symbol, index, null)))));
+            return ((string?)((object)(((((symbol == null) ? null : ((string)symbol).Substring(0, Math.Max(Math.Min((index < 0 ? ((string)symbol).Length + (index) : index), ((string)symbol).Length), 0))) + "-") + ((symbol == null) ? null : ((string)symbol).Substring(Math.Max(Math.Min((index < 0 ? ((string)symbol).Length + (index) : index), ((string)symbol).Length), 0)))))));
         }
         return ((string?)((object)(symbol)));
     }

@@ -5091,7 +5091,7 @@ public partial class aster : Exchange
 
     public async override Task loadMarketsAndSignIn()
     {
-        await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.signIn()});
     }
 
     /**

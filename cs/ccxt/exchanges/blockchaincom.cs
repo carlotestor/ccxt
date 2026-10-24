@@ -455,7 +455,7 @@ public partial class blockchaincom : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchL2OrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchL2OrderBook(symbol, limit, parameters);
     }
 
     /**
@@ -841,7 +841,7 @@ public partial class blockchaincom : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string state = "CANCELED";
-        return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
     /**
@@ -859,7 +859,7 @@ public partial class blockchaincom : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string state = "FILLED";
-        return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
     /**
@@ -877,7 +877,7 @@ public partial class blockchaincom : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string state = "OPEN";
-        return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)

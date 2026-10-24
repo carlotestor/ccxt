@@ -1637,7 +1637,7 @@ public partial class bittrade : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, parameters);
     }
 
     /**
@@ -1656,9 +1656,9 @@ public partial class bittrade : Exchange
         string method = ((string)this.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1"));
         if ((method == "fetch_open_orders_v2") || (method == "fetchOpenOrdersV2"))
         {
-            return await this.FetchOpenOrdersV2(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+            return await this.FetchOpenOrdersV2(symbol, since, limit, parameters);
         }
-        return await this.FetchOpenOrdersV1(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOpenOrdersV1(symbol, since, limit, parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchOpenOrdersV1(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1668,7 +1668,7 @@ public partial class bittrade : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchOpenOrdersV1() requires a symbol argument")) ;
         }
-        return await this.FetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol, since, limit, parameters);
     }
 
     /**
@@ -1684,7 +1684,7 @@ public partial class bittrade : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByStates("filled,partial-canceled,canceled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStates("filled,partial-canceled,canceled", symbol, since, limit, parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchOpenOrdersV2(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1880,7 +1880,7 @@ public partial class bittrade : Exchange
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
+        return await this.CreateOrder(symbol, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(null), parameters);
     }
 
     /**

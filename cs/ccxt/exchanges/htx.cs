@@ -3589,7 +3589,7 @@ public partial class htx : Exchange
         {
             throw new NotSupported ((this.id + " fetchOrderTrades() is only supported for spot markets")) ;
         }
-        return await this.FetchSpotOrderTrades(id, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsMarketType);
+        return await this.FetchSpotOrderTrades(id, symbol, since, limit, paramsMarketType);
     }
 
     /**
@@ -5075,13 +5075,13 @@ public partial class htx : Exchange
     public async virtual Task<List<ccxt.Order>> FetchSpotOrders(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchClosedSpotOrders(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchSpotOrdersByStates("filled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchSpotOrdersByStates("filled", symbol, since, limit, parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchContractOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -5223,7 +5223,7 @@ public partial class htx : Exchange
         {
             request["status"] = "6";
         }
-        return await this.FetchContractOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchContractOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -5270,10 +5270,10 @@ public partial class htx : Exchange
         }
         if (contract)
         {
-            return await this.FetchContractOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsMarketType);
+            return await this.FetchContractOrders(symbol, since, limit, paramsMarketType);
         } else
         {
-            return await this.FetchSpotOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsMarketType);
+            return await this.FetchSpotOrders(symbol, since, limit, paramsMarketType);
         }
     }
 
@@ -5319,7 +5319,7 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         if ((marketType == "spot"))
         {
-            return await this.FetchSpotOrdersByStates("partial-canceled,canceled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsMarketType);
+            return await this.FetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, paramsMarketType);
         } else
         {
             if ((symbol == null))
@@ -5346,7 +5346,7 @@ public partial class htx : Exchange
             {
                 request["status"] = "5,7"; // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
             }
-            return await this.FetchContractOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, paramsMarketType));
+            return await this.FetchContractOrders(symbol, since, limit, this.extend(request, paramsMarketType));
         }
     }
 
@@ -5392,10 +5392,10 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         if ((marketType == "spot"))
         {
-            return await this.FetchClosedSpotOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsMarketType);
+            return await this.FetchClosedSpotOrders(symbol, since, limit, paramsMarketType);
         } else
         {
-            return await this.FetchClosedContractOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsMarketType);
+            return await this.FetchClosedContractOrders(symbol, since, limit, paramsMarketType);
         }
     }
 
@@ -6188,7 +6188,7 @@ public partial class htx : Exchange
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
+        return await this.CreateOrder(symbol, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(null), parameters);
     }
 
     /**
@@ -6218,7 +6218,7 @@ public partial class htx : Exchange
         }
         ((IDictionary<string,object>)parameters)["trailingPercent"] = trailingPercent;
         ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
-        return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+        return await this.CreateOrder(symbol,type,side, amount, price, parameters);
     }
 
     /**

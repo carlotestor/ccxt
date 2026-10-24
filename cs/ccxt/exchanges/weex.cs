@@ -1102,8 +1102,8 @@ public partial class weex : Exchange
         {
             await this.loadTimeDifference();
         }
-        List<object> promises = new List<object> {this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)};
-        var spotResponsecontractResponseVariable = await promiseAll(promises);
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>> {this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)};
+        var spotResponsecontractResponseVariable = new List<object>(await Task.WhenAll(promises));
         var spotResponse = ((IList<object>) spotResponsecontractResponseVariable)[0];
         var contractResponse = ((IList<object>) spotResponsecontractResponseVariable)[1];
         List<object> spotArray = this.safeList(spotResponse, "symbols", new List<object>() {});
@@ -1737,10 +1737,10 @@ public partial class weex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            return await this.FetchSpotOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+            return await this.FetchSpotOHLCV(symbol,timeframeVar, since, limit, parameters);
         } else
         {
-            return await this.FetchContractOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+            return await this.FetchContractOHLCV(symbol,timeframeVar, since, limit, parameters);
         }
     }
 
@@ -2493,7 +2493,7 @@ public partial class weex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
-            return await this.CreateContractOrder(symbol, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateContractOrder(symbol, type, side, amount, price, parameters);
         } else
         {
             bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -3328,10 +3328,10 @@ public partial class weex : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchClosedOrders() requires a symbol argument for spot markets")) ;
             }
-            orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), paramsMarketType));
+            orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol, since,ccxt.BaseExchange.ToInt64Arg(null), paramsMarketType));
         } else
         {
-            orders = ccxt.BaseExchange.FromOrderList(await this.FetchCanceledAndClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsMarketType));
+            orders = ccxt.BaseExchange.FromOrderList(await this.FetchCanceledAndClosedOrders(symbol, since, limit, paramsMarketType));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "closed"));
     }
@@ -3373,10 +3373,10 @@ public partial class weex : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchCanceledOrders() requires a symbol argument for spot markets")) ;
             }
-            orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), paramsMarketType));
+            orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol, since,ccxt.BaseExchange.ToInt64Arg(null), paramsMarketType));
         } else
         {
-            orders = ccxt.BaseExchange.FromOrderList(await this.FetchCanceledAndClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsMarketType));
+            orders = ccxt.BaseExchange.FromOrderList(await this.FetchCanceledAndClosedOrders(symbol, since, limit, paramsMarketType));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "canceled"));
     }
@@ -3792,7 +3792,7 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchMyTrades(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -5004,7 +5004,7 @@ public partial class weex : Exchange
         if (marketId.EndsWith("SUSDT"))
         {
             int baseLength = (marketId.Length - 5);
-            return ((string?)((object)((slice(marketId, 0, baseLength) + "USDT"))));
+            return ((string?)((object)((((marketId == null) ? null : marketId.Substring(0, Math.Max(Math.Min((baseLength < 0 ? marketId.Length + (baseLength) : baseLength), marketId.Length), 0))) + "USDT"))));
         }
         return ((string?)((object)(marketId)));
     }

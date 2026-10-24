@@ -1345,7 +1345,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "sell", cost,ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -1642,7 +1642,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "open" },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1664,7 +1664,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "closed" },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -2521,9 +2521,9 @@ public partial class alpaca : Exchange
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 int baseLength = (positionSymbol.Length - 3);
-                if ((baseLength > 0) && ((((object)(slice(positionSymbol, baseLength, null))) is "USD")))
+                if ((baseLength > 0) && ((((object)(((positionSymbol == null) ? null : positionSymbol.Substring(Math.Max(Math.Min((baseLength < 0 ? positionSymbol.Length + (baseLength) : baseLength), positionSymbol.Length), 0))))) is "USD")))
                 {
-                    baseId = slice(positionSymbol, 0, baseLength);
+                    baseId = ((positionSymbol == null) ? null : positionSymbol.Substring(0, Math.Max(Math.Min((baseLength < 0 ? positionSymbol.Length + (baseLength) : baseLength), positionSymbol.Length), 0)));
                 }
             }
             if ((baseId == null))

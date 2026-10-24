@@ -2122,7 +2122,7 @@ public partial class poloniex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseOpenOrders(IList<object> orders, IDictionary<string, object> market, object result)
+    public virtual object parseOpenOrders(IList<object> orders, IDictionary<string, object> market, IList<object> result)
     {
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -2133,7 +2133,7 @@ public partial class poloniex : Exchange
                 { "side", (order != null && order.ContainsKey("type") ? order["type"] : null) },
                 { "price", (order != null && order.ContainsKey("rate") ? order["rate"] : null) },
             });
-            ((IList<object>)result).Add(ccxt.BaseExchange.FromOrder(this.parseOrder(extended, market)));
+            result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(extended, market)));
         }
         return result;
     }
@@ -3263,7 +3263,7 @@ public partial class poloniex : Exchange
         List<object> bidsResult = new List<object>() {};
         for (int i = 0; i < asks.Count; i++)
         {
-            if (isEqual((((Int64)i % 2L)), 0))
+            if (((Int64)i % 2L == 0))
             {
                 double? price = this.safeNumber(asks, i);
                 double? amount = this.safeNumber(asks, this.sum(i, 1));
@@ -3272,7 +3272,7 @@ public partial class poloniex : Exchange
         }
         for (int i = 0; i < bids.Count; i++)
         {
-            if (isEqual((((Int64)i % 2L)), 0))
+            if (((Int64)i % 2L == 0))
             {
                 double? price = this.safeNumber(bids, i);
                 double? amount = this.safeNumber(bids, this.sum(i, 1));

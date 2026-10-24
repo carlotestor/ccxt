@@ -732,12 +732,12 @@ public partial class opinion : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
         string tokenId = ((string)(outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null));
-        List<object> promises = new List<object> {this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>> {this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
     { "token_id", tokenId },
 }, parameters)), this.opinionPublicGetTokenOrderbook(this.extend(new Dictionary<string, object>() {
     { "token_id", tokenId },
 }, parameters))};
-        var priceResponsebookResponseVariable = await promiseAll(promises);
+        var priceResponsebookResponseVariable = new List<object>(await Task.WhenAll(promises));
         var priceResponse = ((IList<object>) priceResponsebookResponseVariable)[0];
         var bookResponse = ((IList<object>) priceResponsebookResponseVariable)[1];
         Dictionary<string, object> response = new Dictionary<string, object>() {
@@ -1441,7 +1441,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "1" },
         };
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(outcome, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1462,7 +1462,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "2,3,4,5" },
         };
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(outcome, since, limit, this.extend(request, parameters));
     }
 
     /**

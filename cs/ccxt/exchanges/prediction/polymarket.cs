@@ -1330,14 +1330,14 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
         string? tokenId = ((string)(outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null));
-        List<object> promises = new List<object> {this.clobPublicGetMidpoint(new Dictionary<string, object>() {
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>> {this.clobPublicGetMidpoint(new Dictionary<string, object>() {
     { "token_id", tokenId },
 }), this.clobPublicGetBook(new Dictionary<string, object>() {
     { "token_id", tokenId },
 }), this.clobPublicGetLastTradePrice(new Dictionary<string, object>() {
     { "token_id", tokenId },
 })};
-        var midpointResponsebookResponselastTradeResponseVariable = await promiseAll(promises);
+        var midpointResponsebookResponselastTradeResponseVariable = new List<object>(await Task.WhenAll(promises));
         var midpointResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[0];
         var bookResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[1];
         var lastTradeResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[2];
@@ -2697,7 +2697,7 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> request = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.CreateOrder(outcome, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), request);
+        return await this.CreateOrder(outcome, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(null), request);
     }
 
     public virtual Dictionary<string, object> polymarketOrderRawAmounts(string? side, object size, object price, string? tickSize, object cost = null)

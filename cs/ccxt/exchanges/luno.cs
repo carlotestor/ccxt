@@ -976,7 +976,7 @@ public partial class luno : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByState(null, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState(null, symbol, since, limit, parameters);
     }
 
     /**
@@ -993,7 +993,7 @@ public partial class luno : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByState("PENDING", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState("PENDING", symbol, since, limit, parameters);
     }
 
     /**
@@ -1010,7 +1010,7 @@ public partial class luno : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByState("COMPLETE", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState("COMPLETE", symbol, since, limit, parameters);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1516,7 +1516,7 @@ public partial class luno : Exchange
             { "min_row", entryValue },
             { "max_row", this.sum(entryValue, limitValue) },
         };
-        return await this.FetchLedger(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitValue), this.extend(request, parameters));
+        return await this.FetchLedger(code,ccxt.BaseExchange.ToInt64Arg(since), limitValue, this.extend(request, parameters));
     }
 
     /**

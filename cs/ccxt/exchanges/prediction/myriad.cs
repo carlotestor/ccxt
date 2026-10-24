@@ -861,7 +861,7 @@ public partial class myriad : PredictionExchange
             throw new ExchangeError ((this.id + " signEvmTransaction() missing rHex")) ;
         }
         int rHexLength = rHex.Length;
-        if (!isEqual((((Int64)rHexLength % 2L)), 0))
+        if (((Int64)rHexLength % 2L != 0))
         {
             rHex = ("0" + rHex);
         }
@@ -870,7 +870,7 @@ public partial class myriad : PredictionExchange
             throw new ExchangeError ((this.id + " signEvmTransaction() missing sHex")) ;
         }
         int sHexLength = sHex.Length;
-        if (!isEqual((((Int64)sHexLength % 2L)), 0))
+        if (((Int64)sHexLength % 2L != 0))
         {
             sHex = ("0" + sHex);
         }
@@ -956,7 +956,7 @@ public partial class myriad : PredictionExchange
         IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"tradingModel"}));
         if (tradingModel == "ob")
         {
-            return await this.CreateOrderbookOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArg(amount),ccxt.BaseExchange.ToDoubleArg(price), rest);
+            return await this.CreateOrderbookOrder(outcome,type,side, amount, price, rest);
         }
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
@@ -965,7 +965,7 @@ public partial class myriad : PredictionExchange
         {
             throw new NotSupported ((this.id + " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
         }
-        return await this.CreateAmmOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), this.omit(rest, new List<object>() {"enableAmm", "enableAmmOrders"}));
+        return await this.CreateAmmOrder(outcome,type,side, amount, price, this.omit(rest, new List<object>() {"enableAmm", "enableAmmOrders"}));
     }
 
     /**
@@ -1154,7 +1154,7 @@ public partial class myriad : PredictionExchange
             double? amount = this.safeNumber(o, "amount");
             double? price = this.safeNumber(o, "price");
             IDictionary<string, object> orderParams = this.safeDict(o, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> placed = ccxt.BaseExchange.FromPredictionOrder(await this.CreateOrderbookOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArg(amount),ccxt.BaseExchange.ToDoubleArg(price), this.extend(orderParams, parameters)));
+            Dictionary<string, object> placed = ccxt.BaseExchange.FromPredictionOrder(await this.CreateOrderbookOrder(outcome,type,side, amount, price, this.extend(orderParams, parameters)));
             result.Add(placed);
         }
         return ccxt.BaseExchange.ToPredictionOrderList(result);
@@ -1183,7 +1183,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         ccxt.BaseExchange.FromPredictionOrder(await this.CancelOrder(id,outcome, parameters));
-        return await this.CreateOrderbookOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArg(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+        return await this.CreateOrderbookOrder(outcome,type,side, amount, price, parameters);
     }
 
     /**
@@ -1239,7 +1239,7 @@ public partial class myriad : PredictionExchange
         object quote = this.safeDict(parameters, "quote");
         if ((quote == null))
         {
-            quote = ccxt.BaseExchange.FromDict(await this.FetchTradeQuote(outcome, sideStr,ccxt.BaseExchange.ToDoubleArgRequired(amount), quoteParams));
+            quote = ccxt.BaseExchange.FromDict(await this.FetchTradeQuote(outcome, sideStr, amount, quoteParams));
         }
         string? calldata = this.safeString(this.safeDict(quote, "info", new Dictionary<string, object>() {}), "calldata");
         if ((calldata == null))
@@ -1286,7 +1286,7 @@ public partial class myriad : PredictionExchange
             { "enableAmm", true },
             { "costDenominated", true },
         });
-        return await this.CreateOrder(outcome, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), request);
+        return await this.CreateOrder(outcome, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(null), request);
     }
 
     /**
@@ -1495,7 +1495,7 @@ public partial class myriad : PredictionExchange
         }
         if (dotIndex > -1)
         {
-            return ((string?)((object)(slice(scaled, 0, dotIndex))));
+            return ((string?)((object)(((scaled == null) ? null : scaled.Substring(0, Math.Max(Math.Min((dotIndex < 0 ? scaled.Length + (dotIndex) : dotIndex), scaled.Length), 0))))));
         }
         return scaled;
     }
@@ -2070,7 +2070,7 @@ public partial class myriad : PredictionExchange
         }
         if (requestedTradingModel == "amm")
         {
-            return await this.FetchAmmOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsOmitted);
+            return await this.FetchAmmOrders(outcome, since, limit, paramsOmitted);
         }
         Dictionary<string, object> response = await this.myriadPublicGetOrders(this.extend(request, paramsOmitted));
         //
@@ -2133,7 +2133,7 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "open" },
         };
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(outcome, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -2153,7 +2153,7 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "filled" },
         };
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(outcome, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -2173,7 +2173,7 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "cancelled" },
         };
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(outcome, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -2195,7 +2195,7 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "filled" },
         };
-        List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters)));
+        List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(outcome, since, limit, this.extend(request, parameters)));
         List<object> trades = new List<object>() {};
         int ordersLength = (orders?.Count ?? 0);
         for (int i = 0; i < ordersLength; i++)
@@ -4083,7 +4083,7 @@ public partial class myriad : PredictionExchange
         // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        List<object> trades = ccxt.BaseExchange.FromTradeList(await this.WatchTrades(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        List<object> trades = ccxt.BaseExchange.FromTradeList(await this.WatchTrades(outcome, since, limit, parameters));
         List<object> ohlcvc = this.buildOHLCVC(((object)trades),timeframeVar, 0, 2147483647);
         List<object> result = new List<object>() {};
         int ohlcvcLength = (ohlcvc?.Count ?? 0);

@@ -1251,8 +1251,8 @@ public partial class xt : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> promisesRaw = new List<object> {this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)};
-        var chainsResponsecurrenciesResponseVariable = await promiseAll(promisesRaw);
+        List<Task<Dictionary<string, object>>> promisesRaw = new List<Task<Dictionary<string, object>>> {this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)};
+        var chainsResponsecurrenciesResponseVariable = new List<object>(await Task.WhenAll(promisesRaw));
         var chainsResponse = ((IList<object>) chainsResponsecurrenciesResponseVariable)[0];
         var currenciesResponse = ((IList<object>) chainsResponsecurrenciesResponseVariable)[1];
         //
@@ -3071,7 +3071,7 @@ public partial class xt : Exchange
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
+        return await this.CreateOrder(symbol, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(1), parameters);
     }
 
     /**
@@ -3122,7 +3122,7 @@ public partial class xt : Exchange
             return await this.CreateSpotOrder(symbolValue, type, side, amount, price, parameters);
         } else
         {
-            return await this.CreateContractOrder(symbolValue, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateContractOrder(symbolValue, type, side, amount, price, parameters);
         }
     }
 
@@ -4197,7 +4197,7 @@ public partial class xt : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByStatus("open", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStatus("open", symbol, since, limit, parameters);
     }
 
     /**
@@ -4221,7 +4221,7 @@ public partial class xt : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByStatus("closed", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStatus("closed", symbol, since, limit, parameters);
     }
 
     /**
@@ -4245,7 +4245,7 @@ public partial class xt : Exchange
     public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByStatus("canceled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStatus("canceled", symbol, since, limit, parameters);
     }
 
     /**

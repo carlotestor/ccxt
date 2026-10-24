@@ -1193,7 +1193,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
@@ -1277,7 +1277,7 @@ public partial class bullish : Exchange
                 { "orderId", id },
             }, parameters);
         }
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
+        return await this.FetchMyTrades(symbol, since, limit, paramsExtended);
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -1734,7 +1734,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         bool? paginate = this.safeBool(parameters, "paginate", false);
         if ((paginate == true))
@@ -1911,7 +1911,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "OPEN" },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1933,7 +1933,7 @@ public partial class bullish : Exchange
             { "status", "CANCELLED" },
             { "method", "privateGetV2Orders" },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1955,7 +1955,7 @@ public partial class bullish : Exchange
             { "status", "CLOSED" },
             { "method", "privateGetV2Orders" },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1977,7 +1977,7 @@ public partial class bullish : Exchange
             { "status", "CLOSED" },
             { "method", "privateGetV2HistoryOrders" },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1994,7 +1994,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -2058,7 +2058,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2129,7 +2129,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2179,7 +2179,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         if ((symbol == null))
         {
@@ -2217,7 +2217,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
@@ -2385,7 +2385,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -2461,7 +2461,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         // todo check this method properly
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2634,7 +2634,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         List<object> response = await this.privateGetV1AccountsTradingAccounts(parameters);
         //
         //     [
@@ -2741,7 +2741,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -2822,7 +2822,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
@@ -2903,7 +2903,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
@@ -3017,7 +3017,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         int maxLimit = 100;
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
@@ -3087,7 +3087,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         // todo check this method properly
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3187,7 +3187,7 @@ public partial class bullish : Exchange
     public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {

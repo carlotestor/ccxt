@@ -325,7 +325,7 @@ public partial class grvt : ccxt.grvt
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -566,7 +566,7 @@ public partial class grvt : ccxt.grvt
             await this.loadMarkets();
         }
         string? symbolValue = this.symbol(symbol);
-        return await this.WatchOrderBookForSymbols(new List<object>() {symbolValue},ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbolValue}, limit, parameters);
     }
 
     /**

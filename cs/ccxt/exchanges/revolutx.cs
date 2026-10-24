@@ -1441,7 +1441,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> requestParams = this.extend(this.omit(parameters, new List<object>() {"orderStates", "order_states"}), new Dictionary<string, object>() {
             { "order_states", orderStates },
         });
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), requestParams);
+        return await this.FetchOrders(symbol, since, limit, requestParams);
     }
 
     /**

@@ -811,7 +811,7 @@ public partial class sxbet : PredictionExchange
         string? lengthHex = ((hex == null) ? null : hex.Substring(Math.Min(64, hex.Length), Math.Min(128, hex.Length) - Math.Min(64, hex.Length)));
         Int64? length = this.parseToInt(this.hexToInt(lengthHex));
         Int64 dataEnd = this.sum(128, (length * 2));
-        string? dataHex = slice(hex, 128, dataEnd);
+        string? dataHex = ((hex == null) ? null : hex.Substring(Math.Min(128, hex.Length), Math.Max(((int)Math.Max(Math.Min((dataEnd < 0 ? ((Int64)hex.Length) + (dataEnd) : dataEnd), ((Int64)hex.Length)), 0L)) - Math.Min(128, hex.Length), 0)));
         return ((string?)((object)(this.decode(this.base16ToBinary(dataHex)))));
     }
 
@@ -1550,7 +1550,7 @@ public partial class sxbet : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOpenOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOpenOrders(outcome, since, limit, parameters);
     }
 
     /**

@@ -2471,7 +2471,7 @@ public partial class kalshi : PredictionExchange
         }
         await this.loadOutcome(outcome);
         ccxt.BaseExchange.FromPredictionOrder(await this.CancelOrder(id,outcome));
-        return await this.CreateOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+        return await this.CreateOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
     }
 
     /**
@@ -2620,7 +2620,7 @@ public partial class kalshi : PredictionExchange
         if (queriesLength > 0)
         {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(queries,ccxt.BaseExchange.ToInt64Arg(fetchCap), rest));
+            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(queries, fetchCap, rest));
         } else if ((eventId != null))
         {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
@@ -3138,7 +3138,7 @@ public partial class kalshi : PredictionExchange
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
             int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
-            object versionPrefix = slice(baseUrl, tradeApiIndex, null);
+            object versionPrefix = ((baseUrl == null) ? null : ((string)baseUrl).Substring(Math.Max(Math.Min((tradeApiIndex < 0 ? ((string)baseUrl).Length + (tradeApiIndex) : tradeApiIndex), ((string)baseUrl).Length), 0)));
             string? pathForSigning = ((string)add(add(versionPrefix, "/"), implodedPath));
             string? payload = ((string)((timestamp + method) + pathForSigning));
             // RSA-PSS SHA-256 signature with the private key PEM
