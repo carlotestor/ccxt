@@ -795,8 +795,7 @@ export default class bullish extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const symbolBase = base + '/' + quote;
-        let symbolSuffix = '';
+        let symbol = base + '/' + quote;
         const basePrecision = this.safeString (market, 'basePrecision');
         const quotePrecision = this.safeString (market, 'quotePrecision');
         const amountPrecision = this.safeString (market, 'quantityPrecision');
@@ -829,7 +828,7 @@ export default class bullish extends Exchange {
             margin = this.safeBool (market, 'marginTradingEnabled');
         } else {
             contractSize = this.safeNumber (market, 'contractMultiplier');
-            symbolSuffix = ':' + settle;
+            symbol += ':' + settle;
             linear = settle === quote;
             inverse = !linear;
             if (type === 'swap') {
@@ -839,18 +838,17 @@ export default class bullish extends Exchange {
                 const idParts = id.split ('-');
                 const datePart = this.safeString (idParts, 2) as string;
                 const dateYmd = datePart.slice (2);
-                symbolSuffix += '-' + dateYmd;
+                symbol += '-' + dateYmd;
                 if (type === 'future') {
                     future = true;
                 } else if (type === 'option') {
                     option = true;
                     optionType = this.safeStringLower (market, 'optionType');
                     strike = this.parseToNumeric (this.safeString (market, 'optionStrikePrice'));
-                    symbolSuffix += '-' + this.numberToString (strike) + '-' + this.safeString (idParts, 4);
+                    symbol += '-' + this.numberToString (strike) + '-' + this.safeString (idParts, 4);
                 }
             }
         }
-        const symbol = symbolBase + symbolSuffix;
         const tradingFees = this.safeDict (this.fees, 'trading', {});
         return this.safeMarketStructure ({
             'id': id,

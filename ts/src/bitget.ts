@@ -2298,8 +2298,7 @@ export default class bitget extends Exchange {
                 settleId = this.safeString (supportMarginCoins, 0);
             }
             const settle = this.safeCurrencyCode (settleId);
-            const symbolBase = base + '/' + quote;
-            let symbolSettleSuffix = '';
+            let symbol = base + '/' + quote;
             let type: Str = undefined;
             let swap = false;
             let spot = false;
@@ -2330,7 +2329,7 @@ export default class bitget extends Exchange {
                 if (symbolType === 'perpetual') {
                     type = 'swap';
                     swap = true;
-                    symbolSettleSuffix = ':' + settle;
+                    symbol = symbol + ':' + settle;
                 } else if (symbolType === 'delivery') {
                     expiry = this.safeInteger (market, 'deliveryTime');
                     const expiryIso = this.iso8601 (expiry) as string;
@@ -2344,7 +2343,7 @@ export default class bitget extends Exchange {
                     const expiryString = year + month + day;
                     type = 'future';
                     future = true;
-                    symbolSettleSuffix = ':' + settle + '-' + expiryString;
+                    symbol = symbol + ':' + settle + '-' + expiryString;
                 }
                 contract = true;
                 inverse = (base === settle);
@@ -2378,7 +2377,6 @@ export default class bitget extends Exchange {
                 minCost = this.safeNumber (market, 'minTradeUSDT');
             }
             const contractSize = contract ? 1 : undefined;
-            const symbol = symbolBase + symbolSettleSuffix;
             result.push (this.safeMarketStructure ({
                 'id': marketId,
                 'symbol': symbol,
@@ -2567,8 +2565,7 @@ export default class bitget extends Exchange {
                 settleId = base;
             }
             const settle = this.safeCurrencyCode (settleId);
-            const symbolBase = base + '/' + quote;
-            let symbolSettleSuffix = '';
+            let symbol = base + '/' + quote;
             let type: Str = undefined;
             let swap = false;
             let spot = false;
@@ -2605,7 +2602,7 @@ export default class bitget extends Exchange {
                 if (symbolType === 'perpetual') {
                     type = 'swap';
                     swap = true;
-                    symbolSettleSuffix = ':' + settle;
+                    symbol = symbol + ':' + settle;
                 } else if (symbolType === 'delivery') {
                     expiry = this.safeInteger (market, 'deliveryTime');
                     const expiryIso = this.iso8601 (expiry) as string;
@@ -2619,7 +2616,7 @@ export default class bitget extends Exchange {
                     const expiryString = year + month + day;
                     type = 'future';
                     future = true;
-                    symbolSettleSuffix = ':' + settle + '-' + expiryString;
+                    symbol = symbol + ':' + settle + '-' + expiryString;
                 }
                 contract = true;
                 inverse = (base === settle);
@@ -2637,7 +2634,6 @@ export default class bitget extends Exchange {
                 active = ((status === 'online') || (status === 'normal'));
             }
             const contractSize = contract ? 1 : undefined;
-            const symbol = symbolBase + symbolSettleSuffix;
             result.push (this.safeMarketStructure ({
                 'id': marketId,
                 'symbol': symbol,

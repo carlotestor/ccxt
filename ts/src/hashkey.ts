@@ -4539,8 +4539,7 @@ export default class hashkey extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const urlBase = apiUrl + '/' + path;
-        let querySuffix = '';
+        let url: string = apiUrl + '/' + path;
         let query: Str = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
@@ -4563,14 +4562,14 @@ export default class hashkey extends Exchange {
                 bodySigned = this.json (this.safeList (params, 'orders'));
                 signature = this.hmac (this.encode (this.customUrlencode (additionalParams) as string), this.encode (this.secret), sha256);
                 query = this.customUrlencode (this.extend (additionalParams, { 'signature': signature }));
-                querySuffix = '?' + query;
+                url += '?' + query;
             } else {
                 const totalParams = this.extend (additionalParams, params);
                 signature = this.hmac (this.encode (this.customUrlencode (totalParams) as string), this.encode (this.secret), sha256);
                 totalParams['signature'] = signature;
                 query = this.customUrlencode (totalParams);
                 if (method === 'GET') {
-                    querySuffix = '?' + query;
+                    url += '?' + query;
                 } else {
                     bodySigned = query;
                 }
@@ -4578,14 +4577,14 @@ export default class hashkey extends Exchange {
             headersSigned['INPUT-SOURCE'] = this.safeString (this.options, 'broker', '10000700011');
             headersSigned['broker_sign'] = signature;
             const bodyResolved = (method === 'GET') ? undefined : bodySigned;
-            return { 'url': urlBase + querySuffix, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
+            return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
         } else {
             query = this.urlencode (params);
             if (query.length !== 0) {
-                querySuffix = '?' + query;
+                url += '?' + query;
             }
         }
-        return { 'url': urlBase + querySuffix, 'method': method, 'body': undefined, 'headers': undefined };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     customUrlencode (params: Dict = {}): Str {
