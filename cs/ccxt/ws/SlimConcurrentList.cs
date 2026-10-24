@@ -54,6 +54,45 @@ public class SlimConcurrentList<T> : List<T>, IReadOnlyList<T>, IReadOnlyCollect
         return base.ToArray();
     }
 
+    /// <summary>
+    /// Bisect-left over the live list (owner side), fused with the "is the found slot an
+    /// exact hit?" test that every caller runs straight afterwards.
+    /// </summary>
+    public int BisectLeft(T value, IComparer<T> comparer = null)
+    {
+        bool found;
+        return this.BisectLeft(value, out found, comparer);
+    }
+
+    /// <summary>Bisect-left plus the exact-hit test, in one pass over the live list.</summary>
+    public int BisectLeft(T value, out bool found, IComparer<T> comparer = null)
+    {
+        int count = this.Count;
+        int low = 0;
+        int high = count - 1;
+        if (comparer == null)
+        {
+            while (low <= high)
+            {
+                int mid = (low + high) / 2;
+                if (Comparer<T>.Default.Compare(this[mid], value) < 0) low = mid + 1;
+                else high = mid - 1;
+            }
+            found = low < count && Comparer<T>.Default.Compare(this[low], value) == 0;
+        }
+        else
+        {
+            while (low <= high)
+            {
+                int mid = (low + high) / 2;
+                if (comparer.Compare(this[mid], value) < 0) low = mid + 1;
+                else high = mid - 1;
+            }
+            found = low < count && comparer.Compare(this[low], value) == 0;
+        }
+        return low;
+    }
+
     /// <summary>Searches for the first element that matches the predicate, on the loop.</summary>
     public new T Find(Predicate<T> match)
     {

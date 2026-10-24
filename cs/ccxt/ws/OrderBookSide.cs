@@ -326,14 +326,14 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public IOrderBookSide Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
     // Copy without taking this side's monitor. Only for callers that already
     // hold it: OrderBook.Copy() locks asks then bids and copies both sides from
     // inside that pair, so entering the same monitor a second time here would
     // be a pointless recursive acquisition. Single-side callers use Copy().
-    internal IOrderBookSide CopyUnlocked()
+    internal IOrderBookSide CopyPublished()
     {
         var copy = new OrderBookSide(this);
         // return copy.ToList() as IOrderBookSide;
@@ -363,11 +363,11 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
 
     public IOrderBookSide Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IOrderBookSide CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IOrderBookSide CopyPublished()
     {
         var copy = new NormalOrderBookSide(this);
         return copy;
@@ -412,11 +412,11 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public IOrderBookSide Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IOrderBookSide CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IOrderBookSide CopyPublished()
     {
         var copy = new CountedOrderBookSide(this);
         return copy;
@@ -502,11 +502,11 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public IOrderBookSide Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IOrderBookSide CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IOrderBookSide CopyPublished()
     {
         var copy = new IndexedOrderBookSide(this);
         return copy;
@@ -742,11 +742,11 @@ public class Asks : NormalOrderBookSide, IAsks
 
     public IAsks Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IAsks CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IAsks CopyPublished()
     {
         var copy = new Asks(this);
         return copy;
@@ -767,11 +767,11 @@ public class Bids : NormalOrderBookSide, IBids
 
     public IBids Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IBids CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IBids CopyPublished()
     {
         var copy = new Bids(this);
         return copy;
@@ -793,11 +793,11 @@ public class CountedAsks : CountedOrderBookSide, IAsks
 
     public IAsks Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IAsks CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IAsks CopyPublished()
     {
         var copy = new CountedAsks(this);
         return copy;
@@ -818,11 +818,11 @@ public class CountedBids : CountedOrderBookSide, IBids
 
     public IBids Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IBids CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IBids CopyPublished()
     {
         var copy = new CountedBids(this);
         return copy;
@@ -839,11 +839,11 @@ public class IndexedAsks : IndexedOrderBookSide, IAsks
 
     public IAsks Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IAsks CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IAsks CopyPublished()
     {
         var copy = new IndexedAsks(this);
         return copy;
@@ -859,11 +859,11 @@ public class IndexedBids : IndexedOrderBookSide, IBids
 
     public IBids Copy()
     {
-        return this.CopyUnlocked();
+        return this.CopyPublished();
     }
 
-    // see OrderBookSide.CopyUnlocked
-    internal new IBids CopyUnlocked()
+    // see OrderBookSide.CopyPublished
+    internal new IBids CopyPublished()
     {
         var copy = new IndexedBids(this);
         return copy;
