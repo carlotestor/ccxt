@@ -62,22 +62,19 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         return low;
     }
 
-    // perf: the IList<decimal> overload above enters/exits SlimConcurrentList's
-    // ReaderWriterLockSlim once for Count plus once per ~log2(n) probe. When the
-    // argument is statically known to be a SlimConcurrentList<decimal> (which every
-    // in-repo call site is, since _index is one) this overload runs the identical
-    // binary search under a SINGLE read lock. The IList<decimal> signature above is
-    // public API and is deliberately left untouched.
+    // The IList<decimal> overload above takes the interface path; when the argument
+    // is statically known to be a SlimConcurrentList<decimal> (every in-repo call
+    // site, since _index is one) this overload runs the same binary search directly
+    // on the list. The IList<decimal> signature above stays as public API.
     public static int bisectLeft(SlimConcurrentList<decimal> arr, decimal x)
     {
         return arr.BisectLeft(x);
     }
 
-    // perf: bisect + the `index < _index.Count && _index[index] == x` hit test that
-    // every caller runs immediately afterwards, fused into ONE read lock instead of
-    // three. `hit` is by construction exactly that expression: Comparer<decimal>.
-    // Default.Compare is decimal.Compare, i.e. the same value-based (scale-ignoring)
-    // comparison as decimal's == and < operators, so tie-breaking is unchanged.
+    // bisect + the `index < _index.Count && _index[index] == x` hit test that every
+    // caller runs immediately afterwards, in one pass. `hit` is by construction
+    // exactly that expression: Comparer<decimal>.Default.Compare is decimal.Compare,
+    // the same value-based comparison as decimal's == and <, so ties are unchanged.
     public static int bisectLeft(SlimConcurrentList<decimal> arr, decimal x, out bool hit)
     {
         return arr.BisectLeft(x, out hit);
@@ -172,8 +169,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     var delta = (IList<object>)delta2;
     var price = Convert.ToDecimal(delta[0]);
     var amount = Convert.ToDecimal(delta[1]);
-    // Already holding this side; hoist `side` / `_index` so their
-    // accessors do not re-enter the same monitor.
+    // hoist `side` / `_index` so the hot loop reads build no repeated property calls
     var sideLocal = this.side;
     var type = (sideLocal) ? "bid" : "ask";
     // if (amount == 0)
@@ -189,9 +185,8 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     // debug
     var index_price = (sideLocal) ? -price : price;
     var indexList = this._index;
-    // perf: `hit` is exactly `index < indexList.Count && indexList[index] == index_price`,
-    // computed under the same single read lock as the bisect itself. Nothing can
-    // mutate _index in between anyway: every writer holds this side, which we hold.
+    // `hit` is exactly `index < indexList.Count && indexList[index] == index_price`,
+    // from the same bisect; the loop is the only writer of _index.
     var index = bisectLeft(indexList, index_price, out var hit);
     if (amount != 0)
     { // check this out does not make sense right now we have to consider null amounts?
@@ -263,7 +258,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     {
 
     var different = this.Count - this._depth;
-    var indexList = this._index; // perf: hoist the recursive-lock property read out of the loop
+    var indexList = this._index; // hoisted: the property is a plain field now
     for (var i = 0; i < different; i++)
     {
         var length = this.Count;
@@ -329,10 +324,9 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         return this.CopyPublished();
     }
 
-    // Copy without taking this side's monitor. Only for callers that already
-    // hold it: OrderBook.Copy() locks asks then bids and copies both sides from
-    // inside that pair, so entering the same monitor a second time here would
-    // be a pointless recursive acquisition. Single-side callers use Copy().
+    // Copy from this side's published row array, so it is safe on a caller thread
+    // while the receive loop keeps mutating the live list. Single-side callers use
+    // Copy(); OrderBook.Copy() builds both halves from its own frozen pair.
     internal IOrderBookSide CopyPublished()
     {
         var copy = new OrderBookSide(this);
@@ -560,7 +554,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
     {
 
     var different = this.Count - this._depth;
-    var indexList = this._index; // perf: hoist the recursive-lock property read out of the loop
+    var indexList = this._index; // hoisted: the property is a plain field now
     for (var i = 0; i < different; i++)
     {
         var length = this.Count;
@@ -642,8 +636,8 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
         var index = bisectLeft(indexList, indexPriceValue);
         // var index2Val = ((IList<object>)this[index])[2];
         // index might be a stringified number like '1' or an id like '11AABB'
-        // perf: indexList.Count is loop-invariant here (the body only advances
-        // `index` and reads rows), so hoist its lock out of the loop. The
+        // indexList.Count is loop-invariant here (the body only advances
+        // `index` and reads rows), so hoist it out of the loop. The
         // `indexList[index] == index_price` test is deliberately NOT fused into
         // the bisect: index_price is a `decimal?` and may be null here, where the
         // lifted == yields false; the fused decimal hit test cannot express that.
