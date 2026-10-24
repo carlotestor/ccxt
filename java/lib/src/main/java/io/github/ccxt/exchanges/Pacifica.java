@@ -1507,7 +1507,7 @@ public class Pacifica extends PacificaApi
         Double nextFundingRate = this.safeNumber(info, "next_funding", (Object) null);
         Long timestamp = this.safeInteger(info, "timestamp");
         Long currentHour = this.parseToInt((((double) (((double) (((double) this.milliseconds()) / ((double) 60))) / ((double) 60))) / ((double) 1000)));
-        Object fundingTimestamp = ((((currentHour + 1L) * 60L) * 60L) * 1000L);
+        Object fundingTimestamp = (((((currentHour + 1L)) * 60L) * 60L) * 1000L);
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
@@ -4522,13 +4522,13 @@ public class Pacifica extends PacificaApi
     {
         if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
-            Object result = new HashMap<String, Object>() {{}};
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> keys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             Object sortedKeys = this.sort(keys);
             for (var i = 0; i < ((List<?>)sortedKeys).size(); i++)
             {
                 Object key = (sortedKeys == null || i < 0 || i >= ((List<?>)sortedKeys).size() ? null : ((List<?>)sortedKeys).get(i));
-                ((Map<String, Object>)result).put((String)key, this.sortJsonKeys(Helpers.GetValue(value, key)));
+                result.put((String)key, this.sortJsonKeys(Helpers.GetValue(value, key)));
             }
             return result;
         } else if ((value instanceof List))

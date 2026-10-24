@@ -2706,10 +2706,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), messageHash);
         } else
         {
-            Helpers.addElementToObject(this.balance, "info", info);
+            this.balance.put("info", info);
             Long timestamp = this.safeInteger(message, "ts");
-            Helpers.addElementToObject(this.balance, "timestamp", timestamp);
-            Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
+            this.balance.put("timestamp", timestamp);
+            this.balance.put("datetime", this.iso8601(timestamp));
             this.balance = this.safeBalance(this.balance);
             messageHash = "balances";
             client.resolve(this.balance, messageHash);

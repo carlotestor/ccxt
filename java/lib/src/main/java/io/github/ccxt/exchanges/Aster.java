@@ -5214,7 +5214,7 @@ public class Aster extends AsterApi
             mapLiteral9.put("nonce", String.valueOf(nonce));
             mapLiteral9.put("user", walletAddress);
             mapLiteral9.put("signer", signerAddress);
-            Object finalParams = this.extend(mapLiteral9, parameters);
+            Map<String, Object> finalParams = this.extend(mapLiteral9, parameters);
             String paramString = null;
             Object paramsToEncode = null;
             Boolean isApproveBuilder = (((String)path).indexOf("/approveBuilder") >= 0);

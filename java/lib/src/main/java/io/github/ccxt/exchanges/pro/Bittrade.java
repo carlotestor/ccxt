@@ -697,16 +697,16 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         if (java.util.Objects.equals(type, "market"))
         {
             String methodName = this.safeString(parts, 2);
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "mbp", "handleOrderBook");
-                put( "detail", "handleTicker");
-                put( "trade", "handleTrades");
-                put( "kline", "handleOHLCV");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("mbp", Bittrade.this::handleOrderBook);
+                put("detail", Bittrade.this::handleTicker);
+                put("trade", Bittrade.this::handleTrades);
+                put("kline", Bittrade.this::handleOHLCV);
             }};
-            Object method = this.safeValue(methods, methodName);
+            io.github.ccxt.Handler method = methods.get(methodName);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         }
     }

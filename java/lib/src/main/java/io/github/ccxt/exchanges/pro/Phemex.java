@@ -426,7 +426,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //        }
         //    ]
         //
-        Helpers.addElementToObject(this.balance, "info", message);
+        this.balance.put("info", message);
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(message, i, (Object) null);
