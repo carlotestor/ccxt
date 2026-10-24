@@ -1352,7 +1352,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         String messageHash = this.safeString(message, "subscription");
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> positionBalances = (List<Object>) this.safeList((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), "position_balances", new ArrayList<Object>(Arrays.asList()));
-        Helpers.addElementToObject(this.balance, "info", data);
+        this.balance.put("info", data);
         for (var i = 0; i < ((List<?>)positionBalances).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(positionBalances, i, (Object) null);

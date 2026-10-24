@@ -2834,7 +2834,7 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	})}
 	return nil
 }
-func (this *Pacifica) EditOrderRequest(id *string, symbol any, typeVar any, side any, amount any, price any, market any, optionalArgs ...any) any {
+func (this *Pacifica) EditOrderRequest(id *string, symbol any, typeVar any, side any, amount any, price any, market map[string]any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if IsEqual(side, nil) {

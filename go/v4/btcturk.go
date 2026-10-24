@@ -847,7 +847,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//       ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 	var dataList []any = []any{}
 	if data != nil {
 		dataList = ArrayTyped(data)
@@ -1404,7 +1404,7 @@ func (this *Btcturk) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//       "code": "0"
 	//     }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 	var dataList []any = []any{}
 	if data != nil {
 		dataList = ArrayTyped(data)

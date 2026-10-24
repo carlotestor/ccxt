@@ -303,7 +303,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         client.resolve(ticker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsUpdatedTicker(object ticker, object lastTicker = null, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsUpdatedTicker(object ticker, IDictionary<string, object>? lastTicker = null, IDictionary<string, object>? market = null)
     {
         //
         //     {

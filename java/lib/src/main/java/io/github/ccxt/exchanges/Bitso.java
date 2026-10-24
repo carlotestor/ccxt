@@ -1355,7 +1355,7 @@ public class Bitso extends BitsoApi
             if (Boolean.TRUE.equals(markerInParams))
             {
                 paramsMarker = this.extend(parameters, new HashMap<String, Object>() {{
-                    put( "marker", Helpers.parseInt(((Map<String, Object>)parameters).get("marker")) );
+                    put( "marker", Helpers.parseInt(parameters.get("marker")) );
                 }});
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1632,7 +1632,7 @@ public class Bitso extends BitsoApi
             if (Boolean.TRUE.equals(markerInParams))
             {
                 paramsMarker = this.extend(parameters, new HashMap<String, Object>() {{
-                    put( "marker", Helpers.parseInt(((Map<String, Object>)parameters).get("marker")) );
+                    put( "marker", Helpers.parseInt(parameters.get("marker")) );
                 }});
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

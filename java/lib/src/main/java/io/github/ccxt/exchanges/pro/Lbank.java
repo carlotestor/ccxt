@@ -862,9 +862,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.parse8601(this.safeString(message, "TS"));
         String datetime = this.iso8601(timestamp);
-        Helpers.addElementToObject(this.balance, "info", data);
-        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
-        Helpers.addElementToObject(this.balance, "datetime", datetime);
+        this.balance.put("info", data);
+        this.balance.put("timestamp", timestamp);
+        this.balance.put("datetime", datetime);
         String currencyId = this.safeString(data, "assetCode");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
         Map<String, Object> account = this.account();

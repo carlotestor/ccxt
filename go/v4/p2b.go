@@ -1425,7 +1425,7 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 			sinceResolved = *untilParam - 86400000
 		}
 	} else if since != nil {
-		until = Add(since, 86400000)
+		until = *since + 86400000
 		sinceResolved = since
 	} else {
 		var now int64 = this.Milliseconds()
@@ -1539,7 +1539,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 			sinceResolved = *untilParam - 86400000
 		}
 	} else if since != nil {
-		until = Add(since, 86400000)
+		until = *since + 86400000
 		sinceResolved = since
 	} else {
 		var now int64 = this.Milliseconds()

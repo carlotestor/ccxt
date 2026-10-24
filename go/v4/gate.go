@@ -2284,7 +2284,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var id *string = this.SafeString(spotMarket, "id")
 		var marginMarket any = this.SafeDict(marginMarkets, id)
 		var market map[string]any = this.DeepExtend(marginMarket, spotMarket)
-		baseIdquoteIdVariable := Split(id, "_")
+		baseIdquoteIdVariable := strings.Split(*id, "_")
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -2554,7 +2554,7 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 	//    }
 	//
 	var id *string = this.SafeString(market, "name")
-	var parts []string = Split(id, "_")
+	var parts []string = strings.Split(*id, "_")
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
 	var date *string = this.SafeString(parts, 2)
@@ -2727,7 +2727,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface],
 		for j := 0; j < len(response); j++ {
 			var market map[string]any = this.SafeDictMap(response, j, map[string]any{})
 			var id *string = this.SafeString(market, "name")
-			var parts []string = Split(underlying, "_")
+			var parts []string = strings.Split(*underlying, "_")
 			var baseId *string = this.SafeString(parts, 0)
 			var quoteId *string = this.SafeString(parts, 1)
 			var base *string = this.SafeCurrencyCode(baseId)
@@ -3022,7 +3022,7 @@ func (this *Gate) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	// sandbox/testnet only supports future markets
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var apiBackup any = this.SafeDict(this.Urls, "apiBackup")
+	var apiBackup map[string]any = SafeMapTyped(this.Urls, "apiBackup")
 	if apiBackup != nil {
 
 		ch <- AsyncResult[map[string]any]{Value: map[string]any{}}
@@ -4327,7 +4327,7 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 		response = listEp4140.Value
 	} else if market["option"] == true {
 		var marketId *string = SafeStringPtr(market["id"])
-		var optionParts []string = Split(marketId, "-")
+		var optionParts []string = strings.Split(*marketId, "-")
 		request["underlying"] = func() any {
 			if v := this.SafeString(optionParts, 0); v != nil {
 				return *v
@@ -4551,7 +4551,7 @@ func (this *Gate) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	} else if typeVar != nil && *typeVar == "option" {
 		this.CheckRequiredArgument("fetchTickers", symbolsNormalized, "symbols")
 		var marketId *string = this.SafeString(market, "id")
-		var optionParts []string = Split(marketId, "-")
+		var optionParts []string = strings.Split(*marketId, "-")
 		request["underlying"] = func() any {
 			if v := this.SafeString(optionParts, 0); v != nil {
 				return *v
@@ -9219,7 +9219,7 @@ func (this *Gate) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	if IsEqual(typeVar, "option") {
 		if symbolsNormalized != nil {
 			var marketId *string = this.SafeString(market, "id")
-			var optionParts []string = Split(marketId, "-")
+			var optionParts []string = strings.Split(*marketId, "-")
 			request["underlying"] = func() any {
 				if v := this.SafeString(optionParts, 0); v != nil {
 					return *v
@@ -10444,7 +10444,7 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]an
 		panic(NotSupported(this.Id + " fetchSettlementHistory() supports option markets only"))
 	}
 	var marketId *string = SafeStringPtr(market["id"])
-	var optionParts []string = Split(marketId, "-")
+	var optionParts []string = strings.Split(*marketId, "-")
 	var request map[string]any = map[string]any{
 		"underlying": this.SafeString(optionParts, 0),
 	}
@@ -10570,7 +10570,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]
 			}
 		} else {
 			var marketId *string = SafeStringPtr(market["id"])
-			var optionParts []string = Split(marketId, "-")
+			var optionParts []string = strings.Split(*marketId, "-")
 			request["underlying"] = func() any {
 				if v := this.SafeString(optionParts, 0); v != nil {
 					return *v
@@ -11236,7 +11236,7 @@ func (this *Gate) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], op
 		request["settle"] = market["settleId"]
 	} else if market["option"] == true {
 		var marketId *string = SafeStringPtr(market["id"])
-		var optionParts []string = Split(marketId, "-")
+		var optionParts []string = strings.Split(*marketId, "-")
 		request["underlying"] = this.SafeString(optionParts, 0)
 	}
 	if market["swap"] == true {

@@ -936,9 +936,9 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message map[string]any, cha
 			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook ccxt.OrderBookInterface
+		var orderbook any
 		if symbol != nil {
-			orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+			orderbook = this.Orderbooks[*symbol]
 		}
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
@@ -1077,12 +1077,12 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 	if channel != nil && *channel == "outboundContractAccountInfo" {
 		typeVar = "contract"
 	}
-	if !(ccxt.InOp(this.Balance, typeVar)) {
-		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
+	if _, ok := this.Balance[typeVar]; !ok {
+		this.Balance[typeVar] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", data)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(this.Balance[typeVar], "info", data)
+	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "a")
@@ -1092,11 +1092,11 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(balance, "l")
 		account["free"] = this.SafeString(balance, "f")
 		if code != nil {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+			this.WsBalanceEntryForWrite(typeVar)[*code] = account
 		}
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":balance")
+	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 }
 func (this *Toobit) LoadBalanceSnapshotAsync(client any, messageHash any, marketType any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
@@ -1667,7 +1667,7 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var time int64 = this.Milliseconds()
 	var lastAuthenticatedTime int64 = *this.SafeInteger(this.Options["ws"], "lastAuthenticatedTime", 0)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options["ws"], "listenKeyRefreshRate", 1200000)
-	var delay int64 = ccxt.Add(listenKeyRefreshRate, 10000).(int64)
+	var delay int64 = *listenKeyRefreshRate + 10000
 	if time-lastAuthenticatedTime > delay {
 		this.CheckRequiredCredentials()
 		// single-flight leader election on a never-dialed client, see

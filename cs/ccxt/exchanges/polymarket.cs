@@ -1489,11 +1489,11 @@ public partial class polymarket : Exchange
             { "params", parameters },
         };
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, parameters));
-        object first = (orders != null && 0 < orders.Count ? orders[0] : null);
-        if ((getValue(first, "status") is "rejected"))
+        IDictionary<string, object> first = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
+        if ((((first != null && first.ContainsKey("status") ? first["status"] : null) as string) == "rejected"))
         {
-            string? errorId = this.safeString(getValue(first, "info"), "error");
-            string feedback = ((this.id + " createOrder() rejected: ") + this.json(getValue(first, "info")));
+            string? errorId = this.safeString((first != null && first.ContainsKey("info") ? first["info"] : null), "error");
+            string feedback = ((this.id + " createOrder() rejected: ") + this.json((first != null && first.ContainsKey("info") ? first["info"] : null)));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorId, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorId, feedback);
             throw new InvalidOrder (feedback) ;

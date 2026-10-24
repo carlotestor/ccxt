@@ -823,11 +823,11 @@ func (this *Delta) loadMarketsBody(ch chan AsyncResult[map[string]any], optional
 		panic(r.Err)
 	}
 	markets := r.Value
-	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies())
 	}
-	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId")
+	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
 	if (marketsByNumericId == nil) || (reload == true) {
 		this.Options["marketsByNumericId"] = this.IndexByStringifiedNumericId(this.Markets())
 	}
@@ -4443,7 +4443,7 @@ func (this *Delta) closeAllPositionsBody(ch chan AsyncResult[[]Position], option
 	//
 	// {"result":{},"success":true}
 	//
-	var position map[string]any = MapTyped(PositionToMap(this.ParsePosition(this.SafeDict(response, "result", map[string]any{}))))
+	var position map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(response, "result", map[string]any{})))
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList([]any{position})}
 	return nil

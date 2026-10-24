@@ -3493,7 +3493,7 @@ func (this *Kalshi) fetchRawEventByTickerBody(ch chan ccxt.AsyncResult[map[strin
 	response := r.Raw
 	// a typed copy of the event row: the caller-facing dict is never the raw response
 	var fullEvent map[string]any = this.Extend(map[string]any{}, this.SafeDict(response, "event", response))
-	var nestedMarkets any = this.SafeList(fullEvent, "markets")
+	var nestedMarkets []any = ccxt.SafeListTyped(fullEvent, "markets")
 	if nestedMarkets == nil {
 		fullEvent["markets"] = this.SafeList(response, "markets", []any{})
 	}

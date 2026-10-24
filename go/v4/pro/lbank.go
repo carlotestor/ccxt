@@ -65,11 +65,7 @@ func (this *Lbank) Describe() any {
 	})
 }
 func (this *Lbank) RequestId() int64 {
-	this.LockId()
-	var previousValue *int64 = this.SafeInteger(this.Options, "requestId", 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	this.Options["requestId"] = newValue
-	this.UnlockId()
+	var newValue int64 = this.NextRequestId("requestId")
 	return newValue
 }
 func (this *Lbank) CheckContractMarket(market any, methodName string) {
@@ -724,7 +720,7 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		timestamp = this.Parse8601(datetime)
 	}
 	var rawSide *string = this.SafeString2(trade, "direction", 3)
-	var parts []string = ccxt.Split(rawSide, "_")
+	var parts []string = strings.Split(*rawSide, "_")
 	var firstPart *string = this.SafeString(parts, 0)
 	var secondPart *string = this.SafeString(parts, 1)
 	var side *string = firstPart
@@ -1050,9 +1046,9 @@ func (this *Lbank) HandleBalance(client any, message map[string]any) {
 	account["used"] = this.SafeString(data, "freeze")
 	account["total"] = this.SafeString(data, "asset")
 	if code != nil {
-		ccxt.AddElementToObject(this.Balance, code, account)
+		this.Balance[*code] = account
 	}
-	this.Balance = this.SafeBalance(this.Balance)
+	this.WsBalanceReplace(this.SafeBalance(this.Balance))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 
@@ -1382,7 +1378,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				}
 			}()
 			// try block:
-			var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "authenticated")
+			var authenticated map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("authenticated")
 			if authenticated == nil {
 
 				r1 := <-this.SpotPrivatePostSubscribeGetKey(params)
@@ -1405,7 +1401,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				var expires int64 = *this.SafeInteger(authenticated, "expires", 0)
 				if expires < now {
 					var request map[string]any = map[string]any{
-						"subscribeKey": ccxt.GetValue(authenticated, "key"),
+						"subscribeKey": authenticated["key"],
 					}
 
 					r2 := <-this.SpotPrivatePostSubscribeRefreshKey(this.Extend(request, params))

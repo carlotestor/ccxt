@@ -93,7 +93,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} params local parameters
      * @returns {string} venue market id
      */
-    public virtual string? wsVenueMarketId(object methodName, object market, object parameters)
+    public virtual string? wsVenueMarketId(object methodName, IDictionary<string, object> market, object parameters)
     {
         if ((market == null))
         {
@@ -101,7 +101,7 @@ public partial class backpack : ccxt.backpack
         }
         this.handleStockParams(methodName, parameters, market);
         string? source = this.safeString(parameters, "source", "Venue");
-        if ((source == "External") || ((this.safeString(market, "executionModel") == "rfq")) || ((this.safeString(getValue(market, "info"), "marketType") == "RFQ")))
+        if ((source == "External") || ((this.safeString(market, "executionModel") == "rfq")) || ((this.safeString((market != null && market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ")))
         {
             throw new NotSupported ((((this.id + " ") + (methodName)) + "() requires a venue order-book market; provider and RFQ streams are not documented for this method")) ;
         }
@@ -109,7 +109,7 @@ public partial class backpack : ccxt.backpack
         {
             throw new BadRequest ((((this.id + " ") + (methodName)) + "() source must be Venue")) ;
         }
-        return ((string?)((object)(getValue(market, "id"))));
+        return ((string?)((object)((market != null && market.ContainsKey("id") ? market["id"] : null))));
     }
 
     /**
@@ -548,7 +548,7 @@ public partial class backpack : ccxt.backpack
         client.resolve(ccxt.BaseExchange.FromTicker(fallbackTicker), fallbackHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -729,7 +729,7 @@ public partial class backpack : ccxt.backpack
         client.resolve(fallbackBidAsk, fallbackHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1578,7 +1578,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} [market] resolved RFQ market
      * @returns {object} unified order
      */
-    public virtual object parseWsRfqOrder(IDictionary<string, object> data, object market = null)
+    public virtual object parseWsRfqOrder(IDictionary<string, object> data, IDictionary<string, object>? market = null)
     {
         string? eventVar = this.safeString(data, "e", "");
         bool quoteEvent = ((eventVar?.IndexOf("quote", StringComparison.Ordinal) ?? -1) == 0);
@@ -1937,7 +1937,7 @@ public partial class backpack : ccxt.backpack
         client.resolve(new List<object>() {parsedPosition}, symbolSpecificMessageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         //
         //     {

@@ -286,9 +286,9 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = ob
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
@@ -298,8 +298,8 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+		this.HandleDeltas(orderbook.GetAsks(), asks)
+		this.HandleDeltas(orderbook.GetBids(), bids)
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -1133,7 +1133,7 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 			}
 		}
 	}
-	this.Balance = this.SafeBalance(this.Balance)
+	this.WsBalanceReplace(this.SafeBalance(this.Balance))
 	var messageHash string = "wallet:"
 	if strings.Index(*method, "Spot") >= 0 {
 		messageHash += "spot"
@@ -1193,7 +1193,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any
 	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 	var url *string = this.SafeString(apiUrls, "ws")
 	var id any = this.IncrementingNonce()
-	var client any = this.SafeValue(this.Clients, url)
+	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
 	var request any = nil
 	var marketIds []any = []any{}
 	if client == nil {

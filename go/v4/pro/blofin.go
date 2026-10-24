@@ -323,9 +323,9 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var action *string = this.SafeString(message, "action")
@@ -336,12 +336,14 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
-		this.HandleDeltasWithKeys(ccxt.GetValue(orderbook, "asks"), asks)
-		this.HandleDeltasWithKeys(ccxt.GetValue(orderbook, "bids"), bids)
+		this.HandleDeltasWithKeys(orderbook.GetAsks(), asks)
+		this.HandleDeltasWithKeys(orderbook.GetBids(), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	if channelName != nil {
 		var messageHash string = *channelName + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -730,7 +732,7 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var interval string = ccxt.Replace(channelName, "candle", "")
+	var interval string = strings.Replace(*channelName, "candle", "", 1)
 	var unifiedTimeframe *string = this.FindTimeframe(interval)
 	if symbol != nil {
 		if this.Ohlcvs[*symbol] == nil {
@@ -833,9 +835,9 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var marketType string = "swap" // for now
-	ccxt.AddElementToObject(this.Balance, marketType, this.ParseWsBalance(message))
+	this.Balance[marketType] = this.ParseWsBalance(message)
 	var messageHash string = marketType + ":balance"
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, marketType), messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Balance[marketType], messageHash)
 }
 func (this *Blofin) ParseWsBalance(message map[string]any) any {
 	return this.ParseBalance(message)
@@ -1316,12 +1318,7 @@ func (this *Blofin) HandleMessage(client any, message any) {
 		var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 		var channelName *string = this.SafeString(arg, "channel")
 		method = this.SafeValue(methods, channelName)
-		if (ccxt.IsEqual(method, nil)) && (func() int {
-			if channelName == nil {
-				return -1
-			}
-			return strings.Index(*channelName, "candle")
-		}() >= 0) {
+		if (ccxt.IsEqual(method, nil)) && (strings.Index(*channelName, "candle") >= 0) {
 			method = methods["candle"]
 		}
 	}

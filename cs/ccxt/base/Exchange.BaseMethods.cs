@@ -2638,10 +2638,10 @@ public partial class BaseExchange
         // we have trades with string values at this point so we will mutate them
         for (int i = 0; i < getArrayLength(trades); i++)
         {
-            object entry = getValue(trades, i);
-            ((IDictionary<string,object>)entry)["amount"] = this.safeNumber(entry, "amount");
-            ((IDictionary<string,object>)entry)["price"] = this.safeNumber(entry, "price");
-            ((IDictionary<string,object>)entry)["cost"] = this.safeNumber(entry, "cost");
+            IDictionary<string, object> entry = ((IDictionary<string, object>)getValue(trades, i));
+            entry["amount"] = this.safeNumber(entry, "amount");
+            entry["price"] = this.safeNumber(entry, "price");
+            entry["cost"] = this.safeNumber(entry, "cost");
             IDictionary<string, object> tradeFee = this.safeDict(entry, "fee", new Dictionary<string, object>() {});
             tradeFee["cost"] = this.safeNumber(tradeFee, "cost");
             if ((tradeFee != null && tradeFee.ContainsKey("rate")))
@@ -2653,8 +2653,8 @@ public partial class BaseExchange
             {
                 ((IDictionary<string,object>)entryFees[j])["cost"] = this.safeNumber(entryFees[j], "cost");
             }
-            ((IDictionary<string,object>)entry)["fees"] = entryFees;
-            ((IDictionary<string,object>)entry)["fee"] = tradeFee;
+            entry["fees"] = entryFees;
+            entry["fee"] = tradeFee;
         }
         string? timeInForce = this.safeString(orderDict, "timeInForce");
         object postOnly = this.safeValue(orderDict, "postOnly");

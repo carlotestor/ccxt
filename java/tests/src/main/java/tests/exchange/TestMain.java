@@ -516,7 +516,7 @@ public class TestMain extends BaseTest
                         {
                             // wait and retry again
                             // (increase wait time on every retry)
-                            (exchange.sleep(Helpers.multiply(((((long) i) + 1L)), 1000))).join();
+                            (exchange.sleep((((((long) i) + 1L)) * 1000L))).join();
                         }
                     } else
                     {

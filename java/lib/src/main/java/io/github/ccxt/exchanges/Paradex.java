@@ -1204,7 +1204,7 @@ public class Paradex extends ParadexApi
                 if (!Boolean.TRUE.equals(hasEnd))
                 {
                     Long sinceInt = this.parseToInt(since);
-                    ((Map<String, Object>)requestUntil).put("end_at", Helpers.subtract((sinceInt + windowLength), 1));
+                    ((Map<String, Object>)requestUntil).put("end_at", ((sinceInt + windowLength) - 1L));
                 }
             } else
             {

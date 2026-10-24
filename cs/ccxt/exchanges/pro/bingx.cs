@@ -303,7 +303,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, object market = null, bool? isInverse = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, IDictionary<string, object>? market = null, bool? isInverse = null)
     {
         //
         //     {
@@ -1455,7 +1455,7 @@ public partial class bingx : ccxt.bingx
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null)
     {
         if ((this.positions != null))
         {
@@ -1499,7 +1499,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
     {
         //
         //     {

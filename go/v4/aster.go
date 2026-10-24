@@ -5524,7 +5524,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 	}
 	// by default cache the leverage bracket
 	// it contains useful stuff like the maintenance margin and initial margin for positions
-	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
+	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	if (leverageBrackets == nil) || (reload == true) {
 
 		listEp5108 := <-this.FapiPrivateGetV3LeverageBracket(params)

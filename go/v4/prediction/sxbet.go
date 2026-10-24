@@ -3158,7 +3158,7 @@ func (this *Sxbet) RequestId(url any) int64 {
  * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
  */
 func (this *Sxbet) RegisterSxbetWsRequest(requestId int64, messageHash any, subscription any) {
-	var existing any = this.SafeDict(this.Options, "wsPendingRequests")
+	var existing map[string]any = ccxt.SafeMapTyped(this.Options, "wsPendingRequests")
 	if existing == nil {
 		this.Options["wsPendingRequests"] = this.CreateSafeDictionary()
 	}
@@ -3350,7 +3350,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 	}
 	var requestIdString *string = this.SafeString(msg, "id")
 	var pendingRequests any = this.SafeDict(this.Options, "wsPendingRequests", map[string]any{})
-	var pendingEntry any = this.SafeDict(pendingRequests, requestIdString)
+	var pendingEntry map[string]any = ccxt.SafeMapTyped(pendingRequests, requestIdString)
 	var errorReply map[string]any = ccxt.SafeMapTyped(msg, "error")
 	if errorReply != nil {
 		// a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
@@ -3466,7 +3466,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel), nil)
 	if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 		// seed from the REST snapshot so the book is served before the first publication
-		var watchedBooks any = this.SafeDict(this.Options, "wsWatchedBooks")
+		var watchedBooks map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedBooks")
 		if watchedBooks == nil {
 			this.Options["wsWatchedBooks"] = this.CreateSafeDictionary()
 		}
@@ -3525,7 +3525,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 	if marketHash == nil {
 		return refreshed
 	}
-	var versionsAll any = this.SafeDict(this.Options, "wsBookVersions")
+	var versionsAll map[string]any = ccxt.SafeMapTyped(this.Options, "wsBookVersions")
 	if versionsAll == nil {
 		this.Options["wsBookVersions"] = this.CreateSafeDictionary()
 	}
@@ -3629,7 +3629,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	var sym *string = this.SafeString(outcomeObj, "outcome")
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash")
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
-	var watchedTickers any = this.SafeDict(this.Options, "wsWatchedTickers")
+	var watchedTickers map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedTickers")
 	if watchedTickers == nil {
 		this.Options["wsWatchedTickers"] = this.CreateSafeDictionary()
 	}

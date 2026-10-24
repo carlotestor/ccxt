@@ -104,11 +104,7 @@ func (this *Deepcoin) HandlePong(client any, message any) any {
 	return message
 }
 func (this *Deepcoin) RequestId() int64 {
-	this.LockId()
-	var previousValue *int64 = this.SafeInteger(this.Options, "lastRequestId", 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	this.Options["lastRequestId"] = newValue
-	this.UnlockId()
+	var newValue int64 = this.NextRequestId("lastRequestId")
 	return newValue
 }
 func (this *Deepcoin) CreatePublicRequest(market any, requestId any, topicID string, optionalArgs ...any) map[string]any {
@@ -179,7 +175,7 @@ func (this *Deepcoin) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], market a
 	var url any = ccxt.GetValue(this.UrlsApiSections["ws"]["public"], ccxt.GetValue(market, "type"))
 	var requestId int64 = this.RequestId()
 	var client ccxt.ClientInterface = this.Client(url)
-	var existingSubscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var existingSubscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	if existingSubscription == nil {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id+" no subscription for ", messageHash)))
 	}

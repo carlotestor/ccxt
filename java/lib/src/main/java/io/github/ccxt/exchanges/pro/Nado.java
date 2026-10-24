@@ -2235,7 +2235,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if (java.util.Objects.equals(messageHash, "ticker"))
         {
-            List<Object> symbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> symbols = (this.tickers == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(this.tickers.keySet()));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 ((Map<String,Object>)this.tickers).remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
@@ -2249,7 +2249,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if (java.util.Objects.equals(messageHash, "bidask"))
         {
-            List<Object> symbols = ((List<Object>) switch ((Object)(this.bidsasks)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> symbols = (this.bidsasks == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(this.bidsasks.keySet()));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 ((Map<String,Object>)this.bidsasks).remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));

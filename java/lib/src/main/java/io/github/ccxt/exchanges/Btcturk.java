@@ -988,7 +988,7 @@ public class Btcturk extends BtcturkApi
             }
             if (parameters.containsKey("clientOrderId"))
             {
-                request.put("newClientOrderId", ((Map<String, Object>)parameters).get("clientOrderId"));
+                request.put("newClientOrderId", parameters.get("clientOrderId"));
             } else if (!(parameters.containsKey("newClientOrderId")))
             {
                 request.put("newClientOrderId", this.uuid());

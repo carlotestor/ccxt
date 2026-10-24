@@ -2099,7 +2099,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(tradingFee, market));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(fee, "market");
         IDictionary<string, object> fees = this.safeDict(fee, "fees", new Dictionary<string, object>() {});
@@ -2113,14 +2113,14 @@ public partial class bitstamp : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> parseTradingFees(object fees)
+    public virtual Dictionary<string, object> parseTradingFees(IList<object> fees)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fees },
         };
-        for (int i = 0; i < getArrayLength(fees); i++)
+        for (int i = 0; i < (fees?.Count ?? 0); i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
+            Dictionary<string, object> fee = this.parseTradingFee((fees != null && i < fees.Count ? fees[i] : null));
             string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
             if ((symbol != null))
             {
@@ -2194,7 +2194,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTransactionFees(response));
     }
 
-    public virtual Dictionary<string, object> parseTransactionFees(IList<object> response, object codes = null)
+    public virtual Dictionary<string, object> parseTransactionFees(IList<object> response, IList<object>? codes = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> currencies = this.indexBy(response, "currency");

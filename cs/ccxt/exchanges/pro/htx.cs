@@ -1039,7 +1039,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual List<object> getOrderChannelAndMessageHash(string? type, string? subType, IDictionary<string, object> market = null, object parameters = null)
+    public virtual List<object> getOrderChannelAndMessageHash(string? type, string? subType, IDictionary<string, object>? market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object messageHash = null;
@@ -1048,7 +1048,7 @@ public partial class htx : ccxt.htx
         orderType = this.safeString(parameters, "orderType", orderType);
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "orderType"));
         string? marketCode = null;
-        if (((market != null)) && (!((market != null && market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null) == null)))
+        if (((market != null)) && (!(((object)((market != null && market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null))) == null)))
         {
             marketCode = ((string)(market != null && market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null)).ToLower();
         }
@@ -1103,7 +1103,7 @@ public partial class htx : ccxt.htx
         return new List<object>() {channel, messageHash};
     }
 
-    public virtual List<object> getV5LinearChannelAndMessageHash(string? topic, IDictionary<string, object> market = null, object parameters = null)
+    public virtual List<object> getV5LinearChannelAndMessageHash(string? topic, IDictionary<string, object>? market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object contractCode = null;
@@ -1697,7 +1697,7 @@ public partial class htx : ccxt.htx
         }, marketResolved);
     }
 
-    public virtual Dictionary<string, object> parseOrderTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseOrderTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         // spot private wrapped trade
         //
@@ -3195,8 +3195,8 @@ public partial class htx : ccxt.htx
             url = this.implodeParams(hostnameURL, hostname);
         } else
         {
-            object baseUrl = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), api), type);
-            object subTypeUrl = isTrue(isLinear) ? getValue(baseUrl, "linear") : getValue(baseUrl, "inverse");
+            IDictionary<string, object> baseUrl = ((IDictionary<string, object>)getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), api), type));
+            object subTypeUrl = isTrue(isLinear) ? (baseUrl != null && baseUrl.ContainsKey("linear") ? baseUrl["linear"] : null) : (baseUrl != null && baseUrl.ContainsKey("inverse") ? baseUrl["inverse"] : null);
             if (isPrivate == true)
             {
                 if (isV5 == true && isTrue(isLinear))

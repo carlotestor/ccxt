@@ -622,7 +622,7 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			return nil
 		}()
 		var id *string = this.SafeString(market, "book")
-		baseIdquoteIdVariable := Split(id, "_")
+		baseIdquoteIdVariable := strings.Split(*id, "_")
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base any = ToUpper(baseId)
@@ -2106,13 +2106,8 @@ func (this *Bitso) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var address *string = this.SafeString(payload, "account_identifier")
 	var tag *string = nil
-	if func() int {
-		if address == nil {
-			return -1
-		}
-		return strings.Index(*address, "?dt=")
-	}() >= 0 {
-		var parts []string = Split(address, "?dt=")
+	if strings.Index(*address, "?dt=") >= 0 {
+		var parts []string = strings.Split(*address, "?dt=")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
 	}

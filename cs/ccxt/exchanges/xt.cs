@@ -1483,7 +1483,10 @@ public partial class xt : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchSwapAndFutureMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> markets = new List<object>(await Task.WhenAll(new List<Task<Dictionary<string, object>>> {this.publicLinearGetFutureMarketV1PublicSymbolList(parameters), this.publicInverseGetFutureMarketV1PublicSymbolList(parameters)}));
+        var hxauTask66627_0 = this.publicLinearGetFutureMarketV1PublicSymbolList(parameters);
+        var hxauTask66627_1 = this.publicInverseGetFutureMarketV1PublicSymbolList(parameters);
+        await Task.WhenAll(hxauTask66627_0, hxauTask66627_1);
+        List<object> markets = new List<object> { hxauTask66627_0.Result, hxauTask66627_1.Result };
         //
         //     {
         //         "returnCode": 0,
@@ -5954,7 +5957,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         object symbol = ((market != null)) ? (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) : null;
         return new Dictionary<string, object>() {
@@ -6045,7 +6048,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySinceLimit(sorted, since, limit));
     }
 
-    public virtual object parseFundingHistory(object contract, IDictionary<string, object> market = null)
+    public virtual object parseFundingHistory(IDictionary<string, object> contract, IDictionary<string, object>? market = null)
     {
         //
         //     {

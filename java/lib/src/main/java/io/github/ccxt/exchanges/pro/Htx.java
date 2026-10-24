@@ -2321,9 +2321,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String channel = this.safeString(message, "ch");
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(data, "changeTime", this.safeInteger(message, "ts"));
-        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
-        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.balance, "info", data);
+        this.balance.put("timestamp", timestamp);
+        this.balance.put("datetime", this.iso8601(timestamp));
+        this.balance.put("info", data);
         if (!java.util.Objects.equals(channel, null))
         {
             // spot balance
@@ -2639,19 +2639,19 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (java.util.Objects.equals(type, "market"))
         {
             String methodName = this.safeString(parts, 2);
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "depth", "handleOrderBook");
-                put( "mbp", "handleOrderBook");
-                put( "detail", "handleTicker");
-                put( "bbo", "handleTicker");
-                put( "ticker", "handleTicker");
-                put( "trade", "handleTrades");
-                put( "kline", "handleOHLCV");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("depth", Htx.this::handleOrderBook);
+                put("mbp", Htx.this::handleOrderBook);
+                put("detail", Htx.this::handleTicker);
+                put("bbo", Htx.this::handleTicker);
+                put("ticker", Htx.this::handleTicker);
+                put("trade", Htx.this::handleTrades);
+                put("kline", Htx.this::handleOHLCV);
             }};
-            Object method = this.safeValue(methods, methodName);
+            io.github.ccxt.Handler method = methods.get(methodName);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
                 return;
             }
         }

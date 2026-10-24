@@ -91,7 +91,7 @@ public partial class phemex : ccxt.phemex
         return requestId;
     }
 
-    public virtual Dictionary<string, object> parseSwapTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseSwapTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -155,7 +155,7 @@ public partial class phemex : ccxt.phemex
         }));
     }
 
-    public virtual Dictionary<string, object> parsePerpetualTicker(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parsePerpetualTicker(object ticker, IDictionary<string, object>? market = null)
     {
         //
         //    [
@@ -785,13 +785,13 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
-    public virtual void customHandleDelta(object bookside, object delta, IDictionary<string, object> market = null)
+    public virtual void customHandleDelta(object bookside, object delta, IDictionary<string, object>? market = null)
     {
         List<object> bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public virtual void customHandleDeltas(object bookside, IList<object> deltas, IDictionary<string, object> market = null)
+    public virtual void customHandleDeltas(object bookside, IList<object> deltas, IDictionary<string, object>? market = null)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -1351,7 +1351,7 @@ public partial class phemex : ccxt.phemex
         client.resolve(this.orders, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWSSwapOrder(object order, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWSSwapOrder(object order, IDictionary<string, object>? market = null)
     {
         //
         // swap

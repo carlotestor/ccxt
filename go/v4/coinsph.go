@@ -839,11 +839,11 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) map[string]any {
 func (this *Coinsph) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
+	if _, ok := config["noSymbol"]; ok && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if (func() bool { _, ok := config["noSymbolAndNoSymbols"]; return ok }()) && !(InOp(params, "symbol")) && !(InOp(params, "symbols")) {
+	} else if _, ok := config["noSymbolAndNoSymbols"]; ok && !(InOp(params, "symbol")) && !(InOp(params, "symbols")) {
 		return GetValue(config, "noSymbolAndNoSymbols")
-	} else if (func() bool { _, ok := config["byNumberOfSymbols"]; return ok }()) && (InOp(params, "symbols")) {
+	} else if _, ok := config["byNumberOfSymbols"]; ok && (InOp(params, "symbols")) {
 		var symbols any = GetValue(params, "symbols")
 		var symbolsAmount int = GetArrayLength(symbols)
 		var byNumberOfSymbols []any = SafeListTyped(config, "byNumberOfSymbols")
@@ -859,7 +859,7 @@ func (this *Coinsph) CalculateRateLimiterCost(api any, method any, path any, par
 				return GetValue(entry, 1)
 			}
 		}
-	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
+	} else if _, ok := config["byLimit"]; ok && (InOp(params, "limit")) {
 		var limit *int64 = this.SafeInteger(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {

@@ -919,7 +919,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = ccxt.SafeMapTyped(params, "data")
 	var channel *string = this.SafeString(params, "channel")
-	var parts []string = ccxt.Split(channel, ".")
+	var parts []string = strings.Split(*channel, ".")
 	var descriptor any = ""
 	var partsLength int = len(parts)
 	var isDetailed bool = (partsLength == 5)
@@ -940,19 +940,21 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.CountedOrderBook()
 		}
 	}
-	var storedOrderBook any
+	var storedOrderBook ccxt.OrderBookInterface
 	if symbol != nil {
-		storedOrderBook = this.Orderbooks[*symbol]
+		storedOrderBook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
-	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
-	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
+	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
+	this.HandleDeltas(storedOrderBook.GetBids(), bids)
 	ccxt.AddElementToObject(storedOrderBook, "nonce", timestamp)
 	ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
 	ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(storedOrderBook, "symbol", symbol)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, storedOrderBook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = storedOrderBook
+	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("book|"+*symbol+"|", descriptor))
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }

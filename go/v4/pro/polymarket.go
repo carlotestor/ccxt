@@ -1576,7 +1576,7 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 		var extended map[string]any = this.Extend(row, map[string]any{
 			"timestamp": timestamp,
 		})
-		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(extended)))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(extended))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
@@ -1593,7 +1593,7 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	account["used"] = this.SafeString(margin, "total_initial_margin")
 	// pUSD is the only collateral asset on the venue
 	result["PUSD"] = account
-	this.Balance = this.SafeBalance(result)
+	this.WsBalanceReplace(this.SafeBalance(result))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 func (this *Polymarket) HandleAck(client any, message any) {
@@ -1614,7 +1614,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		// through its pending entry, anything else counts like a pong
 		if id != nil {
 			var postKey string = "req:" + *id
-			var postPending any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), postKey)
+			var postPending map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(postKey)
 			if postPending != nil {
 				client.(ccxt.ClientInterface).SubscriptionDel(postKey)
 				var postAction *string = this.SafeString(postPending, "method")
@@ -1645,7 +1645,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		return
 	}
 	var key string = "req:" + *id
-	var pending any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), key)
+	var pending map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(key)
 	if pending == nil {
 		return
 	}

@@ -3057,7 +3057,7 @@ public class Extended extends ExtendedApi
     public Object createWithdrawalSettlementData(String address, String amountString, Map<String, Object> currency, Map<String, Object> account, Map<String, Object> parameters)
     {
         Long now = this.milliseconds();
-        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", (((this.parseToInt((((double) (now + 999L)) / ((double) 1000)))) + 1209600L) + 60L));
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", (((this.parseToInt((((double) ((now + 999L))) / ((double) 1000)))) + 1209600L) + 60L));
         Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String positionId = this.safeString2(parameters, "positionId", "l2Vault", this.safeString(account, "l2Vault"));
         String recipient = this.safeString(parameters, "recipient", address);
@@ -3091,7 +3091,7 @@ public class Extended extends ExtendedApi
     public Object createTransferSettlementData(String amountString, Map<String, Object> currency, Map<String, Object> account, String toVault, String toL2Key, Map<String, Object> parameters)
     {
         Long now = this.milliseconds();
-        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", ((this.parseToInt((((double) (now + 999L)) / ((double) 1000)))) + 1814400L));
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", ((this.parseToInt((((double) ((now + 999L))) / ((double) 1000)))) + 1814400L));
         Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String fromVault = this.safeString2(parameters, "fromVault", "senderPositionId", this.safeString(account, "l2Vault"));
         String fromL2Key = this.safeString2(parameters, "fromL2Key", "senderPublicKey", this.safeString(account, "l2Key"));
@@ -3189,7 +3189,7 @@ public class Extended extends ExtendedApi
             }
             Long now = this.milliseconds();
             Long expiryEpochMillis = this.safeInteger(paramsBuilder, "expiryEpochMillis", (now + 3600000L));
-            Object settlementDefault = (((!java.util.Objects.equals(expiryEpochMillis, null)))) ? ((Object) (switch ((Object) (this.parseToInt((((double) (expiryEpochMillis + 999L)) / ((double) 1000))))) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1209600L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1209600L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1209600L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1209600"); default -> (Object) null; })) : null;
+            Object settlementDefault = (((!java.util.Objects.equals(expiryEpochMillis, null)))) ? ((Object) (switch ((Object) (this.parseToInt((((double) ((expiryEpochMillis + 999L))) / ((double) 1000))))) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1209600L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1209600L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1209600L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1209600"); default -> (Object) null; })) : null;
             Long settlementExpiration = this.safeInteger(paramsBuilder, "settlementExpiration", settlementDefault);
             String nonce = this.numberToString(this.nonce());
             Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();

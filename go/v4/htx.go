@@ -11009,7 +11009,7 @@ func (this *Htx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 			}
 			return nil
 		}()
-		var parsed map[string]any = MapTyped(PositionToMap(this.ParsePosition(position)))
+		var parsed map[string]any = PositionToMap(this.ParsePosition(position))
 		result = append(result, this.Extend(parsed, map[string]any{
 			"timestamp": timestamp,
 			"datetime":  this.Iso8601(timestamp),
@@ -11127,7 +11127,7 @@ func (this *Htx) fetchPositionBody(ch chan AsyncResult[Position], symbol any, op
 		position = this.SafeDict(positions, 0)
 	}
 	var timestamp *int64 = this.SafeInteger(response, "ts")
-	var parsed map[string]any = MapTyped(PositionToMap(this.ParsePosition(this.Extend(position, omitted), market)))
+	var parsed map[string]any = PositionToMap(this.ParsePosition(this.Extend(position, omitted), market))
 	parsed["timestamp"] = timestamp
 	parsed["datetime"] = this.Iso8601(timestamp)
 

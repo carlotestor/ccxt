@@ -4316,7 +4316,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(data, market));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -5100,8 +5100,8 @@ public partial class digifinex : Exchange
                     feeStructure["info"] = new List<object>() {};
                     depositWithdrawFees[(string)code] = feeStructure;
                 }
-                object depositWithdrawFee = (depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null);
-                object depositWithdrawInfo = getValue(depositWithdrawFee, "info");
+                IDictionary<string, object> depositWithdrawFee = ((IDictionary<string, object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null));
+                object depositWithdrawInfo = (depositWithdrawFee != null && depositWithdrawFee.ContainsKey("info") ? depositWithdrawFee["info"] : null);
                 ((IList<object>)depositWithdrawInfo).Add(entry);
                 string? networkId = this.safeString(entry, "chain");
                 object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
@@ -5118,15 +5118,15 @@ public partial class digifinex : Exchange
                     string? networkCode = this.networkIdToCode(networkId, code);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)getValue(depositWithdrawFee, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        ((IDictionary<string,object>)(depositWithdrawFee != null && depositWithdrawFee.ContainsKey("networks") ? depositWithdrawFee["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                             { "withdraw", withdrawResult },
                             { "deposit", depositResult },
                         };
                     }
                 } else
                 {
-                    ((IDictionary<string,object>)depositWithdrawFee)["withdraw"] = withdrawResult;
-                    ((IDictionary<string,object>)depositWithdrawFee)["deposit"] = depositResult;
+                    depositWithdrawFee["withdraw"] = withdrawResult;
+                    depositWithdrawFee["deposit"] = depositResult;
                 }
             }
         }

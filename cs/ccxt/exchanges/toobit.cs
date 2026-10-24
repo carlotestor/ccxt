@@ -1731,7 +1731,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseBidsAsksCustom(response, symbolsNormalized));
     }
 
-    public virtual object parseBidsAsksCustom(IList<object> tickers, IList<object> symbols = null, IDictionary<string, object>? parameters = null)
+    public virtual object parseBidsAsksCustom(IList<object> tickers, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
@@ -2933,7 +2933,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object data, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> data, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(data, "symbol");
         return new Dictionary<string, object>() {
@@ -3024,7 +3024,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,((string)currencyCode), since, limit));
     }
 
-    public virtual object parseTransactionWithType(object transaction, object currency = null, string? transactType = null)
+    public virtual object parseTransactionWithType(object transaction, IDictionary<string, object>? currency = null, string? transactType = null)
     {
         Dictionary<string, object> result = this.parseTransaction(transaction, currency);
         if ((transactType != null))

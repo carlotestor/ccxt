@@ -147,7 +147,7 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	}
 	var symbol any = this.Symbol(*base + "/" + *quote)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.SafeValue(this.Orderbooks, symbol))
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook()
 	} else {
@@ -156,8 +156,8 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+	this.HandleDeltas(orderbook.GetAsks(), asks)
+	this.HandleDeltas(orderbook.GetBids(), bids)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))

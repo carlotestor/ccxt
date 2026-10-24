@@ -344,7 +344,7 @@ func (this *Coinbaseinternational) HandleBalance(client any, message map[string]
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var parsed any = this.ParseBalance(data)
-	this.Balance = this.DeepExtend(this.Balance, parsed)
+	this.WsBalanceReplace(this.DeepExtend(this.Balance, parsed))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 
@@ -2145,7 +2145,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var channel *string = this.SafeString(params, "channel")
-	var channelParts []string = ccxt.Split(channel, ".")
+	var channelParts []string = strings.Split(*channel, ".")
 	var channelPartsLength int = len(channelParts)
 	var isGrouped bool = (channelPartsLength == 5)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -2157,9 +2157,9 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			return this.CountedOrderBook(map[string]any{}, limit)
 		}())
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	if !isGrouped && (typeVar == nil || *typeVar != "snapshot") && (ccxt.IsEqual(ccxt.GetValue(orderbook, "nonce"), nil)) {
 		return
@@ -2181,14 +2181,16 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
 			return
 		}
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(data, "asks", []any{}))
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(data, "bids", []any{}))
+		this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
+		this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "change_id"))
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	if channel != nil {
 		client.(ccxt.ClientInterface).Resolve(orderbook, channel)
 	}

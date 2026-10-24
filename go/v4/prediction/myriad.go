@@ -1593,7 +1593,7 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var networkId *string = this.SafeString(info, "networkId")
 	var chains map[string]any = ccxt.SafeMapTyped(this.Options, "chains")
-	var chainConfig any = this.SafeDict(chains, networkId)
+	var chainConfig map[string]any = ccxt.SafeMapTyped(chains, networkId)
 	if chainConfig == nil {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id+" createOrder() has no on-chain config for network ", networkId)))
 	}
@@ -4802,15 +4802,15 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 		if ccxt.IsEqual(this.SafeValue(this.Orderbooks, sym), nil) {
 			continue
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, sym)
+		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, sym))
 		var price any = this.FromWei(this.SafeString(change, "price"))
 		var amount any = this.FromWei(this.SafeString(change, "amount"))
 		var sideStr *string = this.SafeString(change, "side")
 		var bookSide any = func() any {
 			if sideStr != nil && *sideStr == "bid" {
-				return ccxt.GetValue(orderbook, "bids")
+				return orderbook.GetBids()
 			}
-			return ccxt.GetValue(orderbook, "asks")
+			return orderbook.GetAsks()
 		}()
 		bookSide.(ccxt.IOrderBookSide).StoreArray([]any{price, amount})
 		ccxt.AddElementToObject(orderbook, "timestamp", ts)

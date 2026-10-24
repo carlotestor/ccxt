@@ -3408,7 +3408,7 @@ public partial class gate : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> info, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> info, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -3708,7 +3708,7 @@ public partial class gate : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public virtual object parseFundingHistory(object info, IDictionary<string, object> market = null)
+    public virtual object parseFundingHistory(IDictionary<string, object> info, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -5727,8 +5727,8 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object ordersRequests = this.createOrdersRequest(orders, parameters);
-        object firstOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
-        Dictionary<string, object> market = this.market(getValue(firstOrder, "symbol"));
+        IDictionary<string, object> firstOrder = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
+        Dictionary<string, object> market = this.market((firstOrder != null && firstOrder.ContainsKey("symbol") ? firstOrder["symbol"] : null));
         List<object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
@@ -5740,7 +5740,7 @@ public partial class gate : Exchange
         return this.parseOrders(response);
     }
 
-    public virtual bool isGateFuturesContractWithDecimalSize(object market)
+    public virtual bool isGateFuturesContractWithDecimalSize(IDictionary<string, object> market)
     {
         IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
         bool? isSwap = this.safeBool(market, "swap", false);
@@ -8428,7 +8428,7 @@ public partial class gate : Exchange
         return this.parseMarginLoan(response, currency);
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(object info, IDictionary<string, object>? currency = null)
     {
         //
         // Cross
@@ -9104,7 +9104,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
     {
         //
         // fetchSettlementHistory
@@ -9156,7 +9156,7 @@ public partial class gate : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market = null)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
     {
         //
         // fetchSettlementHistory

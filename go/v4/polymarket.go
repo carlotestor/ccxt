@@ -673,7 +673,7 @@ func (this *Polymarket) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "base_asset")
 	// prices are denominated using USD while pUSD is the 1:1 collateral and settlement token
 	var settleId *string = this.SafeString(market, "quote_asset")
-	var parts []string = Split(venueSymbol, "-")
+	var parts []string = strings.Split(*venueSymbol, "-")
 	var quoteId *string = this.SafeString(parts, 1, "USD")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)

@@ -5003,7 +5003,7 @@ func (this *Binance) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var promisesRaw []any = []any{}
 	var rawFetchMarkets any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse"}
-	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
+	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	if fetchMarketsOptions != nil {
 		rawFetchMarkets = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
 	} else {
@@ -6835,7 +6835,7 @@ func (this *Binance) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbolsNormalized))}
 	return nil
 }
-func (this *Binance) ParseTickersForRolling(response any, symbols any) map[string]any {
+func (this *Binance) ParseTickersForRolling(response any, symbols []string) map[string]any {
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var marketId *string = this.SafeString(GetValue(response, i), "symbol")
@@ -15457,7 +15457,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any
 	}
 	// by default cache the leverage bracket
 	// it contains useful stuff like the maintenance margin and initial margin for positions
-	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
+	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	if (leverageBrackets == nil) || (reload == true) {
 		var defaultType *string = this.SafeString(this.Options, "defaultType", "swap")
 		var typeVar *string = this.SafeString(params, "type", defaultType)
@@ -17745,13 +17745,13 @@ func (this *Binance) CalculateRateLimiterCost(api any, method any, path any, par
 	// every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (func() bool { _, ok := config["noCoin"]; return ok }()) && !(InOp(params, "coin")) {
+	if _, ok := config["noCoin"]; ok && !(InOp(params, "coin")) {
 		return GetValue(config, "noCoin")
-	} else if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
+	} else if _, ok := config["noSymbol"]; ok && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if (func() bool { _, ok := config["noPoolId"]; return ok }()) && !(InOp(params, "poolId")) {
+	} else if _, ok := config["noPoolId"]; ok && !(InOp(params, "poolId")) {
 		return GetValue(config, "noPoolId")
-	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
+	} else if _, ok := config["byLimit"]; ok && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {
@@ -19347,9 +19347,9 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 	//     ]
 	//
 	var liquidationsList []any = []any{}
-	var rows any = this.SafeList(response, "rows")
+	var rows []any = SafeListTyped(response, "rows")
 	if rows != nil {
-		liquidationsList = ArrayTyped(rows)
+		liquidationsList = rows
 	} else if IsArray(response) {
 		// linear and inverse return the bare array, margin wraps it in 'rows'
 		liquidationsList = ArrayTyped(response)

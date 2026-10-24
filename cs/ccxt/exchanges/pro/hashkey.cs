@@ -754,7 +754,7 @@ public partial class hashkey : ccxt.hashkey
         client.resolve(parsed, ((messageHash + ":") + symbol));
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(position, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);

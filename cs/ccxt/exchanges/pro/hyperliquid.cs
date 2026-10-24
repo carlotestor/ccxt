@@ -756,7 +756,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         return true;
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> rawTicker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> rawTicker, IDictionary<string, object>? market = null)
     {
         return this.parseTicker(rawTicker, market);
     }
@@ -1543,7 +1543,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, IList<object>? symbols = null)
     {
         if ((this.positions != null))
         {

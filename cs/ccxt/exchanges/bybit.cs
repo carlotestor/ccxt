@@ -9473,7 +9473,7 @@ public partial class bybit : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, Dictionary<string, object> currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, IDictionary<string, object>? currency = null)
     {
         //
         // borrowCrossMargin
@@ -9625,7 +9625,7 @@ public partial class bybit : Exchange
         return await this.FetchDerivativesMarketLeverageTiers(symbol, parameters);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -10126,7 +10126,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseVolatilityHistory(volatility));
     }
 
-    public virtual List<object> parseVolatilityHistory(object volatility)
+    public virtual List<object> parseVolatilityHistory(IList<object> volatility)
     {
         //
         //     {
@@ -10136,7 +10136,7 @@ public partial class bybit : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(volatility); i++)
+        for (int i = 0; i < (volatility?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(volatility, i);
             Int64? timestamp = this.safeInteger(entry, "time");

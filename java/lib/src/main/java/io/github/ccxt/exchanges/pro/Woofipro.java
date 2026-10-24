@@ -1477,9 +1477,9 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(balances.keySet());
         Long ts = this.safeInteger(message, "ts");
-        Helpers.addElementToObject(this.balance, "info", data);
-        Helpers.addElementToObject(this.balance, "timestamp", ts);
-        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(ts));
+        this.balance.put("info", data);
+        this.balance.put("timestamp", ts);
+        this.balance.put("datetime", this.iso8601(ts));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1501,7 +1501,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Helpers.addElementToObject(account, "free", Precise.stringSub(total, used));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
         }
         this.balance = this.safeBalance(this.balance);

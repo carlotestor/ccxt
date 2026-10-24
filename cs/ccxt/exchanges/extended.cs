@@ -1308,7 +1308,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(result, market, since, limit));
     }
 
-    public virtual object parseFundingHistory(object history, IDictionary<string, object> market = null)
+    public virtual object parseFundingHistory(object history, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1340,12 +1340,12 @@ public partial class extended : Exchange
         };
     }
 
-    public virtual object parseFundingHistories(object histories, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
+    public virtual object parseFundingHistories(IList<object> histories, IDictionary<string, object>? market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(histories); i++)
+        for (int i = 0; i < (histories?.Count ?? 0); i++)
         {
-            result.Add(this.parseFundingHistory(getValue(histories, i), market));
+            result.Add(this.parseFundingHistory((histories != null && i < histories.Count ? histories[i] : null), market));
         }
         string? symbol = ((market == null)) ? null : this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
@@ -2460,7 +2460,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -2858,7 +2858,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, object amountString, Dictionary<string, object> currency, IDictionary<string, object> account, object parameters = null)
+    public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, object amountString, IDictionary<string, object> currency, IDictionary<string, object> account, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();
@@ -2894,7 +2894,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public virtual Dictionary<string, object> createTransferSettlementData(object amountString, Dictionary<string, object> currency, IDictionary<string, object> account, object toVault, object toL2Key, object parameters = null)
+    public virtual Dictionary<string, object> createTransferSettlementData(object amountString, IDictionary<string, object> currency, IDictionary<string, object> account, object toVault, object toL2Key, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();

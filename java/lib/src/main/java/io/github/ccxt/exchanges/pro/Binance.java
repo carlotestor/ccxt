@@ -3579,7 +3579,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String symbol = this.safeString(parameters, "symbol");
                     Boolean isIsolated = (Boolean) this.safeBool(parameters, "isIsolated", false);
                     Long validity = this.safeInteger(parameters, "validity");
-                    Object request = new HashMap<String, Object>() {{}};
+                    Map<String, Object> request = new HashMap<String, Object>() {{}};
                     if (Boolean.TRUE.equals(isIsolated))
                     {
                         if (java.util.Objects.equals(symbol, null))
@@ -3587,12 +3587,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                             throw new ArgumentsRequired((this.id + " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
                         }
                         String marketId = this.marketId((String) (symbol));
-                        ((Map<String, Object>)request).put("symbol", marketId);
-                        ((Map<String, Object>)request).put("isIsolated", true);
+                        request.put("symbol", marketId);
+                        request.put("isIsolated", true);
                     }
                     if (!java.util.Objects.equals(validity, null))
                     {
-                        ((Map<String, Object>)request).put("validity", validity);
+                        request.put("validity", validity);
                     }
                     Map<String, Object> response = (this.sapiPostUserListenToken(request)).join();
                     String listenToken = this.safeString(response, "token");
@@ -3996,10 +3996,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("type", type); yield j39v2; } });
+            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters.put("type", type);
             if (Boolean.TRUE.equals(isPortfolioMargin))
             {
-                ((Map<String, Object>)parameters).put("portfolioMargin", true);
+                parameters.put("portfolioMargin", true);
             }
             Balances response = (this.fetchBalance(parameters)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
@@ -4438,7 +4439,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             String delta = this.safeString(message, "d");
-            if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)) && ((switch ((Object)((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)))) { case List<?> j39v4 -> ((Object)(code)) != null && j39v4.contains(code); case Map<?, ?> j39v3 -> ((Object)(code)) instanceof String && j39v3.containsKey(code); case null, default -> false; })))
+            if ((!java.util.Objects.equals(code, null)) && ((switch ((Object)((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)))) { case List<?> j39v3 -> ((Object)(code)) != null && j39v3.contains(code); case Map<?, ?> j39v2 -> ((Object)(code)) instanceof String && j39v2.containsKey(code); case null, default -> false; })))
             {
                 Object previousValue = Helpers.GetValue(Helpers.GetValue((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code), "free");
                 if (!(previousValue instanceof String))
@@ -4450,7 +4451,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 account.put("free", delta);
             }
-            if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
             }
@@ -4470,7 +4471,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 account.put("free", this.safeString(entry, "f"));
                 account.put("used", this.safeString(entry, "l"));
                 account.put("total", this.safeString(entry, wallet));
-                if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
+                if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
                 }
@@ -6094,7 +6095,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v6 -> ((Object)(type)) != null && j39v6.contains(type); case Map<?, ?> j39v5 -> ((Object)(type)) instanceof String && j39v5.containsKey(type); case null, default -> false; }))
+        if ((switch ((Object)(this.positions)) { case List<?> j39v5 -> ((Object)(type)) != null && j39v5.contains(type); case Map<?, ?> j39v4 -> ((Object)(type)) instanceof String && j39v4.containsKey(type); case null, default -> false; }))
         {
             return;
         }
@@ -6118,10 +6119,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>(); j39v7.put("type", type); yield j39v7; } });
+            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters.put("type", type);
             if (Boolean.TRUE.equals(isPortfolioMargin))
             {
-                ((Map<String, Object>)parameters).put("portfolioMargin", true);
+                parameters.put("portfolioMargin", true);
             }
             List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
@@ -6185,7 +6187,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v9 -> ((Object)(accountType)) != null && j39v9.contains(accountType); case Map<?, ?> j39v8 -> ((Object)(accountType)) instanceof String && j39v8.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v7 -> ((Object)(accountType)) != null && j39v7.contains(accountType); case Map<?, ?> j39v6 -> ((Object)(accountType)) instanceof String && j39v6.containsKey(accountType); case null, default -> false; })))
         {
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -6803,7 +6805,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(accountType)) != null && j39v11.contains(accountType); case Map<?, ?> j39v10 -> ((Object)(accountType)) instanceof String && j39v10.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v9 -> ((Object)(accountType)) != null && j39v9.contains(accountType); case Map<?, ?> j39v8 -> ((Object)(accountType)) instanceof String && j39v8.containsKey(accountType); case null, default -> false; })))
         {
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -7003,7 +7005,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             //         "A": "2.52500800"
             //     }
             //
-            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v16 -> j39v16.contains("a"); case Map<?, ?> j39v15 -> j39v15.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v14 -> j39v14.contains("b"); case Map<?, ?> j39v13 -> j39v13.containsKey("b"); case null, default -> false; })))
+            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v14 -> j39v14.contains("a"); case Map<?, ?> j39v13 -> j39v13.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v12 -> j39v12.contains("b"); case Map<?, ?> j39v11 -> j39v11.containsKey("b"); case null, default -> false; })))
             {
                 this.handleBidsAsks(client, messageValue);
             }

@@ -317,7 +317,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             this.balance = new HashMap<String, Object>() {{}};
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(this.balance, "info", data);
+        this.balance.put("info", data);
         Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, "balance", (Object) null);
         if (!java.util.Objects.equals(balance, null))
         {
@@ -346,8 +346,8 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             }
         }
         Long timestamp = this.safeInteger(message, "ts");
-        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
-        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
+        this.balance.put("timestamp", timestamp);
+        this.balance.put("datetime", this.iso8601(timestamp));
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
     }

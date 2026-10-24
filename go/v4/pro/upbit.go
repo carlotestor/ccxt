@@ -928,7 +928,7 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 	}()
 	if order != nil {
 		// paid_fee is cumulative, so the cached fee is only a fallback
-		var parsedFee any = this.SafeDict(parsed, "fee")
+		var parsedFee map[string]any = ccxt.SafeMapTyped(parsed, "fee")
 		if parsedFee == nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {
@@ -1045,9 +1045,9 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 		account["free"] = available
 		account["used"] = frozen
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, account)
+			this.Balance[*code] = account
 		}
-		this.Balance = this.SafeBalance(this.Balance)
+		this.WsBalanceReplace(this.SafeBalance(this.Balance))
 	}
 	var messageHash *string = this.SafeString(message, "type")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)

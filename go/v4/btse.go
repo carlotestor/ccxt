@@ -2812,7 +2812,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 		}
 	}
 	// here we handling with attached take profit and stop loss orders
-	var takeProfit any = this.SafeDict(query, "takeProfit")
+	var takeProfit map[string]any = SafeMapTyped(query, "takeProfit")
 	var stopLoss map[string]any = SafeMapTyped(query, "stopLoss")
 	if (takeProfit != nil) || (stopLoss != nil) {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
@@ -4653,7 +4653,7 @@ func (this *Btse) setMarginModeBody(ch chan AsyncResult[map[string]any], marginM
 		} else if hedged != nil && *hedged == true {
 			positionMode = "HEDGE"
 		}
-	} else if (func() bool { _, ok := params["hedged"]; return ok }()) && (hedged == nil || *hedged != true) {
+	} else if _, ok := params["hedged"]; ok && (hedged == nil || *hedged != true) {
 		panic(BadRequest(this.Id + " setMarginMode() hedged parameter cannot be false for isolated margin mode"))
 	} else {
 		positionMode = "ISOLATED"
