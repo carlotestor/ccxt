@@ -11999,6 +11999,29 @@ impl std::ops::DerefMut for ${coreName} {
     /** `R.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)` with R a proven tuple call or tuple local. */
     hx4X03IsBoolTupleHead(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const suffix = '.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)';
+        // A destructuring temp the printer declares `Vec<Value>` reads element 0
+        // through the slice: `<tmp>.get(0).cloned().unwrap_or(Value::Null)`.
+        const typedSuffix = '.get(0).cloned().unwrap_or(Value::Null)';
+        if (!e.endsWith(suffix) && e.endsWith(typedSuffix)) {
+            const tmp = e.slice(0, e.length - typedSuffix.length).trim();
+            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(tmp)) return false;
+            const masked = this.maskStringsAndComments(content);
+            const decls = [...masked.matchAll(new RegExp(`let ${tmp}\\s*:\\s*Vec<Value>\\s*=\\s*`, 'g'))];
+            if (decls.length === 0) return false;
+            if (new RegExp(`&mut\\s+${tmp}\\b|(?<!let\\s)(?<!let\\s+mut\\s)(?<![A-Za-z0-9_.])${tmp}\\s*=(?!=)`).test(masked)) return false;
+            const tail = '.as_array().cloned().unwrap_or_default()';
+            // Every `let` of the temp must bind a bool-headed tuple call: the
+            // name is reused across the fn's destructures, so one is not enough.
+            for (const d of decls) {
+                const at = (d.index as number) + d[0].length;
+                const end = this.endOfRustStatement(masked, at);
+                if (end < 0) return false;
+                const init = content.slice(at, end).trim();
+                if (!init.endsWith(tail)) return false;
+                if (!this.hx4X03IsBoolTupleCall(init.slice(0, init.length - tail.length).trim(), content, own, memo)) return false;
+            }
+            return true;
+        }
         if (!e.endsWith(suffix)) return false;
         const recv = e.slice(0, e.length - suffix.length).trim();
         if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(recv)) {
@@ -12090,13 +12113,25 @@ impl std::ops::DerefMut for ${coreName} {
     /** `__destr_tmp.as_array()..get(0)..` whose nearest preceding `let __destr_tmp = C;` binds a proven bool-tuple call C. */
     hx4R19DestrTmpBoolHead(rhs: string, before: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const m = /^(__destr_tmp[A-Za-z0-9_]*)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(0\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
-        if (m === null) return false;
-        const decls = [...before.matchAll(new RegExp(`let (?:mut )?${m[1]}\\s*=\\s*`, 'g'))];
+        // The printer declares the destructuring temp `Vec<Value>`: element 0 reads through the slice.
+        const typed = /^(__destr_tmp[A-Za-z0-9_]*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
+        if (m === null && typed === null) return false;
+        const tmpName = (typed ?? m)![1];
+        const typedTail = '.as_array().cloned().unwrap_or_default()';
+        const decls = [...before.matchAll(typed !== null
+            ? new RegExp(`let ${tmpName}\\s*:\\s*Vec<Value>\\s*=\\s*`, 'g')
+            : new RegExp(`let (?:mut )?${tmpName}\\s*=\\s*`, 'g'))];
         if (decls.length === 0) return false;
         const d = decls[decls.length - 1];
         const at = (d.index as number) + d[0].length;
-        const end = this.endOfRustStatement(before, at);
-        if (end < 0 || new RegExp(`(?<![A-Za-z0-9_.])${m[1]}\\s*=(?!=)`).test(before.slice(end))) return false;
+        const stmtEnd = this.endOfRustStatement(before, at);
+        if (stmtEnd < 0 || new RegExp(`(?<![A-Za-z0-9_.])${tmpName}\\s*=(?!=)`).test(before.slice(stmtEnd))) return false;
+        let end = stmtEnd;
+        if (typed !== null) {
+            const typedInit = before.slice(at, stmtEnd).trim();
+            if (!typedInit.endsWith(typedTail)) return false;
+            end = at + typedInit.length - typedTail.length;
+        }
         return this.hx4X03IsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
     }
 
