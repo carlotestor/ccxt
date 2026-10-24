@@ -4878,6 +4878,8 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
+        const j05dbg = javaSource.includes('Helpers.GetValue(new ArrayList<Object>(Arrays.asList(')
+        if (j05dbg) console.error('[J05DBG]', filename, 'ctor-at-createJavaClass')
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
         javaSource = hx4J06ObjectValues(javaSource) // hx4 J06
         javaSource = nativeJavaJ26MapLocals(javaSource) // hx4 J26
@@ -4902,6 +4904,7 @@ class NewTranspiler {
         javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
         javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
         javaSource = nativeJ05CallReceiverReads(javaSource) // hx10 wave-7 J05
+        if (j05dbg) console.error('[J05DBG]', filename, 'j05parts-at-write', javaSource.includes('j05parts'))
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
