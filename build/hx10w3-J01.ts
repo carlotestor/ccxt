@@ -472,9 +472,9 @@ export function hx10w3J01HeaderCheck (): string[] {
     try { text = fs.readFileSync (path.join (JAVA_ROOT, 'ws', 'WsClient.java'), 'utf8'); } catch (e) { return [ 'hx10w3 J01: cannot read ws/WsClient.java' ]; }
     const problems: string[] = [];
     const shapes: [ string, RegExp ][] = [
-        [ 'Map<String, Future> futures', /public Map<String, (?:io\.github\.ccxt\.ws\.)?Future> futures\b/ ],
-        [ 'Map<String, Object> subscriptions', /public Map<String, Object> subscriptions\b/ ],
-        [ 'Map<String, Object> rejections', /public Map<String, Object> rejections\b/ ],
+        [ 'Map<String, Future> futures', /public (?:final )?Map<String, (?:io\.github\.ccxt\.ws\.)?Future> futures\b/ ],
+        [ 'Map<String, Object> subscriptions', /public (?:final )?Map<String, Object> subscriptions\b/ ],
+        [ 'Map<String, Object> rejections', /public (?:final )?Map<String, Object> rejections\b/ ],
     ];
     for (const [ name, shape ] of shapes) {
         if (!shape.test (text)) problems.push ('hx10w3 J01: ws/WsClient.java no longer declares ' + name);
