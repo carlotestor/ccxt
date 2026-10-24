@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 
 namespace ccxt;
@@ -21,11 +22,18 @@ public class ThrottlerConfig
 public class Throttler
 {
     private ThrottlerConfig config = new ThrottlerConfig();
-    private Queue<(Task, double)> queue = new Queue<(Task, double)>();
-    private readonly object queueLock = new object();
 
-    private bool running = false;
-    private List<(long timestamp, double cost)> timestamps = new List<(long, double)>();
+    //  Callers post a request and get its completion task back. The single owner loop
+    //  below owns the pending order, the tokens and the timestamps; these two fields are
+    //  only the hand-off, and no throttle state is reachable from a caller through them.
+    private readonly ConcurrentQueue<ThrottleRequest> arrivals = new ConcurrentQueue<ThrottleRequest>();
+    private readonly SemaphoreSlim arrivalSignal = new SemaphoreSlim(0);
+
+    private sealed class ThrottleRequest
+    {
+        public double cost;
+        public readonly TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
 
     public Throttler(Dictionary<string, object> configInput)
     {
@@ -44,42 +52,46 @@ public class Throttler
                 this.config.MaxWeight = this.config.WindowSize / this.config.RateLimit;
             }
         }
+        //  The owner loop runs for the lifetime of the instance, parked on the hand-off.
+        _ = this.loop();
+    }
+
+    /// <summary>
+    /// Moves everything handed over so far into the owner's own pending order. Only the
+    /// owner loop calls this, so the queue is drained by its single reader.
+    /// </summary>
+    private async Task fillPending(Queue<ThrottleRequest> pending)
+    {
+        await this.arrivalSignal.WaitAsync();
+        while (this.arrivals.TryDequeue(out var arrived))
+        {
+            pending.Enqueue(arrived);
+        }
     }
 
     private async Task leakyBucketLoop()
     {
+        var pending = new Queue<ThrottleRequest>();
         var lastTimestamp = milliseconds();
-        while (this.running)
+        var tokens = this.config.Tokens;
+        while (true)
         {
-            // do we need this check here?
-            if (this.queue.Count == 0)
+            if (pending.Count == 0)
             {
-                this.running = false;
-                continue;
+                await this.fillPending(pending);
+                if (pending.Count == 0)
+                {
+                    continue;
+                }
             }
-            var first = this.queue.Peek();
-            var task = first.Item1;
-            var cost = first.Item2;
-            var floatTokens = this.config.Tokens;
-            if (floatTokens >= 0)
+            var first = pending.Peek();
+            var cost = first.cost;
+            if (tokens >= 0)
             {
-                this.config.Tokens = floatTokens - cost;
-                if (task != null)
-                {
-                    if (task.Status == TaskStatus.Created)
-                    {
-                        task.Start();
-                    }
-                }
+                tokens = tokens - cost;
+                first.completion.TrySetResult(true);
                 await Task.Delay(0);
-                lock (queueLock)
-                {
-                    this.queue.Dequeue();
-                    if (this.queue.Count == 0)
-                    {
-                        this.running = false;
-                    }
-                }
+                pending.Dequeue();
             }
             else
             {
@@ -87,31 +99,27 @@ public class Throttler
                 var current = milliseconds();
                 var elapsed = current - lastTimestamp;
                 lastTimestamp = current;
-                var tokens = (double)this.config.Tokens + ((double)this.config.RefillRate * elapsed);
-                this.config.Tokens = Math.Min(tokens, (double)this.config.Capacity);
+                tokens = Math.Min(tokens + ((double)this.config.RefillRate * elapsed), (double)this.config.Capacity);
             }
         }
     }
 
     private async Task rollingWindowLoop()
     {
-        while (this.running)
+        var pending = new Queue<ThrottleRequest>();
+        var timestamps = new List<(long timestamp, double cost)>();
+        while (true)
         {
-            lock (queueLock)
+            if (pending.Count == 0)
             {
-                if (this.queue.Count == 0)
+                await this.fillPending(pending);
+                if (pending.Count == 0)
                 {
-                    this.running = false;
                     continue;
                 }
             }
-            (Task, double) first;
-            lock (queueLock)
-            {
-                first = this.queue.Peek();
-            }
-            var task = first.Item1;
-            var cost = first.Item2;
+            var first = pending.Peek();
+            var cost = first.cost;
             var now = milliseconds();
             var windowSize = this.config.WindowSize;
             timestamps.RemoveAll(t => now - t.timestamp >= windowSize);
@@ -119,16 +127,17 @@ public class Throttler
             if (totalCost + cost <= this.config.MaxWeight)
             {
                 timestamps.Add((now, cost));
-                if (task != null && task.Status == TaskStatus.Created)
-                {
-                    task.Start();
-                }
+                first.completion.TrySetResult(true);
                 await Task.Delay(0);
-                lock (queueLock)
-                {
-                    this.queue.Dequeue();
-                    if (this.queue.Count == 0) this.running = false;
-                }
+                pending.Dequeue();
+            }
+            else if (timestamps.Count == 0)
+            {
+                //  a single cost above the whole window can never fit: grant it rather
+                //  than leave the owner and every caller behind it waiting forever
+                first.completion.TrySetResult(true);
+                await Task.Delay(0);
+                pending.Dequeue();
             }
             else
             {
@@ -154,22 +163,17 @@ public class Throttler
         }
     }
 
-    public async Task<Task> throttle(object cost2)
+    /// <summary>
+    /// Hands one request to the owner and returns the task that completes when the slot
+    /// is granted — the caller awaits it exactly as it awaited the task before.
+    /// </summary>
+    public Task<Task> throttle(object cost2)
     {
         var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config.Cost);
-        Task t;
-        lock (queueLock)
-        {
-            t = new Task(() => { });
-            this.queue.Enqueue((t, cost));
-        }
-        if (!this.running)
-        {
-            this.running = true;
-            // Task.Run(() => { this.loop(); });
-            _ = this.loop();
-        }
-        return t;
+        var request = new ThrottleRequest { cost = cost };
+        this.arrivals.Enqueue(request);
+        this.arrivalSignal.Release();
+        return Task.FromResult<Task>(request.completion.Task);
     }
 
 
