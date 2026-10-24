@@ -35,6 +35,9 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     // asks+bids pair, so a caller on another thread copies one consistent pair.
     internal OrderBook owner;
 
+    // Set by every mutator; the owning book re-freezes this side only when it is set.
+    internal bool _dirty = true;
+
     private bool _side = false;
 
     protected bool side
@@ -159,6 +162,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public void storeArray(object delta2)
     {
+        this._dirty = true;
         this.StoreArrayCore(delta2);
         this.PublishSide();
     }
@@ -250,6 +254,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public void limit()
     {
+        this._dirty = true;
         this.LimitCore();
         this.PublishSide();
     }
@@ -318,6 +323,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         {
             this._index.AddRange(prices);
         }
+        this._dirty = true;
         this.Publish();
     }
 

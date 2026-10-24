@@ -23,7 +23,7 @@ public interface IOrderBook : IDictionary<string, object>
     public IList<object> cache { get; set; }
 }
 
-public class OrderBook : Dictionary<string, object>, IOrderBook
+public class OrderBook : Dictionary<string, object>, IDictionary<string, object>, IOrderBook
 {
     // One store: this dictionary. asks / bids / symbol / nonce / timestamp
     // are typed views of the same slots, so book.asks and book["asks"] cannot
@@ -106,10 +106,18 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
             return;
         }
         this._ownerThread = Thread.CurrentThread.ManagedThreadId;
-        // refresh both sides' own publications from the live lists, so a reset that
-        // cleared them without going through storeArray cannot leave a stale pair
-        askSide.Publish();
-        bidSide.Publish();
+        // refresh a side's frozen rows only when it changed, so a scalar-only republish
+        // costs no row copy; reset clears the sides directly and marks them dirty
+        if (askSide._dirty)
+        {
+            askSide.Publish();
+            askSide._dirty = false;
+        }
+        if (bidSide._dirty)
+        {
+            bidSide.Publish();
+            bidSide._dirty = false;
+        }
         object outcome;
         var hasOutcome = this.TryGetValue("outcome", out outcome) && outcome != null;
         var posted = new BookRows(
@@ -140,6 +148,24 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
     public new void Add(string key, object value)
     {
         this[key] = value;
+    }
+
+    // Generated handlers write the scalar slots (nonce/timestamp/datetime/symbol) through
+    // the interface after the last delta; republish so a copy sees them. Owner-side only.
+    object IDictionary<string, object>.this[string key]
+    {
+        get { return base[key]; }
+        set { this.SetSlot(key, value); }
+    }
+
+    // Owner-side slot write: keep the published pair's scalars in step with the store.
+    private void SetSlot(string key, object value)
+    {
+        base[key] = value;
+        if (this._ownerThread == 0 || this._ownerThread == Thread.CurrentThread.ManagedThreadId)
+        {
+            this.PublishRows();
+        }
     }
 
     public IList<object> cache
@@ -209,7 +235,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         }
         set
         {
-            this["symbol"] = value;
+            this.SetSlot("symbol", value);
         }
     }
 
@@ -226,7 +252,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         }
         set
         {
-            this["nonce"] = value;
+            this.SetSlot("nonce", value);
         }
     }
 
@@ -243,7 +269,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         }
         set
         {
-            this["timestamp"] = value;
+            this.SetSlot("timestamp", value);
         }
     }
 
@@ -310,6 +336,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         var askSide = this.asks as OrderBookSide;
         askSide._index.Clear();
         askSide.Clear();
+        askSide._dirty = true;
 
         var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
         if (snapshotAsks != null)
@@ -323,6 +350,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         var bidSide = this.bids as OrderBookSide;
         bidSide._index.Clear();
         bidSide.Clear();
+        bidSide._dirty = true;
         var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
         if (snapshotBids != null)
         {
@@ -389,7 +417,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
 
 }
 
-public class CountedOrderBook : OrderBook, IOrderBook
+public class CountedOrderBook : OrderBook
 {
     public new CountedAsks asks
     {
@@ -456,7 +484,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
 }
 
 
-public class IndexedOrderBook : OrderBook, IOrderBook
+public class IndexedOrderBook : OrderBook
 {
     public new IndexedAsks asks
     {
