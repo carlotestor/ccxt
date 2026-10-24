@@ -165,7 +165,7 @@ type IBaseExchange interface {
 	GetAlias() any
 	GetTimeframes() map[string]any
 	GetFeatures() map[string]any
-	GetCache() *sync.Map
+	GetCache() map[string]any
 	GetRequiredCredentials() map[string]any
 	SetTimeout(timeout any)
 	SetHttpsProxy(httpsProxy any)
@@ -226,7 +226,7 @@ type ICoreExchange interface {
 	GetAlias() any
 	GetTimeframes() map[string]any
 	GetFeatures() map[string]any
-	GetCache() *sync.Map
+	GetCache() map[string]any
 	GetRequiredCredentials() map[string]any
 	SetTimeout(timeout any)
 	SetHttpsProxy(httpsProxy any)
