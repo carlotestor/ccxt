@@ -23,14 +23,12 @@ import (
 	// "golang.org/x/crypto/sha3"
 )
 
-func Sha1() string      { return "sha1" }
 func Sha256() string    { return "sha256" }
 func sha256() string    { return "sha256" }
 func Sha384() string    { return "sha384" }
 func sha384() string    { return "sha384" }
 func Sha512() string    { return "sha512" }
 func sha512() string    { return "sha512" }
-func Md5() string       { return "md5" }
 func md5() string       { return "md5" }
 func Ed25519() string   { return "ed25519" }
 func ed25519() string   { return "ed25519" }
@@ -344,16 +342,6 @@ func Rsa(data2 any, privateKey2 any, algorithm2 func() string, optionalArgs ...a
 
 	// Return base64 encoded signature
 	return base64.StdEncoding.EncodeToString(signData)
-}
-
-func Base64ToBase64URL(base64Str string, stripPadding bool) string {
-	base64URL := strings.NewReplacer("+", "-", "/", "_").Replace(base64Str)
-
-	if stripPadding {
-		base64URL = strings.TrimRight(base64URL, "=")
-	}
-
-	return base64URL
 }
 
 func Eddsa(data2 any, secret any, curve any) string {
