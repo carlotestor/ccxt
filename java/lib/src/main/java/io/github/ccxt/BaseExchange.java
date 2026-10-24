@@ -2034,6 +2034,25 @@ public class BaseExchange {
 
     // ─── WebSocket Bridge (matches C# Exchange.WsBridge.cs) ───
 
+    // One owner thread per exchange: every ws frame of every connection of this
+    // exchange is handled here, so the ws caches (balance/orderbooks/tickers/trades)
+    // get a single writer for all frame-driven work. The virtual thread exits after 60s idle.
+    private final java.util.concurrent.ExecutorService wsOwnerExecutor = newWsOwner();
+
+    private static java.util.concurrent.ExecutorService newWsOwner() {
+        java.util.concurrent.ThreadPoolExecutor owner = new java.util.concurrent.ThreadPoolExecutor(
+                1, 1, 60L, java.util.concurrent.TimeUnit.SECONDS,
+                new java.util.concurrent.LinkedBlockingQueue<>(),
+                Thread.ofVirtual().name("ws-owner-", 0).factory());
+        owner.allowCoreThreadTimeOut(true);
+        return owner;
+    }
+
+    /** The single ws owner thread of this exchange; every WsClient hands its work here. */
+    public java.util.concurrent.ExecutorService wsOwner() {
+        return this.wsOwnerExecutor;
+    }
+
     @SuppressWarnings("unchecked")
     public Client client(Object url2) {
         String url = url2.toString();
@@ -2063,6 +2082,8 @@ public class BaseExchange {
                             (client, err) -> this.onError((Client) client, err),
                             this.verbose, keepAlive, decompressBin,
                             this.validateServerSsl);
+                    // every client of this exchange runs its ws work on the one owner thread
+                    created.setOwnerExecutor(this.wsOwner());
 
                     // Forward options.ws.options.headers to the upgrade request — required
                     // by exchanges that gate on User-Agent (weex) or send custom headers.
@@ -2093,7 +2114,7 @@ public class BaseExchange {
 
         if (client.subscriptionsMap().putIfAbsent(subscribeHash, subscription != null ? subscription : true) == null) {
             int backoffDelay = 0;
-            if (!client.startedConnecting.get()) {
+            if (!client.startedConnecting) {
                 // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
                 backoffDelay = this.calculateWsBackoffDelay(url);
             }
@@ -2141,7 +2162,7 @@ public class BaseExchange {
 
         if (subscribeHashes2 == null || !missingSubscriptions.isEmpty()) {
             int backoffDelay = 0;
-            if (!client.startedConnecting.get()) {
+            if (!client.startedConnecting) {
                 // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
                 backoffDelay = this.calculateWsBackoffDelay(url);
             }
@@ -2254,7 +2275,8 @@ public class BaseExchange {
      * an inline spawn rewrite would hit with reassignable locals.
      */
     public void scheduleCallback(Object delayMs, String methodName, Object... args) {
-        this.spawn(() -> {
+        // never on the ws owner: the sleep would park frame handling for the exchange
+        VIRTUAL_EXECUTOR.execute(() -> {
             try {
                 Thread.sleep(((Number) delayMs).longValue());
                 Helpers.callDynamically(this, methodName, args);
@@ -2272,7 +2294,8 @@ public class BaseExchange {
      */
     public io.github.ccxt.ws.Future spawnWithResult(String methodName, Object... args) {
         io.github.ccxt.ws.Future fut = new io.github.ccxt.ws.Future();
-        this.spawn(() -> {
+        // never on the ws owner: the body joins, and the join may need a later frame
+        VIRTUAL_EXECUTOR.execute(() -> {
             try {
                 Object result = Helpers.callDynamically(this, methodName, args);
                 // callDynamically may return a CompletableFuture — unwrap
