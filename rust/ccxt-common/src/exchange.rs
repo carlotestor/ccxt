@@ -1396,6 +1396,21 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .await
     } }
 
+    /// One inbound frame → the venue's `handle_message`, through the typed
+    /// handle this loop owns. Still hands over the untyped view, so generated
+    /// handlers are unchanged until R01's dispatcher retype lands.
+    fn ws_handle_message<'a>(
+        &'a mut self,
+        client: &'a mut crate::pro::ws_client::ClientHandle,
+        message: Value,
+    ) -> std::pin::Pin<Box<dyn ::std::future::Future<Output = ()> + Send + 'a>> {
+        Box::pin(async move {
+            let _ = self
+                .dispatch_to_derived("handle_message", vec![client.as_value(), message])
+                .await;
+        })
+    }
+
     /// Read → dispatch → drain loop, split out so `ws_run` can wrap it in the
     /// `WS_DRIVEN_URLS` task-local scope.
     fn ws_drive_loop(
@@ -1459,10 +1474,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 let s = msg.to_json().to_string();
                 eprintln!("[wsmsg] {}", s.chars().take(n).collect::<String>());
             }
-            let client_value = crate::pro::ws_client::client_value(&url);
-            let _ = self
-                .dispatch_to_derived("handle_message", vec![client_value, msg])
-                .await;
+            let mut client_handle = crate::pro::ws_client::ClientHandle::from_value(
+                crate::pro::ws_client::client_value(&url));
+            self.ws_handle_message(&mut client_handle, msg).await;
         }
     } }
 
