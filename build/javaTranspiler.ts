@@ -3194,7 +3194,7 @@ class NewTranspiler {
     spliceTranspiledJavaBody(filename: string, javaDelimiter: string, restOfFile: string, body: string, literal: boolean) {
         const pattern = new RegExp(javaDelimiter + restOfFile);
         const shortened = shortenJavaReferences(nativeJavaJ36MultiplySubtract(hx4J21BaseNativePasses(this, body, filename))); // hx4 J36
-        const replacement = javaDelimiter + '\n' + shortened.source;
+        const replacement = javaDelimiter + '\n' + j12AsyncThrows(shortened.source); // hx10 wave-7 J12
         if (literal) {
             this.replaceInFileLiteral(filename, pattern, replacement);
         } else {
