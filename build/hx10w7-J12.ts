@@ -28,16 +28,19 @@ function j12Close (m: string, open: number, o: string, c: string): number {
     return -1;
 }
 
-// `throw new X(args) ;` -> `new X(args)`; anything else (statements, nesting) is not a pure throw
-function j12ThrowValue (body: string): string | undefined {
-    const t = body.trim ();
+// `throw new X(args) ;` -> `new X(args)`; anything else (statements, nesting) is not a pure throw.
+// The shape is checked on the masked text and the value is cut from the raw text: masking keeps
+// every offset, so parens and semicolons inside the message literal cannot fool the scanner.
+function j12ThrowValue (masked: string, raw: string): string | undefined {
+    const lead = masked.length - masked.trimStart ().length;
+    const t = masked.trim ();
     const m = /^throw\s+new\s+[A-Za-z][\w.]*\s*\(/.exec (t);
     if (m === null) { return undefined; }
     const expr = t.replace (/^throw\s+/, '').replace (/;\s*$/, '').trim ();
     if (!expr.endsWith (')')) { return undefined; }
     if (j12Close (expr, expr.indexOf ('('), '(', ')') !== expr.length - 1) { return undefined; }
     if (/[;{}]/.test (expr)) { return undefined; }
-    return expr;
+    return raw.slice (lead).replace (/^throw\s+/, '').replace (/;\s*$/, '').trim ();
 }
 
 export function j12AsyncThrows (content: string): string {
@@ -54,7 +57,7 @@ export function j12AsyncThrows (content: string): string {
         from = at + 1;
         const prev = at === 0 ? '' : masked[at - 1];
         const after = masked.slice (at + 'supplyAsync'.length, at + 'supplyAsync'.length + 1);
-        if (after !== '(' || (prev !== '' && /[\w.]/.test (prev))) { continue; }
+        if (after !== '(' || (prev !== '' && /[\w$]/.test (prev))) { continue; }
         const openParen = at + 'supplyAsync'.length;
         const closeParen = j12Close (masked, openParen, '(', ')');
         if (closeParen === -1) { continue; }
@@ -77,7 +80,7 @@ export function j12AsyncThrows (content: string): string {
         let q = bodyEnd + 1;
         while (q < masked.length && /\s/.test (masked[q])) { q++; }
         if (q !== closeParen) { continue; } // single argument only
-        const value = j12ThrowValue (content.slice (p + 1, bodyEnd));
+        const value = j12ThrowValue (masked.slice (p + 1, bodyEnd), content.slice (p + 1, bodyEnd));
         if (value === undefined) { continue; }
         // receiver start, so `BaseExchange.supplyAsync` -> `CompletableFuture.failedFuture`
         let start = at;
