@@ -32,7 +32,7 @@ import { installH2kJ11StringArgs } from './java-local-types.js';
 import { nativeJavaInOp } from './java-local-types.js';
 import { nativeJavaJ06FieldOps, j06SelfTest } from './hx10w2-J06.js';
 import { j01wsNativeOps, j01wsSelfTest } from './hx10w3-J01.js'; // hx10 wave-3 J01
-import { oj06WsMapReads, oj06WsMapReadsSelfTest } from './hx10w7-OJ06.js'; // hx10w7 OJ06
+import { wsMapReads, wsReadsTest } from './hx10w7-OJ06.js'; // hx10w7 OJ06
 import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
 import { installHx10J04StringHelpers } from './hx10w2-J04.js';
@@ -4897,7 +4897,7 @@ class NewTranspiler {
         javaSource = nativeJavaJ38(javaSource) // hx4 J38
         javaSource = nativeJavaJ39Containers(javaSource) // hx4 J39
         javaSource = hx10J01ElementWrites(javaSource) // hx10 J01
-        javaSource = oj06WsMapReads(j01wsNativeOps(javaSource)) // hx10 wave-3 J01 + hx10w7 OJ06
+        javaSource = wsMapReads(j01wsNativeOps(javaSource)) // hx10 wave-3 J01 + hx10w7 OJ06
         javaSource = hx10w3J02BalancePuts(javaSource) // hx10w3 J02
         javaSource = j01w7FieldPuts(javaSource) // hx10w7 J01
         javaSource = nativeJavaJ04OptionsOps(javaSource) // hx10 w3 J04
@@ -5810,7 +5810,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), oj06WsMapReadsSelfTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), wsReadsTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7586,7 +7586,7 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = hx10w4OJ01OptionsOwner(content); // hx10 w4 OJ01
     content = nativeJavaJ05(content); // hx10w2 J05
     content = nativeJavaJ06FieldOps(content); // hx10w2 J06
-    content = oj06WsMapReads(j01wsNativeOps(content)); // hx10 wave-3 J01 + hx10w7 OJ06
+    content = wsMapReads(j01wsNativeOps(content)); // hx10 wave-3 J01 + hx10w7 OJ06
     content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
     return content;
 }

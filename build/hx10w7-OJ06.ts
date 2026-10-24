@@ -2,13 +2,13 @@
 // behind OwnerMap hand-off views. A Helpers.GetValue read on one of them is the plain map get, and a
 // null receiver or key answers null in both spellings, so the guarded native read stays exact.
 // Only an identifier or a string-literal key qualifies; every other shape keeps the helper call.
-const OJ06_FIELDS = [ 'futures', 'subscriptions', 'rejections' ];
-const OJ06_CALL = 'Helpers.GetValue(';
-const OJ06_LITERAL = /^"(?:[^"\\]|\\.)*"$/;
-const OJ06_IDENT = /^[A-Za-z_]\w*$/;
+const wsFields = [ 'futures', 'subscriptions', 'rejections' ];
+const wsCall = 'Helpers.GetValue(';
+const wsLit = /^"(?:[^"\\]|\\.)*"$/;
+const wsId = /^[A-Za-z_]\w*$/;
 
 // same-length copy with string / char literals and // comments blanked, so structure scans never read them
-function oj06Mask (text: string): string {
+function maskWs (text: string): string {
     const out = text.split ('');
     const blank = (from: number, to: number) => {
         for (let k = from; k < to; k++) if (out[k] !== '\n') out[k] = ' ';
@@ -36,7 +36,7 @@ function oj06Mask (text: string): string {
     return out.join ('');
 }
 
-function oj06CloseOf (masked: string, open: number): number {
+function closeWs (masked: string, open: number): number {
     let depth = 0;
     for (let k = open; k < masked.length; k++) {
         const c = masked[k];
@@ -48,7 +48,7 @@ function oj06CloseOf (masked: string, open: number): number {
     return -1;
 }
 
-function oj06Args (content: string, masked: string, open: number, close: number): string[] {
+function argsWs (content: string, masked: string, open: number, close: number): string[] {
     const parts: string[] = [];
     let depth = 0;
     let start = open + 1;
@@ -65,21 +65,21 @@ function oj06Args (content: string, masked: string, open: number, close: number)
     return parts;
 }
 
-export function oj06WsMapReads (content: string): string {
-    if (!content.includes (OJ06_CALL)) return content;
-    const masked = oj06Mask (content);
+export function wsMapReads (content: string): string {
+    if (!content.includes (wsCall)) return content;
+    const masked = maskWs (content);
     const edits: [ number, number, string ][] = [];
-    for (let i = masked.indexOf (OJ06_CALL); i !== -1; i = masked.indexOf (OJ06_CALL, i + 1)) {
-        const open = i + OJ06_CALL.length - 1;
-        const close = oj06CloseOf (masked, open);
+    for (let i = masked.indexOf (wsCall); i !== -1; i = masked.indexOf (wsCall, i + 1)) {
+        const open = i + wsCall.length - 1;
+        const close = closeWs (masked, open);
         if (close === -1) continue;
-        const parts = oj06Args (content, masked, open, close);
+        const parts = argsWs (content, masked, open, close);
         if (parts.length !== 2) continue;
         const receiver = /^client\.([A-Za-z_]\w*)$/.exec (parts[0].trim ());
-        if (receiver === null || !OJ06_FIELDS.includes (receiver[1])) continue;
+        if (receiver === null || wsFields.indexOf (receiver[1]) === -1) continue;
         const key = parts[1].trim ();
-        const literal = OJ06_LITERAL.test (key);
-        if (!literal && !OJ06_IDENT.test (key)) continue; // a computed or cast key keeps the helper
+        const literal = wsLit.test (key);
+        if (!literal && !wsId.test (key)) continue; // a computed or cast key keeps the helper
         const get = 'client.' + receiver[1] + '.get(' + key + ')';
         const text = literal
             ? '(client.' + receiver[1] + ' == null ? null : ' + get + ')'
@@ -91,7 +91,7 @@ export function oj06WsMapReads (content: string): string {
     return out;
 }
 
-export function oj06SelfTest (): string[] {
+export function wsReadsTest (): string[] {
     const problems: string[] = [];
     const cases: [ string, string, string | undefined ][] = [
         [ 'ident key', '        Object subscription = Helpers.GetValue(client.subscriptions, key);',
@@ -108,13 +108,13 @@ export function oj06SelfTest (): string[] {
         [ 'not a client receiver', '        Object v = Helpers.GetValue(subs, key);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = oj06WsMapReads (body);
+        const out = wsMapReads (body);
         if (expect === undefined) {
             if (out !== body) problems.push ('hx10w7 OJ06: ' + name + ' should keep the helper: ' + out);
             continue;
         }
         if (!out.includes (expect)) problems.push ('hx10w7 OJ06: ' + name + ' not native: ' + out);
-        if (oj06WsMapReads (out) !== out) problems.push ('hx10w7 OJ06: ' + name + ' not idempotent');
+        if (wsMapReads (out) !== out) problems.push ('hx10w7 OJ06: ' + name + ' not idempotent');
     }
     return problems;
 }
