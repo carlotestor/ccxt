@@ -283,7 +283,9 @@ public class ArrayCache extends ArrayList<Object> {
      */
     public List<Object> snapshot() {
         if (this.isOwner()) {
-            return new ArrayList<>(this);
+            // super.toArray(), not new ArrayList<>(this): the inherited Collection copy would
+            // route back through the overridden toArray() below and recurse
+            return new ArrayList<>(java.util.Arrays.asList(super.toArray()));
         }
         return new ArrayList<>(this.published.latest(CacheView.EMPTY).rows);
     }
