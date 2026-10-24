@@ -15753,10 +15753,12 @@ export function installCsharpNumericComparisons (transpiler) {
 // build/csharpTranspiler.ts, no shadow: every body write is a literal or a same-typed producer).
 // `sign` headers (4) stay object: prediction overrides write an `object existingHeaders` into it.
 // `path` (0) of sign/fetch2/request: ts/src declares `path: string` and no body writes it.
+// `api` (1): ts/src declares `api: string[] = [ 'public' ]` on the base and every override, the
+// bodies only read `api[0]`, and the single call site forwards a same-typed parameter.
 export const SIGNATURE_ARG_TYPES = {
-    'fetch2': { 0: 'string' },
-    'request': { 0: 'string' },
-    'sign': { 0: 'string', 2: 'string' },
+    'fetch2': { 0: 'string', 1: 'IList<object>' },
+    'request': { 0: 'string', 1: 'IList<object>' },
+    'sign': { 0: 'string', 1: 'IList<object>', 2: 'string' },
     'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
 };
 
