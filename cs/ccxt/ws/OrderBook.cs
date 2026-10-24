@@ -1,6 +1,7 @@
 
 namespace ccxt.pro;
 
+using System.Collections.Concurrent;
 using Newtonsoft.Json;
 
 
@@ -22,7 +23,7 @@ public interface IOrderBook : IDictionary<string, object>
     public IList<object> cache { get; set; }
 }
 
-public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
+public class OrderBook : Dictionary<string, object>, IOrderBook
 {
     // One store: this dictionary. asks / bids / symbol / nonce / timestamp
     // are typed views of the same slots, so book.asks and book["asks"] cannot
@@ -34,42 +35,66 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     // step. Readers off the loop copy from here and never touch the live sides.
     internal sealed class BookRows
     {
+        public static readonly BookRows Empty = new BookRows(Array.Empty<object>(), Array.Empty<decimal>(), Array.Empty<object>(), Array.Empty<decimal>(), 0, null, null, null, null, false, null, null, null);
+
         public readonly object[] asks;
         public readonly decimal[] askPrices;
         public readonly object[] bids;
         public readonly decimal[] bidPrices;
+        // the book's scalar slots at the same step, so a copy never reads the live dict
+        public readonly int depth;
+        public readonly object nonce;
+        public readonly object timestamp;
+        public readonly object datetime;
+        public readonly object symbol;
+        public readonly bool hasOutcome;
+        public readonly object outcome;
+        public readonly object outcomeId;
+        public readonly object market;
 
-        public BookRows(object[] asks, decimal[] askPrices, object[] bids, decimal[] bidPrices)
+        public BookRows(object[] asks, decimal[] askPrices, object[] bids, decimal[] bidPrices, int depth, object nonce, object timestamp, object datetime, object symbol, bool hasOutcome, object outcome, object outcomeId, object market)
         {
             this.asks = asks;
             this.askPrices = askPrices;
             this.bids = bids;
             this.bidPrices = bidPrices;
+            this.depth = depth;
+            this.nonce = nonce;
+            this.timestamp = timestamp;
+            this.datetime = datetime;
+            this.symbol = symbol;
+            this.hasOutcome = hasOutcome;
+            this.outcome = outcome;
+            this.outcomeId = outcomeId;
+            this.market = market;
         }
     }
 
-    private BookRows _publishedRows;
+    // Owner-loop hand-off: the receive loop freezes the asks+bids pair after every
+    // message step and posts it here. Readers take the pair and put it straight back,
+    // so nothing off the loop ever reads a member of the live book.
+    private readonly BlockingCollection<BookRows> _published = new BlockingCollection<BookRows>(1);
 
-    // The pair a caller copies from: one publication, so the two halves can never
-    // come from different book states.
-    internal BookRows PublishedRows()
+    // The pair a caller copies from: one hand-off, so the two halves can never come
+    // from different book states.
+    internal BookRows TakePair()
     {
-        var rows = this._publishedRows;
-        if (rows != null)
+        BookRows rows;
+        if (!this._published.TryTake(out rows))
         {
-            return rows;
+            // the slot is empty only between a reader's take and put-back or between
+            // the owner's drop and post, and both settle inside the same step
+            if (!this._published.TryTake(out rows, 5))
+            {
+                return BookRows.Empty;
+            }
         }
-        var askSide = this.asks as OrderBookSide;
-        var bidSide = this.bids as OrderBookSide;
-        if (askSide == null || bidSide == null)
-        {
-            return new BookRows(Array.Empty<object>(), Array.Empty<decimal>(), Array.Empty<object>(), Array.Empty<decimal>());
-        }
-        return new BookRows(askSide.LiveArray(), askSide.PublishedPrices, bidSide.LiveArray(), bidSide.PublishedPrices);
+        this._published.TryAdd(rows);
+        return rows;
     }
 
     // Owner-loop publication point, called by a side after every mutation: trims both
-    // sides to depth, then freezes the pair. Nothing off the loop calls this.
+    // sides to depth, then posts the frozen pair. Nothing off the loop calls this.
     internal void PublishRows()
     {
         var askSide = this.asks as OrderBookSide;
@@ -78,11 +103,46 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         {
             return;
         }
+        // depth is enforced here, at the message boundary the ported limit() call sites
+        // expect, so the pair a caller receives is already bounded and the live book
+        // never needs a caller-side trim
+        askSide.TrimToDepth();
+        bidSide.TrimToDepth();
         // refresh both sides' own publications from the live lists, so a reset that
         // cleared them without going through storeArray cannot leave a stale pair
         askSide.Publish();
         bidSide.Publish();
-        this._publishedRows = new BookRows(askSide.Published, askSide.PublishedPrices, bidSide.Published, bidSide.PublishedPrices);
+        object outcome;
+        var hasOutcome = this.TryGetValue("outcome", out outcome) && outcome != null;
+        var posted = new BookRows(
+            askSide.Published,
+            askSide.PublishedPrices,
+            bidSide.Published,
+            bidSide.PublishedPrices,
+            askSide._depth,
+            Exchange.SafeValue(this as dict, "nonce"),
+            Exchange.SafeValue(this as dict, "timestamp"),
+            Exchange.SafeValue(this as dict, "datetime"),
+            Exchange.SafeValue(this as dict, "symbol"),
+            hasOutcome,
+            outcome,
+            hasOutcome ? Exchange.SafeValue(this as dict, "outcomeId") : null,
+            hasOutcome ? Exchange.SafeValue(this as dict, "market") : null);
+        // post the newest pair into the one slot; a reader's put-back can fill it
+        // between the drop and the post, so retry a bounded number of times
+        BookRows stale;
+        var attempts = 0;
+        while (!this._published.TryAdd(posted) && attempts++ < 8)
+        {
+            this._published.TryTake(out stale);
+        }
+    }
+
+    // the ported API treats Add as an upsert (CustomConcurrentDictionary hid
+    // Dictionary.Add that way); a duplicate key must not throw
+    public new void Add(string key, object value)
+    {
+        this[key] = value;
     }
 
     public IList<object> cache
@@ -216,12 +276,9 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     public IOrderBook limit()
     {
-        // Ported delivery contract: the watch* wrapper calls this on the book it just
-        // received, so the returned book is depth-bounded. It trims trailing rows only;
-        // the receive loop appends and never looks at the trimmed tail.
-        this.asks.limit();
-        this.bids.limit();
-        this.PublishRows();
+        // Ported delivery contract: the book a caller receives is depth-bounded. The
+        // owner trims both sides when it posts the pair, so this call has nothing left
+        // to trim and must not touch the live book from a caller thread.
         return this;
     }
 
@@ -296,26 +353,25 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     public IOrderBook Copy()
     {
-        // Build from the owner's last publication, never from the live sides: this
-        // runs on the caller's thread, the sides are mutated on the receive loop.
-        var rows = this.PublishedRows();
-        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        // Built from the owner's last hand-off, never from the live book: this runs on
+        // a caller thread while the receive loop keeps mutating the sides and slots.
+        var rows = this.TakePair();
         var copy = new OrderBook(new Dictionary<string, object>());
-        var askSide = new Asks(new List<object>(), depth);
+        var askSide = new Asks(new List<object>(), rows.depth);
         askSide.LoadFromSnapshot(rows.asks, rows.askPrices);
-        var bidSide = new Bids(new List<object>(), depth);
+        var bidSide = new Bids(new List<object>(), rows.depth);
         bidSide.LoadFromSnapshot(rows.bids, rows.bidPrices);
         copy.asks = askSide;
         copy.bids = bidSide;
-        copy.nonce = this.nonce;
-        copy.timestamp = this.timestamp;
-        copy["datetime"] = this["datetime"];
-        copy.symbol = this.symbol;
-        if (this.ContainsKey("outcome"))
+        copy["nonce"] = rows.nonce;
+        copy["timestamp"] = rows.timestamp;
+        copy["datetime"] = rows.datetime;
+        copy["symbol"] = rows.symbol;
+        if (rows.hasOutcome)
         {
-            copy["outcome"] = this["outcome"];
-            copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
-            copy["market"] = Exchange.SafeValue(this as dict, "market");
+            copy["outcome"] = rows.outcome;
+            copy["outcomeId"] = rows.outcomeId;
+            copy["market"] = rows.market;
         }
         copy.PublishRows();
         return copy;
@@ -353,12 +409,9 @@ public class CountedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        // Ported delivery contract: the watch* wrapper calls this on the book it just
-        // received, so the returned book is depth-bounded. It trims trailing rows only;
-        // the receive loop appends and never looks at the trimmed tail.
-        this.asks.limit();
-        this.bids.limit();
-        this.PublishRows();
+        // Ported delivery contract: the book a caller receives is depth-bounded. The
+        // owner trims both sides when it posts the pair, so this call has nothing left
+        // to trim and must not touch the live book from a caller thread.
         return this;
     }
 
@@ -367,26 +420,25 @@ public class CountedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook Copy()
     {
-        // Build from the owner's last publication, never from the live sides: this
-        // runs on the caller's thread, the sides are mutated on the receive loop.
-        var rows = this.PublishedRows();
-        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        // Built from the owner's last hand-off, never from the live book: this runs on
+        // a caller thread while the receive loop keeps mutating the sides and slots.
+        var rows = this.TakePair();
         var copy = new CountedOrderBook(new Dictionary<string, object>());
-        var askSide = new CountedAsks(new List<object>(), depth);
+        var askSide = new CountedAsks(new List<object>(), rows.depth);
         askSide.LoadFromSnapshot(rows.asks, rows.askPrices);
-        var bidSide = new CountedBids(new List<object>(), depth);
+        var bidSide = new CountedBids(new List<object>(), rows.depth);
         bidSide.LoadFromSnapshot(rows.bids, rows.bidPrices);
         copy.asks = askSide;
         copy.bids = bidSide;
-        copy.nonce = this.nonce;
-        copy.timestamp = this.timestamp;
-        copy["datetime"] = this["datetime"];
-        copy.symbol = this.symbol;
-        if (this.ContainsKey("outcome"))
+        copy["nonce"] = rows.nonce;
+        copy["timestamp"] = rows.timestamp;
+        copy["datetime"] = rows.datetime;
+        copy["symbol"] = rows.symbol;
+        if (rows.hasOutcome)
         {
-            copy["outcome"] = this["outcome"];
-            copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
-            copy["market"] = Exchange.SafeValue(this as dict, "market");
+            copy["outcome"] = rows.outcome;
+            copy["outcomeId"] = rows.outcomeId;
+            copy["market"] = rows.market;
         }
         copy.PublishRows();
         return copy;
@@ -416,12 +468,9 @@ public class IndexedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        // Ported delivery contract: the watch* wrapper calls this on the book it just
-        // received, so the returned book is depth-bounded. It trims trailing rows only;
-        // the receive loop appends and never looks at the trimmed tail.
-        this.asks.limit();
-        this.bids.limit();
-        this.PublishRows();
+        // Ported delivery contract: the book a caller receives is depth-bounded. The
+        // owner trims both sides when it posts the pair, so this call has nothing left
+        // to trim and must not touch the live book from a caller thread.
         return this;
     }
 
@@ -430,26 +479,24 @@ public class IndexedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook Copy()
     {
-        // Build from the owner's last publication, never from the live sides: this
-        // runs on the caller's thread, the sides are mutated on the receive loop.
-        var rows = this.PublishedRows();
-        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
+        // Built from the owner's last hand-off, never from the live book: this runs on
+        // a caller thread while the receive loop keeps mutating the sides and slots.
+        var rows = this.TakePair();
         var copy = new IndexedOrderBook(new Dictionary<string, object>());
-        var askSide = new IndexedAsks(new List<object>(), depth);
+        var askSide = new IndexedAsks(new List<object>(), rows.depth);
         askSide.LoadFromSnapshot(rows.asks, rows.askPrices);
-        var bidSide = new IndexedBids(new List<object>(), depth);
+        var bidSide = new IndexedBids(new List<object>(), rows.depth);
         bidSide.LoadFromSnapshot(rows.bids, rows.bidPrices);
         copy.asks = askSide;
         copy.bids = bidSide;
-        copy.nonce = this.nonce;
-        copy.timestamp = this.timestamp;
-        copy["datetime"] = this["datetime"];
-        copy.symbol = this.symbol;
-        if (this.ContainsKey("outcome"))
-        {
-            copy["outcome"] = this["outcome"];
-            copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
-            copy["market"] = Exchange.SafeValue(this as dict, "market");
+        copy["nonce"] = rows.nonce;
+        copy["timestamp"] = rows.timestamp;
+        copy["datetime"] = rows.datetime;
+        copy["symbol"] = rows.symbol;
+        if (rows.hasOutcome)\n        {
+            copy["outcome"] = rows.outcome;
+            copy["outcomeId"] = rows.outcomeId;
+            copy["market"] = rows.market;
         }
         copy.PublishRows();
         return copy;
