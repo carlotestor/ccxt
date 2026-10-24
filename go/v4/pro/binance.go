@@ -262,9 +262,9 @@ func (this *Binance) GetWsUrl(typeVar any, category string) any {
 	if (ccxt.IsEqual(typeVar, "option")) || (ccxt.IsEqual(typeVar, "optionMarket")) || (ccxt.IsEqual(typeVar, "optionPrivate")) {
 		// eOptions urls are stored as full public/market/private paths, no category rewrite needed,
 		// see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
+		return ccxt.GetValue(this.UrlsApi["ws"], typeVar)
 	}
-	var baseUrl any = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
+	var baseUrl any = ccxt.GetValue(this.UrlsApi["ws"], typeVar)
 	if ccxt.IsEqual(typeVar, "linear") {
 		// skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
 		// const firstProtocol = baseUrl.indexOf ('://')
@@ -299,7 +299,7 @@ func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey any) any {
 	if ccxt.IsEqual(typeVar, "linear") {
 		return ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, "private"), "?listenKey="), listenKey)
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], typeVar)
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " getPrivateWsUrl() has no websocket url for this market type"))
 	}
@@ -308,7 +308,7 @@ func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey any) any {
 func (this *Binance) GetStockWsUrl(optionalArgs ...any) any {
 	var streamType string = ccxt.GetArgString(optionalArgs, 0, "market")
 	_ = streamType
-	var baseUrl *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "stock"))
+	var baseUrl *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["stock"])
 	if streamType == "combined" {
 		return ccxt.Replace(baseUrl, "/ws", "/stream")
 	}
@@ -1206,7 +1206,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	if !ccxt.IsEqual(marketType, "linear") {
 		panic(ccxt.BadRequest(this.Id + " fetchOrderBookWs only supports swap markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], marketType)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -1670,7 +1670,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 			var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
 			var underlying string = *baseIdLower + "" + *quoteIdLower
-			if !(func() bool { _, ok := seenUnderlyings[underlying]; return ok }()) {
+			if _, ok := seenUnderlyings[underlying]; !ok {
 				seenUnderlyings[underlying] = true
 				subParams = append(subParams, underlying+"@optionTrade")
 			}
@@ -1789,7 +1789,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 			var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
 			var underlying string = *baseIdLower + "" + *quoteIdLower
-			if !(func() bool { _, ok := seenUnderlyings[underlying]; return ok }()) {
+			if _, ok := seenUnderlyings[underlying]; !ok {
 				seenUnderlyings[underlying] = true
 				subParams = append(subParams, underlying+"@optionTrade")
 			}
@@ -1916,7 +1916,7 @@ func (this *Binance) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: r.Value}
 	return nil
 }
-func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// public watchTrades
 	//
@@ -2115,7 +2115,7 @@ func (this *Binance) HandleTrade(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade::" + *symbol
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
+	var trade map[string]any = this.ParseWsTrade(message, market)
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2651,13 +2651,18 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	}
 	var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", unifiedTimeframe))
-	this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), unifiedTimeframe)
+	if this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
+	var stored any
+	if unifiedTimeframe != nil {
+		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (unifiedTimeframe != nil) {
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], unifiedTimeframe, stored)
+			this.Ohlcvs[*symbol][*unifiedTimeframe] = stored
 		}
 	}
 	stored.(ccxt.Appender).Append(parsed)
@@ -2700,7 +2705,7 @@ func (this *Binance) fetchTickerWsBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sy
 	if !ccxt.IsEqual(typeVar, "linear") {
 		panic(ccxt.BadRequest(this.Id + " fetchTickerWs only supports swap markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -2783,7 +2788,7 @@ func (this *Binance) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "linear")) {
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCVWs only supports spot or swap markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], marketType)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -3589,7 +3594,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 				var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 				var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
 				var underlying string = *baseIdLower + "" + *quoteIdLower
-				if !(func() bool { _, ok := seenUnderlyings[underlying]; return ok }()) {
+				if _, ok := seenUnderlyings[underlying]; !ok {
 					seenUnderlyings[underlying] = true
 					subscriptionArgs = append(subscriptionArgs, underlying+"@optionMarkPrice")
 				}
@@ -3714,7 +3719,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 		return nil
 	}
 }
-func (this *Binance) ParseWsTicker(message any, marketType any) any {
+func (this *Binance) ParseWsTicker(message any, marketType any) map[string]any {
 	// markPrice
 	//   {
 	//       "e": "markPriceUpdate",   // Event type
@@ -3879,7 +3884,7 @@ func (this *Binance) HandleTickerWs(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(result, "contract"))
+	var ticker map[string]any = this.ParseWsTicker(result, "contract")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Binance) HandleBidsAsks(client any, message any) {
@@ -3990,7 +3995,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			}
 			return tickerFallbackType
 		}()
-		var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, tickerMarketType))
+		var parsedTicker map[string]any = this.ParseWsTicker(ticker, tickerMarketType)
 		var symbol *string = ccxt.SafeStringPtr(parsedTicker["symbol"])
 		if symbol != nil {
 			newTickers[*symbol] = parsedTicker
@@ -4064,7 +4069,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 	defer ccxt.ReturnPanicError(ch)
 	var marketType string = ccxt.GetArgString(optionalArgs, 0, "spot")
 	_ = marketType
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], marketType)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -4185,7 +4190,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 	_ = marketType
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), "spot")
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], "spot")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -4221,9 +4226,11 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 						}
 						ret_ = func(this *Binance) any {
 							// catch block:
-							ccxt.AddElementToObject(this.Options, marketType, this.Extend(options, map[string]any{
+							if this.Options != nil {
+								this.Options[marketType] = this.Extend(options, map[string]any{
 								"lastAuthenticatedTime": 0,
-							}))
+							})
+							}
 							client.(ccxt.ClientInterface).Reject(e, messageHash)
 							panic(e)
 
@@ -4278,14 +4285,16 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 				if r2.Err != nil {
 					panic(r2.Err)
 				}
-				ccxt.AddElementToObject(this.Options, marketType, this.Extend(options, map[string]any{
+				if this.Options != nil {
+					this.Options[marketType] = this.Extend(options, map[string]any{
 					"listenToken":           listenToken,
 					"expirationTime":        expirationTime,
 					"lastAuthenticatedTime": time,
 					"symbol":                symbol,
 					"isIsolated":            isIsolated,
 					"validity":              validity,
-				}))
+				})
+				}
 				// Schedule token renewal before expiration
 				if expirationTime != nil {
 					var renewalTime int64 = (*expirationTime - time) - 60000 // Renew 1 minute before expiration
@@ -4484,10 +4493,12 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
+				if this.Options != nil && typeVar != nil {
+					this.Options[*typeVar] = this.Extend(options, map[string]any{
 					"listenKey":             listenKey,
 					"lastAuthenticatedTime": time,
-				}))
+				})
+				}
 				// hoisted out of the delay call: the transpilers garble an inline
 				// dict literal nested inside a delay argument
 				var delayParams map[string]any = paramsOmitted
@@ -4593,10 +4604,12 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 							var messageHash string = messageHashes[i]
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
-						ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
+						if this.Options != nil && typeVar != nil {
+							this.Options[*typeVar] = this.Extend(options, map[string]any{
 							"listenKey":             nil,
 							"lastAuthenticatedTime": 0,
-						}))
+						})
+						}
 
 						return nil
 
@@ -4649,10 +4662,12 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 		}(this)
 
 	}
-	ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
+	if this.Options != nil && typeVar != nil {
+		this.Options[*typeVar] = this.Extend(options, map[string]any{
 		"listenKey":             listenKey,
 		"lastAuthenticatedTime": time,
-	}))
+	})
+	}
 	// whether or not to schedule another listenKey keepAlive request
 	var clients []any = ccxt.ObjectValues(this.Clients)
 	var refreshRateKey string = "listenKeyRefreshRate"
@@ -4778,7 +4793,7 @@ func (this *Binance) fetchBalanceWsBody(ch chan ccxt.AsyncResult[ccxt.Balances],
 	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "linear")) && (!ccxt.IsEqual(typeVar, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " fetchBalanceWs only supports spot or swap markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -4977,7 +4992,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	if (!ccxt.IsEqual(typeVar, "linear")) && (!ccxt.IsEqual(typeVar, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " fetchPositionsWs only supports swap markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -5099,7 +5114,7 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	var urlType any = typeVar
 	if (typeVar == "spot") || (typeVar == "margin") {
 		// route to WebSocket API connection where the user data stream is subscribed
-		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), "spot")
+		url = ccxt.GetValue(this.UrlsApiSections["ws"]["ws-api"], "spot")
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -5366,7 +5381,7 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "linear")) && (!ccxt.IsEqual(marketType, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs only supports spot or swap markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], marketType)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -5564,7 +5579,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "linear")) && (!ccxt.IsEqual(marketType, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " editOrderWs only supports spot or swap markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], marketType)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -5760,7 +5775,7 @@ func (this *Binance) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	}
 	var market map[string]any = this.Market(symbol)
 	var typeVar any = this.GetMarketType("cancelOrderWs", market, params)
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -5854,7 +5869,7 @@ func (this *Binance) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	if !ccxt.IsEqual(typeVar, "spot") {
 		panic(ccxt.BadRequest(this.Id + " cancelAllOrdersWs only supports spot markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -5931,7 +5946,7 @@ func (this *Binance) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "linear")) && (!ccxt.IsEqual(typeVar, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " fetchOrderWs only supports spot or swap markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -6021,7 +6036,7 @@ func (this *Binance) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	if !ccxt.IsEqual(typeVar, "spot") {
 		panic(ccxt.BadRequest(this.Id + " fetchOrdersWs only supports spot markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -6135,7 +6150,7 @@ func (this *Binance) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	if !ccxt.IsEqual(typeVar, "spot") {
 		panic(ccxt.BadRequest(this.Id + " fetchOpenOrdersWs only supports spot markets"))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -6291,7 +6306,7 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	var url any = ""
 	if (typeVar == "spot") || (typeVar == "margin") {
 		// route orders to ws-api user data stream
-		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), "spot")
+		url = ccxt.GetValue(this.UrlsApiSections["ws"]["ws-api"], "spot")
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -6322,7 +6337,7 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -7317,7 +7332,7 @@ func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "linear")) {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" fetchMyTradesWs does not support ", typeVar), " markets")))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -7397,7 +7412,7 @@ func (this *Binance) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "linear")) {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" fetchTradesWs does not support ", typeVar), " markets")))
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
+	var url *string = this.SafeString(this.UrlsApiSections["ws"]["ws-api"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -7555,7 +7570,7 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	var isPortfolioMargin *bool = ccxt.SafeBoolPtr(ccxt.GetValue(portfolioMarginAndParams, 0))
 	var url any = ""
 	if (typeVar == "spot") || (typeVar == "margin") {
-		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), "spot")
+		url = ccxt.GetValue(this.UrlsApiSections["ws"]["ws-api"], "spot")
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -7590,7 +7605,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 	var messageHash string = "myTrades"
 	var executionType *string = this.SafeString(message, "x")
 	if executionType != nil && *executionType == "TRADE" {
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
+		var trade map[string]any = this.ParseWsTrade(message)
 		var orderId *string = this.SafeString(trade, "order")
 		var tradeFee map[string]any = this.Extend(map[string]any{}, this.SafeDict(trade, "fee", map[string]any{}))
 		var symbol *string = this.SafeString(trade, "symbol")
@@ -7665,7 +7680,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 	}
 }
 func (this *Binance) HandleOrder(client any, message any) {
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
+	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	if symbol != nil {

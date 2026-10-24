@@ -653,7 +653,7 @@ func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data[marketId], market))
+		var ticker map[string]any = this.ParseWsTicker(data[marketId], market)
 		this.Tickers.Store(symbol, ticker)
 		result = append(result, ticker)
 		var messageHash string = topic + "::" + *symbol
@@ -661,7 +661,7 @@ func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Hitbtc) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "t": 1614815872000,             // Timestamp in milliseconds
@@ -1000,7 +1000,7 @@ func (this *Hitbtc) ParseWsTrades(trades any, optionalArgs ...any) any {
 	var symbol *string = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }
-func (this *Hitbtc) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "t": 1626861123552,       // Timestamp in milliseconds
@@ -1137,13 +1137,20 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		if symbol != nil {
-			this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+			if this.Ohlcvs[*symbol] == nil {
+				this.Ohlcvs[*symbol] = map[string]any{}
+			}
 		}
-		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+		var stored any
+		if symbol != nil && timeframe != nil {
+			stored = this.Ohlcvs[*symbol][*timeframe]
+		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 		var ohlcvs any = this.ParseWsOHLCVs(data[marketId], market)
 		for j := 0; j < ccxt.GetArrayLength(ohlcvs); j++ {
@@ -1377,7 +1384,7 @@ func (this *Hitbtc) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 		},
 	}, market))
 }
-func (this *Hitbtc) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "id": 584244931496,
@@ -2013,7 +2020,7 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 			// to do improve this, not very reliable right now
 			var first map[string]any = ccxt.SafeMapTyped(result, 0)
 			var arrayLength int = ccxt.GetArrayLength(result)
-			if (arrayLength == 0) || (func() bool { _, ok := first["client_order_id"]; return ok }()) {
+			if _, ok := first["client_order_id"]; (arrayLength == 0) || ok {
 				this.HandleOrderRequest(client, message)
 			}
 		}

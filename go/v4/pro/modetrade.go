@@ -98,7 +98,7 @@ func (this *Modetrade) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHas
 	if (this.AccountId != nil) && (this.AccountId != "") {
 		id = this.AccountId
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
 	}
@@ -258,7 +258,7 @@ func (this *Modetrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sy
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
-func (this *Modetrade) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
+func (this *Modetrade) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",
@@ -319,7 +319,7 @@ func (this *Modetrade) HandleTicker(client any, message map[string]any) any {
 	var market map[string]any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	data["date"] = timestamp
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
+	var ticker map[string]any = this.ParseWsTicker(data, market)
 	ticker["symbol"] = market["symbol"]
 	this.Tickers.Store(market["symbol"], ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, topic)
@@ -414,14 +414,14 @@ func (this *Modetrade) HandleTickers(client any, message map[string]any) {
 			return nil
 		}(), "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(this.Extend(func() any {
+		var ticker map[string]any = this.ParseWsTicker(this.Extend(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
 		}(), map[string]any{
 			"date": timestamp,
-		}), market))
+		}), market)
 		this.Tickers.Store(market["symbol"], ticker)
 		result = append(result, ticker)
 	}
@@ -632,15 +632,25 @@ func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 	}
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
-	var ohlcvCache any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var ohlcvCache any
+	if symbol != nil && timeframe != nil {
+		ohlcvCache = this.Ohlcvs[*symbol][*timeframe]
+	}
 	ohlcvCache.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(ohlcvCache, topic)
 }
@@ -718,9 +728,9 @@ func (this *Modetrade) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(this.Extend(data, map[string]any{
+	var trade map[string]any = this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
-	}), market))
+	}), market)
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
@@ -736,7 +746,7 @@ func (this *Modetrade) HandleTrade(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Trades, symbol, trades)
 	client.(ccxt.ClientInterface).Resolve(trades, topic)
 }
-func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol":"PERP_ADA_USDC",
@@ -851,7 +861,7 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " authenticate() has no private websocket url"))
 	}
@@ -918,7 +928,7 @@ func (this *Modetrade) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPrivate() has no private websocket url"))
 	}
@@ -951,7 +961,7 @@ func (this *Modetrade) watchPrivateMultipleBody(ch chan ccxt.AsyncResult[[]any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPrivateMultiple() has no private websocket url"))
 	}
@@ -1125,7 +1135,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Modetrade) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Modetrade) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDT",
@@ -1310,7 +1320,7 @@ func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 	}
 }
 func (this *Modetrade) HandleOrder(client any, message any, topic any) {
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
+	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	if symbol != nil {
@@ -1378,7 +1388,7 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
+	var trade map[string]any = this.ParseWsTrade(message, market)
 	var trades any = this.MyTrades
 	if ccxt.IsEqual(trades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1435,7 +1445,7 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	} else {
 		messageHashes = append(messageHashes, "positions")
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPositions() has no private websocket url"))
 	}

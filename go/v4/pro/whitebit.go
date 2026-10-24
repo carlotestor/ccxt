@@ -168,12 +168,14 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 		if _, ok := this.Ohlcvs[*symbol]; !ok {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), "unknown")) {
+		if _, ok := this.Ohlcvs[*symbol]["unknown"]; !ok {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored := ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], "unknown", stored)
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol]["unknown"] = stored
+			}
 		}
-		var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), "unknown")
+		var ohlcv any = this.Ohlcvs[*symbol]["unknown"]
 		ohlcv.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 	}
@@ -660,13 +662,13 @@ func (this *Whitebit) HandleMyTrades(client any, message map[string]any, optiona
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
 	var stored any = this.MyTrades
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade))
+	var parsed map[string]any = this.ParseWsTrade(trade)
 	stored.(ccxt.Appender).Append(parsed)
 	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", symbol))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//   [
 	//         1894994106, // id
@@ -838,15 +840,15 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 	}
 	var stored any = this.Orders
 	var status *int64 = this.SafeInteger(params, 0)
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(this.Extend(data, map[string]any{
+	var parsed map[string]any = this.ParseWsOrder(this.Extend(data, map[string]any{
 		"status": status,
-	})))
+	}))
 	stored.(ccxt.Appender).Append(parsed)
 	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", symbol))
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
-func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//   {
 	//         "id": 96433622651,

@@ -60,7 +60,7 @@ func (this *Paradex) Describe() any {
 	})
 }
 func (this *Paradex) GetWsUrl() any {
-	var url any = ccxt.GetValue(this.Urls["api"], "ws")
+	var url any = this.UrlsApi["ws"]
 	if !(*this.SafeBool(this.Options, "sbe", true)) {
 		return url
 	}

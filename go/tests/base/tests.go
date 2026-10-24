@@ -228,9 +228,9 @@ func (this *testMainClass) ImportFilesAsync(exchange ccxt.ICoreExchange) <-chan 
 func (this *testMainClass) importFilesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var properties any = ObjectKeys(exchange.GetHas())
-	AppendToArray(&properties, "loadMarkets")
-	AppendToArray(&properties, "afterConstruct")
+	var properties []string = ObjectKeys(exchange.GetHas())
+	properties = append(properties, "loadMarkets")
+	properties = append(properties, "afterConstruct")
 	if EvalTruthy(IsSync()) {
 		this.TestFiles = GetTestFilesSync(properties, this.WsTests)
 	} else {

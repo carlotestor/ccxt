@@ -1259,7 +1259,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[Balances], optiona
 	_ = params
 	var shouldRefresh bool = (this.SafeString2(params, "user", "address") != nil) && (this.SafeBool(params, "enableUnifiedMargin") == nil)
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchBalance", params)
-	userAddress := GetValue(userAddressparamsPublicAddressVariable, 0)
+	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsPublicAddress)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
@@ -7039,7 +7039,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 				break
 			}
 		}
-		if func() bool { _, ok := data["status"]; return ok }() {
+		if _, ok := data["status"]; ok {
 			var errorStatus map[string]any = this.SafeDictMap(data, "status", map[string]any{})
 			var errorMsg *string = this.SafeString(errorStatus, "error")
 			if errorStatus != nil {

@@ -85,7 +85,7 @@ func (this *Blockchaincom) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balanc
 		panic(r.Err)
 	}
 	var messageHash string = "balance"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "balances",
@@ -209,7 +209,7 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV]
 		"granularity": this.ParseNumber(interval),
 	}
 	request = this.DeepExtend(request, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash, request)
 	if r1.Err != nil {
@@ -256,12 +256,19 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 		var timeframeId *string = this.SafeString(request, "granularity")
 		var timeframe *string = this.FindTimeframe(timeframeId)
 		var ohlcv []any = ccxt.SafeListTypedDefault(message, "price", []any{})
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-		var stored any = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
+		var stored any
+		if timeframe != nil {
+			stored = this.Ohlcvs[*symbol][*timeframe]
+		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+			if timeframe != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 		stored.(ccxt.Appender).Append(ohlcv)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -298,7 +305,7 @@ func (this *Blockchaincom) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash string = "ticker:" + *symbolValue
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
@@ -445,7 +452,7 @@ func (this *Blockchaincom) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash string = "trades:" + *symbolValue
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
@@ -499,12 +506,12 @@ func (this *Blockchaincom) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
+	var parsed map[string]any = this.ParseWsTrade(message, market)
 	stored.(ccxt.Appender).Append(parsed)
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
-func (this *Blockchaincom) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Blockchaincom) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "seqnum": 1,
@@ -587,7 +594,7 @@ func (this *Blockchaincom) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 			symbolResolved = nil
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var message map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "trading",
@@ -713,7 +720,7 @@ func (this *Blockchaincom) HandleOrders(client any, message map[string]any) {
 	this.Orders = cachedOrders
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
-func (this *Blockchaincom) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Blockchaincom) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "seqnum": 3,
@@ -830,7 +837,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Orde
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var typeVar *string = this.SafeString(params, "type", "l2")
 	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	var messageHash string = "orderbook:" + symbol + ":" + *typeVar
@@ -973,7 +980,7 @@ func (this *Blockchaincom) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)

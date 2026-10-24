@@ -113,7 +113,7 @@ func (this *Bullish) watchPublicBody(ch chan ccxt.AsyncResult[any], url string, 
 		"params":  request,
 		"id":      id,
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
 	}
@@ -138,7 +138,7 @@ func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	_ = request
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 
 	r := <-this.HandleTokenAsync()
 	if r.Err != nil {
@@ -297,7 +297,7 @@ func (this *Bullish) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTicker() has no public websocket url"))
 	}

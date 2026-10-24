@@ -107,7 +107,7 @@ func (this *Onetrading) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash string = "balance"
 	var subscribeHash string = "ACCOUNT_HISTORY"
 	var bpRemainingQuota *int64 = this.SafeInteger(this.Options, "bp_remaining_quota", 200)
@@ -417,7 +417,7 @@ func (this *Onetrading) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribeHash string = "ACCOUNT_HISTORY"
 	var bpRemainingQuota *int64 = this.SafeInteger(this.Options, "bp_remaining_quota", 200)
 	var subscribe map[string]any = map[string]any{
@@ -651,7 +651,7 @@ func (this *Onetrading) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribeHash *string = this.SafeString(params, "channel", "ACCOUNT_HISTORY")
 	var bpRemainingQuota *int64 = this.SafeInteger(this.Options, "bp_remaining_quota", 200)
 	var subscribe map[string]any = map[string]any{
@@ -1324,7 +1324,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId any = this.SafeDict(timeframes, timeframe)
 	if timeframeId == nil {
@@ -1434,16 +1434,22 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbol+".", timeframe))
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
-	var symbolOhlcvs any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, symbolOhlcvs)
-	var stored any = this.SafeValue(symbolOhlcvs, timeframe)
+	var symbolOhlcvs map[string]any = this.Ohlcvs[*symbol]
+	if symbolOhlcvs == nil {
+		symbolOhlcvs = map[string]any{}
+	}
+	this.Ohlcvs[*symbol] = symbolOhlcvs
+	var stored any
+	if timeframe != nil {
+		stored = symbolOhlcvs[*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 	}
 	stored.(ccxt.Appender).Append(parsed)
 	if (symbol != nil) && (timeframe != nil) {
-		ccxt.AddElementToObject(symbolOhlcvs, timeframe, stored)
+		symbolOhlcvs[*timeframe] = stored
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
@@ -1594,7 +1600,7 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 	} else {
 		marketIds = this.MarketIds(symbols)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client any = this.SafeValue(this.Clients, url)
 	var typeVar string = "SUBSCRIBE"
 	var subscription any = map[string]any{}
@@ -1637,7 +1643,7 @@ func (this *Onetrading) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")

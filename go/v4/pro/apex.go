@@ -201,13 +201,13 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var length int = ccxt.GetArrayLength(trades)
 	for j := 0; j < length; j++ {
 		var index int64 = (int64(length) - int64(j)) - 1
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(trades, index), market))
+		var parsed map[string]any = this.ParseWsTrade(ccxt.GetValue(trades, index), market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// public
 	//    {
@@ -390,7 +390,7 @@ func (this *Apex) GetWsPublicUrl() any {
 	}
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), "&timestamp="), timeStamp)
+		url = ccxt.Add(ccxt.Add(this.SafeString(this.UrlsApi["ws"], "public"), "&timestamp="), timeStamp)
 		this.Options["wsPublicUrl"] = url
 	}
 	return url
@@ -402,7 +402,7 @@ func (this *Apex) GetWsPrivateUrl() any {
 	}
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "&timestamp="), timeStamp)
+		url = ccxt.Add(ccxt.Add(this.SafeString(this.UrlsApi["ws"], "private"), "&timestamp="), timeStamp)
 		this.Options["wsPrivateUrl"] = url
 	}
 	return url
@@ -821,9 +821,14 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	}
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseWsOHLCV(func() any {
 			if i >= 0 && i < len(data) {
@@ -1104,7 +1109,7 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 			}
 			return nil
 		}()
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
+		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
 			symbols[*symbol] = true

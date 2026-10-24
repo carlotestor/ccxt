@@ -696,7 +696,7 @@ func (this *Mercado) ParseBalance(response any) map[string]any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if func() bool { _, ok := balances[currencyId]; return ok }() {
+		if _, ok := balances[currencyId]; ok {
 			var balance map[string]any = SafeMapTyped(balances, currencyId)
 			var account map[string]any = this.Account()
 			account["free"] = this.SafeString(balance, "available")

@@ -2719,7 +2719,7 @@ func (this *Kalshi) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	var orders []any = ccxt.PredictionOrdersToList(r.Value)
 	var result []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var order any = ccxt.GetValue(orders, i)
+		var order any = orders[i]
 		var status *string = this.SafeString(order, "status")
 		if (status != nil && *status == "closed") || (status != nil && *status == "canceled") {
 			result = append(result, order)

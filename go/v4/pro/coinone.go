@@ -92,7 +92,7 @@ func (this *Coinone) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "ORDERBOOK",
@@ -197,7 +197,7 @@ func (this *Coinone) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("ticker:" + market["symbol"].(string))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "TICKER",
@@ -256,7 +256,7 @@ func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data))
+	var ticker map[string]any = this.ParseWsTicker(data)
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol == nil {
 		return
@@ -265,7 +265,7 @@ func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	var messageHash string = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
 }
-func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
+func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "quote_currency": "KRW",
@@ -361,7 +361,7 @@ func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("trade:" + market["symbol"].(string))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "TRADE",
@@ -402,7 +402,7 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+	var trade map[string]any = this.ParseWsTrade(data)
 	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if stored == nil {
@@ -414,7 +414,7 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", symbol))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "quote_currency": "KRW",

@@ -2293,7 +2293,7 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		request["end_timestamp"] = until
 	}
 	var response map[string]any = nil
-	if (since == nil) && !(func() bool { _, ok := request["end_timestamp"]; return ok }()) {
+	if _, ok := request["end_timestamp"]; (since == nil) && !ok {
 
 		r1 := <-this.PublicGetGetLastTradesByInstrument(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {

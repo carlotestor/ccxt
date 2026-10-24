@@ -270,11 +270,19 @@ func (this *Alpaca) HandleOHLCV(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "S")
 	var symbol *string = this.SafeSymbol(marketId)
-	var stored any = this.SafeValue(this.Ohlcvs, symbol)
+	var stored any
+	if symbol != nil {
+		stored = this.Ohlcvs[*symbol]["1m"]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, stored)
+		if symbol != nil {
+			if this.Ohlcvs[*symbol] == nil {
+				this.Ohlcvs[*symbol] = map[string]any{}
+			}
+			this.Ohlcvs[*symbol]["1m"] = stored
+		}
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(message))
 	stored.(ccxt.Appender).Append(parsed)

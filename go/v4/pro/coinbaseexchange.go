@@ -646,7 +646,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncRes
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 		messageHashes = append(messageHashes, name+":"+*marketId)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": marketIds,
@@ -703,7 +703,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": []any{market["id"]},
@@ -744,7 +744,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message any) any {
 	//
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
+		var trade map[string]any = this.ParseWsTrade(message)
 		var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 		// the exchange sends type = 'match'
 		// but requires 'matches' upon subscribing
@@ -767,7 +767,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message any) any {
 func (this *Coinbaseexchange) HandleMyTrade(client any, message any) any {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
+		var trade map[string]any = this.ParseWsTrade(message)
 		var typeVar string = "myTrades"
 		var messageHash string = typeVar + ":" + *marketId
 		var tradesArray any = this.MyTrades
@@ -781,7 +781,7 @@ func (this *Coinbaseexchange) HandleMyTrade(client any, message any) any {
 	}
 	return message
 }
-func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// private trades
 	// {
@@ -834,23 +834,25 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	// }
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var parsed any = ccxt.TradeToMap(this.base.ParseTrade(trade))
+	var parsed map[string]any = ccxt.TradeToMap(this.base.ParseTrade(trade))
 	var feeRate *string = nil
 	var isMaker bool = false
 	if ccxt.InOp(trade, "maker_fee_rate") {
 		isMaker = true
-		ccxt.AddElementToObject(parsed, "takerOrMaker", "maker")
+		if parsed != nil { parsed["takerOrMaker"] = "maker" }
 		feeRate = this.SafeString(trade, "maker_fee_rate")
 	} else {
-		ccxt.AddElementToObject(parsed, "takerOrMaker", "taker")
+		if parsed != nil { parsed["takerOrMaker"] = "taker" }
 		feeRate = this.SafeString(trade, "taker_fee_rate")
 		// side always represents the maker side of the trade
 		// so if we're taker, we invert it
-		var currentSide *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "side"))
-		ccxt.AddElementToObject(parsed, "side", this.SafeString(map[string]any{
-			"buy":  "sell",
-			"sell": "buy",
-		}, currentSide, currentSide))
+		var currentSide *string = ccxt.SafeStringPtr(parsed["side"])
+		if parsed != nil {
+			parsed["side"] = *this.SafeString(map[string]any{
+				"buy":  "sell",
+				"sell": "buy",
+			}, currentSide, currentSide)
+		}
 	}
 	var idKey string = "taker_order_id"
 	if isMaker {
@@ -860,15 +862,17 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.Market(ccxt.GetValue(parsed, "symbol"))
 	var feeCurrency *string = ccxt.SafeStringPtr(marketResolved["quote"])
 	var feeCost *string = nil
-	if (!ccxt.IsEqual(ccxt.GetValue(parsed, "cost"), nil)) && (feeRate != nil) {
+	if (!ccxt.IsEqual(parsed["cost"], nil)) && (feeRate != nil) {
 		var cost *string = this.SafeString(parsed, "cost")
 		feeCost = ccxt.Precise.StringMul(cost, feeRate)
 	}
-	ccxt.AddElementToObject(parsed, "fee", map[string]any{
-		"rate":     this.ParseNumber(feeRate),
-		"cost":     this.ParseNumber(feeCost),
-		"currency": feeCurrency,
-	})
+	if parsed != nil {
+		parsed["fee"] = map[string]any{
+			"rate":     this.ParseNumber(feeRate),
+			"cost":     this.ParseNumber(feeCost),
+			"currency": feeCurrency,
+		}
+	}
 	return parsed
 }
 func (this *Coinbaseexchange) ParseWsOrderStatus(status *string) *string {
@@ -981,7 +985,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 			previousOrder = this.SafeDictN(previousOrders, []any{makerOrderId, takerOrderId})
 		}
 		if previousOrder == nil {
-			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
+			var parsed map[string]any = this.ParseWsOrder(message)
 			orders.(ccxt.Appender).Append(parsed)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		} else {
@@ -993,7 +997,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 			var previousSequence *int64 = this.SafeInteger(previousInfo, "sequence")
 			if (previousSequence == nil) || (sequence != nil && (previousSequence == nil || *sequence > *previousSequence)) {
 				if typeVar != nil && *typeVar == "match" {
-					var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
+					var trade map[string]any = this.ParseWsTrade(message)
 					if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 						ccxt.AddElementToObject(previousOrder, "trades", []any{})
 					}
@@ -1044,7 +1048,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 				} else if (typeVar != nil && *typeVar == "received") || (typeVar != nil && *typeVar == "done") {
 					var info map[string]any = this.Extend(ccxt.GetValue(previousOrder, "info"), message)
-					var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(info))
+					var order map[string]any = this.ParseWsOrder(info)
 					var keys []string = nil
 					if order != nil {
 						keys = make([]string, 0, len(order))
@@ -1070,7 +1074,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 		}
 	}
 }
-func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "order_id")

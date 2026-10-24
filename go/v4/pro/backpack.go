@@ -179,7 +179,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 	var symbolsResolved []any = []any{}
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var kind string = func() string {
 		if bidAsk == true {
@@ -324,7 +324,7 @@ func (this *Backpack) watchPublicBody(ch chan ccxt.AsyncResult[any], topics any,
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var method string = "SUBSCRIBE"
 	if unwatch == true {
 		method = "UNSUBSCRIBE"
@@ -360,7 +360,7 @@ func (this *Backpack) watchPrivateBody(ch chan ccxt.AsyncResult[any], topics any
 	var unwatch bool = ccxt.GetArgBool(optionalArgs, 1, false)
 	_ = unwatch
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var instruction string = "subscribe"
 	var ts string = ccxt.ToString(this.Nonce())
 	var method string = "SUBSCRIBE"
@@ -413,8 +413,8 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			var symbol *string = this.SafeString(splitHashes, 2)
 			var timeframe *string = this.SafeString(splitHashes, 3)
 			if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
-				if ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe) {
-					ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
+					ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
 				}
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {
@@ -655,7 +655,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 		var mappedTicker map[string]any = this.Extend(ticker, map[string]any{
 			"s": market["id"],
 		})
-		var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(mappedTicker, market))
+		var parsedTicker map[string]any = this.ParseWsTicker(mappedTicker, market)
 		parsedTicker["info"] = ticker
 		this.Tickers.Store(symbol, parsedTicker)
 		client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
@@ -666,12 +666,12 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	var marketId *string = this.SafeString(ticker, "s")
 	var fallbackMarket map[string]any = this.SafeMarket(marketId)
 	var fallbackSymbol *string = this.SafeSymbol(marketId, fallbackMarket)
-	var fallbackTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, fallbackMarket))
+	var fallbackTicker map[string]any = this.ParseWsTicker(ticker, fallbackMarket)
 	var fallbackHash string = "ticker" + ":" + *fallbackSymbol
 	this.Tickers.Store(fallbackSymbol, fallbackTicker)
 	client.(ccxt.ClientInterface).Resolve(fallbackTicker, fallbackHash)
 }
-func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         E: '1754178406415232',
@@ -1213,9 +1213,14 @@ func (this *Backpack) HandleOHLCV(client any, message any) {
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
-	var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var ohlcv any
+	if symbol != nil && timeframe != nil {
+		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+	}
 	var parsed any = this.ParseWsOHLCV(data)
 	ohlcv.(ccxt.Appender).Append(parsed)
 	var messageHash string = "candles:" + *symbol + ":" + *timeframe
@@ -1492,13 +1497,13 @@ func (this *Backpack) HandleTrades(client any, message any) {
 	if symbol != nil {
 		cache = this.Trades[*symbol]
 	}
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
+	var trade map[string]any = this.ParseWsTrade(data, market)
 	cache.(ccxt.Appender).Append(trade)
 	var messageHash string = "trades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 	client.(ccxt.ClientInterface).Resolve(cache, "trades")
 }
-func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         E: '1754601477746429',
@@ -2288,7 +2293,7 @@ func (this *Backpack) HandleBalance(client any, message any) bool {
 	client.(ccxt.ClientInterface).Resolve(parsed, "balance")
 	return true
 }
-func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         E: '1754939110175879',

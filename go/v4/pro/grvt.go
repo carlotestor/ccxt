@@ -143,7 +143,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], messageHa
 		apiPart = "publicMarket"
 	}
 
-	r := <-this.WatchMultiple(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), apiPart), messageHashes, payload, rawHashes)
+	r := <-this.WatchMultiple(this.UrlsApiSections["ws"][apiPart], messageHashes, payload, rawHashes)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -371,11 +371,11 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
+	var ticker map[string]any = this.ParseWsTicker(data, market)
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*symbol)
 }
-func (this *Grvt) ParseWsTicker(message map[string]any, optionalArgs ...any) any {
+func (this *Grvt) ParseWsTicker(message map[string]any, optionalArgs ...any) map[string]any {
 	// same dict as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
@@ -515,7 +515,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+	var parsed map[string]any = this.ParseWsTrade(data)
 	var stored any
 	if symbol != nil {
 		stored = this.Trades[*symbol]
@@ -523,7 +523,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
 }
-func (this *Grvt) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Grvt) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
@@ -694,12 +694,19 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	var timeframeId string = strings.Replace(*secondPart, "-TRADE", "", 1)
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
-	this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+	if this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
 	if !(ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
 		var limit any = this.HandleOption("watchOHLCV", "limit", 1000)
-		ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, ccxt.NewArrayCacheByTimestamp(limit))
+		if timeframe != nil {
+			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	var parsed any = this.ParseWsOHLCV(data, market)
 	stored.(ccxt.Appender).Append(parsed)
 	var resolveData []any = []any{symbol, timeframe, stored}
@@ -932,7 +939,7 @@ func (this *Grvt) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 			},
 		}
 		this.ExtendExchangeOptions(defaultOptions)
-		this.Client(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateTrading"))
+		this.Client(this.UrlsApiSections["ws"]["privateTrading"])
 	}
 	return nil
 }
@@ -1327,12 +1334,12 @@ func (this *Grvt) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(data))
+	var order map[string]any = this.ParseWsOrder(data)
 	this.Orders.(ccxt.Appender).Append(order)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("order::", order["symbol"]))
 }
-func (this *Grvt) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Grvt) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market

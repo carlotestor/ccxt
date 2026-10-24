@@ -216,7 +216,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[*string], opt
 	var isSpot bool
 	var typeVar *string = nil
 	var market map[string]any = nil
-	var url any = ccxt.GetValue(this.Urls["api"], "ws")
+	var url any = this.UrlsApi["ws"]
 	if symbol != nil {
 		market = this.Market(symbol)
 		isUsdcSettled = (market["settle"] == "USDC")
@@ -324,7 +324,7 @@ func (this *Bybit) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbo
 		}
 	}
 	var orderRequest map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, params, true))
-	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(this.UrlsApiSections["ws"]["private"], "trade"))
 
 	r1 := <-this.AuthenticateAsync(url)
 	if r1.Err != nil {
@@ -406,7 +406,7 @@ func (this *Bybit) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 		}
 	}
 	var orderRequest any = this.EditOrderRequest(ccxt.SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
-	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(this.UrlsApiSections["ws"]["private"], "trade"))
 
 	r1 := <-this.AuthenticateAsync(url)
 	if r1.Err != nil {
@@ -477,7 +477,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
 	}
 	var orderRequest any = this.CancelOrderRequest(id, symbol, params)
-	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(this.UrlsApiSections["ws"]["private"], "trade"))
 
 	r1 := <-this.AuthenticateAsync(url)
 	if r1.Err != nil {
@@ -1321,7 +1321,10 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var ohlcvsByTimeframe any = this.SafeDict(this.Ohlcvs, symbol)
+	var ohlcvsByTimeframe map[string]any
+	if symbol != nil {
+		ohlcvsByTimeframe = this.Ohlcvs[*symbol]
+	}
 	if ohlcvsByTimeframe == nil {
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
@@ -1329,9 +1332,14 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 	}
 	if ccxt.IsEqual(this.SafeValue(ohlcvsByTimeframe, timeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseWsOHLCV(func() any {
 			if i >= 0 && i < len(data) {
@@ -1943,13 +1951,13 @@ func (this *Bybit) HandleTrades(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	for j := 0; j < ccxt.GetArrayLength(trades); j++ {
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(trades, j), market))
+		var parsed map[string]any = this.ParseWsTrade(ccxt.GetValue(trades, j), market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// public
 	//    {

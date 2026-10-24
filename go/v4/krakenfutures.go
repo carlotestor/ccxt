@@ -1831,7 +1831,7 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[[]Order], orders
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
-		if !(func() bool { _, ok := extendedParams["order_tag"]; return ok }()) {
+		if _, ok := extendedParams["order_tag"]; !ok {
 			// order tag is mandatory so we will generate one if not provided
 			extendedParams["order_tag"] = ToString(this.Sum(i, 1)) // sequential counter
 		}

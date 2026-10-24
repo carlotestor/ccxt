@@ -771,7 +771,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 			}())
 		}
 		for ri := 0; ri < len(restResponses); ri++ {
-			var pageEvents []any = ccxt.SafeListTyped(ccxt.GetValue(restResponses, ri), "events")
+			var pageEvents []any = ccxt.SafeListTyped(restResponses[ri], "events")
 			for ei := 0; ei < len(pageEvents); ei++ {
 				allEvents = append(allEvents, func() any {
 					if ei >= 0 && ei < len(pageEvents) {
@@ -908,7 +908,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[[]map[st
 			}
 			var tagEvents []any = ccxt.MapSliceToList(r.Value)
 			for ei := 0; ei < len(tagEvents); ei++ {
-				var rawEvent any = ccxt.GetValue(tagEvents, ei)
+				var rawEvent any = tagEvents[ei]
 				var eventId *string = this.SafeString(rawEvent, "id")
 				if (eventId != nil) && !(func() bool {
 					if eventId == nil {
@@ -1996,7 +1996,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 			vol = this.SafeNumber(item, "v")
 		}
 		var bucketKey string = strconv.FormatInt(snappedMs, 10)
-		if !(func() bool { _, ok := buckets[bucketKey]; return ok }()) {
+		if _, ok := buckets[bucketKey]; !ok {
 			buckets[bucketKey] = []any{snappedMs, price, price, price, price, vol}
 		} else {
 			var candle any = buckets[bucketKey]
@@ -2443,7 +2443,7 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 	var trades []any = ccxt.PredictionTradesToList(r.Value)
 	var result []any = []any{}
 	for i := 0; i < len(trades); i++ {
-		var trade any = ccxt.GetValue(trades, i)
+		var trade any = trades[i]
 		var info map[string]any = ccxt.SafeMapTyped(trade, "info")
 		var belongs bool = (this.SafeString(trade, "order") != nil && *this.SafeString(trade, "order") == id) || (this.SafeString(info, "taker_order_id") != nil && *this.SafeString(info, "taker_order_id") == id)
 		var makerOrders []any = ccxt.SafeListTyped(info, "maker_orders")
@@ -4662,7 +4662,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 		"assets_ids": []any{tokenId},
 		"type":       "market",
 	}
-	var url any = ccxt.GetValue(this.Urls["api"], "ws")
+	var url any = this.UrlsApi["ws"]
 
 	r1 := <-this.Watch(url, messageHash, subscribeMsg, subscribeHash)
 	if r1.Err != nil {
@@ -4712,7 +4712,7 @@ func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		"assets_ids": []any{tokenId},
 		"type":       "market",
 	}
-	var url any = ccxt.GetValue(this.Urls["api"], "ws")
+	var url any = this.UrlsApi["ws"]
 
 	r1 := <-this.Watch(url, messageHash, subscribeMsg, subscribeHash)
 	if r1.Err != nil {
@@ -4765,7 +4765,7 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 			this.WsCacheSet("Orderbooks", outcomeValue, seededBook)
 		}
 	}
-	var url any = ccxt.GetValue(this.Urls["api"], "ws")
+	var url any = this.UrlsApi["ws"]
 
 	r1 := <-this.Watch(url, messageHash, subscribeMsg, subscribeHash)
 	if r1.Err != nil {
@@ -4994,7 +4994,7 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan ccxt.AsyncResult[ccxt.A
 		"markets": []any{},
 		"type":    "user",
 	}
-	var url any = ccxt.GetValue(this.Urls["api"], "wsUser")
+	var url any = this.UrlsApi["wsUser"]
 	var subscribeHash string = "user"
 
 	r := <-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash)

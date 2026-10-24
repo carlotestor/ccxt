@@ -732,7 +732,7 @@ func (this *Upbit) ParseWsOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "type": "myOrder",
@@ -829,7 +829,7 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}))
 }
-func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	// see: parseWsOrder
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
@@ -898,7 +898,7 @@ func (this *Upbit) HandleMyTrade(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var myTrades any = this.MyTrades
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
+	var trade map[string]any = this.ParseWsTrade(message)
 	myTrades.(ccxt.Appender).Append(trade)
 	var messageHash any = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
@@ -906,7 +906,7 @@ func (this *Upbit) HandleMyTrade(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
 }
 func (this *Upbit) HandleOrder(client any, message map[string]any) {
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
+	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	if this.Orders == nil {

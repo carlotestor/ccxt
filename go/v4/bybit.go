@@ -2262,11 +2262,15 @@ func (this *Bybit) EnableDemoTrading(enable any) {
 	// enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
 	if EvalTruthy(enable) {
 		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
+		this.RefreshUrlsViews()
 		this.Urls["api"] = this.Urls["demotrading"]
+		this.RefreshUrlsViews()
 	} else if _, ok := this.Urls["apiBackupDemoTrading"]; ok {
 		this.Urls["api"] = this.Urls["apiBackupDemoTrading"]
+		this.RefreshUrlsViews()
 		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
 		this.Urls = newUrls
+		this.RefreshUrlsViews()
 	}
 	this.Options["enableDemoTrading"] = enable
 }

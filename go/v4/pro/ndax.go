@@ -75,7 +75,7 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	var market map[string]any = this.Market(symbol)
 	var name string = "SubscribeLevel1"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":        omsId,
@@ -181,7 +181,7 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "SubscribeTrades"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":            omsId,
@@ -314,7 +314,7 @@ func (this *Ndax) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "SubscribeTicker"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":"+timeframe+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":            omsId,
@@ -378,7 +378,9 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		if marketId != nil {
 			updates[*marketId] = map[string]any{}
 		}
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
+		if symbol != nil && this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 		var keys []string = ccxt.ObjectKeys(this.Timeframes)
 		for j := 0; j < len(keys); j++ {
 			var timeframe string = keys[j]
@@ -390,7 +392,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			}
 			var candleTimestamp int64 = this.ParseToInt(ccxt.Multiply((float64(*timestamp) / float64(duration)), duration))
 			var parsed []any = []any{candleTimestamp, this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
-			var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
+			var stored any = this.SafeValue(this.Ohlcvs[*symbol], timeframe, []any{})
 			var length int = ccxt.GetArrayLength(stored)
 			if (length > 0) && (ccxt.IsEqual(candleTimestamp, this.SafeInteger(ccxt.GetValue(stored, length-1), 0))) {
 				var previous any = ccxt.GetValue(stored, length-1)
@@ -447,7 +449,9 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 					ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 				}
 			}
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			if symbol != nil && this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][timeframe] = stored
+			}
 		}
 	}
 	var name string = "SubscribeTicker"
@@ -506,7 +510,7 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "SubscribeLevel2"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var limitValue int64 = func() int64 {
 		if limit == nil {

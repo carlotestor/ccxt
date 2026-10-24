@@ -75,7 +75,7 @@ func (this *Hashkey) wathPublicBody(ch chan ccxt.AsyncResult[any], market any, t
 		"topic":  topic,
 		"event":  "sub",
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 
 	r := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)
 	if r.Err != nil {
@@ -118,7 +118,7 @@ func (this *Hashkey) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageHa
 	return nil
 }
 func (this *Hashkey) GetPrivateUrl(listenKey any) any {
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " getPrivateUrl() has no private websocket url"))
 	}
@@ -220,10 +220,15 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	var timeframe *string = this.FindTimeframe(klineType)
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	for i := 0; i < len(data); i++ {
 		var candle map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed any = this.ParseWsOHLCV(candle, market)
@@ -430,7 +435,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 		data = this.SortBy(data, "t")
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
 			var trade map[string]any = ccxt.SafeMapTyped(data, i)
-			var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
+			var parsed map[string]any = this.ParseWsTrade(trade, market)
 			stored.(ccxt.Appender).Append(parsed)
 		}
 	}
@@ -633,7 +638,7 @@ func (this *Hashkey) HandleOrder(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
+	var parsed map[string]any = this.ParseWsOrder(message)
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(parsed)
 	var messageHash string = "orders"
@@ -642,7 +647,7 @@ func (this *Hashkey) HandleOrder(client any, message any) {
 	var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", symbol))
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
-func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "s")
@@ -785,7 +790,7 @@ func (this *Hashkey) HandleMyTrade(client any, message any, optionalArgs ...any)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var tradesArray any = this.MyTrades
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
+	var parsed map[string]any = this.ParseWsTrade(message)
 	tradesArray.(ccxt.Appender).Append(parsed)
 	this.MyTrades = tradesArray
 	var messageHash string = "myTrades"
@@ -794,7 +799,7 @@ func (this *Hashkey) HandleMyTrade(client any, message any, optionalArgs ...any)
 	var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", symbol))
 	client.(ccxt.ClientInterface).Resolve(tradesArray, symbolSpecificMessageHash)
 }
-func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// watchTrades
 	//     {

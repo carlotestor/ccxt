@@ -1896,7 +1896,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 	var sorted []any = this.SortBy(pseudoTrades, "timestamp")
 	var ms int64 = this.ParseTimeframe(timeframe) * 1000
 	var candles map[string]any = map[string]any{}
-	var bucketOrder []any = []any{}
+	var bucketOrder []string = []string{}
 	for i := 0; i < len(sorted); i++ {
 		var point map[string]any = ccxt.SafeMapTyped(sorted, i)
 		var pTs *int64 = this.SafeInteger(point, "timestamp")
@@ -1910,7 +1910,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 		var bucketIndex int64 = this.ParseToInt(float64(*pTs) / float64(ms))
 		var bucket int64 = bucketIndex * ms
 		var key string = strconv.FormatInt(bucket, 10)
-		if !(func() bool { _, ok := candles[key]; return ok }()) {
+		if _, ok := candles[key]; !ok {
 			candles[key] = []any{bucket, pPrice, pPrice, pPrice, pPrice, 0}
 			bucketOrder = append(bucketOrder, key)
 		} else {
@@ -1929,12 +1929,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 	}
 	var result []any = []any{}
 	for i := 0; i < len(bucketOrder); i++ {
-		result = append(result, ccxt.GetValue(candles, func() any {
-			if i >= 0 && i < len(bucketOrder) {
-				return ccxt.DerefScalar(bucketOrder[i])
-			}
-			return nil
-		}()))
+		result = append(result, ccxt.GetValue(candles, bucketOrder[i]))
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(result, since, limit, 0))}
@@ -1986,11 +1981,11 @@ func (this *Limitless) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		request["limit"] = limit
 	}
 
-	listEp1932 := <-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params))
-	if listEp1932.Err != nil {
-		panic(listEp1932.Err)
+	listEp1927 := <-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params))
+	if listEp1927.Err != nil {
+		panic(listEp1927.Err)
 	}
-	var response []any = listEp1932.Value
+	var response []any = listEp1927.Value
 
 	//
 	//     [

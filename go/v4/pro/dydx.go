@@ -77,7 +77,7 @@ func (this *Dydx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("trade:" + market["symbol"].(string))
 	var request map[string]any = map[string]any{
@@ -126,7 +126,7 @@ func (this *Dydx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("trade:" + market["symbol"].(string))
 	var request map[string]any = map[string]any{
@@ -196,7 +196,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Dydx) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Dydx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "id": "02b6148d0000000200000003",
@@ -257,7 +257,7 @@ func (this *Dydx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
 	var request map[string]any = map[string]any{
@@ -302,7 +302,7 @@ func (this *Dydx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
 	var request map[string]any = map[string]any{
@@ -418,7 +418,7 @@ func (this *Dydx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("ohlcv:" + market["symbol"].(string))
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -472,7 +472,7 @@ func (this *Dydx) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("ohlcv:" + market["symbol"].(string))
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -565,12 +565,19 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	var messageHash string = "ohlcv:" + *symbol
 	var ohlcv any = this.SafeDict(candles, 0, content)
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
-	this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-	var stored any = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+	if this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
+	var stored any
+	if timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+		if timeframe != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

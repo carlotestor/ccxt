@@ -4620,11 +4620,15 @@ func (this *Binance) EnableDemoTrading(enable any) {
 	}
 	if EvalTruthy(enable) {
 		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
+		this.RefreshUrlsViews()
 		this.Urls["api"] = this.Urls["demo"]
+		this.RefreshUrlsViews()
 	} else if _, ok := this.Urls["apiBackupDemoTrading"]; ok {
 		this.Urls["api"] = this.Urls["apiBackupDemoTrading"]
+		this.RefreshUrlsViews()
 		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
 		this.Urls = newUrls
+		this.RefreshUrlsViews()
 	}
 	this.Options["enableDemoTrading"] = enable
 }
@@ -5522,7 +5526,7 @@ func (this *Binance) ParseMarket(market any) any {
 	if stepSize != nil {
 		AddElementToObject(entry["precision"], "amount", stepSize)
 	}
-	if func() bool { _, ok := filtersByType["PRICE_FILTER"]; return ok }() {
+	if _, ok := filtersByType["PRICE_FILTER"]; ok {
 		var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 		// PRICE_FILTER reports zero values for maxPrice
 		// since they updated filter types in November 2018
@@ -5534,7 +5538,7 @@ func (this *Binance) ParseMarket(market any) any {
 		})
 		AddElementToObject(entry["precision"], "price", this.SafeNumber(filter, "tickSize"))
 	}
-	if func() bool { _, ok := filtersByType["LOT_SIZE"]; return ok }() {
+	if _, ok := filtersByType["LOT_SIZE"]; ok {
 		var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 		AddElementToObject(entry["precision"], "amount", this.SafeNumber(filter, "stepSize"))
 		AddElementToObject(entry["limits"], "amount", map[string]any{
@@ -5542,7 +5546,7 @@ func (this *Binance) ParseMarket(market any) any {
 			"max": this.SafeNumber(filter, "maxQty"),
 		})
 	}
-	if func() bool { _, ok := filtersByType["MARKET_LOT_SIZE"]; return ok }() {
+	if _, ok := filtersByType["MARKET_LOT_SIZE"]; ok {
 		var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
 		AddElementToObject(entry["limits"], "market", map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),

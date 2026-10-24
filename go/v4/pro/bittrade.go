@@ -95,7 +95,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "public"), hostname)
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), "public"), hostname)
 	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
@@ -200,7 +200,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "public"), hostname)
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), "public"), hostname)
 	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
@@ -318,7 +318,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "public"), hostname)
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), "public"), hostname)
 	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
@@ -373,16 +373,22 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var stored any
 	if symbol != nil {
-		stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+		if timeframe != nil {
+			stored = this.Ohlcvs[*symbol][*timeframe]
+		}
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
@@ -430,7 +436,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "public"), hostname)
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), "public"), hostname)
 	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
@@ -533,7 +539,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 			var hostname map[string]any = map[string]any{
 				"hostname": this.Hostname,
 			}
-			var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "public"), hostname)
+			var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), "public"), hostname)
 			var requestId string = this.RequestId()
 			var request map[string]any = map[string]any{
 				"req": messageHash,

@@ -318,7 +318,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 			var nameLower string = ccxt.ToLower(name)
 			if ((questionUnderlying != nil) && (questionUnderlying == nil || *questionUnderlying != "")) && (thresholdsRaw == nil || *thresholdsRaw != "") && (indexStr != nil) {
 				var thresholdParts []string = strings.Split(*thresholdsRaw, ",")
-				var thresholds []any = []any{}
+				var thresholds []string = []string{}
 				for i := 0; i < len(thresholdParts); i++ {
 					var trimmed string = strings.TrimSpace(thresholdParts[i])
 					if len(trimmed) > 0 {
@@ -332,7 +332,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 					if index <= 0 {
 						bucketLabel = ccxt.Add("BELOW_", func() any {
 							if 0 >= 0 && 0 < len(thresholds) {
-								return ccxt.DerefScalar(thresholds[0])
+								return thresholds[0]
 							}
 							return nil
 						}())
@@ -855,7 +855,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	var outcomeHandles []string = ccxt.ObjectKeys(outcomesMap)
 	for i := 0; i < len(outcomeHandles); i++ {
 		var outcomeHandle string = outcomeHandles[i]
-		if (outcomes != nil) && !(func() bool { _, ok := requestedOutcomeSymbols[outcomeHandle]; return ok }()) {
+		if _, ok := requestedOutcomeSymbols[outcomeHandle]; (outcomes != nil) && !ok {
 			continue
 		}
 		var outcomeObj any = this.SafeDict(outcomesMap, outcomeHandle, map[string]any{})

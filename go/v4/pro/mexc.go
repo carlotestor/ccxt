@@ -291,9 +291,9 @@ func (this *Mexc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var url any = func() any {
 		if isSpot {
-			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+			return this.UrlsApiSections["ws"]["spot"]
 		}
-		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap")
+		return this.UrlsApiSections["ws"]["swap"]
 	}()
 	var request map[string]any = map[string]any{}
 	if isSpot {
@@ -436,7 +436,7 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Mexc) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Mexc) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	// protobuf ticker
 	// "bidPrice": "93387.28",  // Best bid price
 	// "bidQuantity": "3.73485", // Best bid quantity
@@ -545,7 +545,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		}
 		messageHashes = append(messageHashes, "bidask:"+symbolsNormalized[i])
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["spot"])
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIPTION",
 		"params": topics,
@@ -634,7 +634,7 @@ func (this *Mexc) watchSpotPublicBody(ch chan ccxt.AsyncResult[any], channel any
 	_ = params
 	var unsubscribed *bool = this.SafeBool(params, "unsubscribed", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"unsubscribed"})
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["spot"])
 	var method string = "SUBSCRIPTION"
 	if unsubscribed != nil && *unsubscribed {
 		method = "UNSUBSCRIPTION"
@@ -668,7 +668,7 @@ func (this *Mexc) watchSpotPrivateBody(ch chan ccxt.AsyncResult[any], channel st
 		panic(r.Err)
 	}
 	listenKey := r.Value
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "spot")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchSpotPrivate() has no spot websocket url"))
 	}
@@ -695,7 +695,7 @@ func (this *Mexc) watchSwapPublicBody(ch chan ccxt.AsyncResult[any], channel str
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["swap"])
 	var request map[string]any = map[string]any{
 		"method": channel,
 		"param":  requestParams,
@@ -721,7 +721,7 @@ func (this *Mexc) watchSwapPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 	_ = params
 	this.CheckRequiredCredentials()
 	var channel string = "login"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["swap"])
 	var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 	var payload any = ccxt.Add(this.ApiKey, timestamp)
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
@@ -1519,7 +1519,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
-func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// public trade (protobuf)
 	//    {
@@ -1791,7 +1791,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
-func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//     {
@@ -2159,7 +2159,7 @@ func (this *Mexc) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol 
 	var requestParams map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap")
+	url = this.UrlsApiSections["ws"]["swap"]
 	this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.HandleUnsubscriptions(client, []any{messageHash})
@@ -2220,7 +2220,7 @@ func (this *Mexc) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	var channel any = nil
 	if market["spot"] == true {
 		channel = ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"])
-		url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+		url = this.UrlsApiSections["ws"]["spot"]
 		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
@@ -2228,7 +2228,7 @@ func (this *Mexc) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol strin
 		var requestParams map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
-		url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap")
+		url = this.UrlsApiSections["ws"]["swap"]
 		this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
 	}
 	var client ccxt.ClientInterface = this.Client(url)
@@ -2275,9 +2275,9 @@ func (this *Mexc) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArg
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var url any = func() any {
 		if isSpot {
-			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+			return this.UrlsApiSections["ws"]["spot"]
 		}
-		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap")
+		return this.UrlsApiSections["ws"]["swap"]
 	}()
 	var request map[string]any = map[string]any{}
 	if isSpot {
@@ -2340,7 +2340,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		}
 		messageHashes = append(messageHashes, "unsubscribe:bidask:"+symbolsNormalized[i])
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["spot"])
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIPTION",
 		"params": topics,
@@ -2388,12 +2388,12 @@ func (this *Mexc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 	var messageHash string = "unsubscribe:candles:" + *symbolValue + ":" + timeframe
 	var url any = nil
 	if market["spot"] == true {
-		url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+		url = this.UrlsApiSections["ws"]["spot"]
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("spot@public.kline.v3.api.pb@", market["id"]), "@"), timeframeId))
 		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
-		url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap")
+		url = this.UrlsApiSections["ws"]["swap"]
 		var channel string = "unsub.kline"
 		var requestParams map[string]any = map[string]any{
 			"symbol":   market["id"],
@@ -2438,13 +2438,13 @@ func (this *Mexc) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	var messageHash string = "unsubscribe:orderbook:" + *symbolValue
 	var url any = nil
 	if market["spot"] == true {
-		url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+		url = this.UrlsApiSections["ws"]["spot"]
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.depth.v3.api.pb@"+*frequency+"@", market["id"]))
 		ccxt.AddElementToObject(paramsFrequency, "unsubscribed", true)
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, paramsFrequency)
 	} else {
-		url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap")
+		url = this.UrlsApiSections["ws"]["swap"]
 		var channel string = "unsub.depth"
 		var requestParams map[string]any = map[string]any{
 			"symbol": market["id"],
@@ -2488,12 +2488,12 @@ func (this *Mexc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	var messageHash string = "unsubscribe:trades:" + *symbolValue
 	var url any = nil
 	if market["spot"] == true {
-		url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+		url = this.UrlsApiSections["ws"]["spot"]
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.deals.v3.api.pb@100ms@", market["id"]))
 		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
-		url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "swap")
+		url = this.UrlsApiSections["ws"]["swap"]
 		var channel string = "unsub.deal"
 		var requestParams map[string]any = map[string]any{
 			"symbol": market["id"],
@@ -2578,7 +2578,7 @@ func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[*string], subscripti
 	// spot ws client - the first caller fetches the listenKey, concurrent
 	// callers wait on the future and resume when the listenKey is ready,
 	// otherwise the user-data subscriptions would be split across two connections
-	var client ccxt.ClientInterface = this.Client(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot"))
+	var client ccxt.ClientInterface = this.Client(this.UrlsApiSections["ws"]["spot"])
 	var messageHash string = "authenticate:listenKey"
 	var isFetching *bool = this.SafeBool(this.Options, "listenKeyFetching", false)
 	if isFetching != nil && *isFetching {
@@ -2664,7 +2664,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenK
 					}
 					ret_ = func(this *Mexc) any {
 						// catch block:
-						var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+						var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "spot")
 						if wsUrl == nil {
 							panic(ccxt.ExchangeError(this.Id + " keepAliveListenKey() has no spot websocket url"))
 						}

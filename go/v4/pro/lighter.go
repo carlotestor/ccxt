@@ -97,7 +97,7 @@ func (this *Lighter) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageH
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -123,7 +123,7 @@ func (this *Lighter) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[map[st
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -159,7 +159,7 @@ func (this *Lighter) unsubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"type": "unsubscribe",
 	}
@@ -802,7 +802,7 @@ func (this *Lighter) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optio
 	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
-func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "trade_id": 526801155,
@@ -920,7 +920,7 @@ func (this *Lighter) HandleTrades(client any, message any) {
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var iReversed any = (int64(dataLength) - 1) - int64(i)
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(data, iReversed), market))
+		var trade map[string]any = this.ParseWsTrade(ccxt.GetValue(data, iReversed), market)
 		stored.(ccxt.Appender).Append(trade)
 	}
 	var messageHash string = this.GetMessageHash("trade", symbol)
@@ -1845,7 +1845,7 @@ func (this *Lighter) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
 	r := <-this.SignAndCreateOrderAsync("createOrderWs", symbol, typeVar, side, amount, price, params)
@@ -1904,7 +1904,7 @@ func (this *Lighter) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
 	r := <-this.SignAndCancelOrderAsync("cancelOrderWs", id, symbol, params)
@@ -1961,7 +1961,7 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
 	r := <-this.SignAndCancelAllOrdersAsync("cancelAllOrdersWs", symbol, params)

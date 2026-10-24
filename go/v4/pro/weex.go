@@ -129,7 +129,7 @@ func (this *Weex) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	if isContract == true {
 		typeVar = "contract"
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar), "/public"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(this.UrlsApi["ws"], typeVar), "/public"))
 
 	r := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(message, params), messageHashes, subscriptionExtended)
 	if r.Err != nil {
@@ -156,7 +156,7 @@ func (this *Weex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 	if isContract == true {
 		typeVar = "contract"
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar), "/private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(this.UrlsApi["ws"], typeVar), "/private"))
 	this.Authenticate(url)
 	var method string = "SUBSCRIBE"
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
@@ -477,13 +477,13 @@ func (this *Weex) HandleTicker(client any, message any) {
 	}
 	var tickers []any = ccxt.SafeListTyped(message, "d")
 	var data map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
+	var ticker map[string]any = this.ParseWsTicker(data, market)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var messageHash string = "ticker::" + *symbol
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
 }
-func (this *Weex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
+func (this *Weex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "p": "-18.93",
@@ -773,7 +773,7 @@ func (this *Weex) HandleTrade(client any, message any) {
 	var newTrades []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var rawTrade map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade, market))
+		var trade map[string]any = this.ParseWsTrade(rawTrade, market)
 		newTrades = append(newTrades, trade)
 	}
 	var sorted []any = this.SortBy(newTrades, "timestamp")
@@ -789,7 +789,7 @@ func (this *Weex) HandleTrade(client any, message any) {
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
-func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "T": 1776089287762,
@@ -1142,12 +1142,17 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var interval *string = this.SafeString(firstEntry, "i")
 	var timeframe *string = this.FindTimeframe(interval)
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 	}
 	for i := 0; i < len(data); i++ {
@@ -2091,7 +2096,7 @@ func (this *Weex) HandleOrders(client any, message any) {
 	var orders any = this.Orders
 	for i := 0; i < len(data); i++ {
 		var rawOrder map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(rawOrder))
+		var parsed map[string]any = this.ParseWsOrder(rawOrder)
 		orders.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
@@ -2117,7 +2122,7 @@ func (this *Weex) HandleOrders(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
-func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//     {
@@ -2304,7 +2309,7 @@ func (this *Weex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 	if isContract {
 		urlType = "contract"
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), urlType), "/private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(this.UrlsApi["ws"], urlType), "/private"))
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar)
@@ -2505,7 +2510,7 @@ func (this *Weex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "contract"), "/private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(this.UrlsApi["ws"], "contract"), "/private"))
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true)

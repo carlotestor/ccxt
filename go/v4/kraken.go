@@ -2896,7 +2896,7 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 		}
 		request["oflags"] = extendedPostFlags
 	}
-	if (flags != nil) && !(func() bool { _, ok := request["oflags"]; return ok }()) {
+	if _, ok := request["oflags"]; (flags != nil) && !ok {
 		request["oflags"] = flags
 	}
 	var paramsOmitted3 map[string]any = this.OmitDict(paramsPostOnly, []any{"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
@@ -5008,7 +5008,7 @@ func (this *Kraken) HandleErrors(code any, reason any, url any, method any, head
 			// handleCreateOrdersErrors:
 			if InOp(response, "result") {
 				var result map[string]any = SafeMapTyped(response, "result")
-				if func() bool { _, ok := result["orders"]; return ok }() {
+				if _, ok := result["orders"]; ok {
 					var orders []any = SafeListTyped(result, "orders")
 					for i := 0; i < len(orders); i++ {
 						var order map[string]any = SafeMapTyped(orders, i)

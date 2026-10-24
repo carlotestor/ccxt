@@ -583,14 +583,21 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 	}
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
@@ -1718,7 +1725,7 @@ func (this *Htx) HandleOrder(client any, message any) {
 	genericMessageHash = ccxt.Replace(genericMessageHash, ccxt.Add(".", lowerCaseBaseId), "")
 	client.(ccxt.ClientInterface).Resolve(this.Orders, genericMessageHash)
 }
-func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -3406,7 +3413,7 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 		}
 	}
 }
-func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	// spot private
 	//
 	//     {
@@ -3521,17 +3528,17 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var url any = nil
 	if ccxt.IsEqual(typeVar, "spot") {
 		if isPrivate == true {
-			hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "spot"), "private")
+			hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), "spot"), "private")
 		} else {
 			if isFeed == true {
-				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "spot"), "feed")
+				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), "spot"), "feed")
 			} else {
-				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "spot"), "public")
+				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), "spot"), "public")
 			}
 		}
 		url = this.ImplodeParams(hostnameURL, hostname)
 	} else {
-		var baseUrl map[string]any = ccxt.MapTyped(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), typeVar))
+		var baseUrl map[string]any = ccxt.MapTyped(ccxt.GetValue(ccxt.GetValue(this.UrlsApi["ws"], api), typeVar))
 		var subTypeUrl any = func() any {
 			if isLinear == true {
 				return baseUrl["linear"]

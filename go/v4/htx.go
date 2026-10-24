@@ -2989,7 +2989,7 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 	// so we have to create a mapping
 	// - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
 	// - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
-	if !(InOp(this.Options, "futureMarketIdsForSymbols")) {
+	if _, hx15ok := this.Options["futureMarketIdsForSymbols"]; !hx15ok {
 		this.Options["futureMarketIdsForSymbols"] = map[string]any{}
 	}
 	var futureMarketIdsForSymbols map[string]any = SafeMapTyped(this.Options, "futureMarketIdsForSymbols")
@@ -4770,10 +4770,10 @@ func (this *Htx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], option
 	return nil
 }
 func (this *Htx) ParseCurrency(rawCurrency any) map[string]any {
-	if !(InOp(this.Options, "networkNamesByChainIds")) {
+	if _, hx15ok := this.Options["networkNamesByChainIds"]; !hx15ok {
 		this.Options["networkNamesByChainIds"] = map[string]any{}
 	}
-	if !(InOp(this.Options, "networkChainIdsByNames")) {
+	if _, hx15ok := this.Options["networkChainIdsByNames"]; !hx15ok {
 		this.Options["networkChainIdsByNames"] = map[string]any{}
 	}
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
@@ -7167,7 +7167,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 	var triggerPrice *string = this.SafeStringN(paramsMarginMode, []any{"triggerPrice", "stopPrice", "stop-price"})
 	if triggerPrice == nil {
 		var stopOrderTypes map[string]any = SafeMapTyped(options, "stopOrderTypes")
-		if func() bool { _, ok := stopOrderTypes[orderType]; return ok }() {
+		if _, ok := stopOrderTypes[orderType]; ok {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice for a trigger order"))
 		}
 	} else {
@@ -7246,7 +7246,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
 	var limitOrderTypes map[string]any = SafeMapTyped(options, "limitOrderTypes")
-	if func() bool { _, ok := limitOrderTypes[orderType]; return ok }() {
+	if _, ok := limitOrderTypes[orderType]; ok {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var paramsOmitted any = this.Omit(paramsCost, []any{"triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"})

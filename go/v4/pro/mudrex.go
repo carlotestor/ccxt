@@ -93,7 +93,7 @@ func (this *Mudrex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "ticker:" + *symbolValue
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	this.SetBrokerHeaders()
 	var baseIdString any = func() any {
 		if !ccxt.IsEqual(market["baseId"], nil) {
@@ -174,7 +174,7 @@ func (this *Mudrex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 			assets = append(assets, ccxt.ToLower(baseIdString)+ccxt.ToLower(quoteIdString))
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	this.SetBrokerHeaders()
 	var subscribe map[string]any = map[string]any{
 		"id":     this.RequestId(),
@@ -242,7 +242,7 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var streamQuoteId *string = this.SafeString(market, "quoteId", "")
 	var stream string = prefix + "@" + *interval + "@" + strings.ToLower(*streamBaseId) + strings.ToLower(*streamQuoteId)
 	var messageHash string = stream
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	this.SetBrokerHeaders()
 	var subscribe map[string]any = map[string]any{
 		"id":     this.RequestId(),
@@ -314,14 +314,21 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), tf)
+	var stored any
+	if symbol != nil && tf != nil {
+		stored = this.Ohlcvs[*symbol][*tf]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (tf != nil) {
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], tf, stored)
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*tf] = stored
+			}
 		}
 	}
 	stored.(ccxt.Appender).Append(parsed)

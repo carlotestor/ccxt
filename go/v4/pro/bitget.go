@@ -378,7 +378,7 @@ func (this *Bitget) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	this.HandleBidAsk(client, message)
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(message))
+	var ticker map[string]any = this.ParseWsTicker(message)
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol != nil {
 		this.Tickers.Store(symbol, ticker)
@@ -386,7 +386,7 @@ func (this *Bitget) HandleTicker(client any, message map[string]any) {
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) any {
+func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -887,8 +887,16 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var symbolOhlcvs any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, symbolOhlcvs)
+	var symbolOhlcvs map[string]any
+	if symbol != nil {
+		symbolOhlcvs = this.Ohlcvs[*symbol]
+	}
+	if symbolOhlcvs == nil {
+		symbolOhlcvs = map[string]any{}
+	}
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = symbolOhlcvs
+	}
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
 	var isUta bool
@@ -903,11 +911,16 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	if timeframe == nil {
 		return
 	}
-	var stored any = this.SafeValue(symbolOhlcvs, timeframe)
+	var stored any
+	if timeframe != nil {
+		stored = symbolOhlcvs[*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(symbolOhlcvs, timeframe, stored)
+		if timeframe != nil {
+			symbolOhlcvs[*timeframe] = stored
+		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
@@ -1645,13 +1658,13 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < length; i++ {
 		var index int64 = (int64(length) - int64(i)) - 1
 		var rawTrade any = ccxt.GetValue(data, index)
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade, market))
+		var parsed map[string]any = this.ParseWsTrade(rawTrade, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "ts": "1701910980366",
@@ -2424,7 +2437,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		}()
 		var marketId *string = this.SafeString2(order, "instId", "symbol", argInstId)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
+		var parsed map[string]any = this.ParseWsOrder(order, market)
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
@@ -2459,7 +2472,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(stored, "order:usdcfutures")
 	}
 }
-func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -2987,7 +3000,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 			var marketId *string = this.SafeString2(trade, "instId", "symbol")
 			market = this.SafeMarket(marketId, nil, nil, marketType)
 		}
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
+		var parsed map[string]any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", symbol))
@@ -3250,18 +3263,18 @@ func (this *Bitget) watchPublicBody(ch chan ccxt.AsyncResult[any], uta any, mess
 	_ = params
 	var url any = func() any {
 		if ccxt.EvalTruthy((uta)) {
-			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
+			return this.UrlsApiSections["ws"]["utaPublic"]
 		}
-		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
+		return this.UrlsApiSections["ws"]["public"]
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if ccxt.EvalTruthy(uta) {
-				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
+				url = this.UrlsApiSections["demo"]["utaPublic"]
 			} else {
-				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
+				url = this.UrlsApiSections["demo"]["public"]
 			}
 		}
 	}
@@ -3290,18 +3303,18 @@ func (this *Bitget) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], uta any, m
 	_ = params
 	var url any = func() any {
 		if ccxt.EvalTruthy((uta)) {
-			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
+			return this.UrlsApiSections["ws"]["utaPublic"]
 		}
-		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
+		return this.UrlsApiSections["ws"]["public"]
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if ccxt.EvalTruthy(uta) {
-				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
+				url = this.UrlsApiSections["demo"]["utaPublic"]
 			} else {
-				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
+				url = this.UrlsApiSections["demo"]["public"]
 			}
 		}
 	}
@@ -3343,18 +3356,18 @@ func (this *Bitget) unWatchPrivateBody(ch chan ccxt.AsyncResult[bool], uta any, 
 	var isUta bool = (uta == true)
 	var url any = func() any {
 		if isUta {
-			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPrivate")
+			return this.UrlsApiSections["ws"]["utaPrivate"]
 		}
-		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private")
+		return this.UrlsApiSections["ws"]["private"]
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if isUta {
-				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPrivate")
+				url = this.UrlsApiSections["demo"]["utaPrivate"]
 			} else {
-				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "private")
+				url = this.UrlsApiSections["demo"]["private"]
 			}
 		}
 	}
@@ -3402,9 +3415,9 @@ func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta a
 	_ = params
 	var url any = func() any {
 		if ccxt.EvalTruthy((uta)) {
-			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
+			return this.UrlsApiSections["ws"]["utaPublic"]
 		}
-		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
+		return this.UrlsApiSections["ws"]["public"]
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
@@ -3413,9 +3426,9 @@ func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta a
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			url = func() any {
 				if ccxt.EvalTruthy((uta)) {
-					return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
+					return this.UrlsApiSections["demo"]["utaPublic"]
 				}
-				return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
+				return this.UrlsApiSections["demo"]["public"]
 			}()
 		}
 	}
@@ -3494,18 +3507,18 @@ func (this *Bitget) watchPrivateBody(ch chan ccxt.AsyncResult[any], uta any, mes
 	_ = params
 	var url any = func() any {
 		if ccxt.EvalTruthy((uta)) {
-			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPrivate")
+			return this.UrlsApiSections["ws"]["utaPrivate"]
 		}
-		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private")
+		return this.UrlsApiSections["ws"]["private"]
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if ccxt.EvalTruthy(uta) {
-				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPrivate")
+				url = this.UrlsApiSections["demo"]["utaPrivate"]
 			} else {
-				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "private")
+				url = this.UrlsApiSections["demo"]["private"]
 			}
 		}
 	}
@@ -3873,7 +3886,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	}
 	if ccxt.InOp(this.Ohlcvs, symbol) {
 		if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
-			ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
+			delete(this.Ohlcvs[*symbol], *timeframe)
 		}
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)

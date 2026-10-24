@@ -110,7 +110,7 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	_ = params
 	this.CheckRequiredCredentials()
 	var timestamp *string = this.NumberToString(this.Milliseconds())
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
@@ -199,7 +199,7 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, mes
 	if ccxt.EvalTruthy(isPrivate) {
 		publicOrPrivate = "private"
 	}
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), publicOrPrivate)
+	var url *string = this.SafeString(this.UrlsApi["ws"], publicOrPrivate)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -259,7 +259,7 @@ func (this *Poloniex) tradeRequestBody(ch chan ccxt.AsyncResult[[]any], name str
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var messageHash string = ccxt.ToString(this.Nonce())
 	var subscribe map[string]any = map[string]any{
 		"id":     messageHash,
@@ -539,7 +539,7 @@ func (this *Poloniex) HandleOrderRequest(client any, message any) {
 			}
 			return nil
 		}()
-		var parsedOrder map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
+		var parsedOrder map[string]any = this.ParseWsOrder(order)
 		orders = append(orders, parsedOrder)
 	}
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
@@ -782,7 +782,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var name string = "trades"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	var subscribe map[string]any = map[string]any{
 		"event":   "subscribe",
@@ -1026,7 +1026,7 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	// balance from a rest snapshot once per subscription - otherwise the
 	// first resolves would only list the currencies that changed since
 	// subscribing
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, name)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
@@ -1168,7 +1168,9 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var parsed any = this.ParseWsOHLCV(data, market)
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var stored any = func() any {
 		if timeframe == nil {
@@ -1181,7 +1183,9 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			if (symbol != nil) && (timeframe != nil) {
-				ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+				if this.Ohlcvs[*symbol] != nil {
+					this.Ohlcvs[*symbol][*timeframe] = stored
+				}
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
@@ -1215,7 +1219,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 		var item map[string]any = ccxt.SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
-			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(item))
+			var trade map[string]any = this.ParseWsTrade(item)
 			var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 			var typeVar string = "trades"
 			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(typeVar+"::", symbol))
@@ -1238,7 +1242,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 	}
 	return message
 }
-func (this *Poloniex) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Poloniex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// handleTrade
 	//
@@ -1424,16 +1428,16 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 			var orderId *string = this.SafeString(order, "orderId", "")
 			var clientOrderId *string = this.SafeString(order, "clientOrderId", "")
 			if (eventType != nil && *eventType == "place") || (eventType != nil && *eventType == "canceled") {
-				var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
+				var parsed map[string]any = this.ParseWsOrder(order)
 				orders.(ccxt.Appender).Append(parsed)
 			} else {
 				var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
 				var previousOrder any = this.SafeDict2(previousOrders, orderId, clientOrderId)
-				var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(order))
+				var trade map[string]any = this.ParseWsTrade(order)
 				this.HandleMyTrades(client, trade)
 				if previousOrder == nil {
 					// fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
-					var parsedOrder map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
+					var parsedOrder map[string]any = this.ParseWsOrder(order)
 					orders.(ccxt.Appender).Append(parsedOrder)
 					marketIds = append(marketIds, marketId)
 					continue
@@ -1504,7 +1508,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	return message
 }
-func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "symbol": "BTC_USDT",

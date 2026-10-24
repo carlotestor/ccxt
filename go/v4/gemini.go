@@ -1234,7 +1234,7 @@ func (this *Gemini) ParseMarket(response any) any {
 		var marketIdWithoutPerp string = strings.Replace(marketIdUpper, "PERP", "", 1)
 		var conflictingMarkets map[string]any = SafeMapTyped(this.Options, "conflictingMarkets")
 		var lowerCaseId string = strings.ToLower(marketIdWithoutPerp)
-		if func() bool { _, ok := conflictingMarkets[lowerCaseId]; return ok }() {
+		if _, ok := conflictingMarkets[lowerCaseId]; ok {
 			var conflictingMarket map[string]any = MapTyped(conflictingMarkets[lowerCaseId])
 			if derefPtr := this.SafeString(conflictingMarket, "base"); derefPtr != nil {
 				baseId = *derefPtr

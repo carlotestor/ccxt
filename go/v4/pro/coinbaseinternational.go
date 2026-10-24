@@ -122,9 +122,9 @@ func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) any {
 		return "wss://www.deribit.com/ws/api/v2"
 	}
 	if isPrivate == true {
-		return ccxt.GetValue(this.Urls["api"], "wsPrivate")
+		return this.UrlsApi["wsPrivate"]
 	}
-	return ccxt.GetValue(this.Urls["api"], "ws")
+	return this.UrlsApi["ws"]
 }
 func (this *Coinbaseinternational) Ping(client any) any {
 	var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
@@ -1707,13 +1707,20 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(resolution, timeframes)
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	if ccxt.IsEqual(this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var parsed any = this.ParseWsOHLCV(data, market)
 	stored.(ccxt.Appender).Append(parsed)

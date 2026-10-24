@@ -2724,10 +2724,10 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 		var merged map[string]any = this.Extend(request, extendedParams)
 		if isContract {
 			// unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
-			if !(func() bool { _, ok := merged["mgnMode"]; return ok }()) {
+			if _, ok := merged["mgnMode"]; !ok {
 				merged["mgnMode"] = "CROSS"
 			}
-			if !(func() bool { _, ok := merged["posSide"]; return ok }()) {
+			if _, ok := merged["posSide"]; !ok {
 				merged["posSide"] = "BOTH"
 			}
 		}
@@ -5367,9 +5367,9 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var isArray bool = IsArray(params)
-	var url any = GetValue(this.Urls["api"], "spot")
+	var url any = this.UrlsApi["spot"]
 	if this.InArray(apiName, []any{"swapPublic", "swapPrivate"}) {
-		url = GetValue(this.Urls["api"], "swap")
+		url = this.UrlsApi["swap"]
 	}
 	if (method == "GET") && (InOp(params, "symbol")) {
 		AddElementToObject(params, "symbol", this.EncodeURIComponent(GetValue(params, "symbol"))) // handle symbols like 索拉拉/USDT'

@@ -555,7 +555,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 	return nil
 }
 func (this *Lighter) InitAuthObject(strAccountIndex any, strApiKeyIndex any) {
-	if !(InOp(this.Options, "auths")) {
+	if _, hx15ok := this.Options["auths"]; !hx15ok {
 		this.Options["auths"] = map[string]any{}
 	}
 	if !(InOp(this.Options["auths"], strAccountIndex)) {

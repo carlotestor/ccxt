@@ -329,7 +329,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan ccxt.AsyncResult[any], messag
 		"symbol":    market["id"],
 	}
 	var message map[string]any = this.Extend(request, params)
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), urlType)
+	var url *string = this.SafeString(this.UrlsApi["ws"], urlType)
 	var client ccxt.ClientInterface = this.Client(url)
 	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 		client.(ccxt.ClientInterface).SubscriptionSet(requestId, messageHash)
@@ -410,7 +410,7 @@ func (this *Kucoin) getUtaUrlBody(ch chan ccxt.AsyncResult[*string]) any {
 		panic(r.Err)
 	}
 	utaToken := r.Value
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " getUtaUrl() has no private websocket url"))
 	}
@@ -442,7 +442,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan ccxt.AsyncResult[*string]) any {
 	var now int64 = this.Milliseconds()
 	var expired bool = ((now - lastUpdate) >= *refreshInterval)
 	var messageHash string = "utaToken"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var client ccxt.ClientInterface = this.Client(url)
 	if (utaToken == nil) || expired {
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
@@ -955,7 +955,7 @@ func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[map[
 		"symbols":   this.MarketIds(symbols),
 	}
 	var message map[string]any = this.Extend(request, params)
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), urlType)
+	var url *string = this.SafeString(this.UrlsApi["ws"], urlType)
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHashWithSymbols string = channel + ":" + ccxt.Join(symbols, ",")
 	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHashWithSymbols)) {
@@ -1710,12 +1710,19 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+*symbol+":", timeframe))
-	this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-	var stored any = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+	if this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
+	var stored any
+	if timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+		if timeframe != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
 	var isContractMarket bool = (func() int {
 		if topic == nil {
@@ -1758,12 +1765,19 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(data, "i")
 	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("uta:candles:"+*symbol+":", timeframe))
-	this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-	var stored any = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+	if this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
+	var stored any
+	if timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+		if timeframe != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
 	var parsed []any = []any{this.SafeIntegerProduct(data, "O", 1000), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	stored.(ccxt.Appender).Append(parsed)
@@ -3036,7 +3050,7 @@ func (this *Kucoin) ParseWsOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kucoin) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// /spotMarket/tradeOrders
 	//
@@ -3253,7 +3267,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	if tradeId != nil {
 		this.HandleMyTrade(client, message)
 	}
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(data))
+	var parsed map[string]any = this.ParseWsOrder(data)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	var triggerPrice *string = this.SafeString(parsed, "triggerPrice")
@@ -3533,7 +3547,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+	var parsed map[string]any = this.ParseWsTrade(data)
 	var myTrades any = this.MyTrades
 	myTrades.(ccxt.Appender).Append(parsed)
 	var messageHash string = "myTrades"
@@ -3578,7 +3592,7 @@ func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 	client.(ccxt.ClientInterface).Resolve(cache, symbolMessageHash)
 }
-func (this *Kucoin) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// /spotMarket/tradeOrders
 	//

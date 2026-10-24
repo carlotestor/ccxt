@@ -1151,7 +1151,9 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 	}
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var stored any
 	if symbol != nil {
@@ -1227,15 +1229,15 @@ func (this *Extended) HandleMessage(client any, message any) {
 		// an account frame may carry several sections at once, so these are
 		// not mutually exclusive and must not fall through to the order book
 		var isAccountUpdate bool = false
-		if (typeVar != nil && *typeVar == "ORDER") || (func() bool { _, ok := data["orders"]; return ok }()) {
+		if _, ok := data["orders"]; (typeVar != nil && *typeVar == "ORDER") || ok {
 			this.HandleOrders(client, message)
 			isAccountUpdate = true
 		}
-		if (typeVar != nil && *typeVar == "TRADE") || (func() bool { _, ok := data["trades"]; return ok }()) {
+		if _, ok := data["trades"]; (typeVar != nil && *typeVar == "TRADE") || ok {
 			this.HandleMyTrades(client, message)
 			isAccountUpdate = true
 		}
-		if (typeVar != nil && *typeVar == "POSITION") || (func() bool { _, ok := data["positions"]; return ok }()) {
+		if _, ok := data["positions"]; (typeVar != nil && *typeVar == "POSITION") || ok {
 			this.HandlePositions(client, message)
 			isAccountUpdate = true
 		}
@@ -1245,7 +1247,7 @@ func (this *Extended) HandleMessage(client any, message any) {
 		}
 		if typeVar != nil && *typeVar == "MP" {
 			this.HandleMarkPrice(client, message)
-		} else if func() bool { _, ok := data["f"]; return ok }() {
+		} else if _, ok := data["f"]; ok {
 			this.HandleFundingRate(client, message)
 		} else if !isAccountUpdate {
 			this.HandleOrderBook(client, message)

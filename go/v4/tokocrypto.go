@@ -969,7 +969,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 			"created": nil,
 			"info":    market,
 		}
-		if func() bool { _, ok := filtersByType["PRICE_FILTER"]; return ok }() {
+		if _, ok := filtersByType["PRICE_FILTER"]; ok {
 			var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 			AddElementToObject(entry["precision"], "price", this.SafeNumber(filter, "tickSize"))
 			// PRICE_FILTER reports zero values for maxPrice
@@ -982,7 +982,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 			})
 			AddElementToObject(entry["precision"], "price", filter["tickSize"])
 		}
-		if func() bool { _, ok := filtersByType["LOT_SIZE"]; return ok }() {
+		if _, ok := filtersByType["LOT_SIZE"]; ok {
 			var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 			AddElementToObject(entry["precision"], "amount", this.SafeNumber(filter, "stepSize"))
 			AddElementToObject(entry["limits"], "amount", map[string]any{
@@ -990,14 +990,14 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 				"max": this.SafeNumber(filter, "maxQty"),
 			})
 		}
-		if func() bool { _, ok := filtersByType["MARKET_LOT_SIZE"]; return ok }() {
+		if _, ok := filtersByType["MARKET_LOT_SIZE"]; ok {
 			var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
 			AddElementToObject(entry["limits"], "market", map[string]any{
 				"min": this.SafeNumber(filter, "minQty"),
 				"max": this.SafeNumber(filter, "maxQty"),
 			})
 		}
-		if func() bool { _, ok := filtersByType["MIN_NOTIONAL"]; return ok }() {
+		if _, ok := filtersByType["MIN_NOTIONAL"]; ok {
 			var filter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
 			AddElementToObject(GetValue(entry["limits"], "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
 		}
@@ -3278,10 +3278,10 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	if !(InOp(GetValue(this.Urls["api"], "rest"), apiName)) {
+	if !(InOp(this.UrlsApi["rest"], apiName)) {
 		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + *apiName + " endpoints"))
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls["api"], "rest"), apiName)
+	var baseApiUrl *string = this.SafeString(this.UrlsApi["rest"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

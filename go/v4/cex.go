@@ -1146,7 +1146,7 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		if !(func() bool { _, ok := result[symbol]; return ok }()) {
+		if _, ok := result[symbol]; !ok {
 			var market map[string]any = this.Market(symbol)
 			result[symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(response, market))
 		}

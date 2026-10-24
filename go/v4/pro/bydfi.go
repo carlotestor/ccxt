@@ -115,7 +115,7 @@ func (this *Bydfi) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHashes 
 	_ = params
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subscription
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var id int64 = this.RequestId()
 	var subscriptionParams map[string]any = map[string]any{
 		"id": id,
@@ -157,7 +157,7 @@ func (this *Bydfi) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHashes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subHash string = "private"
 	var client ccxt.ClientInterface = this.Client(url)
 	var privateSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subHash)
@@ -419,7 +419,7 @@ func (this *Bydfi) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	return nil
 }
 func (this *Bydfi) GetMessageHashesForTickersUnsubscription() []any {
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
+	var url any = this.UrlsApiSections["ws"]["public"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var messageHashes []any = []any{}
@@ -702,9 +702,14 @@ func (this *Bydfi) HandleOHLCV(client any, message any) {
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
-	var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var ohlcv any
+	if symbol != nil && timeframe != nil {
+		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+	}
 	var parsed any = this.ParseWsOHLCV(message)
 	ohlcv.(ccxt.Appender).Append(parsed)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
@@ -1065,14 +1070,14 @@ func (this *Bydfi) HandleOrder(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(rawOrder, market))
+	var order map[string]any = this.ParseWsOrder(rawOrder, market)
 	var lastUpdateTimestamp *int64 = this.SafeInteger(message, "T")
 	order["lastUpdateTimestamp"] = lastUpdateTimestamp
 	orders.(ccxt.Appender).Append(order)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
 }
-func (this *Bydfi) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Bydfi) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "S": "BUY",
@@ -1359,7 +1364,7 @@ func (this *Bydfi) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	this.FetchBalanceSnapshot(client)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")

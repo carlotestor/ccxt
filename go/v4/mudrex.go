@@ -2012,7 +2012,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	var rebateKeys []any = []any{}
 	var rebateAmounts []any = []any{}
 	var transactions []any = []any{}
-	var transactionKeys []any = []any{}
+	var transactionKeys []string = []string{}
 	for i := 0; i < len(allRows); i++ {
 		var entry any = func() any {
 			if i >= 0 && i < len(allRows) {
@@ -2039,12 +2039,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 					return DerefScalar(rebateKeys[j])
 				}
 				return nil
-			}(), func() any {
-				if i >= 0 && i < len(transactionKeys) {
-					return DerefScalar(transactionKeys[i])
-				}
-				return nil
-			}()) {
+			}(), GetValue(transactionKeys, i)) {
 				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
 				AddElementToObject(rebateKeys, j, nil)

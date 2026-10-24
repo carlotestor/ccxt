@@ -358,14 +358,14 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trades any = this.MyTrades
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+	var parsed map[string]any = this.ParseWsTrade(data)
 	trades.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	if messageHash != nil {
 		client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add(*messageHash+":", symbol))
 	}
 }
-func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "base": "usdt",

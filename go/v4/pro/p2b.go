@@ -90,7 +90,7 @@ func (this *P2b) subscribeBody(ch chan ccxt.AsyncResult[any], name string, messa
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribe map[string]any = map[string]any{
 		"method": name,
 		"params": request,
@@ -266,7 +266,7 @@ func (this *P2b) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 		messageHashes = append(messageHashes, ccxt.Add(*nameOption+"::", market["symbol"]))
 		args = append(args, market["id"])
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"method": *nameOption + ".subscribe",
 		"params": args,
@@ -366,7 +366,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 		}
 	}
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribe map[string]any = map[string]any{
 		"method": "deals.subscribe",
 		"params": marketIds,
@@ -471,16 +471,22 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var symbol *string = this.SafeString(market, "symbol")
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
 	var stored any
 	if symbol != nil {
-		stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+		if timeframe != nil {
+			stored = this.Ohlcvs[*symbol][*timeframe]
+		}
 	}
 	if symbol != nil {
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+			if timeframe != nil && this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		if channel != nil {

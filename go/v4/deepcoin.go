@@ -4354,7 +4354,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 		panic(ExchangeError(feedback))
 	} else {
 		var list []any = SafeListTypedDefault(data, "list", []any{})
-		if (func() bool { _, ok := data["list"]; return ok }()) && (list == nil) {
+		if _, ok := data["list"]; ok && (list == nil) {
 			panic(NullResponse(feedback))
 		}
 	}

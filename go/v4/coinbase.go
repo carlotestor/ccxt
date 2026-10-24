@@ -1943,7 +1943,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface],
 			continue
 		}
 		var typeVar string = "crypto"
-		if func() bool { _, ok := dataById[baseId]; return ok }() {
+		if _, ok := dataById[baseId]; ok {
 			typeVar = "fiat"
 		}
 		// https://github.com/ccxt/ccxt/issues/6066

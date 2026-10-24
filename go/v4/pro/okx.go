@@ -120,7 +120,7 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) any {
 	}
 	var isBusiness bool = (access == "business")
 	var isPublic bool = (access == "public")
-	var url any = ccxt.GetValue(this.Urls["api"], "ws")
+	var url any = this.UrlsApi["ws"]
 	if isBusiness || (ccxt.GetIndexOf(channel, "candle") > -1) || (ccxt.IsEqual(channel, "orders-algo")) {
 		return ccxt.Add(ccxt.Add(url, "/business"), sandboxSuffix)
 	} else if isPublic {
@@ -1896,14 +1896,21 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 			return nil
 		}(), market))
 		if symbol != nil {
-			this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+			if this.Ohlcvs[*symbol] == nil {
+				this.Ohlcvs[*symbol] = map[string]any{}
+			}
 		}
-		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+		var stored any
+		if symbol != nil && timeframe != nil {
+			stored = this.Ohlcvs[*symbol][*timeframe]
+		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			if (symbol != nil) && (timeframe != nil) {
-				ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+				if this.Ohlcvs[*symbol] != nil {
+					this.Ohlcvs[*symbol][*timeframe] = stored
+				}
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
@@ -2461,7 +2468,7 @@ func (this *Okx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 			}},
 		}
 		// Only add params['access'] to prevent sending custom parameters, such as extraParams.
-		if func() bool { _, ok := paramsOmitted["access"]; return ok }() {
+		if _, ok := paramsOmitted["access"]; ok {
 			request["access"] = paramsOmitted["access"]
 		}
 		this.Watch(url, messageHash, request, messageHash)

@@ -727,15 +727,21 @@ func (this *Bitvavo) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(name+"@", marketId), "_"), interval)
 	var candles []any = ccxt.SafeListTyped(message, "candle")
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
 	var stored any
 	if symbol != nil {
-		stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+		if timeframe != nil {
+			stored = this.Ohlcvs[*symbol][*timeframe]
+		}
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
 	for i := 0; i < len(candles); i++ {
 		var candle any = func() any {

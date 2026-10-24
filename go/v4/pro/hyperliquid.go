@@ -106,7 +106,7 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var ordersRequest any = this.CreateOrdersRequest(orders, params)
 	var wrapped map[string]any = this.WrapAsPostAction(ordersRequest)
 	var request any = this.SafeDict(wrapped, "request", map[string]any{})
@@ -238,7 +238,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
 	var order map[string]any = ccxt.MapTyped(orderglobalParamsVariable[0])
 	var globalParams map[string]any = ccxt.MapTyped(orderglobalParamsVariable[1])
@@ -296,7 +296,7 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 		}
 	}
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var wrapped map[string]any = this.WrapAsPostAction(request)
 	var wsRequest any = this.SafeDict(wrapped, "request", map[string]any{})
 	var requestId *string = this.SafeString(wrapped, "requestId")
@@ -394,7 +394,7 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderB
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orderbook:" + *symbolValue
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -454,7 +454,7 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sy
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var subMessageHash string = "orderbook:" + *symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var id string = ccxt.ToString(this.IncrementingNonce())
 	var request map[string]any = map[string]any{
 		"id":     id,
@@ -576,7 +576,7 @@ func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], 
 	// instead of the aggregate allMids broadcast that only carries mids and arrives at the
 	// server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
 	var messageHash string = "ticker:" + *symbolValue
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -643,7 +643,7 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbo
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var subMessageHash string = "ticker:" + *symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -708,7 +708,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true)
 	var messageHash string = "tickers"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -798,7 +798,7 @@ func (this *Hyperliquid) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], opti
 	this.MarketSymbols(symbols, nil, true)
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -874,7 +874,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	if !ccxt.IsEqual(symbolResolved, nil) {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -988,7 +988,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 			messageHashes = append(messageHashes, "myLiquidations::"+symbolsNormalized[i])
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -1069,7 +1069,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], opt
 	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	var messageHash string = "unsubscribe:myTrades"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -1129,9 +1129,9 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) boo
 			var marketId any = this.CoinToMarketId(name)
 			var market map[string]any = this.SafeMarket(marketId, nil, nil, "swap")
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-			var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(map[string]any{
+			var ticker map[string]any = this.ParseWsTicker(map[string]any{
 				"price": this.SafeNumber(mids, name),
-			}, market))
+			}, market)
 			this.Tickers.Store(symbol, ticker)
 		}
 		var messageHash string = "tickers"
@@ -1172,13 +1172,13 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var ctx map[string]any = this.SafeDictMap(data, "ctx", map[string]any{})
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ctx, market))
+	var ticker map[string]any = this.ParseWsTicker(ctx, market)
 	this.Tickers.Store(symbol, ticker)
 	var messageHash string = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	return true
 }
-func (this *Hyperliquid) ParseWsTicker(rawTicker map[string]any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseWsTicker(rawTicker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
@@ -1233,7 +1233,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
+		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -1354,7 +1354,7 @@ func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade:" + *symbolValue
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -1418,7 +1418,7 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbo
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var subMessageHash string = "trade:" + *symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -1492,13 +1492,13 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	}
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+		var trade map[string]any = this.ParseWsTrade(data)
 		trades.(ccxt.Appender).Append(trade)
 	}
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// fetchMyTrades
 	//
@@ -1609,7 +1609,7 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -1676,7 +1676,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -1744,9 +1744,14 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
-	var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var ohlcv any
+	if symbol != nil && timeframe != nil {
+		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.(ccxt.Appender).Append(parsed)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol))
@@ -1814,7 +1819,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 		topic = "spotState"
 	}
 	var messageHash string = topic + "::balance"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var subscription map[string]any = map[string]any{
 		"type": topic,
 		"user": userAddress,
@@ -1885,7 +1890,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], opti
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var userAddressResult any = this.HandlePublicAddress("unWatchBalance", params)
 	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
@@ -2137,7 +2142,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 	if hasSymbols && (!ccxt.IsEqual(symbolsNormalized, nil)) {
 		messageHash += "::" + ccxt.Join(symbolsNormalized, ",")
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var subscription map[string]any = map[string]any{
 		"type": topic,
 		"user": userAddress,
@@ -2270,7 +2275,7 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], op
 		panic(ccxt.NotSupported(this.Id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders"))
 	}
 	var messageHash string = "unsubscribe:clearinghouseState"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var userAddressResult any = this.HandlePublicAddress("unWatchPositions", params)
 	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
@@ -2353,7 +2358,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 		}
 		return symbol
 	}()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -2426,7 +2431,7 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optio
 		panic(ccxt.NotSupported(this.Id + " unWatchOrders() does not support a symbol argument, unWatch from all markets only"))
 	}
 	var messageHash string = "unsubscribe:order"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var userAddressResult any = this.HandlePublicAddress("unWatchOrders", params)
 	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)

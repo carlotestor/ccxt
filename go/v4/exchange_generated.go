@@ -950,10 +950,14 @@ func (this *BaseExchange) SetSandboxMode(enabled any) {
 		if _, ok := this.Urls["test"]; ok {
 			if IsString(this.Urls["api"]) {
 				this.Urls["apiBackup"] = this.Urls["api"]
+				this.RefreshUrlsViews()
 				this.Urls["api"] = this.Urls["test"]
+				this.RefreshUrlsViews()
 			} else {
 				this.Urls["apiBackup"] = this.Clone(this.Urls["api"])
+				this.RefreshUrlsViews()
 				this.Urls["api"] = this.Clone(this.Urls["test"])
+				this.RefreshUrlsViews()
 			}
 		} else {
 			panic(NotSupported(this.Id + " does not have a sandbox URL"))
@@ -963,11 +967,14 @@ func (this *BaseExchange) SetSandboxMode(enabled any) {
 	} else if _, ok := this.Urls["apiBackup"]; ok {
 		if IsString(this.Urls["api"]) {
 			this.Urls["api"] = this.Urls["apiBackup"]
+			this.RefreshUrlsViews()
 		} else {
 			this.Urls["api"] = this.Clone(this.Urls["apiBackup"])
+			this.RefreshUrlsViews()
 		}
 		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackup"))
 		this.Urls = newUrls
+		this.RefreshUrlsViews()
 		// set flag
 		this.IsSandboxModeEnabled = false
 	}
@@ -985,11 +992,15 @@ func (this *BaseExchange) EnableDemoTrading(enable any) {
 	}
 	if EvalTruthy(enable) {
 		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
+		this.RefreshUrlsViews()
 		this.Urls["api"] = this.Urls["demo"]
+		this.RefreshUrlsViews()
 	} else if _, ok := this.Urls["apiBackupDemoTrading"]; ok {
 		this.Urls["api"] = this.Urls["apiBackupDemoTrading"]
+		this.RefreshUrlsViews()
 		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
 		this.Urls = newUrls
+		this.RefreshUrlsViews()
 	}
 	this.Options["enableDemoTrading"] = enable
 }
@@ -1464,12 +1475,12 @@ func (this *BaseExchange) ParseIsolatedBorrowRate(info any, optionalArgs ...any)
 	_ = market
 	panic(NotSupported(this.Id + " parseIsolatedBorrowRate() is not supported yet"))
 }
-func (this *BaseExchange) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseWsTrade() is not supported yet"))
 }
-func (this *BaseExchange) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseWsOrder() is not supported yet"))
@@ -2806,7 +2817,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 			// copy fee to avoid modification by reference
 			var feeCopy map[string]any = this.DeepExtend(fee)
 			feeCopy["cost"] = this.SafeNumber(feeCopy, "cost")
-			if func() bool { _, ok := feeCopy["rate"]; return ok }() {
+			if _, ok := feeCopy["rate"]; ok {
 				feeCopy["rate"] = this.SafeNumber(feeCopy, "rate")
 			}
 			AppendToArray(&reducedFees, feeCopy)
@@ -4055,7 +4066,7 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	var aliasKeys []string = ObjectKeys(aliases)
 	for i := 0; i < len(aliasKeys); i++ {
 		var alias string = aliasKeys[i]
-		if (IsEqual(GetValue(aliases, alias), unifiedCode)) && (func() bool { _, ok := networkIdsByCodes[alias]; return ok }()) {
+		if _, ok := networkIdsByCodes[alias]; (IsEqual(GetValue(aliases, alias), unifiedCode)) && ok {
 			return networkIdsByCodes[alias]
 		}
 	}
@@ -4313,7 +4324,7 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan AsyncResult[map[string]a
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if (this.Has["fetchTradingLimits"] != nil) && (this.Has["fetchTradingLimits"] != false) {
-		if (reload == true) || !(InOp(this.Options, "limitsLoaded")) {
+		if _, hx15ok := this.Options["limitsLoaded"]; (reload == true) || !hx15ok {
 
 			r := <-this.FetchTradingLimitsAsync(symbols)
 			if r.Err != nil {
@@ -7852,7 +7863,7 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 	 */
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var lowercaseAccount string = ToLower(account)
-	if func() bool { _, ok := accountsByType[lowercaseAccount]; return ok }() {
+	if _, ok := accountsByType[lowercaseAccount]; ok {
 		return accountsByType[lowercaseAccount]
 	}
 	var markets any = this.Markets()
@@ -8788,10 +8799,10 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 func (this *BaseExchange) SortCursorPaginatedResult(result any) any {
 	var first map[string]any = SafeMapTyped(result, 0)
 	if first != nil {
-		if func() bool { _, ok := first["timestamp"]; return ok }() {
+		if _, ok := first["timestamp"]; ok {
 			return this.SortBy(result, "timestamp", true)
 		}
-		if func() bool { _, ok := first["id"]; return ok }() {
+		if _, ok := first["id"]; ok {
 			return this.SortBy(result, "id", true)
 		}
 	}
@@ -11766,8 +11777,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11331, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047615 []any = listRecv11331
+	listRecv11342, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1047615 []any = listRecv11342
 	if retRes1047615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

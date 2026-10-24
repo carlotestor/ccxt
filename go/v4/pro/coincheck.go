@@ -85,7 +85,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": ccxt.Add(market["id"], "-orderbook"),
@@ -173,7 +173,7 @@ func (this *Coincheck) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr("trade:" + market["symbol"].(string))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": ccxt.Add(market["id"], "-trades"),
@@ -218,13 +218,13 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	}
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var data any = this.SafeValue(message, i)
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+		var trade map[string]any = this.ParseWsTrade(data)
 		stored.(ccxt.Appender).Append(trade)
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", symbol))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     [
 	//         "1663318663", // transaction timestamp (unix time)

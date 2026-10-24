@@ -75,7 +75,7 @@ func (this *Derive) WatchPublicAsync(messageHash any, message any, subscription 
 func (this *Derive) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash any, message any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
@@ -338,7 +338,7 @@ func (this *Derive) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		topics = append(topics, ccxt.Add(ccxt.Add("ticker_slim.", market["id"]), ".100"))
 		messageHashes = append(messageHashes, "bidask:"+market["symbol"].(string))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -546,7 +546,7 @@ func (this *Derive) UnWatchPublicAsync(messageHash any, message any, subscriptio
 func (this *Derive) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], messageHash any, message any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
@@ -758,7 +758,7 @@ func (this *Derive) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -822,7 +822,7 @@ func (this *Derive) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,

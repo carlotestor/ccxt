@@ -334,7 +334,7 @@ func (this *Kraken) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
 	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
@@ -441,7 +441,7 @@ func (this *Kraken) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id str
 		panic(r1.Err)
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
@@ -511,7 +511,7 @@ func (this *Kraken) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], i
 		panic(r1.Err)
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
@@ -577,7 +577,7 @@ func (this *Kraken) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 		panic(r1.Err)
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
@@ -658,7 +658,7 @@ func (this *Kraken) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order]
 		panic(r1.Err)
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
@@ -831,14 +831,21 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var interval *int64 = this.SafeInteger(first, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash string = this.GetMessageHash("ohlcv", nil, symbol)
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
 	var ohlcvsLength int = len(data)
 	for i := 0; i < ohlcvsLength; i++ {
@@ -1208,7 +1215,7 @@ func (this *Kraken) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var name string = "ohlc"
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "publicV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["publicV2"])
 	var requestId int64 = this.RequestId()
 	var messageHash string = this.GetMessageHash("ohlcv", nil, symbolValue)
 	var subscribe map[string]any = map[string]any{
@@ -1302,7 +1309,7 @@ func (this *Kraken) watchHeartbeatBody(ch chan ccxt.AsyncResult[map[string]any],
 		panic(r.Err)
 	}
 	var event string = "heartbeat"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "publicV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["publicV2"])
 
 	r1 := <-this.Watch(url, event)
 	if r1.Err != nil {
@@ -1543,7 +1550,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var authenticated string = "authenticated"
 	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), authenticated)
@@ -1676,7 +1683,7 @@ func (this *Kraken) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], name strin
 	if symbolResolved != nil {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
 	var requestId int64 = this.RequestId()
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1785,7 +1792,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(allTrades); i++ {
 			var trade any = this.SafeDict(allTrades, i, map[string]any{})
-			var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade))
+			var parsed map[string]any = this.ParseWsTrade(trade)
 			stored.(ccxt.Appender).Append(parsed)
 			var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 			if symbol != nil {
@@ -1807,7 +1814,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 		}
 	}
 }
-func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "order_id": "O6NTZC-K6FRH-ATWBCK",
@@ -1950,7 +1957,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 		for i := 0; i < len(allOrders); i++ {
 			var order any = this.SafeDict(allOrders, i, map[string]any{})
 			var id *string = this.SafeString(order, "order_id")
-			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
+			var parsed map[string]any = this.ParseWsOrder(order)
 			var symbol *string = this.SafeString(order, "symbol")
 			var previousOrders map[string]any = ccxt.SafeMapTyped(stored.(*ccxt.ArrayCache).Hashmap, symbol)
 			var previousOrder any = this.SafeDict(previousOrders, id)
@@ -1988,7 +1995,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 		}
 	}
 }
-func (this *Kraken) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Kraken) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// watchOrders
 	//
@@ -2104,7 +2111,7 @@ func (this *Kraken) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], unifiedN
 		"req_id": this.RequestId(),
 	}
 	request["params"] = this.DeepExtend(request["params"], params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "publicV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["publicV2"])
 
 	r1 := <-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs)
 	if r1.Err != nil {
@@ -2144,7 +2151,7 @@ func (this *Kraken) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
 	var messageHash string = "balances"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateV2"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
 	var requestId int64 = this.RequestId()
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",

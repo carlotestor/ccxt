@@ -189,7 +189,7 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
+		var trade map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if stored == nil {
@@ -204,7 +204,7 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Blofin) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Blofin) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return ccxt.TradeToMap(this.ParseTrade(trade, market))
@@ -464,12 +464,12 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(func() any {
+		var ticker map[string]any = this.ParseWsTicker(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}()))
+		}())
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		this.Tickers.Store(symbol, ticker)
 		if channelName != nil {
@@ -478,7 +478,7 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Blofin) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Blofin) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return ccxt.TickerToMap(this.ParseTicker(ticker, market))
@@ -733,16 +733,22 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	var interval string = ccxt.Replace(channelName, "candle", "")
 	var unifiedTimeframe *string = this.FindTimeframe(interval)
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var stored any
 	if symbol != nil {
-		stored = this.SafeValue(this.Ohlcvs[*symbol], unifiedTimeframe)
+		if unifiedTimeframe != nil {
+			stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+		}
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, stored)
+		if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*unifiedTimeframe] = stored
+		}
 	}
 	for i := 0; i < len(data); i++ {
 		var candle any = func() any {
@@ -960,12 +966,12 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(func() any {
+		var order map[string]any = this.ParseWsOrder(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}()))
+		}())
 		var symbol *string = ccxt.SafeStringPtr(order["symbol"])
 		orders.(ccxt.Appender).Append(order)
 		if channelName != nil {
@@ -975,7 +981,7 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(orders, channelName)
 	}
 }
-func (this *Blofin) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Blofin) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return ccxt.OrderToMap(this.ParseOrder(order, market))

@@ -126,13 +126,13 @@ func (this *Bingx) unWatchBody(ch chan ccxt.AsyncResult[bool], messageHash any, 
 	marketType, query = this.HandleMarketTypeAndParams(methodName, market, params)
 	subType, query = this.HandleSubTypeAndParams(methodName, market, query, "linear")
 	if marketType != nil && *marketType == "swap" {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], subType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
 		}
 	} else {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), marketType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], marketType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
@@ -215,13 +215,13 @@ func (this *Bingx) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchTicker", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchTicker", market, paramsMarketType, "linear")
 	if marketType != nil && *marketType == "swap" {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], subType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
 		}
 	} else {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), marketType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], marketType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
@@ -369,16 +369,16 @@ func (this *Bingx) HandleTicker(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	// the Coin-M stream is a distinct endpoint, so it identifies an inverse
 	// ticker even when the market id could not be resolved
-	var inverseUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "inverse")
+	var inverseUrl *string = this.SafeString(this.UrlsApi["ws"], "inverse")
 	var isInverse bool = (inverseUrl != nil) && (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), inverseUrl) == 0)
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market, isInverse))
+	var ticker map[string]any = this.ParseWsTicker(data, market, isInverse)
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
 	if this.SafeString(message, "dataType") != nil && *this.SafeString(message, "dataType") == "all@ticker" {
 		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
 	}
 }
-func (this *Bingx) ParseWsTicker(message map[string]any, optionalArgs ...any) any {
+func (this *Bingx) ParseWsTicker(message map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "e": "24hTicker",
@@ -512,13 +512,13 @@ func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchTrades", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchTrades", market, paramsMarketType, "linear")
 	if marketType != nil && *marketType == "swap" {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], subType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
 		}
 	} else {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), marketType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], marketType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
@@ -771,13 +771,13 @@ func (this *Bingx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrderBook", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchOrderBook", market, paramsMarketType, "linear")
 	if marketType != nil && *marketType == "swap" {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], subType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
 		}
 	} else {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), marketType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], marketType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
@@ -1114,7 +1114,9 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	}
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
 	var rawTimeframe *string = ccxt.SafeStringPtr(ccxt.GetValue(strings.Split(*dataType, "_"), 1))
 	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
@@ -1127,9 +1129,14 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 		// when handleMessage routes a non-ccxt.OHLCV-originated subscription here (or the
 		// subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
 		var limit *int64 = this.SafeInteger(subscription, "limit", this.SafeInteger(this.Options, "OHLCVLimit", 1000))
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, ccxt.NewArrayCacheByTimestamp(limit))
+		if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		}
 	}
-	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe)
+	var stored any
+	if symbol != nil && unifiedTimeframe != nil {
+		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+	}
 	for i := 0; i < len(candles); i++ {
 		var candle any = ccxt.GetValue(candles, i)
 		var parsed any = this.ParseWsOHLCV(candle, market)
@@ -1187,13 +1194,13 @@ func (this *Bingx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOHLCV", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchOHLCV", market, paramsMarketType, "linear")
 	if marketType != nil && *marketType == "swap" {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], subType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
 		}
 	} else {
-		if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), marketType); derefPtr != nil {
+		if derefPtr := this.SafeString(this.UrlsApi["ws"], marketType); derefPtr != nil {
 			url = *derefPtr
 		} else {
 			url = nil
@@ -1363,9 +1370,9 @@ func (this *Bingx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 		if subType != nil && *subType == "inverse" {
 			panic(ccxt.NotSupported(this.Id + " watchOrders is not supported for inverse swap markets yet"))
 		}
-		baseUrl = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType)
+		baseUrl = this.SafeString(this.UrlsApi["ws"], subType)
 	} else {
-		baseUrl = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
+		baseUrl = this.SafeString(this.UrlsApi["ws"], typeVar)
 		request = map[string]any{
 			"id":       uuid,
 			"reqType":  "sub",
@@ -1472,9 +1479,9 @@ func (this *Bingx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 		if subType != nil && *subType == "inverse" {
 			panic(ccxt.NotSupported(this.Id + " watchMyTrades is not supported for inverse swap markets yet"))
 		}
-		baseUrl = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType)
+		baseUrl = this.SafeString(this.UrlsApi["ws"], subType)
 	} else {
-		baseUrl = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
+		baseUrl = this.SafeString(this.UrlsApi["ws"], typeVar)
 		request = map[string]any{
 			"id":       uuid,
 			"reqType":  "sub",
@@ -1561,9 +1568,9 @@ func (this *Bingx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 		}
 		// swap balance updates are pushed automatically over the listenKey connection,
 		// so we must not send a subscription message (an empty one is rejected with 80014)
-		baseUrl = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType)
+		baseUrl = this.SafeString(this.UrlsApi["ws"], subType)
 	} else {
-		baseUrl = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
+		baseUrl = this.SafeString(this.UrlsApi["ws"], typeVar)
 		request = map[string]any{
 			"id":       uuid,
 			"dataType": "ACCOUNT_UPDATE",
@@ -1708,7 +1715,7 @@ func (this *Bingx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	}
 	var subscriptionHash string = "swap:private"
 	messageHash = "swap:positions" + messageHash
-	var baseUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), subType)
+	var baseUrl *string = this.SafeString(this.UrlsApi["ws"], subType)
 	var userStreamKey *string = this.SafeString(this.Options, "listenKey")
 	if (baseUrl == nil) || (userStreamKey == nil) {
 		panic(ccxt.AuthenticationError(this.Id + " watchPositions() requires a websocket URL and a listen key"))
@@ -1902,7 +1909,7 @@ func (this *Bingx) HandlePositions(client any, message any) {
 	}
 	var cache any = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")
-	if !(func() bool { _, ok := data["P"]; return ok }()) {
+	if _, ok := data["P"]; !ok {
 		return
 	}
 	var rawPositions []any = ccxt.SafeListTyped(data, "P")
@@ -2013,7 +2020,7 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 						var types []string = []string{"spot", "linear", "inverse"}
 						for i := 0; i < len(types); i++ {
 							var typeVar string = types[i]
-							var baseUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
+							var baseUrl *string = this.SafeString(this.UrlsApi["ws"], typeVar)
 							if baseUrl == nil {
 								continue
 							}
@@ -2432,7 +2439,7 @@ func (this *Bingx) HandleBalance(client any, message any) {
 	var a map[string]any = ccxt.SafeMapTyped(message, "a")
 	var data any = this.SafeList(a, "B", []any{})
 	var timestamp *int64 = this.SafeInteger2(message, "T", "E")
-	var spotUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "spot")
+	var spotUrl *string = this.SafeString(this.UrlsApi["ws"], "spot")
 	var isSpot bool = (spotUrl != nil) && (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), spotUrl) == 0)
 	var typeVar string = "swap"
 	if isSpot {

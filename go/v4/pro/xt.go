@@ -1694,23 +1694,29 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 	if marketId != nil {
 		var timeframe *string = this.SafeString(data, "i", "")
 		var tradeType string = "contract"
-		if func() bool { _, ok := data["q"]; return ok }() {
+		if _, ok := data["q"]; ok {
 			tradeType = "spot"
 		}
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
 		if symbol != nil {
-			this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+			if this.Ohlcvs[*symbol] == nil {
+				this.Ohlcvs[*symbol] = map[string]any{}
+			}
 		}
 		var stored any
 		if symbol != nil {
-			stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe)
+			if timeframe != nil {
+				stored = this.Ohlcvs[*symbol][*timeframe]
+			}
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		var event *string = this.SafeString(message, "event")
@@ -1962,7 +1968,7 @@ func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 		},
 	}, marketResolved))
 }
-func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -2096,11 +2102,11 @@ func (this *Xt) HandleOrder(client any, message map[string]any) any {
 	var marketId *string = this.SafeString2(order, "s", "symbol")
 	if marketId != nil {
 		var tradeType string = "spot"
-		if func() bool { _, ok := order["symbol"]; return ok }() {
+		if _, ok := order["symbol"]; ok {
 			tradeType = "contract"
 		}
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
+		var parsed map[string]any = this.ParseWsOrder(order, market)
 		orders.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(orders, "order::"+tradeType)
 	}
@@ -2153,7 +2159,7 @@ func (this *Xt) HandleBalance(client any, message map[string]any) {
 	}
 	this.Balance = this.SafeBalance(this.Balance)
 	var tradeType string = "spot"
-	if func() bool { _, ok := data["coin"]; return ok }() {
+	if _, ok := data["coin"]; ok {
 		tradeType = "contract"
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance::"+tradeType)

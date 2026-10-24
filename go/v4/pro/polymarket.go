@@ -101,7 +101,7 @@ func (this *Polymarket) SendSubscription(action string, channels any, messageHas
 	_ = params
 	var checkHashes []string = ccxt.GetArgStringSlice(optionalArgs, 2, nil)
 	_ = checkHashes
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	// the base watch only sends the request when one of the hashes is not
 	// subscribed yet, so a pending entry is registered under the same
@@ -171,7 +171,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	var messageHash string = "orderbook:" + *symbolResolved
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("book::", market["id"]))
 	var request map[string]any = this.SendSubscription("sub", []any{channel}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -217,7 +217,7 @@ func (this *Polymarket) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sym
 		"symbol": symbolResolved,
 	}
 	var request map[string]any = this.SendSubscription("unsub", []any{channel}, []any{messageHash}, []any{subMessageHash}, context, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -306,7 +306,7 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], s
 	var messageHash string = "ticker:" + *symbolResolved
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("tickers::", market["id"]))
 	var request map[string]any = this.SendSubscription("sub", []any{channel}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -360,7 +360,7 @@ func (this *Polymarket) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol
 		"symbol": symbolResolved,
 	}
 	var request map[string]any = this.SendSubscription("unsub", []any{channel}, []any{messageHash}, []any{subMessageHash}, context, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -409,7 +409,7 @@ func (this *Polymarket) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 		panic(r.Err)
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
 	if symbolsNormalized == nil {
@@ -516,7 +516,7 @@ func (this *Polymarket) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]cc
 		panic(r.Err)
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -622,7 +622,7 @@ func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	var messageHash string = "trade:" + *symbolResolved
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("trades::", market["id"]))
 	var request map[string]any = this.SendSubscription("sub", []any{channel}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -672,7 +672,7 @@ func (this *Polymarket) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol
 		"symbol": symbolResolved,
 	}
 	var request map[string]any = this.SendSubscription("unsub", []any{channel}, []any{messageHash}, []any{subMessageHash}, context, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -742,13 +742,13 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	}
 	for i := 0; i < len(rows); i++ {
 		var row any = this.SafeDict(rows, i, map[string]any{})
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(row, market))
+		var trade map[string]any = this.ParseWsTrade(row, market)
 		trades.(ccxt.Appender).Append(trade)
 	}
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Polymarket) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Polymarket) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "tid": 3738280849593744,
@@ -831,7 +831,7 @@ func (this *Polymarket) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	var messageHash string = "candles:" + timeframe + ":" + *symbolResolved
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("klines::", market["id"]), "::"), interval))
 	var request map[string]any = this.SendSubscription("sub", []any{channel}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -887,7 +887,7 @@ func (this *Polymarket) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol 
 		"timeframe": timeframe,
 	}
 	var request map[string]any = this.SendSubscription("unsub", []any{channel}, []any{messageHash}, []any{subMessageHash}, context, params)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -945,9 +945,14 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
-	var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var ohlcv any
+	if symbol != nil && timeframe != nil {
+		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+	}
 	for i := 0; i < len(rows); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(func() any {
 			if i >= 0 && i < len(rows) {
@@ -985,7 +990,7 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 		panic(r.Err)
 	}
 	credentials := r.Value
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -1075,7 +1080,7 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	}
 	var subscribeHashes []any = []any{"orders"}
 	var request map[string]any = this.SendSubscription("sub", []any{"orders"}, []any{messageHash}, subscribeHashes, map[string]any{}, params, subscribeHashes)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r2 := <-this.Watch(url, messageHash, request, "orders")
 	if r2.Err != nil {
@@ -1199,7 +1204,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 	}
 	var subscribeHashes []any = []any{"fills"}
 	var request map[string]any = this.SendSubscription("sub", []any{"fills"}, []any{messageHash}, subscribeHashes, map[string]any{}, params, subscribeHashes)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r2 := <-this.Watch(url, messageHash, request, "fills")
 	if r2.Err != nil {
@@ -1319,7 +1324,7 @@ func (this *Polymarket) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posit
 		panic(r1.Err)
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
@@ -1431,7 +1436,7 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client)
 	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
@@ -1711,7 +1716,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 			} else if topic != nil && *topic == "ohlcv" {
 				var timeframe *string = this.SafeString(pending, "timeframe")
 				if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
-					if ccxt.InOp(this.Ohlcvs[*symbol], timeframe) {
+					if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 						ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
 					}
 				}

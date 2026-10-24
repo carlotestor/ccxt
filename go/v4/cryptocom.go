@@ -2982,7 +2982,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[ma
 		var currencyId *string = this.SafeString(value, "currency")
 		var responseCode *string = this.SafeCurrencyCode(currencyId)
 		addresstagVariable := this.ParseAddress(addressString)
-		address := GetValue(addresstagVariable, 0)
+		var address *string = SafeStringPtr(addresstagVariable[0])
 		var tag *string = SafeStringPtr(addresstagVariable[1])
 		this.CheckAddress(address)
 		var networkId *string = this.SafeString(value, "network")

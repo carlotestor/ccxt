@@ -98,7 +98,7 @@ func (this *Woofipro) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	if (this.AccountId != nil) && (this.AccountId != "") {
 		id = this.AccountId
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), "/"), id))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(this.UrlsApi["ws"], "public"), "/"), id))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -254,7 +254,7 @@ func (this *Woofipro) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
-func (this *Woofipro) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
+func (this *Woofipro) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",
@@ -315,7 +315,7 @@ func (this *Woofipro) HandleTicker(client any, message map[string]any) any {
 	var market map[string]any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	data["date"] = timestamp
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
+	var ticker map[string]any = this.ParseWsTicker(data, market)
 	ticker["symbol"] = market["symbol"]
 	this.Tickers.Store(market["symbol"], ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, topic)
@@ -410,14 +410,14 @@ func (this *Woofipro) HandleTickers(client any, message map[string]any) {
 			return nil
 		}(), "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(this.Extend(func() any {
+		var ticker map[string]any = this.ParseWsTicker(this.Extend(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
 		}(), map[string]any{
 			"date": timestamp,
-		}), market))
+		}), market)
 		this.Tickers.Store(market["symbol"], ticker)
 		result = append(result, ticker)
 	}
@@ -625,14 +625,21 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 	}
 	stored.(ccxt.Appender).Append(parsed)
@@ -712,9 +719,9 @@ func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(this.Extend(data, map[string]any{
+	var trade map[string]any = this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
-	}), market))
+	}), market)
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
@@ -730,7 +737,7 @@ func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Trades, symbol, trades)
 	client.(ccxt.ClientInterface).Resolve(trades, topic)
 }
-func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol":"PERP_ADA_USDC",
@@ -845,7 +852,7 @@ func (this *Woofipro) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.AccountId))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(this.UrlsApi["ws"], "private"), "/"), this.AccountId))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
@@ -908,7 +915,7 @@ func (this *Woofipro) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.AccountId))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(this.UrlsApi["ws"], "private"), "/"), this.AccountId))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -937,7 +944,7 @@ func (this *Woofipro) watchPrivateMultipleBody(ch chan ccxt.AsyncResult[[]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.AccountId))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(this.UrlsApi["ws"], "private"), "/"), this.AccountId))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -1113,7 +1120,7 @@ func (this *Woofipro) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Woofipro) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Woofipro) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDT",
@@ -1286,7 +1293,7 @@ func (this *Woofipro) HandleOrderUpdate(client any, message map[string]any) {
 	}
 }
 func (this *Woofipro) HandleOrder(client any, message any, topic any) {
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
+	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	if symbol != nil {
@@ -1349,7 +1356,7 @@ func (this *Woofipro) HandleMyTrade(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
+	var trade map[string]any = this.ParseWsTrade(message, market)
 	var trades any = this.MyTrades
 	if ccxt.IsEqual(trades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1412,7 +1419,7 @@ func (this *Woofipro) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	} else {
 		messageHashes = append(messageHashes, "positions")
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.AccountId))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(this.UrlsApi["ws"], "private"), "/"), this.AccountId))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)

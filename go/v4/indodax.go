@@ -1958,7 +1958,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 		if (address != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			this.CheckAddress(address)
 			var network any = nil
-			if func() bool { _, ok := networks[marketId]; return ok }() {
+			if _, ok := networks[marketId]; ok {
 				var networkId *string = this.SafeString(networks, marketId)
 				if networkId == nil {
 					panic(ExchangeError(this.Id + " fetchDepositAddresses() missing networkId"))

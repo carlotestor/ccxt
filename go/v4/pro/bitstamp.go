@@ -97,7 +97,7 @@ func (this *Bitstamp) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orderbook:" + *symbolValue
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("diff_order_book_", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{
@@ -176,7 +176,7 @@ func (this *Bitstamp) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], channel
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var unsubHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", channel))
 	var request map[string]any = map[string]any{
 		"event": "bts:unsubscribe",
@@ -342,7 +342,7 @@ func (this *Bitstamp) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbolValue
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("live_trades_", market["id"]))
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
@@ -404,7 +404,7 @@ func (this *Bitstamp) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "buy_order_id": 1211625836466176,
@@ -480,7 +480,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbol
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
+	var trade map[string]any = this.ParseWsTrade(data, market)
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -520,7 +520,7 @@ func (this *Bitstamp) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.Funding
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "fundingRate:" + *symbolValue
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("funding_rate_", market["id"]))
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
@@ -943,11 +943,11 @@ func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	var stored any = this.Orders
 	var market map[string]any = this.Market(symbol)
 	order["event"] = this.SafeString(message, "event")
-	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
+	var parsed map[string]any = this.ParseWsOrder(order, market)
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 }
-func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// order_deleted after a full fill - amount_str carries the amount
 	// left to be executed, amount_at_create the original order amount
@@ -1376,7 +1376,7 @@ func (this *Bitstamp) subscribePrivateBody(ch chan ccxt.AsyncResult[ccxt.ArrayCa
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 
 	r := <-this.AuthenticateAsync()
 	if r.Err != nil {

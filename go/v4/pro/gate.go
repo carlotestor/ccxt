@@ -1712,13 +1712,20 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 		var marketId string = ccxt.Replace(subscription, prefix, "")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv))
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+		if symbol != nil && this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
+		var stored any
+		if symbol != nil && timeframe != nil {
+			stored = this.Ohlcvs[*symbol][*timeframe]
+		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			if (symbol != nil) && (timeframe != nil) {
-				ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+				if this.Ohlcvs[*symbol] != nil {
+					this.Ohlcvs[*symbol][*timeframe] = stored
+				}
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
@@ -1736,7 +1743,10 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 		var timeframe any = marketIds[symbol]
 		var interval *string = this.FindTimeframe(timeframe)
 		var hash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles"+":", interval), ":"), symbol))
-		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), interval)
+		var stored any
+		if interval != nil {
+			stored = this.Ohlcvs[symbol][*interval]
+		}
 		client.(ccxt.ClientInterface).Resolve(stored, hash)
 	}
 }

@@ -602,12 +602,14 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 	if timeframe != nil {
 		var messageHash string = "kline:" + *timeframe + ":" + *symbol
 		var ohlcvs []any = this.ParseOHLCVs(candles, market)
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
+		var stored any = this.Ohlcvs[*symbol][*timeframe]
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 		for i := 0; i < len(ohlcvs); i++ {
 			var candle any = ccxt.GetValue(ohlcvs, i)
@@ -658,7 +660,7 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			return "market24h"
 		}()
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
 	var messageHash string = "ticker:" + *symbolValue
@@ -737,7 +739,7 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 			return "market24h"
 		}()
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
 	var messageHashes []any = []any{}
@@ -817,7 +819,7 @@ func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = (market["settle"] == "USDT")
@@ -883,7 +885,7 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = (market["settle"] == "USDT")
@@ -950,7 +952,7 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = (market["settle"] == "USDT")
@@ -1974,7 +1976,7 @@ func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.Seconds()
 	var settleIsUSDT bool = (this.SafeString(params, "settle", "") != nil && *this.SafeString(params, "settle", "") == "USDT")
 	var paramsOmitted map[string]any = this.OmitDict(params, "settle")
@@ -2010,7 +2012,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var requestId int64 = this.RequestId()
 	var messageHash string = "authenticated"

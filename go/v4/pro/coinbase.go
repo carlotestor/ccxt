@@ -114,7 +114,7 @@ func (this *Coinbase) subscribeBody(ch chan ccxt.AsyncResult[any], name string, 
 		messageHash = ccxt.Add(name+"::", symbol)
 		productIds = []any{this.SafeString(market, "id")}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": productIds,
@@ -184,7 +184,7 @@ func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic stri
 		unWatchMessageHash = ccxt.Add(ccxt.Add(unWatchMessageHash, "::"), symbol)
 		productIds = []any{this.SafeString(market, "id")}
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	// '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
 	var message map[string]any = map[string]any{
 		"type":        "unsubscribe",
@@ -267,7 +267,7 @@ func (this *Coinbase) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], name 
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, name+"::"+symbol)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": productIds,
@@ -332,7 +332,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], to
 		watchMessageHashes = append(watchMessageHashes, name+"::"+symbol)
 		unWatchMessageHashes = append(unWatchMessageHashes, "unsubscribe:"+name+"::"+symbol)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var message map[string]any = map[string]any{
 		"type":        "unsubscribe",
 		"product_ids": productIds,
@@ -700,7 +700,7 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 			if wsMarketId == nil {
 				continue
 			}
-			var result map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker))
+			var result map[string]any = this.ParseWsTicker(ticker)
 			result["timestamp"] = timestamp
 			result["datetime"] = datetime
 			var symbol *string = ccxt.SafeStringPtr(result["symbol"])
@@ -716,7 +716,7 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Coinbase) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinbase) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "type": "ticker",
@@ -1255,7 +1255,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 				}
 				return nil
 			}()
-			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(responseOrder))
+			var parsed map[string]any = this.ParseWsOrder(responseOrder)
 			var cachedOrders any = this.Orders
 			var marketId *string = this.SafeString(responseOrder, "product_id")
 			if marketId != nil {
@@ -1280,7 +1280,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "user")
 }
-func (this *Coinbase) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Coinbase) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "order_id": "XXX",

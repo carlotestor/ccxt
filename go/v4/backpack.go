@@ -883,7 +883,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	}
 	var includeRfq bool = this.InArray("RFQ", marketTypes)
 	var marketQuery map[string]any = this.OmitDict(query, "marketType")
-	if func() bool { _, ok := query["marketType"]; return ok }() {
+	if _, ok := query["marketType"]; ok {
 		marketQuery["marketType"] = marketTypes
 	}
 
@@ -945,7 +945,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 				continue
 			}
 			var marketId string = *assetId + "_USDC_RFQ"
-			if !(func() bool { _, ok := marketIds[marketId]; return ok }()) {
+			if _, ok := marketIds[marketId]; !ok {
 				var market any = this.ParseMarket(map[string]any{
 					"symbol":        marketId,
 					"baseSymbol":    assetId,
@@ -2939,7 +2939,7 @@ func (this *Backpack) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		}
 		for i := 0; i < len(assetIds); i++ {
 			var assetId string = assetIds[i]
-			if func() bool { _, ok := securityIds[assetId]; return ok }() {
+			if _, ok := securityIds[assetId]; ok {
 				balances[assetId] = GetValue(response, assetId)
 			}
 		}
@@ -3505,7 +3505,7 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
 	var unsupported []string = []string{"cost", "quoteQuantity", "postOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "reduceOnly", "timeInForce", "selfTradePrevention"}
 	for i := 0; i < len(unsupported); i++ {
 		var key string = unsupported[i]
-		if func() bool { _, ok := paramsResolved[key]; return ok }() {
+		if _, ok := paramsResolved[key]; ok {
 			panic(NotSupported(this.Id + " createOrder() RFQs do not support " + key))
 		}
 	}

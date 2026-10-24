@@ -127,12 +127,12 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+	var trade map[string]any = this.ParseWsTrade(data)
 	stored.(ccxt.Appender).Append(trade)
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
-func (this *Independentreserve) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Independentreserve) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",

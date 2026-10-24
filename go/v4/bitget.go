@@ -6226,7 +6226,7 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		}
 		if isStock {
 			request["category"] = "SPOT"
-		} else if !(func() bool { _, ok := request["category"]; return ok }()) {
+		} else if _, ok := request["category"]; !ok {
 			request["category"] = productType
 		}
 
@@ -8778,7 +8778,7 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 		} else if isStopLossOrTakeProfitTrigger {
 			if price != nil {
 				request["executePrice"] = this.PriceToPrecision(symbol, price)
-				if func() bool { _, ok := request["price"]; return ok }() {
+				if _, ok := request["price"]; ok {
 					delete(request, "price")
 				}
 			}

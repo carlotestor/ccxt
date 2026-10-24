@@ -436,7 +436,7 @@ func (this *Zaif) ParseBalance(response any) map[string]any {
 		account["free"] = balance
 		account["total"] = balance
 		if deposit != nil {
-			if func() bool { _, ok := deposit[currencyId]; return ok }() {
+			if _, ok := deposit[currencyId]; ok {
 				account["total"] = this.SafeString(deposit, currencyId)
 			}
 		}

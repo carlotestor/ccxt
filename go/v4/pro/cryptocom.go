@@ -813,7 +813,7 @@ func (this *Cryptocom) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 		messageHashes = append(messageHashes, "ticker."+*marketId)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -941,7 +941,7 @@ func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, market))
+		var parsed map[string]any = this.ParseWsTicker(ticker, market)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
 			this.Tickers.Store(symbol, parsed)
@@ -949,7 +949,7 @@ func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	}
 }
-func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "h": "2400.20",
@@ -1045,7 +1045,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccx
 		}()))
 		topics = append(topics, "ticker."+*marketId)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1230,14 +1230,21 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(message, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	if symbol != nil {
-		this.Ohlcvs[*symbol] = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
+		if this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], timeframe, stored)
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
@@ -1412,7 +1419,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1961,7 +1968,7 @@ func (this *Cryptocom) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHas
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1989,7 +1996,7 @@ func (this *Cryptocom) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], me
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -2019,7 +2026,7 @@ func (this *Cryptocom) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool],
 	_ = params
 	var subExtend map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subExtend
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -2072,7 +2079,7 @@ func (this *Cryptocom) watchPrivateRequestBody(ch chan ccxt.AsyncResult[any], no
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var request map[string]any = map[string]any{
 		"id":    nonce,
 		"nonce": nonce,
@@ -2101,7 +2108,7 @@ func (this *Cryptocom) watchPrivateSubscribeBody(ch chan ccxt.AsyncResult[any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -2266,7 +2273,7 @@ func (this *Cryptocom) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)

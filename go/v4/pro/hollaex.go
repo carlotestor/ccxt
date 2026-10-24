@@ -635,7 +635,7 @@ func (this *Hollaex) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": []any{messageHash},
@@ -673,7 +673,7 @@ func (this *Hollaex) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 		// that would trigger a new connection on each received message
 		this.Options["ws-expires"] = expires
 	}
-	var url any = ccxt.GetValue(this.Urls["api"], "ws")
+	var url any = this.UrlsApi["ws"]
 	var auth *string = ccxt.SafeStringPtr(ccxt.Add("CONNECT"+"/stream", expires))
 	var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 	var authParams map[string]any = map[string]any{

@@ -1134,7 +1134,7 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 		var marketId *string = this.SafeString(info, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(info, market))
+		var ticker map[string]any = this.ParseWsTicker(info, market)
 		this.Tickers.Store(symbol, ticker)
 		parsedTickers = append(parsedTickers, ticker)
 	}
@@ -1142,7 +1142,7 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 	client.(ccxt.ClientInterface).Resolve(tickers, "tickers")
 	return true
 }
-func (this *Pacifica) ParseWsTicker(rawTicker any, optionalArgs ...any) any {
+func (this *Pacifica) ParseWsTicker(rawTicker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
@@ -1190,7 +1190,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
+		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -1383,13 +1383,13 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	}
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
-		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+		var trade map[string]any = this.ParseWsTrade(data)
 		trades.(ccxt.Appender).Append(trade)
 	}
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// fetchMyTrades
 	//
@@ -1653,12 +1653,23 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	var symbolOhlcvs any = this.SafeDict(this.Ohlcvs, symbol, map[string]any{})
-	var ohlcv any = this.SafeValue(symbolOhlcvs, timeframe)
+	var symbolOhlcvs map[string]any
+	if symbol != nil {
+		symbolOhlcvs = this.Ohlcvs[*symbol]
+	}
+	if symbolOhlcvs == nil {
+		symbolOhlcvs = map[string]any{}
+	}
+	var ohlcv any
+	if timeframe != nil {
+		ohlcv = symbolOhlcvs[*timeframe]
+	}
 	if ohlcv == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ohlcv = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(symbolOhlcvs, timeframe, ohlcv)
+		if timeframe != nil {
+			symbolOhlcvs[*timeframe] = ohlcv
+		}
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.(ccxt.Appender).Append(parsed)
@@ -1970,7 +1981,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription map[str
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if _, ok := this.Ohlcvs[*symbol]; (symbol != nil) && ok {
 		if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
-			ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
+			delete(this.Ohlcvs[*symbol], *timeframe)
 		}
 	}
 }
