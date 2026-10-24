@@ -1115,7 +1115,7 @@ impl BtcturkCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_472: bool = true;
             while { if !__for_first_472 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_472 = false; i.as_f64().unwrap_or(f64::NAN) < ((timestamp.len() as i64) as f64) } {
-            let mut ohlcv: Value = Value::Map({
+            let mut ohlcv: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone(), i.clone(), &[]));
                     m.insert("high".to_string(), self.safe_number(high.clone(), i.clone(), &[]));
@@ -1125,7 +1125,7 @@ impl BtcturkCore {
                     m.insert("volume".to_string(), self.safe_number(volume.clone(), i.clone(), &[]));
                 m
             });
-            results.push(self.parse_ohlcv(ohlcv, &[market.clone()]));
+            results.push(self.parse_ohlcv(Value::Map(ohlcv), &[market.clone()]));
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(results), Value::Int(0), &[]);
