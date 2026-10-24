@@ -59,14 +59,14 @@ public abstract class BaseCache : SlimConcurrentList<object>
     protected Window allView = new Window(0, 0);
 
     // caller side: the only writer of consumedSeq / consumedAllSeq
-    private void publishConsume(string symbol, long seq)
+    protected void publishConsume(string symbol, long seq)
     {
         var next = new Dictionary<string, long>(this.consumedSeq);
         next[symbol] = seq;
         this.consumedSeq = next;
     }
 
-    private void publishConsumeAll(long seq)
+    protected void publishConsumeAll(long seq)
     {
         this.consumedAllSeq = seq;
     }
