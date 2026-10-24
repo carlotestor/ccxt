@@ -523,19 +523,36 @@ export default class deribit extends Exchange {
 
     override createExpiredOptionMarket (symbol: string): MarketInterface {
         // support expired option contracts
+        let quote = 'USD';
+        let settle: Str = undefined;
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        const hasSlash = symbol.indexOf ('/') > -1;
-        const basePart = hasSlash ? this.safeString (symbolBase, 0) : this.safeString (optionParts, 0);
-        const base = (hasSlash && symbol.indexOf ('USDC') > -1) ? basePart + '_USDC' : basePart;
-        const expiry = hasSlash ? this.safeString (optionParts, 1) : this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
-        const isUsdc = symbol.indexOf ('USDC') > -1;
-        const quote = isUsdc ? 'USDC' : 'USD';
-        const settle = isUsdc ? 'USDC' : base;
+        let base: Str = undefined;
+        let expiry: Str = undefined;
+        if (symbol.indexOf ('/') > -1) {
+            base = this.safeString (symbolBase, 0);
+            expiry = this.safeString (optionParts, 1);
+            if (symbol.indexOf ('USDC') > -1) {
+                base = base + '_USDC';
+            }
+        } else {
+            base = this.safeString (optionParts, 0);
+            expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
+        }
+        if (symbol.indexOf ('USDC') > -1) {
+            quote = 'USDC';
+            settle = 'USDC';
+        } else {
+            settle = base;
+        }
+        let splitBase = base;
         if (base === undefined) {
             throw new ExchangeError (this.id + ' createExpiredOptionMarket() missing base');
         }
-        const splitBase = (base.indexOf ('_') > -1) ? this.safeString (base.split ('_'), 0) : base;
+        if (base.indexOf ('_') > -1) {
+            const splitSymbol = base.split ('_');
+            splitBase = this.safeString (splitSymbol, 0);
+        }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
         const datetime = this.convertExpireDate (expiry);
@@ -962,18 +979,32 @@ export default class deribit extends Exchange {
                 }
                 const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
-                const type = future ? 'future' : (option ? 'option' : (isSpot ? 'spot' : 'swap'));
-                const strike: Num = option ? this.safeNumber (market, 'strike') : undefined;
-                const optionType: Str = option ? this.safeString (market, 'option_type') : undefined;
-                const spotSymbol = base + '/' + quote;
-                const contractSymbol = spotSymbol + ':' + settle;
-                const datedSymbol = (option || future) ? (contractSymbol + '-' + this.yymmdd (expiry, '')) : contractSymbol;
-                const letter = (optionType === 'call') ? 'C' : 'P';
-                const optionSuffix = option ? ('-' + this.numberToString (strike) + '-' + letter) : '';
-                const symbol = isSpot ? spotSymbol : (isComboMarket ? id : datedSymbol + optionSuffix);
+                let strike: Num = undefined;
+                let optionType: Str = undefined;
+                let symbol = id;
+                let type = 'swap';
+                if (future) {
+                    type = 'future';
+                } else if (option) {
+                    type = 'option';
+                } else if (isSpot) {
+                    type = 'spot';
+                }
                 let inverse: Bool = undefined;
                 let linear: Bool = undefined;
-                if (!isSpot && !isComboMarket) {
+                if (isSpot) {
+                    symbol = base + '/' + quote;
+                } else if (!isComboMarket) {
+                    symbol = base + '/' + quote + ':' + settle;
+                    if (option || future) {
+                        symbol = symbol + '-' + this.yymmdd (expiry, '');
+                        if (option) {
+                            strike = this.safeNumber (market, 'strike');
+                            optionType = this.safeString (market, 'option_type');
+                            const letter = (optionType === 'call') ? 'C' : 'P';
+                            symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
+                        }
+                    }
                     inverse = (quote !== settle);
                     linear = (settle === quote);
                 }
