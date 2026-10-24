@@ -59,7 +59,7 @@ export function og06SyncMapArmsPass (content: string): string {
                     }
                 }
                 if (arm >= 0) {
-                    out.push (lines[i - 1]);
+                    // the declaration was emitted by the previous iteration; keep the switch only
                     out.push (...lines.slice (i, arm));
                     out.push (...lines.slice (arm + 2, end + 1));
                     dropped++;
@@ -129,6 +129,9 @@ export function og06SelfCheck (): string[] {
         ok (filter.indexOf ('panic(' + q + 'ExchangeError("resolved value is not map[string]any"))') >= 0, 'the panic case survives (q=' + q + ')');
         ok (filter.indexOf (keptOrder) >= 0, 'the map/nil/default cases stay in order (q=' + q + ')');
         ok (filter.indexOf ('import "sync"') < 0, 'the arm was the only sync reference: the import goes too (q=' + q + ')');
+        const armless = og06Block (q, 'this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized)', '', { arm: '' }).replace ('import "sync"\n', '');
+        ok (filter === armless, 'the arm and its import are the only difference (q=' + q + ')');
+        ok (filter.split ('var resolved map[string]any').length === 2, 'the declaration is emitted once (q=' + q + ')');
         ok (run (filter) === filter, 'the rewrite is idempotent (q=' + q + ')');
         const ohlcv = run (og06Block (q, 'this.CreateOHLCVObject(symbol, timeframe, filtered)', ''));
         ok (ohlcv.indexOf ('sync.Map') < 0, 'a CreateOHLCVObject producer drops the arm (q=' + q + ')');
