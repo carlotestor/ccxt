@@ -80,14 +80,11 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
     internal BookRows TakePair()
     {
         BookRows rows;
-        if (!this._published.TryTake(out rows))
+        // a take is always put straight back, so the only wait here is for another
+        // reader's put-back; the constructor seeds the slot before any copy can run
+        if (!this._published.TryTake(out rows) && !this._published.TryTake(out rows, 250))
         {
-            // the slot is empty only between a reader's take and put-back or between
-            // the owner's drop and post, and both settle inside the same step
-            if (!this._published.TryTake(out rows, 5))
-            {
-                return BookRows.Empty;
-            }
+            return BookRows.Empty;
         }
         this._published.TryAdd(rows);
         return rows;
@@ -492,7 +489,8 @@ public class IndexedOrderBook : OrderBook, IOrderBook
         copy["timestamp"] = rows.timestamp;
         copy["datetime"] = rows.datetime;
         copy["symbol"] = rows.symbol;
-        if (rows.hasOutcome)\n        {
+        if (rows.hasOutcome)
+        {
             copy["outcome"] = rows.outcome;
             copy["outcomeId"] = rows.outcomeId;
             copy["market"] = rows.market;
