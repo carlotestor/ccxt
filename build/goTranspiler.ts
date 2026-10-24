@@ -18,7 +18,7 @@ import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { g06MapReads, g06MapReadsSelfTest } from './hx10w2-G06.js';
 import { hx10G06Check } from './hx10w3-G06.js';
-import { g06Trace } from './hx10w7-G06.js'; // hx10w7 G06
+import { g06Trace, g06SetSweep } from './hx10w7-G06.js'; // hx10w7 G06
 import { g09Pass, g09Check } from './hx10w2-G09.js';
 import { g09w3Pass, g09w3Check } from './hx10w3-G09.js';
 import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
@@ -2747,6 +2747,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx4G12TupleSlotReads (content, filePath);
     hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
     content = g06MapReads (content);  // hx10w2 G06
+    g06SetSweep (1);
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
@@ -2793,6 +2794,8 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10w5G05Pass (content);  // hx10w5 G05: one ohlcv book per symbol, typed per timeframe
     content = hx10G15Pass (content);  // hx10 wave5 G15: option-dict field receivers
     content = og02IdBookPass (content);  // hx10w6 OG02: the id/nonce counter and last-response reads hand off to the request book owner
+    g06SetSweep (2);
+    content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));  // hx10w7 G06 probe: second sweep
     return goGofmtSplicedText (content);
 }
 
@@ -13114,6 +13117,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = nativeLoopBoundedSliceReads (retagLoopBoundedElementReads (content));
     hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
     content = g06MapReads (content);  // hx10w2 G06
+    g06SetSweep (1);  // hx10w7 G06 probe
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
