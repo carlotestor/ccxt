@@ -94,20 +94,20 @@ function hx10w7G14Bindings (block: string): Map<string, string> {
 }
 
 // the operand text of every MapTyped call that provably already holds map[string]any
-function hx10w7G14DropWraps (block: string, bindings: Map<string, string>, prediction: boolean): string {
+function hx10w7G14DropWraps (text: string, masked: string, bindings: Map<string, string>, prediction: boolean): string {
     const wrapper = /(?<![\w.])(?:ccxt\.)?MapTyped\(/g;
     let out = '';
     let cursor = 0;
-    for (let m = wrapper.exec (block); m !== null; m = wrapper.exec (block)) {
+    for (let m = wrapper.exec (masked); m !== null; m = wrapper.exec (masked)) {
         if (m.index < cursor) {
             continue;
         }
         const open = m.index + m[0].length - 1;
-        const end = hx10w7G14CloseParen (block, open);
+        const end = hx10w7G14CloseParen (masked, open);
         if (end < 0) {
             continue;
         }
-        const operand = block.slice (open + 1, end).trim ();
+        const operand = text.slice (open + 1, end).trim ();
         const field = /^this\.([A-Za-z_]\w*)$/.exec (operand);
         const name = /^([A-Za-z_]\w*)$/.exec (operand);
         let proven = false;
@@ -119,11 +119,11 @@ function hx10w7G14DropWraps (block: string, bindings: Map<string, string>, predi
         if (!proven) {
             continue;
         }
-        out += block.slice (cursor, m.index) + operand;
+        out += text.slice (cursor, m.index) + operand;
         cursor = end + 1;
         wrapper.lastIndex = cursor;
     }
-    return out + block.slice (cursor);
+    return out + text.slice (cursor);
 }
 
 export function hx10w7G14Pass (content: string): string {
@@ -144,7 +144,8 @@ export function hx10w7G14Pass (content: string): string {
         const from = starts[index];
         const to = (index + 1 < starts.length) ? starts[index + 1] : content.length;
         const block = masked.slice (from, to);
-        result += (block.indexOf ('MapTyped(') < 0) ? content.slice (from, to) : hx10w7G14DropWraps (block, hx10w7G14Bindings (block), prediction);
+        const text = content.slice (from, to);
+        result += (block.indexOf ('MapTyped(') < 0) ? text : hx10w7G14DropWraps (text, block, hx10w7G14Bindings (block), prediction);
     }
     return result;
 }
