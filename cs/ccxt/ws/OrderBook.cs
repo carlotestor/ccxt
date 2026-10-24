@@ -50,15 +50,6 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     private BookRows _publishedRows;
 
-    // Thread that last mutated this book: the ws receive loop once a book is live. A
-    // limit() call from that same thread is single-threaded use (tests, local books) and
-    // may trim in place; any other thread gets a trimmed copy instead of a live write.
-    protected int _mutatorThread = -1;
-
-    // Set once a caller has copied this book, i.e. it has left the loop. From then on
-    // limit() never touches the live sides, whatever thread it runs on.
-    protected bool _handedOff;
-
     // The pair a caller copies from: one publication, so the two halves can never
     // come from different book states.
     internal BookRows PublishedRows()
@@ -81,7 +72,6 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     // sides to depth, then freezes the pair. Nothing off the loop calls this.
     internal void PublishRows()
     {
-        this._mutatorThread = Thread.CurrentThread.ManagedThreadId;
         var askSide = this.asks as OrderBookSide;
         var bidSide = this.bids as OrderBookSide;
         if (askSide == null || bidSide == null)
@@ -226,32 +216,15 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     public IOrderBook limit()
     {
-        // The receive loop owns the live book, so a caller cannot trim it. When a trim
-        // is still needed, hand back a trimmed copy instead; the loop trims its own
-        // copy at the next reset/update.
-        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
-        if (depth <= 0 || ((this.asks.Count <= depth) && (this.bids.Count <= depth)))
-        {
-            return this;
-        }
-        if (!this._handedOff && (this._mutatorThread == Thread.CurrentThread.ManagedThreadId))
-        {
-            // this thread is the one that mutates the book, so trimming in place is not
-            // concurrent with anything
-            (this.asks as OrderBookSide)?.TrimToDepth();
-            (this.bids as OrderBookSide)?.TrimToDepth();
-            this.PublishRows();
-            return this;
-        }
-        var copy = this.Copy();
-        copy.asks.limit();
-        copy.bids.limit();
-        if (copy is OrderBook bookCopy)
-        {
-            bookCopy.PublishRows();
-        }
-        return copy;
+        // Ported delivery contract: the watch* wrapper calls this on the book it just
+        // received, so the returned book is depth-bounded. It trims trailing rows only;
+        // the receive loop appends and never looks at the trimmed tail.
+        this.asks.limit();
+        this.bids.limit();
+        this.PublishRows();
+        return this;
     }
+
 
 
 
@@ -325,7 +298,6 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         // Build from the owner's last publication, never from the live sides: this
         // runs on the caller's thread, the sides are mutated on the receive loop.
-        this._handedOff = true;
         var rows = this.PublishedRows();
         var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
         var copy = new OrderBook(new Dictionary<string, object>());
@@ -381,32 +353,15 @@ public class CountedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        // The receive loop owns the live book, so a caller cannot trim it. When a trim
-        // is still needed, hand back a trimmed copy instead; the loop trims its own
-        // copy at the next reset/update.
-        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
-        if (depth <= 0 || ((this.asks.Count <= depth) && (this.bids.Count <= depth)))
-        {
-            return this;
-        }
-        if (!this._handedOff && (this._mutatorThread == Thread.CurrentThread.ManagedThreadId))
-        {
-            // this thread is the one that mutates the book, so trimming in place is not
-            // concurrent with anything
-            (this.asks as OrderBookSide)?.TrimToDepth();
-            (this.bids as OrderBookSide)?.TrimToDepth();
-            this.PublishRows();
-            return this;
-        }
-        var copy = this.Copy();
-        copy.asks.limit();
-        copy.bids.limit();
-        if (copy is OrderBook bookCopy)
-        {
-            bookCopy.PublishRows();
-        }
-        return copy;
+        // Ported delivery contract: the watch* wrapper calls this on the book it just
+        // received, so the returned book is depth-bounded. It trims trailing rows only;
+        // the receive loop appends and never looks at the trimmed tail.
+        this.asks.limit();
+        this.bids.limit();
+        this.PublishRows();
+        return this;
     }
+
 
 
 
@@ -414,7 +369,6 @@ public class CountedOrderBook : OrderBook, IOrderBook
     {
         // Build from the owner's last publication, never from the live sides: this
         // runs on the caller's thread, the sides are mutated on the receive loop.
-        this._handedOff = true;
         var rows = this.PublishedRows();
         var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
         var copy = new CountedOrderBook(new Dictionary<string, object>());
@@ -462,32 +416,15 @@ public class IndexedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        // The receive loop owns the live book, so a caller cannot trim it. When a trim
-        // is still needed, hand back a trimmed copy instead; the loop trims its own
-        // copy at the next reset/update.
-        var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
-        if (depth <= 0 || ((this.asks.Count <= depth) && (this.bids.Count <= depth)))
-        {
-            return this;
-        }
-        if (!this._handedOff && (this._mutatorThread == Thread.CurrentThread.ManagedThreadId))
-        {
-            // this thread is the one that mutates the book, so trimming in place is not
-            // concurrent with anything
-            (this.asks as OrderBookSide)?.TrimToDepth();
-            (this.bids as OrderBookSide)?.TrimToDepth();
-            this.PublishRows();
-            return this;
-        }
-        var copy = this.Copy();
-        copy.asks.limit();
-        copy.bids.limit();
-        if (copy is OrderBook bookCopy)
-        {
-            bookCopy.PublishRows();
-        }
-        return copy;
+        // Ported delivery contract: the watch* wrapper calls this on the book it just
+        // received, so the returned book is depth-bounded. It trims trailing rows only;
+        // the receive loop appends and never looks at the trimmed tail.
+        this.asks.limit();
+        this.bids.limit();
+        this.PublishRows();
+        return this;
     }
+
 
 
 
@@ -495,7 +432,6 @@ public class IndexedOrderBook : OrderBook, IOrderBook
     {
         // Build from the owner's last publication, never from the live sides: this
         // runs on the caller's thread, the sides are mutated on the receive loop.
-        this._handedOff = true;
         var rows = this.PublishedRows();
         var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
         var copy = new IndexedOrderBook(new Dictionary<string, object>());
