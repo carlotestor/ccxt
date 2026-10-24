@@ -1,14 +1,19 @@
 package ccxt
 
 // Markets book: the four market/currency tables live in one immutable snapshot.
-// The load path is the only writer: it builds a complete book off to the side and
-// swaps it in with a single atomic store, so readers always see whole tables.
+// One owner goroutine applies every edit; writers hand the edit over a channel and
+// wait for the swap, so the read-modify-write is serialized without a lock.
 
 type marketsBook struct {
 	markets        map[string]any
 	marketsById    map[string]any
 	currencies     map[string]any
 	currenciesById map[string]any
+}
+
+type marketsBookEdit struct {
+	apply func(*marketsBook)
+	done  chan any
 }
 
 func marketsBookNext(current *marketsBook) *marketsBook {
@@ -53,15 +58,36 @@ func marketsBookWithoutEntry(source map[string]any, key any) map[string]any {
 	return copied
 }
 
-// publishMarketsBook is the single write path: copy the current book, apply one
-// edit, store the result. The write mutex makes concurrent writers serialize
-// their read-modify-write, so no update is lost between them.
+// publishMarketsBook is the single write path: hand one edit to the owner goroutine
+// and wait for the swap, so a returned write is already visible to the caller.
 func (this *BaseExchange) publishMarketsBook(edit func(*marketsBook)) {
-	this.marketsWriteMu.Lock()
-	defer this.marketsWriteMu.Unlock()
+	this.marketsBookOnce.Do(func() {
+		this.marketsBookEdits = make(chan marketsBookEdit)
+		go this.ownMarketsBook(this.marketsBookEdits)
+	})
+	done := make(chan any)
+	this.marketsBookEdits <- marketsBookEdit{apply: edit, done: done}
+	if recovered := <-done; recovered != nil {
+		panic(recovered)
+	}
+}
+
+// ownMarketsBook is the book's only writer: edits are applied one at a time, and the
+// fresh snapshot is stored before the writer is released.
+func (this *BaseExchange) ownMarketsBook(edits <-chan marketsBookEdit) {
+	for edit := range edits {
+		edit.done <- this.applyMarketsBookEdit(edit.apply)
+	}
+}
+
+func (this *BaseExchange) applyMarketsBookEdit(edit func(*marketsBook)) (recovered any) {
+	defer func() {
+		recovered = recover()
+	}()
 	next := marketsBookNext(this.marketsBook.Load())
 	edit(next)
 	this.marketsBook.Store(next)
+	return
 }
 
 func (this *BaseExchange) Markets() map[string]any {

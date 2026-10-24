@@ -47,8 +47,9 @@ type BaseExchange struct {
 	Has                    map[string]any
 	Api                    map[string]any
 	TransformedApi         map[string]any
-	marketsWriteMu         sync.Mutex
 	marketsBook            atomic.Pointer[marketsBook]
+	marketsBookEdits       chan marketsBookEdit
+	marketsBookOnce        sync.Once
 	RequiredCredentials    map[string]any
 	HttpExceptions         map[string]any
 	MarketsById            *sync.Map
