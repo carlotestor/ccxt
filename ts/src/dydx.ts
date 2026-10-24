@@ -1859,7 +1859,7 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async estimateTxFee (message: any, memo: Str, account: any): Promise<Dict> {
+    async estimateTxFee (message: Dict, memo: Str, account: Dict): Promise<Dict> {
         const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request: Dict = {
             'txBytes': txBytes,
