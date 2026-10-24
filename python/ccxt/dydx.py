@@ -1758,7 +1758,7 @@ class dydx(Exchange, ImplicitAPI):
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchLedger'}))
         return self.parse_ledger(response, currency, since, limit)
 
-    def estimate_tx_fee(self, message: object, memo: Str, account: object) -> dict:
+    def estimate_tx_fee(self, message: dict, memo: Str, account: dict) -> dict:
         txBytes = self.encode_dydx_tx_for_simulation(message, memo, account['sequence'], account['pub_key'])
         request = {
             'txBytes': txBytes,
