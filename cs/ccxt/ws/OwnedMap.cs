@@ -17,16 +17,11 @@ public sealed class OwnedMap : IDictionary<string, object>, IDictionary
     {
     }
 
-    // Adopts a plain Dictionary as the backing store (no copy); any other dictionary
-    // shape is copied once, at the assignment that produced it.
+    // Copies the assigned map: this facade holds the only reference to the backing store,
+    // so no caller can keep writing it outside the owner.
     public OwnedMap(IDictionary<string, object> initial)
     {
-        if (initial == null)
-        {
-            this.state = new Dictionary<string, object>();
-            return;
-        }
-        this.state = initial as Dictionary<string, object> ?? new Dictionary<string, object>(initial);
+        this.state = initial == null ? new Dictionary<string, object>() : new Dictionary<string, object>(initial);
     }
 
     /// Hand the exchange owner over; called before the first ws client exists.
