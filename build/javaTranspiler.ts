@@ -50,6 +50,7 @@ import { hx10w3J02BalancePuts, j02BalanceSelfTest } from './hx10w3-J02.js';
 import { nativeJavaJ04OptionsOps, j04OptionsSelfTest } from './hx10w3-J04.js'; // hx10 w3 J04
 import { hx10w4OJ01OptionsOwner, oj01OptionsSelfTest } from './hx10w4-OJ01.js'; // hx10 w4 OJ01
 import { nativeJavaBF02FieldOps, bf02SelfTest } from './hx10w4-BF02.js'; // hx10 w4 BF02
+import { j01w7FieldPuts, j01w7FieldPutsSelfTest } from './hx10w7-J01.js'; // hx10w7 J01
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 import { nativeJavaJ05, j05FamilySelfTest } from './hx10w2-J05.js';
@@ -4904,6 +4905,7 @@ class NewTranspiler {
         javaSource = hx10J01ElementWrites(javaSource) // hx10 J01
         javaSource = j01wsNativeOps(javaSource) // hx10 wave-3 J01
         javaSource = hx10w3J02BalancePuts(javaSource) // hx10w3 J02
+        javaSource = j01w7FieldPuts(javaSource) // hx10w7 J01
         javaSource = nativeJavaJ04OptionsOps(javaSource) // hx10 w3 J04
         javaSource = nativeJavaBF02FieldOps(javaSource) // hx10 w4 BF02
         javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
@@ -5814,7 +5816,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7584,6 +7586,7 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = nativeJavaJ44(content); // hx4 J44
     content = hx10J01ElementWrites(content); // hx10 J01
     content = hx10w3J02BalancePuts(content); // hx10w3 J02
+    content = j01w7FieldPuts(content); // hx10w7 J01
     content = nativeJavaJ04OptionsOps(content); // hx10 w3 J04
     content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
     content = hx10w4OJ01OptionsOwner(content); // hx10 w4 OJ01
