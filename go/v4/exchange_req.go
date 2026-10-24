@@ -206,12 +206,9 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			panic(networkError)
 		}
 		respHeadersMap := HeaderToMap(resp.Header)
-		// guard the shared bookkeeping fields: concurrent requests on the same
-		// *Exchange would otherwise data-race on these writes
-		this.lastMu.Lock()
-		this.Last_response_headers = respHeadersMap
-		this.LastResponseHeaders = respHeadersMap
-		this.lastMu.Unlock()
+		// hand the response headers to the request book's owner; the request
+		// goroutine never writes the shared bookkeeping fields
+		this.handOffRequestBook(requestBookOp{kind: requestBookResponse, headers: respHeadersMap})
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {

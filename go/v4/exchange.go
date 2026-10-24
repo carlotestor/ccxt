@@ -47,6 +47,8 @@ type BaseExchange struct {
 	// the markets book is owned by one goroutine (see exchange_markets_book.go)
 	marketsBookChannel     chan marketsBookRequest
 	marketsBookOnce        sync.Once
+	requestBookOps         chan requestBookOp
+	requestBookOnce        sync.Once
 	RequiredCredentials    map[string]any
 	HttpExceptions         map[string]any
 	MarketsById            *sync.Map
@@ -96,10 +98,8 @@ type BaseExchange struct {
 
 	// timestamps
 	LastRestRequestTimestamp int64
-	// lastMu guards the per-instance "last request/response" bookkeeping fields
-	// (timestamp, request headers/body/url, response headers) which are otherwise
-	// written by concurrent request goroutines that share the same *Exchange.
-	lastMu                sync.Mutex
+	// the last request/response fields below are written by the request book's owner
+	// goroutine only (exchange_request_book.go); readers receive its snapshot
 	LastRequestHeaders    any
 	Last_request_headers  any
 	Last_response_headers any
@@ -200,19 +200,13 @@ type BaseExchange struct {
 	WsClients   map[string]any // one websocket client per URL
 	WsClientsMu sync.Mutex
 	// the ws dispatch loop: owner of the ws cache maps and of Balance (see exchange_ws_cache.go)
-	wsStore   *wsCacheStore
-	wsStoreMu sync.Mutex
-	Balance     any
-	Positions   any
-	Clients     map[string]any
-	newUpdates  bool
-	streaming   map[string]any
-
-	// id lock
-	idMutex sync.Mutex
-
-	// last nonce lock
-	lastNonceMutex sync.Mutex
+	wsStore    *wsCacheStore
+	wsStoreMu  sync.Mutex
+	Balance    any
+	Positions  any
+	Clients    map[string]any
+	newUpdates bool
+	streaming  map[string]any
 
 	// urls views: `urls` holds a Dict per section in the TS base (`urls: { api: Dict }`) and is
 	// written only at config time, so these name the dictionaries it holds (RefreshUrlsViews
@@ -2341,26 +2335,6 @@ func (this *BaseExchange) DecodeProtoMsg(message any) any {
 
 func (this *BaseExchange) Uuid5(namespace any, name any) string {
 	return ""
-}
-
-func (this *BaseExchange) LockId() bool {
-	this.idMutex.Lock()
-	return true
-}
-
-func (this *BaseExchange) UnlockId() bool {
-	this.idMutex.Unlock()
-	return true
-}
-
-func (this *BaseExchange) LockLastNonce() bool {
-	this.lastNonceMutex.Lock()
-	return true
-}
-
-func (this *BaseExchange) UnlockLastNonce() bool {
-	this.lastNonceMutex.Unlock()
-	return true
 }
 
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.

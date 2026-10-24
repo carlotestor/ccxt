@@ -27,11 +27,11 @@ func (this *BaseExchange) GetRequiredCredentials() map[string]any {
 }
 
 func (this *BaseExchange) GetLast_request_url() any {
-	return this.Last_request_url
+	return this.readRequestBook().requestUrl
 }
 
 func (this *BaseExchange) GetLast_request_body() any {
-	return this.Last_request_body
+	return this.readRequestBook().requestBody
 }
 
 func (this *BaseExchange) SetProxyUrl(proxyUrl any) {
@@ -51,15 +51,18 @@ func (this *BaseExchange) SetSocksProxy(proxyUrl any) {
 }
 
 func (this *BaseExchange) GetLast_request_headers() map[string]any {
-	return this.Last_request_headers.(map[string]any)
+	headers, _ := this.readRequestBook().requestHeaders.(map[string]any)
+	return headers
 }
 
 func (this *BaseExchange) GetLast_response_headers() map[string]any {
-	return this.Last_response_headers.(map[string]any)
+	headers, _ := this.readRequestBook().responseHeaders.(map[string]any)
+	return headers
 }
 
 func (this *BaseExchange) GetLastResponseHeaders() map[string]any {
-	return this.Last_response_headers.(map[string]any)
+	headers, _ := this.readRequestBook().responseHeaders.(map[string]any)
+	return headers
 }
 
 func (this *BaseExchange) SetFetchHistoryCacheSize(size any) {
