@@ -94,10 +94,9 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         return rows;
     }
 
-    // Owner-loop publication point, called by a side after every mutation: posts the
-    // frozen pair. Nothing off the loop calls this. Depth is not enforced here: the
-    // ported contract trims in limit(), and a delta past the trimmed tail has to
-    // survive until the next limit() call (the base desync regression asserts that).
+    // Owner-loop publication point, after every mutation: posts the frozen pair.
+    // Depth is not trimmed here - the port trims in limit(), so a delta past the
+    // trimmed tail survives until the next limit() call.
     internal void PublishRows()
     {
         var askSide = this.asks as OrderBookSide;
