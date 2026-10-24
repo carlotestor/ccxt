@@ -477,55 +477,6 @@ func (this *BaseExchange) IndexBy(a any, key any) map[string]any {
 	return outDict
 }
 
-func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
-	outDict := &sync.Map{}
-	var targetX []any
-
-	switch val := a.(type) {
-	case []any:
-		targetX = val
-
-	case map[string]any:
-		for _, v := range val {
-			targetX = append(targetX, v)
-		}
-
-	case *sync.Map:
-		val.Range(func(_, v any) bool {
-			targetX = append(targetX, v)
-			return true
-		})
-
-	default:
-		return outDict // unsupported type
-	}
-
-	for _, elem := range targetX {
-		switch v := elem.(type) {
-		case map[string]any:
-			if val, ok := v[ToString(key)]; ok {
-				outDict.Store(ToString(val), v)
-			}
-		case []any:
-			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
-				if keyStr, ok := v[idx].(string); ok {
-					outDict.Store(keyStr, v)
-				}
-			}
-		case []string:
-			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
-				outDict.Store(v[idx], v)
-			}
-		case []int:
-			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
-				outDict.Store(fmt.Sprintf("%d", v[idx]), v)
-			}
-		}
-	}
-
-	return outDict
-}
-
 func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 	key := derefScalar(key2).(string)
 	outDict := make(map[string]any)
