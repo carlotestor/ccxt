@@ -4088,6 +4088,16 @@ class NewTranspiler {
         content = content.replace(/client\.subscriptions\.remove\(/gm, '((java.util.Map<String,Object>)client.subscriptions).remove(');
         content = content.replace(/client\.subscriptions\.keySet\(/gm, '((java.util.Map<String,Object>)client.subscriptions).keySet(');
 
+        // ── OJ06: subscriptions writes are native Map ops on the typed field ──
+        // WsClient.subscriptions is an owner-hand-off Map now; spell out the helper's
+        // ConcurrentHashMap branch (null value means absent) so the map keeps that behaviour.
+        content = content.replace(
+            /Helpers\.addElementToObject\(client\.subscriptions,\s*([A-Za-z_]\w*),\s*(?:\(Object\)\s*)?null\)/gm,
+            (_m: string, key: string) => `client.subscriptions.remove(${key})`);
+        content = content.replace(
+            /Helpers\.addElementToObject\(client\.subscriptions,\s*([A-Za-z_]\w*),\s*([A-Za-z_]\w*)\)/gm,
+            (_m: string, key: string, value: string) => `client.subscriptions.put(${key}, ${value})`);
+
         // Object.keys / Object.values / Array.isArray are now emitted as
         // `Helpers.objectKeys(x)` / `objectValues(x)` / `isArray(x)` directly
         // by ast-transpiler (PR #48). The earlier regex post-process here
