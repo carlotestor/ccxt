@@ -151,10 +151,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], messageHa
 	return nil
 }
 func (this *Grvt) RequestId() int64 {
-	this.LockId()
-	var newValue int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options["requestId"] = newValue
-	this.UnlockId()
+	var newValue int64 = this.NextRequestId("requestId")
 	return newValue
 }
 
@@ -872,9 +869,9 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	var sequenceNumber *int64 = this.SafeInteger(message, "sequence_number", 0)
 	var stream *string = this.SafeString(message, "stream")
@@ -886,8 +883,8 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
-		this.HandleDeltasWithKeys(ccxt.GetValue(orderbook, "asks"), asks, "price", "size")
-		this.HandleDeltasWithKeys(ccxt.GetValue(orderbook, "bids"), bids, "price", "size")
+		this.HandleDeltasWithKeys(orderbook.GetAsks(), asks, "price", "size")
+		this.HandleDeltasWithKeys(orderbook.GetBids(), bids, "price", "size")
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
@@ -901,7 +898,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", sequenceNumber)
 	var messageHash string = "orderbook::" + *symbol
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Grvt) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {

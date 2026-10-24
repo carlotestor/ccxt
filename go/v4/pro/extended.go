@@ -150,7 +150,7 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 		return
 	}
 	var previousNonce *int64 = this.SafeInteger(orderbook, "nonce")
-	if (previousNonce != nil) && (!ccxt.IsEqual(nonce, ccxt.Add(previousNonce, 1))) {
+	if (previousNonce != nil) && (!ccxt.IsEqual(nonce, *previousNonce+1)) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		delete(this.Orderbooks, *symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
@@ -186,7 +186,7 @@ func (this *Extended) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 	_ = subscription
 	this.CheckRequiredCredentials()
 	var url any = ccxt.Add(this.SafeString(this.Urls["api"], "ws"), "/account")
-	if (this.Clients == nil) || !(ccxt.InOp(this.Clients, url)) {
+	if (this.WsClientsSnapshot() == nil) || !(ccxt.InOp(this.WsClientsSnapshot(), url)) {
 		var defaultOptions map[string]any = map[string]any{
 			"ws": map[string]any{
 				"options": map[string]any{
@@ -384,7 +384,7 @@ func (this *Extended) HandleBalance(client any, message any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
-	this.Balance = this.SafeBalance(this.Balance)
+	this.WsBalanceReplace(this.SafeBalance(this.Balance))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 
@@ -636,7 +636,7 @@ func (this *Extended) HandlePositions(client any, message any) {
 		if marketId == nil {
 			continue
 		}
-		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
 		stored.(ccxt.Appender).Append(position)
 	}

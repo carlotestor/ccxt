@@ -376,10 +376,8 @@ func (this *BaseExchange) CleanRestData() {
 	this.PublishCurrenciesById(nil)
 	this.BaseCurrencies = nil
 	this.QuoteCurrencies = nil
-	this.Last_http_response = nil
+	this.handOffRequestBook(requestBookOp{kind: requestBookReset})
 	// this.last_json_response = undefined; // not unified prop
-	this.Last_response_headers = nil
-	this.Last_request_headers = nil
 }
 func (this *BaseExchange) CleanWsData() {
 	this.WsCacheReset("Balance")
@@ -2181,7 +2179,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	if !(InOp(methodDict, parentKey)) {
 		return defaultValue // unsupported paramName, check "exchange.features" for details');
 	}
-	var dictionary any = this.SafeDict(methodDict, parentKey)
+	var dictionary map[string]any = SafeMapTyped(methodDict, parentKey)
 	if dictionary == nil {
 		// if the value is not dictionary but a scalar value (or undefined), return as is
 		return GetValue(methodDict, parentKey)
@@ -4906,19 +4904,9 @@ func (this *BaseExchange) Nonce() any {
  * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
  */
 func (this *BaseExchange) IncrementingNonce() any {
-
 	var currentNonce any = this.DerivedExchange.Nonce()
 	PanicOnError(currentNonce)
-	this.LockLastNonce()
-	var lastNonce int64 = *this.SafeInteger(this.Options, "lastNonce", 0)
-	var result any = func() any {
-		if IsGreaterThan(currentNonce, lastNonce) {
-			return currentNonce
-		}
-		return (lastNonce + 1)
-	}()
-	this.Options["lastNonce"] = result
-	this.UnlockLastNonce()
+	var result any = this.nextNonce(currentNonce)
 	return result
 }
 func (this *BaseExchange) SetHeaders(headers any) any {
@@ -4928,9 +4916,9 @@ func (this *BaseExchange) CurrencyId(code any) any {
 	if IsEqual(code, nil) {
 		return code
 	}
-	var currencyById any = this.SafeDict(this.Currencies(), code)
+	var currencyById map[string]any = SafeMapTyped(this.Currencies(), code)
 	if currencyById != nil {
-		return GetValue(currencyById, "id")
+		return currencyById["id"]
 	}
 	var currency map[string]any = this.SafeCurrency(code)
 	if currency != nil {
@@ -8322,7 +8310,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 						shouldBreak = true
 						panic("break")
 					}
-					var nextPaginationTimestamp int64 = Add(lastTimestamp, 1).(int64)
+					var nextPaginationTimestamp int64 = *lastTimestamp + 1
 					paginationTimestamp = nextPaginationTimestamp
 					if (until != nil) && (nextPaginationTimestamp >= *until) {
 						shouldBreak = true
@@ -9481,7 +9469,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			this.Orders = nil
 		} else if (topic != nil && *topic == "positions") && (!IsEqual(this.Positions, nil)) {
 			this.Positions = nil
-			var clients []any = ObjectValues(this.Clients)
+			var clients []any = ObjectValues(this.WsClientsSnapshot())
 			for i := 0; i < len(clients); i++ {
 				var client any = func() any {
 					if i >= 0 && i < len(clients) {
@@ -11777,8 +11765,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11342, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047615 []any = listRecv11342
+	listRecv11340, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1047615 []any = listRecv11340
 	if retRes1047615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

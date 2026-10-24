@@ -5351,12 +5351,12 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol a
 		dataRequest = "data"
 	}
 	var data []any = SafeListTyped(response, dataRequest)
-	var position map[string]any = MapTyped(PositionToMap(this.ParsePosition(func() any {
+	var position map[string]any = PositionToMap(this.ParsePosition(func() any {
 		if 0 >= 0 && 0 < len(data) {
 			return DerefScalar(data[0])
 		}
 		return nil
-	}(), market)))
+	}(), market))
 	if marketType != nil && *marketType == "swap" {
 
 		ch <- AsyncResult[Position]{Value: PositionFromMap(position)}

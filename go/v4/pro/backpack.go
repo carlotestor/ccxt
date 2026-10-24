@@ -424,7 +424,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			}
 		} else if strings.Index(*messageHash, "trades") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:trades:", "", 1)
-			if ccxt.InOp(this.Trades, symbol) {
+			if _, ok := this.Trades[symbol]; ok {
 				ccxt.Remove(this.Trades, symbol)
 			}
 		} else if strings.Index(*messageHash, "orders") >= 0 {
@@ -2289,7 +2289,7 @@ func (this *Backpack) HandleBalance(client any, message any) bool {
 	ccxt.AddElementToObject(parsed, "timestamp", timestamp)
 	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(parsed, "info", assets)
-	this.Balance = parsed
+	this.WsBalanceReplace(parsed)
 	client.(ccxt.ClientInterface).Resolve(parsed, "balance")
 	return true
 }

@@ -1014,12 +1014,12 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
+func (this *Onetrading) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
-	for i := 0; i < GetArrayLength(feeTiers); i++ {
+	for i := 0; i < len(feeTiers); i++ {
 		var tier map[string]any = SafeMapTyped(feeTiers, i)
 		var volume *float64 = this.SafeNumber(tier, "volume")
 		var taker *string = this.SafeString(tier, "taker_fee")

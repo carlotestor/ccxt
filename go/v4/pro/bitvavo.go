@@ -119,12 +119,12 @@ func (this *Bitvavo) watchPublicBody(ch chan ccxt.AsyncResult[any], name string,
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Bitvavo) WatchPublicMultipleAsync(methodName string, channelName string, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Bitvavo) WatchPublicMultipleAsync(methodName string, channelName string, symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.watchPublicMultipleBody(ch, methodName, channelName, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[map[string]any], methodName string, channelName string, symbols any, optionalArgs ...any) any {
+func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[map[string]any], methodName string, channelName string, symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1409,12 +1409,12 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string
 		}
 	}
 }
-func (this *Bitvavo) UnWatchChannelsAsync(topic string, channels any, subMessageHashes any, subscriptionArgs any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitvavo) UnWatchChannelsAsync(topic string, channels []any, subMessageHashes any, subscriptionArgs any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchChannelsBody(ch, topic, channels, subMessageHashes, subscriptionArgs, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic string, channels any, subMessageHashes any, subscriptionArgs any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic string, channels []any, subMessageHashes any, subscriptionArgs any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

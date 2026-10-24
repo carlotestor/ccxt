@@ -2128,7 +2128,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 				}
 				startTime = *until - timeDelta
 			} else {
-				endTime = Add(since, timeDelta)
+				endTime = *since + timeDelta
 			}
 		}
 		request["startTime"] = startTime

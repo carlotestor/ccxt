@@ -2738,7 +2738,7 @@ func (this *Okx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 		}
 	}
 	var types any = []any{"spot", "future", "swap", "option"}
-	var fetchMarketsOption any = this.SafeDict(this.Options, "fetchMarkets")
+	var fetchMarketsOption map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	if fetchMarketsOption != nil {
 		types = this.SafeList(fetchMarketsOption, "types", types)
 	} else {

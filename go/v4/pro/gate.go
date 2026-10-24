@@ -2024,7 +2024,7 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 		account["free"] = this.SafeString(rawBalance, "available")
 		account["total"] = this.SafeString2(rawBalance, "total", "balance")
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, account)
+			this.Balance[*code] = account
 		}
 	}
 	var channel *string = this.SafeString(message, "channel")
@@ -2036,7 +2036,7 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 		"options": "option",
 	})
 	var messageHash any = ccxt.Add(channelType, ".balance")
-	this.Balance = this.SafeBalance(this.Balance)
+	this.WsBalanceReplace(this.SafeBalance(this.Balance))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 
@@ -2254,7 +2254,7 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		var symbol *string = this.SafeString(position, "symbol")
 		var side *string = this.SafeString(position, "side")
 		// Control when position is closed no side is returned
@@ -2262,15 +2262,15 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 			if symbol == nil {
 				continue
 			}
-			var prevLongPosition any = this.SafeDict(cache, *symbol+"long")
+			var prevLongPosition map[string]any = ccxt.SafeMapTyped(cache, *symbol+"long")
 			if prevLongPosition != nil {
-				position["side"] = ccxt.GetValue(prevLongPosition, "side")
+				position["side"] = prevLongPosition["side"]
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
-			var prevShortPosition any = this.SafeDict(cache, *symbol+"short")
+			var prevShortPosition map[string]any = ccxt.SafeMapTyped(cache, *symbol+"short")
 			if prevShortPosition != nil {
-				position["side"] = ccxt.GetValue(prevShortPosition, "side")
+				position["side"] = prevShortPosition["side"]
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
@@ -3212,18 +3212,15 @@ func (this *Gate) GetMarketTypeByUrl(url any) any {
 }
 func (this *Gate) RequestId() int64 {
 	// their support said that reqid must be an int32, not documented
-	this.LockId()
-	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
-	this.Options["reqid"] = reqid
-	this.UnlockId()
+	var reqid int64 = this.NextRequestId("reqid")
 	return reqid
 }
-func (this *Gate) SubscribePublicAsync(url any, messageHash any, payload any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Gate) SubscribePublicAsync(url any, messageHash any, payload []any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, url, messageHash, payload, channel, optionalArgs...)
 	return ch
 }
-func (this *Gate) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, messageHash any, payload any, channel any, optionalArgs ...any) any {
+func (this *Gate) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, messageHash any, payload []any, channel any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

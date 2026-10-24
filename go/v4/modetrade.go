@@ -2555,8 +2555,8 @@ func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders any
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
-		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
-		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
+		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
+		var takeProfit map[string]any = SafeMapTyped(orderParams, "takeProfit")
 		var childOrders any = this.SafeValue(orderParams, "childOrders")
 		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (childOrders != nil)
 		if isConditional {

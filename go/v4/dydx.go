@@ -1648,7 +1648,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan AsyncResult[map[string]any]) any 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
+	var dydxAccount map[string]any = SafeMapTyped(this.Options, "dydxAccount")
 	if dydxAccount != nil {
 
 		ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "dydxAccount", map[string]any{})}
@@ -1805,12 +1805,12 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	goodTillBlockTimeInSecondsOption := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0]
 	paramsGoodTillBlockTimeInSeconds := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 1) // default is 30 days
 	if IsEqual(orderFlag, 0) {
-		if goodTillBlock == nil {
+		if IsEqual(goodTillBlock, nil) {
 			// short term order
 			if latestBlockHeight == nil {
 				panic(ExchangeError(this.Id + " method() missing latestBlockHeight"))
 			}
-			goodTillBlock = Add(latestBlockHeight, 20)
+			goodTillBlock = *latestBlockHeight + 20
 		}
 	} else {
 		if IsEqual(goodTillBlockTimeInSecondsOption, nil) {
@@ -3401,7 +3401,7 @@ func (this *Dydx) GetWalletAddress() any {
 	if (this.WalletAddress != nil) && (this.WalletAddress != "") {
 		return this.WalletAddress
 	}
-	var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
+	var dydxAccount map[string]any = SafeMapTyped(this.Options, "dydxAccount")
 	if dydxAccount != nil {
 		// return dydxAccount;
 		var wallet *string = this.SafeString(dydxAccount, "address")

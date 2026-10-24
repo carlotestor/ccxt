@@ -1154,21 +1154,21 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	if isSpot {
 		typeVar = "spot"
 	}
-	if !(ccxt.InOp(this.Balance, typeVar)) {
-		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
+	if _, ok := this.Balance[typeVar]; !ok {
+		this.Balance[typeVar] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", message)
+	ccxt.AddElementToObject(this.Balance[typeVar], "info", message)
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(balanceUpdate, "f")
 	account["used"] = this.SafeString(balanceUpdate, "l")
 	if code != nil {
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+		this.WsBalanceEntryForWrite(typeVar)[*code] = account
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
+	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
 	var messageHash string = "balance:" + typeVar
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 }
 func (this *Hashkey) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
@@ -1297,7 +1297,7 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], list
 						var client ccxt.ClientInterface = this.Client(url)
 						this.Options["listenKey"] = nil
 						client.(ccxt.ClientInterface).Reject(error)
-						ccxt.Remove(this.Clients, url)
+						this.WsClientRemove(url)
 						return nil
 					}(this)
 				}

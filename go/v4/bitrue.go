@@ -977,7 +977,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var promisesRaw []any = []any{}
 	var types []any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse"}
-	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
+	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	if fetchMarketsOptions != nil {
 		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultTypes))
 	} else {
@@ -4206,9 +4206,9 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 func (this *Bitrue) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
+	if _, ok := config["noSymbol"]; ok && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
+	} else if _, ok := config["byLimit"]; ok && (InOp(params, "limit")) {
 		var limit *int64 = this.SafeInteger(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {

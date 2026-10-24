@@ -558,7 +558,7 @@ func (this *Deepcoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var types any = []any{"spot", "swap"}
-	var fetchMarketsOption any = this.SafeDict(this.Options, "fetchMarkets")
+	var fetchMarketsOption map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	if fetchMarketsOption != nil {
 		types = this.SafeList(fetchMarketsOption, "types", types)
 	} else {

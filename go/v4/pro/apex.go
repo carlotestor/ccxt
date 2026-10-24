@@ -188,7 +188,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var topic *string = this.SafeString(message, "topic")
 	var trades any = data
-	var parts []string = ccxt.Split(topic, ".")
+	var parts []string = strings.Split(*topic, ".")
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId, nil, nil)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -453,9 +453,9 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	if isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
@@ -463,13 +463,13 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "a", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "b", []any{})
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+		this.HandleDeltas(orderbook.GetAsks(), asks)
+		this.HandleDeltas(orderbook.GetBids(), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Apex) HandleDelta(bookside any, delta any) {
@@ -802,7 +802,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var topic *string = this.SafeString(message, "topic")
-	var topicParts []string = ccxt.Split(topic, ".")
+	var topicParts []string = strings.Split(*topic, ".")
 	var topicLength int = len(topicParts)
 	var timeframeId *string = this.SafeString(topicParts, 1)
 	var timeframe *string = this.FindTimeframe(timeframeId)
@@ -1279,7 +1279,7 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
 		// without crashing, we should handle this properly later

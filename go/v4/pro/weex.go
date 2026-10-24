@@ -91,10 +91,7 @@ func (this *Weex) Describe() any {
 	})
 }
 func (this *Weex) RequestId() *string {
-	this.LockId()
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
-	this.Options["requestId"] = requestId
-	this.UnlockId()
+	var requestId int64 = this.NextRequestId("requestId")
 	return this.NumberToString(requestId)
 }
 func (this *Weex) SubscribePublicAsync(messageHashes any, channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
@@ -182,7 +179,7 @@ func (this *Weex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 }
 func (this *Weex) Authenticate(url any) {
 	this.CheckRequiredCredentials()
-	if (this.Clients != nil) && (ccxt.InOp(this.Clients, url)) {
+	if (this.WsClientsSnapshot() != nil) && (ccxt.InOp(this.WsClientsSnapshot(), url)) {
 		return
 	}
 	var timestamp any = this.Nonce()
@@ -1418,9 +1415,9 @@ func (this *Weex) HandleOrderBook(client any, message any) {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var event *string = this.SafeString(message, "e")
@@ -1432,8 +1429,8 @@ func (this *Weex) HandleOrderBook(client any, message any) {
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(message, "a", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+		this.HandleDeltas(orderbook.GetAsks(), asks)
+		this.HandleDeltas(orderbook.GetBids(), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 		ccxt.AddElementToObject(orderbook, "nonce", nonce)
@@ -2451,10 +2448,10 @@ func (this *Weex) HandleBalance(client any, message any) {
 		accountType = "swap"
 	}
 	var messageHash string = accountType + ":balance"
-	if ccxt.IsEqual(ccxt.GetValue(this.Balance, accountType), nil) {
-		ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
+	if ccxt.IsEqual(this.Balance[accountType], nil) {
+		this.Balance[accountType] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
+	ccxt.AddElementToObject(this.Balance[accountType], "info", message)
 	var balanceUpdates []any = ccxt.SafeListTyped(message, "d")
 	for i := 0; i < len(balanceUpdates); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(balanceUpdates, i)
@@ -2465,14 +2462,14 @@ func (this *Weex) HandleBalance(client any, message any) {
 		account["used"] = this.SafeString(entry, "frozen")
 		account["total"] = this.SafeString2(entry, "equity", "legacyAmount")
 		if code != nil {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+			this.WsBalanceEntryForWrite(accountType)[*code] = account
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Balance, accountType, this.SafeBalance(ccxt.GetValue(this.Balance, accountType)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, accountType), messageHash)
+	ccxt.AddElementToObject(this.Balance[accountType], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[accountType], "datetime", this.Iso8601(timestamp))
+	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
+	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
 }
 
 /**

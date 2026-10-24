@@ -2002,9 +2002,9 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		}
 		return minRowBase
 	}()
-	var max_row any = func() any {
+	var max_row *int64 = func() *int64 {
 		if limitApplies && (maxRowBase != nil && *maxRowBase > 0) && (minRowBase != nil && *minRowBase > 0) {
-			return Add(minRowBase, limit)
+			return Int64PtrTyped(*minRowBase + *limit)
 		}
 		return maxRowBase
 	}()

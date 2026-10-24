@@ -3384,7 +3384,7 @@ func (this *Hitbtc) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, side any, amount any, optionalArgs ...any) []any {
+func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, typeVar any, side any, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	marginMode := GetArg(optionalArgs, 1, nil)
@@ -3399,12 +3399,12 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 	var request map[string]any = map[string]any{
 		"type":     typeVar,
 		"side":     side,
-		"quantity": this.AmountToPrecision(GetValue(market, "symbol"), amount),
-		"symbol":   GetValue(market, "id"),
+		"quantity": this.AmountToPrecision(market["symbol"], amount),
+		"symbol":   market["id"],
 	}
 	if reduceOnly != nil {
-		if (!IsEqual(GetValue(market, "type"), "swap")) && (!IsEqual(GetValue(market, "type"), "margin")) {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduce_only for ", GetValue(market, "type")), " orders, reduce_only orders are supported for swap and margin markets only")))
+		if (!IsEqual(market["type"], "swap")) && (!IsEqual(market["type"], "margin")) {
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduce_only for ", market["type"]), " orders, reduce_only orders are supported for swap and margin markets only")))
 		}
 	}
 	if reduceOnly != nil && *reduceOnly == true {
@@ -3420,7 +3420,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 		if price == nil {
 			panic(ExchangeError(this.Id + " createOrder() requires a price argument for limit orders"))
 		}
-		request["price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
+		request["price"] = this.PriceToPrecision(market["symbol"], price)
 	}
 	if timeInForce != nil && *timeInForce == "GTD" {
 		var expireTime *string = this.SafeString(params, "expire_time")
@@ -3429,7 +3429,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 		}
 	}
 	if triggerPrice != nil {
-		request["stop_price"] = this.PriceToPrecision(GetValue(market, "symbol"), triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(market["symbol"], triggerPrice)
 		if isLimit {
 			request["type"] = "stopLimit"
 		} else if IsEqual(typeVar, "market") {

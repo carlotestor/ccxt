@@ -358,18 +358,18 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.SafeValue(this.Orderbooks, symbol))
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook()
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	var asks []any = ccxt.SafeListTypedDefault(content, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(content, "bids", []any{})
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+	this.HandleDeltas(orderbook.GetAsks(), asks)
+	this.HandleDeltas(orderbook.GetBids(), bids)
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "message_id"))
 	var messageHash string = "orderbook:" + *symbol
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Dydx) HandleDelta(bookside any, delta any) {

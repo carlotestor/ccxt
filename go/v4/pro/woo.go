@@ -1795,7 +1795,7 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 		}
 		var cachedOrders any = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
-		var order any = this.SafeDict(orders, orderId)
+		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {
@@ -2036,7 +2036,7 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 		var marketId string = postitionsIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var rawPosition any = rawPositions[marketId]
-		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition, market)))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition, market))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("positions::", market["symbol"]))
@@ -2143,7 +2143,7 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {
-			account = ccxt.GetValue(this.Balance, code)
+			account = this.Balance[*code]
 		}
 		var total *string = this.SafeString(value, "holding")
 		var used *string = this.SafeString(value, "frozen")
@@ -2154,7 +2154,7 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	this.Balance = this.SafeBalance(this.Balance)
+	this.WsBalanceReplace(this.SafeBalance(this.Balance))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 

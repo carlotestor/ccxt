@@ -3594,7 +3594,7 @@ func (this *Bitvavo) HandleErrors(httpCode any, reason any, url any, method any,
 func (this *Bitvavo) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (func() bool { _, ok := config["noMarket"]; return ok }()) && !(InOp(params, "market")) {
+	if _, ok := config["noMarket"]; ok && !(InOp(params, "market")) {
 		return GetValue(config, "noMarket")
 	}
 	return this.SafeValue(config, "cost", 1)

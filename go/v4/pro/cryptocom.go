@@ -381,9 +381,9 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
 	}
 	var channel *string = this.SafeString(message, "channel")
 	var nonce *int64 = this.SafeInteger2(data, "u", "s")
@@ -405,10 +405,12 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 			}
 		}
 	}
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(books, "asks", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(books, "bids", []any{}))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(books, "asks", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeList(books, "bids", []any{}))
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -1566,7 +1568,7 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
@@ -1689,9 +1691,9 @@ func (this *Cryptocom) HandleBalance(client any, message map[string]any) {
 		account["total"] = this.SafeString(balance, "quantity")
 		account["used"] = this.SafeString(balance, "reserved_qty")
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, account)
+			this.Balance[*code] = account
 		}
-		this.Balance = this.SafeBalance(this.Balance)
+		this.WsBalanceReplace(this.SafeBalance(this.Balance))
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 	var messageHashRequest *string = this.SafeString(message, "id")
