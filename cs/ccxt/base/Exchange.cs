@@ -123,7 +123,7 @@ public partial class BaseExchange
                     var completePaths = pathParts.Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
                     var path = string.Join("", completePaths);
                     path = char.ToLower(path[0]) + path.Substring(1); // lowercase first letter
-                    var apiObj = new List<string>(paths);
+                    var apiObj = new List<object>(paths);
                     this.transformedApi[path] = new dict {
                             { "method", key.ToUpper() },
                             { "path",   endpoint },
@@ -485,7 +485,7 @@ public partial class BaseExchange
             var endpointInfo = info as dict;
             var method = endpointInfo["method"] as String;
             var path = endpointInfo["path"] as String;
-            var api = endpointInfo["api"];
+            var api = endpointInfo["api"] as IList<object>;
             var cost = endpointInfo["cost"] != null ? endpointInfo["cost"] : 1;
 
             var res = await this.fetch2(path, api, method, parameters, new dict { { "cost", cost } });

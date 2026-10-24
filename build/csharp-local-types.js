@@ -15753,10 +15753,15 @@ export function installCsharpNumericComparisons (transpiler) {
 // build/csharpTranspiler.ts, no shadow: every body write is a literal or a same-typed producer).
 // `sign` headers (4) stay object: prediction overrides write an `object existingHeaders` into it.
 // `path` (0) of sign/fetch2/request: ts/src declares `path: string` and no body writes it.
+// `api` (1) of sign/fetch2/request: ts/src declares `api: string[] = [ 'public' ]` on the base
+// and on every override (coinbaseinternational's `string[] | string` is the one union, narrowed
+// there), every body write is the `??= new List<object>()` prologue or a list producer, and the
+// three intra-tier call sites forward a same-typed parameter. The runtime box is `List<object>`
+// (hand-written transformApi) so no element read needs a cast.
 export const SIGNATURE_ARG_TYPES = {
-    'fetch2': { 0: 'string' },
-    'request': { 0: 'string' },
-    'sign': { 0: 'string', 2: 'string' },
+    'fetch2': { 0: 'string', 1: 'IList<object>' },
+    'request': { 0: 'string', 1: 'IList<object>' },
+    'sign': { 0: 'string', 1: 'IList<object>', 2: 'string' },
     'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
 };
 
