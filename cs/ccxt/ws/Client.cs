@@ -56,7 +56,6 @@ public partial class BaseExchange
         }
 
         private readonly CancellationTokenSource connectCancellation = new CancellationTokenSource();
-        private ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         public TaskCompletionSource<bool> connected = null;
 
@@ -121,6 +120,7 @@ public partial class BaseExchange
         static WebSocketClient()
         {
             Task.Factory.StartNew(ownerLoop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            Task.Factory.StartNew(sendLoop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         private static void ownerLoop()
@@ -145,6 +145,13 @@ public partial class BaseExchange
             var reply = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             ownerQueue.post(new OwnerOp(work, reply));
             return reply.Task.GetAwaiter().GetResult();
+        }
+
+        //  additive: the same owner answers for hand-written state that lives outside a
+        //  single client (the exchange's dial backoff), so its table stays single-owner
+        public static object onOwner(Func<object> work)
+        {
+            return ask(work);
         }
 
 #nullable disable
@@ -748,11 +755,8 @@ public partial class BaseExchange
         }
 
 
-        private static readonly SemaphoreSlim _connectSemaphore = new SemaphoreSlim(1, 1);
-
         private async Task Connect(int backoffDelay, CancellationToken cancellationToken)
         {
-            var acquired = false;
             try
             {
                 if (backoffDelay > 0)
@@ -760,8 +764,8 @@ public partial class BaseExchange
                     await Task.Delay(backoffDelay, cancellationToken);
                 }
 
-                await _connectSemaphore.WaitAsync(cancellationToken);
-                acquired = true;
+                // the owner elected this call as the only dialer for this client, so the
+                // socket is dialled by one path and no other dial can be in flight
                 if (this.webSocket.State == WebSocketState.Open)
                 {
                     return;
@@ -774,7 +778,7 @@ public partial class BaseExchange
                 }
                 this.onOpen();
                 // start the receive loop off this path: inline, it would handle frames that
-                // are already buffered while the process-wide _connectSemaphore is still held
+                // are already buffered while the dial is still settling
                 _ = Task.Run(() => this.Receiving(webSocket));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -785,32 +789,56 @@ public partial class BaseExchange
             {
                 this.onError(ex);
             }
-            finally
+        }
+
+
+        //  one sender thread drains every client's frames in post order, so a socket never
+        //  has two SendAsync calls in flight and callers only await their own reply
+        private static readonly Handoff<SendOp> sendQueue = new Handoff<SendOp>();
+
+        private static void sendLoop()
+        {
+            foreach (var op in sendQueue.consume())
             {
-                if (acquired)
+                try
                 {
-                    _connectSemaphore.Release();
+                    if (op.webSocket.State == WebSocketState.Open)
+                    {
+                        op.webSocket.SendAsync(op.segment, op.type, op.end, op.cancellation).GetAwaiter().GetResult();
+                    }
+                    op.reply.TrySetResult(true);
+                }
+                catch (Exception e)
+                {
+                    op.reply.TrySetException(e);
                 }
             }
         }
 
-
-        private static readonly SemaphoreSlim _sendSemaphore = new SemaphoreSlim(1, 1);
-
-        protected static async Task sendAsyncWrapper(ClientWebSocket webSocket, ArraySegment<byte> ArraySegment, WebSocketMessageType WebSocketMessageType, bool endOnMessage, CancellationToken CancellationToken)
+        private sealed class SendOp
         {
-            await _sendSemaphore.WaitAsync();
-            try
+            public readonly ClientWebSocket webSocket;
+            public readonly ArraySegment<byte> segment;
+            public readonly WebSocketMessageType type;
+            public readonly bool end;
+            public readonly CancellationToken cancellation;
+            public readonly TaskCompletionSource<bool> reply = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public SendOp(ClientWebSocket webSocket, ArraySegment<byte> segment, WebSocketMessageType type, bool end, CancellationToken cancellation)
             {
-                if (webSocket.State == WebSocketState.Open)
-                {
-                    await webSocket.SendAsync(ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
-                }
+                this.webSocket = webSocket;
+                this.segment = segment;
+                this.type = type;
+                this.end = end;
+                this.cancellation = cancellation;
             }
-            finally
-            {
-                _sendSemaphore.Release();
-            }
+        }
+
+        protected static Task sendAsyncWrapper(ClientWebSocket webSocket, ArraySegment<byte> ArraySegment, WebSocketMessageType WebSocketMessageType, bool endOnMessage, CancellationToken CancellationToken)
+        {
+            var op = new SendOp(webSocket, ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
+            sendQueue.post(op);
+            return op.reply.Task;
         }
 
         public async Task send(object message)
