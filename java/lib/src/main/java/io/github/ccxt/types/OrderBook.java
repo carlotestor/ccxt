@@ -15,8 +15,7 @@ public final class OrderBook extends TypedMap {
     @SuppressWarnings("unchecked")
     public OrderBook(Object raw) {
         super(raw);
-        // Handle WsOrderBook (WebSocket) — extract data directly from its typed fields
-        // Handle WsOrderBook (WebSocket) — copy live data from its OrderBookSide fields
+        // Handle WsOrderBook (WebSocket) — read its published record, not the live sides
         if (raw instanceof io.github.ccxt.ws.WsOrderBook wsOb) {
             // read the book's published record, never its live sides: this runs on the caller's
             // thread while the ws owner thread keeps applying deltas

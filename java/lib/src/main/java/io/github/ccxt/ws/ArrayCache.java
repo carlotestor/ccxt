@@ -35,15 +35,16 @@ import java.util.concurrent.LinkedBlockingQueue;
  *       it ({@code hashmap[symbol][id]}, {@code hashmap[symbol][side]}) because generated
  *       exchange code reads it directly — javaTranspiler.ts:2146-2153 emits those reads.</li>
  *   <li><b>Field-wise merge, not replacement.</b> Re-appending an existing key merges the
- *       new fields onto the stored row (Cache.ts:188-192), so fields absent from the update
- *       survive; the stored row is a copy, which keeps published snapshots immutable.</li>
+ *       new fields onto the stored row and keeps that row's identity (Cache.ts:188-192), so
+ *       fields absent from the update survive and a view handed out earlier sees the new
+ *       values.</li>
  * </ul>
  *
  * <h2>Ownership</h2>
  * The exchange ws owner thread is the only writer ({@code BaseExchange.wsOwner}); every
- * append/clear call site is a ws frame handler. Readers on user threads never touch live
- * state: they read the immutable snapshot published after each mutation and hand their poll
- * scopes back through {@link #pendingPolls}.
+ * append/clear call site is a ws frame handler. A reader on any other thread never mutates
+ * the cache: it reads the immutable view published after each mutation and hands its poll
+ * scope back through {@link #pendingPolls}, which the owner applies before its next append.
  */
 public class ArrayCache extends ArrayList<Object> {
 
@@ -62,6 +63,15 @@ public class ArrayCache extends ArrayList<Object> {
 
     /** Reader-to-owner hand-off: poll scopes whose counters the next append must reset. */
     protected final LinkedBlockingQueue<String> pendingPolls = new LinkedBlockingQueue<>();
+
+    /** The ws owner thread, claimed by the first mutation; null means "single-threaded so far". */
+    protected Thread owner;
+
+    /** True on the ws owner thread (and before any write, when nobody owns the cache yet). */
+    protected final boolean isOwner() {
+        Thread o = this.owner;
+        return o == null || o == Thread.currentThread();
+    }
 
     /**
      * Public index read directly by generated exchange code. Shape depends on the variant:
@@ -89,7 +99,7 @@ public class ArrayCache extends ArrayList<Object> {
     public ArrayCache(int maxSize) {
         super();
         this.maxSize = maxSize;
-        this.hashmap = new PublishedMap(this.published);
+        this.hashmap = new PublishedMap(this.published, this);
         this.published.publish(CacheView.EMPTY);
     }
 
@@ -128,53 +138,41 @@ public class ArrayCache extends ArrayList<Object> {
     }
 
     /**
-     * Field-wise merge of {@code source} onto {@code target}.
+     * Field-wise merge of {@code source} onto {@code target}, keeping the stored row's
+     * identity — the handed-out view reads the merged fields through it (Cache.ts:188-192).
      * Maps keep keys present only on the target (order deltas). List rows (OHLCV)
      * take the incoming length — a shorter candle must drop the previous tail.
      *
      * @return true when the merge landed, false when the target is immutable and the caller
      *         must fall back to replacing the row positionally.
      */
-    /** Returned by {@link #mergeCopy} when the target has no fields to merge onto. */
-    protected static final Object KEEP = new Object();
-
-    /**
-     * Field-wise merge of {@code source} onto a copy of {@code target}.
-     * Maps keep keys present only on the target (order deltas). List rows (OHLCV)
-     * take the incoming length — a shorter candle must drop the previous tail.
-     * Copying keeps every published row immutable; the stored row is the returned copy.
-     *
-     * @return the row to store, {@link #KEEP} when there is nothing to merge (primitives,
-     *         strings), or {@code source} when the target cannot be copied.
-     */
     @SuppressWarnings("unchecked")
-    protected static Object mergeCopy(Object target, Object source) {
+    protected static boolean mergeInto(Object target, Object source) {
         try {
             if (target instanceof Map && source instanceof Map) {
-                Map<String, Object> merged = new LinkedHashMap<>((Map<String, Object>) target);
-                merged.putAll((Map<String, Object>) source);
-                return merged;
+                ((Map<String, Object>) target).putAll((Map<String, Object>) source);
+                return true;
             }
             if (target instanceof List && source instanceof List) {
+                List<Object> to = (List<Object>) target;
                 List<Object> from = (List<Object>) source;
-                List<Object> merged = new ArrayList<>((List<Object>) target);
                 for (int i = 0, n = from.size(); i < n; i++) {
-                    if (i < merged.size()) {
-                        merged.set(i, from.get(i));
+                    if (i < to.size()) {
+                        to.set(i, from.get(i));
                     } else {
-                        merged.add(from.get(i));
+                        to.add(from.get(i));
                     }
                 }
-                while (merged.size() > from.size()) {
-                    merged.remove(merged.size() - 1);
+                while (to.size() > from.size()) {
+                    to.remove(to.size() - 1);
                 }
-                return merged;
+                return true;
             }
-        } catch (UnsupportedOperationException uncopyableRow) {
-            return source;
+        } catch (UnsupportedOperationException immutableRow) {
+            return false;
         }
         // primitives/strings have no enumerable props in JS either — nothing to merge
-        return KEEP;
+        return true;
     }
 
     // ─── publication ───
@@ -203,12 +201,17 @@ public class ArrayCache extends ArrayList<Object> {
     /** Reader view of the index: answers from the published snapshot, never mutates. */
     protected static final class PublishedMap extends java.util.AbstractMap<String, Object> {
         private final OwnerSlot<CacheView> slot;
+        private final ArrayCache cache;
 
-        PublishedMap(OwnerSlot<CacheView> slot) {
+        PublishedMap(OwnerSlot<CacheView> slot, ArrayCache cache) {
             this.slot = slot;
+            this.cache = cache;
         }
 
         private Map<String, Object> view() {
+            if (this.cache.isOwner()) {
+                return this.cache.liveHashmap;
+            }
             return slot.latest(CacheView.EMPTY).hashmap;
         }
 
@@ -275,11 +278,14 @@ public class ArrayCache extends ArrayList<Object> {
     }
 
     /**
-     * Stable snapshot for readers — the immutable view the owner published after the
-     * last completed mutation, so consumers can iterate without racing the WS thread.
+     * Stable snapshot for readers: a copy of the live rows on the owner thread, the immutable
+     * view the owner published after its last mutation on any other thread.
      */
     public List<Object> snapshot() {
-        return this.published.latest(CacheView.EMPTY).rows;
+        if (this.isOwner()) {
+            return new ArrayList<>(this);
+        }
+        return new ArrayList<>(this.published.latest(CacheView.EMPTY).rows);
     }
 
     @Override
@@ -302,6 +308,7 @@ public class ArrayCache extends ArrayList<Object> {
      */
     @Override
     public void clear() {
+        this.owner = Thread.currentThread();
         super.clear();
         this.liveHashmap.clear();
         this.newUpdatesBySymbol.clear();
@@ -323,13 +330,21 @@ public class ArrayCache extends ArrayList<Object> {
      *         when the symbol has never been seen
      */
     public Long getLimit(String symbol, Long limit) {
-        CacheView view = this.published.latest(CacheView.EMPTY);
-        this.requestPoll(symbol);
         Integer newUpdatesValue;
-        if (symbol == null) {
-            newUpdatesValue = view.allNewUpdates;
+        if (this.isOwner()) {
+            if (symbol == null) {
+                newUpdatesValue = this.allNewUpdates;
+                this.clearAllUpdates = true;
+            } else {
+                newUpdatesValue = this.newUpdatesBySymbol.get(symbol);
+                this.clearUpdatesBySymbol.put(symbol, Boolean.TRUE);
+            }
         } else {
-            newUpdatesValue = view.newUpdates.get(symbol);
+            // a reader never writes the counters: it hands its poll scope to the owner, which
+            // resets them before its next append — the reset is deferred in Cache.ts anyway
+            CacheView view = this.published.latest(CacheView.EMPTY);
+            this.requestPoll(symbol);
+            newUpdatesValue = (symbol == null) ? view.allNewUpdates : view.newUpdates.get(symbol);
         }
         if (newUpdatesValue == null) {
             return limit;
@@ -380,6 +395,7 @@ public class ArrayCache extends ArrayList<Object> {
      * and record it against the per-symbol and all-symbols update counters.
      */
     public void append(Object item) {
+        this.owner = Thread.currentThread();
         if (this.shouldEvict()) {
             this.remove(0);
         }
@@ -455,8 +471,14 @@ public class ArrayCache extends ArrayList<Object> {
         /** Counts distinct timestamps, ignores {@code symbol} entirely (Cache.ts:134-140). */
         @Override
         public Long getLimit(String symbol, Long limit) {
-            this.requestPoll(POLL_TIMESTAMP);
-            int newUpdates = this.published.latest(CacheView.EMPTY).timestampNewUpdates;
+            int newUpdates;
+            if (this.isOwner()) {
+                newUpdates = this.timestampNewUpdates;
+                this.clearUpdates = true;
+            } else {
+                this.requestPoll(POLL_TIMESTAMP);
+                newUpdates = this.published.latest(CacheView.EMPTY).timestampNewUpdates;
+            }
             if (limit == null) {
                 return (long) newUpdates;
             }
@@ -474,21 +496,18 @@ public class ArrayCache extends ArrayList<Object> {
 
         @Override
         public void append(Object item) {
+            this.owner = Thread.currentThread();
             String key = keyOf(timestampKeyOf(item));
             Object reference = this.liveHashmap.get(key);
             if (reference != null) {
-                // a repeat timestamp is merged into a copy of the stored row and keeps its
-                // position - ArrayCacheByTimestamp does NOT move rows to the end (Cache.ts:143-150)
-                if (reference != item) {
-                    Object merged = mergeCopy(reference, item);
-                    Object toStore = (merged == KEEP) ? reference : merged;
-                    if (toStore != reference) {
-                        int index = this.indexOfIdentity(reference);
-                        if (index >= 0) {
-                            this.set(index, toStore);
-                        }
-                        this.liveHashmap.put(key, toStore);
+                // a repeat timestamp is merged into the stored row and keeps its position —
+                // ArrayCacheByTimestamp does NOT move updated rows to the end (Cache.ts:143-150)
+                if (reference != item && !mergeInto(reference, item)) {
+                    int index = this.indexOfIdentity(reference);
+                    if (index >= 0) {
+                        this.set(index, item);
                     }
+                    this.liveHashmap.put(key, item);
                 }
             } else {
                 this.liveHashmap.put(key, item);
@@ -552,6 +571,7 @@ public class ArrayCache extends ArrayList<Object> {
         @Override
         @SuppressWarnings("unchecked")
         public void append(Object item) {
+            this.owner = Thread.currentThread();
             String key = keyOf(fieldOf(item, this.keyField));
             String subKey = this.subKeyOf(item);
             Map<String, Object> byId = this.bucket(key);
@@ -559,12 +579,11 @@ public class ArrayCache extends ArrayList<Object> {
             Object stored = byId.get(subKey);
             Object toStore = item;
             if (stored != null) {
-                if (stored == item) {
-                    toStore = stored;
+                if (stored != item && !mergeInto(stored, item)) {
+                    byId.put(subKey, item);
+                    toStore = item;
                 } else {
-                    Object merged = mergeCopy(stored, item);
-                    toStore = (merged == KEEP) ? stored : merged;
-                    byId.put(subKey, toStore);
+                    toStore = stored;
                 }
                 // move the row to the end of the array; the splice happens before the maxSize
                 // check, so updating an existing row never evicts (Cache.ts:196-206)

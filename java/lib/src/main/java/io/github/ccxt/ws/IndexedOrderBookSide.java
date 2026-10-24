@@ -33,9 +33,11 @@ public class IndexedOrderBookSide extends OrderBookSide {
         // no deltas and seeding happens below, against a live hashmap
         super(null, depth, side);
         if (deltas != null) {
+            this.beginBatch();
             for (Object delta : deltas) {
                 this.storeArrayUnsafe(delta);
             }
+            this.endBatch();
         }
     }
 
@@ -75,6 +77,7 @@ public class IndexedOrderBookSide extends OrderBookSide {
 
     @Override
     void storeArrayUnsafe(Object delta2) {
+        this.owner = Thread.currentThread();
         this.drainTrim();
         this.applyUnsafe(delta2);
         this.publishRows();

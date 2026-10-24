@@ -33,6 +33,15 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
     /** Reader-to-owner hand-off: trims requested by user threads. */
     private final LinkedBlockingQueue<Object> trimRequests = new LinkedBlockingQueue<>();
 
+    /** The ws owner thread, claimed by the first mutation; null means "single-threaded so far". */
+    protected Thread owner;
+
+    /** True on the ws owner thread (and before any write, when nobody owns the side yet). */
+    protected final boolean isOwner() {
+        Thread o = this.owner;
+        return o == null || o == Thread.currentThread();
+    }
+
     public OrderBookSide(List<Object> deltas, Object depthObj, boolean side) {
         super();
         this.side = side;
@@ -81,18 +90,12 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
         }
     }
 
-    /** Publish the rows a reader may iterate: always capped at depth, never live state. */
+    /** Publish the rows a reader may iterate; never live state. */
     protected final void publishRows() {
         if (this.publishBatch > 0) {
             return;
         }
-        int size = this.size();
-        List<Object> copy;
-        if (this.depth >= 0 && this.depth < size) {
-            copy = new ArrayList<>(this.subList(0, this.depth));
-        } else {
-            copy = new ArrayList<>(this);
-        }
+        List<Object> copy = new ArrayList<>(this);
         this.publishedRows.publish(Collections.unmodifiableList(copy));
     }
 
@@ -131,6 +134,7 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
 
     @SuppressWarnings("unchecked")
     void storeArrayUnsafe(Object delta2) {
+        this.owner = Thread.currentThread();
         this.drainTrim();
         List<Object> delta = (List<Object>) delta2;
         BigDecimal price = toBigDecimal(delta.get(0));
@@ -178,11 +182,16 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
 
     /**
      * Truncate to max depth. Called explicitly by exchange code after applying deltas.
-     * A caller that is not the owner (a user thread calling watchOrderBook().limit()) only
-     * queues the trim: live rows are never truncated off the owner thread.
+     * The owner trims immediately; any other caller only queues the trim, so live rows are
+     * never truncated off the owner thread and the owner applies it before its next write.
      */
     public void limit() {
-        this.requestTrim();
+        if (this.isOwner()) {
+            this.trimNow();
+            this.publishRows();
+        } else {
+            this.requestTrim();
+        }
     }
 
     /** The inherited ArrayList.clear() dropped the rows but left the price
@@ -193,14 +202,18 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
      *  https://github.com/ccxt/ccxt/pull/29753 */
     @Override
     public void clear() {
+        this.owner = Thread.currentThread();
         super.clear();
         this.index.clear();
         this.publishRows();
     }
 
-    /** Snapshot copy for safe iteration outside the owner thread. */
+    /** Snapshot copy for safe iteration: live for the owner, the published rows for anyone else. */
     public List<Object> snapshot() {
-        return this.publishedRows.latest(Collections.emptyList());
+        if (this.isOwner()) {
+            return new ArrayList<>(this);
+        }
+        return new ArrayList<>(this.publishedRows.latest(Collections.emptyList()));
     }
 
     public OrderBookSide copy() {

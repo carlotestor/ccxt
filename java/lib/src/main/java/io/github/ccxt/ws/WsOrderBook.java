@@ -36,6 +36,15 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     /** Owner-to-reader hand-off: scalars and side references as of the last completed write. */
     private final OwnerSlot<Meta> publishedMeta = new OwnerSlot<>();
 
+    /** The ws owner thread, claimed by the first write; null means "single-threaded so far". */
+    private Thread owner;
+
+    /** True on the ws owner thread (and before any write, when nobody owns the book yet). */
+    protected final boolean isOwner() {
+        Thread o = this.owner;
+        return o == null || o == Thread.currentThread();
+    }
+
     /** Immutable reader view of the book's scalars and live side references. */
     static final class Meta {
         final OrderBookSide asks;
@@ -64,11 +73,17 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
 
     /** Publish the scalars and side references a reader may use; owner thread only. */
     void publishMeta() {
+        this.owner = Thread.currentThread();
         this.publishedMeta.publish(new Meta(this.asks, this.bids, this.symbol, this.timestamp,
                 this.datetime, this.nonce, this.outcome, this.outcomeId, this.market));
     }
 
     private Meta meta() {
+        // the owner reads its own writes; a reader gets the record the owner published last
+        if (this.isOwner()) {
+            return new Meta(this.asks, this.bids, this.symbol, this.timestamp, this.datetime,
+                    this.nonce, this.outcome, this.outcomeId, this.market);
+        }
         Meta published = this.publishedMeta.latest(null);
         if (published != null) {
             return published;
