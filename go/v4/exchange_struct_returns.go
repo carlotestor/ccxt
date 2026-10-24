@@ -357,7 +357,6 @@ func LastPriceFromMap(data any) LastPrice {
 	}
 	return NewLastPrice(m)
 }
-func LastPriceToMap(v LastPrice) map[string]any { return StructToMap(v) }
 
 func LongShortRatioFromMap(data any) LongShortRatio {
 	m, ok := data.(map[string]any)
@@ -1103,9 +1102,6 @@ func PredictionTickerFromMap(data any) PredictionTicker {
 		return PredictionTicker{}
 	}
 	return NewPredictionTicker(m)
-}
-func PredictionTickerToMap(v PredictionTicker) map[string]any {
-	return StructToMap(v)
 }
 func PredictionTickerMapFromMap(data any) map[string]PredictionTicker {
 	return StructDictFromMap(data, PredictionTickerFromMap)
