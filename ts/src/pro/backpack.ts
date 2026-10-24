@@ -144,7 +144,7 @@ export default class backpack extends backpackRest {
                 source = (isRfq && !bidAsk) ? 'External' : 'Venue';
             }
             const requestParams: Dict = this.extend (marketParams, { 'stock': marketStock, 'source': source });
-            const request: Dict = this.stockDataRequest (methodName, requestParams, market);
+            const request = this.stockDataRequest (methodName, requestParams, market);
             let topic = 'ticker.' + this.safeString (request, 'symbol');
             if (channel !== undefined) {
                 if ((channel !== 'stockPrice') && (channel !== 'stockIndicativeQuote')) {
