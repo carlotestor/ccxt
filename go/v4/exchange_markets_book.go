@@ -11,9 +11,11 @@ type marketsBook struct {
 	currenciesById map[string]any
 }
 
-type marketsBookEdit struct {
-	apply func(*marketsBook)
-	done  chan any
+// A request either swaps in a new snapshot (edit) or hands the current one back (read),
+// so the owner goroutine is the only goroutine that ever touches the live book.
+type marketsBookRequest struct {
+	edit  func(*marketsBook)
+	reply chan any
 }
 
 func marketsBookNext(current *marketsBook) *marketsBook {
@@ -58,40 +60,64 @@ func marketsBookWithoutEntry(source map[string]any, key any) map[string]any {
 	return copied
 }
 
+// marketsBookRequests starts the owner synchronously, so a caller that can send a
+// request can never observe a half-started owner.
+func (this *BaseExchange) marketsBookRequests() chan marketsBookRequest {
+	this.marketsBookOnce.Do(func() {
+		requests := make(chan marketsBookRequest)
+		this.marketsBookChannel = requests
+		go this.ownMarketsBook(requests)
+	})
+	return this.marketsBookChannel
+}
+
 // publishMarketsBook is the single write path: hand one edit to the owner goroutine
 // and wait for the swap, so a returned write is already visible to the caller.
 func (this *BaseExchange) publishMarketsBook(edit func(*marketsBook)) {
-	this.marketsBookOnce.Do(func() {
-		this.marketsBookEdits = make(chan marketsBookEdit)
-		go this.ownMarketsBook(this.marketsBookEdits)
-	})
-	done := make(chan any)
-	this.marketsBookEdits <- marketsBookEdit{apply: edit, done: done}
-	if recovered := <-done; recovered != nil {
+	reply := make(chan any, 1)
+	this.marketsBookRequests() <- marketsBookRequest{edit: edit, reply: reply}
+	if recovered := <-reply; recovered != nil {
 		panic(recovered)
 	}
 }
 
-// ownMarketsBook is the book's only writer: edits are applied one at a time, and the
-// fresh snapshot is stored before the writer is released.
-func (this *BaseExchange) ownMarketsBook(edits <-chan marketsBookEdit) {
-	for edit := range edits {
-		edit.done <- this.applyMarketsBookEdit(edit.apply)
+// ownMarketsBook is the book's only reader and writer: it applies edits one at a time
+// and serves each read with the snapshot it has already published.
+func (this *BaseExchange) ownMarketsBook(requests <-chan marketsBookRequest) {
+	current := &marketsBook{}
+	for request := range requests {
+		if request.edit == nil {
+			request.reply <- current
+			continue
+		}
+		next := marketsBookNext(current)
+		recovered := marketsBookApplied(request.edit, next)
+		if recovered == nil {
+			current = next
+		}
+		request.reply <- recovered
 	}
 }
 
-func (this *BaseExchange) applyMarketsBookEdit(edit func(*marketsBook)) (recovered any) {
+func marketsBookApplied(edit func(*marketsBook), next *marketsBook) (recovered any) {
 	defer func() {
 		recovered = recover()
 	}()
-	next := marketsBookNext(this.marketsBook.Load())
 	edit(next)
-	this.marketsBook.Store(next)
 	return
 }
 
+// marketsBookNow returns the published snapshot without copying: the owner never
+// mutates a book it has handed out, it publishes a fresh one instead.
+func (this *BaseExchange) marketsBookNow() *marketsBook {
+	reply := make(chan any, 1)
+	this.marketsBookRequests() <- marketsBookRequest{reply: reply}
+	book, _ := (<-reply).(*marketsBook)
+	return book
+}
+
 func (this *BaseExchange) Markets() map[string]any {
-	book := this.marketsBook.Load()
+	book := this.marketsBookNow()
 	if book == nil {
 		return nil
 	}
@@ -99,7 +125,7 @@ func (this *BaseExchange) Markets() map[string]any {
 }
 
 func (this *BaseExchange) Markets_by_id() map[string]any {
-	book := this.marketsBook.Load()
+	book := this.marketsBookNow()
 	if book == nil {
 		return nil
 	}
@@ -107,7 +133,7 @@ func (this *BaseExchange) Markets_by_id() map[string]any {
 }
 
 func (this *BaseExchange) Currencies() map[string]any {
-	book := this.marketsBook.Load()
+	book := this.marketsBookNow()
 	if book == nil {
 		return nil
 	}
@@ -115,7 +141,7 @@ func (this *BaseExchange) Currencies() map[string]any {
 }
 
 func (this *BaseExchange) Currencies_by_id() map[string]any {
-	book := this.marketsBook.Load()
+	book := this.marketsBookNow()
 	if book == nil {
 		return nil
 	}

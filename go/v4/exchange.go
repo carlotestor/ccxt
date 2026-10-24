@@ -18,7 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	starkfelt "github.com/NethermindEth/juno/core/felt"
@@ -30,12 +29,10 @@ import (
 
 type BaseExchange struct {
 	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
-	MarketsMutex   *sync.Mutex
-	// cachedCurrenciesMutex  sync.Mutex
-	loadMu                 sync.Mutex
-	marketsLoading         bool
-	marketsLoaded          bool
-	loadMarketsSubscribers []chan AsyncResult[map[string]any]
+	// markets loading is one owner goroutine: callers hand a request over the channel
+	// and receive the loaded book back on their own reply channel
+	marketsLoadRequests    chan marketsLoadRequest
+	marketsLoadOnce        sync.Once
 	Itf                    any
 	DerivedExchange        IDerivedExchange
 	methodCache            sync.Map
@@ -47,8 +44,8 @@ type BaseExchange struct {
 	Has                    map[string]any
 	Api                    map[string]any
 	TransformedApi         map[string]any
-	marketsBook            atomic.Pointer[marketsBook]
-	marketsBookEdits       chan marketsBookEdit
+	// the markets book is owned by one goroutine (see exchange_markets_book.go)
+	marketsBookChannel     chan marketsBookRequest
 	marketsBookOnce        sync.Once
 	RequiredCredentials    map[string]any
 	HttpExceptions         map[string]any
@@ -253,9 +250,6 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	if this.Options == nil {
 		this.Options = map[string]any{}
 	}
-	if this.MarketsMutex == nil {
-		this.MarketsMutex = &sync.Mutex{}
-	}
 	describeValues := this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]any{}
@@ -320,9 +314,6 @@ func (this *BaseExchange) Init(userConfig map[string]any) {
 		this.Options = map[string]any{}
 	}
 
-	if this.MarketsMutex == nil {
-		this.MarketsMutex = &sync.Mutex{}
-	}
 	// to do
 }
 
@@ -410,6 +401,14 @@ func (this *BaseExchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
+// marketsLoadRequest is one loadMarkets call handed to the load owner; the reply
+// channel is buffered, so the owner never blocks on a caller that stopped listening.
+type marketsLoadRequest struct {
+	params []any
+	reload bool
+	reply  chan AsyncResult[map[string]any]
+}
+
 /*
 *
   - @method
@@ -421,37 +420,54 @@ func (this *BaseExchange) InitThrottler() {
 */
 func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[map[string]any] {
 	reload := GetArg(params, 0, false).(bool)
-	this.loadMu.Lock()
+	reply := make(chan AsyncResult[map[string]any], 1)
+	this.marketsLoadChannel() <- marketsLoadRequest{params: params, reload: reload, reply: reply}
+	result := <-reply
+	out := make(chan AsyncResult[map[string]any], 1)
+	out <- result
+	close(out)
+	return out
+}
 
-	if this.marketsLoaded && !reload {
-		out := make(chan AsyncResult[map[string]any], 1)
-		out <- AsyncResult[map[string]any]{Value: this.Markets()}
-		close(out)
-		this.loadMu.Unlock()
-		return out
-	}
+// marketsLoadChannel starts the load owner on first use, so every later caller sees
+// a running owner and a request send can never race the start.
+func (this *BaseExchange) marketsLoadChannel() chan marketsLoadRequest {
+	this.marketsLoadOnce.Do(func() {
+		requests := make(chan marketsLoadRequest)
+		this.marketsLoadRequests = requests
+		go this.ownMarketsLoad(requests)
+	})
+	return this.marketsLoadRequests
+}
 
-	ch := make(chan AsyncResult[map[string]any], 1)
-	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
-
-	if !this.marketsLoading || reload {
-		this.marketsLoading = true
-		loaded := <-this.LoadMarketsHelperAsync(params...)
-		markets := AsyncResult[map[string]any]{Err: loaded.Err}
-		if loaded.Err == nil && loaded.Value != nil {
-			markets.Value = loaded.Value
+// ownMarketsLoad is the only goroutine that runs a load: requests queue on the
+// channel, so concurrent callers serialize here instead of inside a mutex.
+func (this *BaseExchange) ownMarketsLoad(requests <-chan marketsLoadRequest) {
+	loaded := false
+	for request := range requests {
+		if loaded && !request.reload {
+			request.reply <- AsyncResult[map[string]any]{Value: this.Markets()}
+			continue
 		}
-		this.marketsLoaded = true
-		this.marketsLoading = false
-		for _, ch := range this.loadMarketsSubscribers {
-			ch <- markets
-			close(ch)
-		}
-		this.loadMarketsSubscribers = nil
+		result := this.loadMarketsOwned(request.params)
+		// a failed load still counts as loaded, matching the pre-owner behaviour
+		loaded = true
+		request.reply <- result
 	}
+}
 
-	this.loadMu.Unlock()
-	return ch
+func (this *BaseExchange) loadMarketsOwned(params []any) (result AsyncResult[map[string]any]) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			result = AsyncResult[map[string]any]{Err: RecoveredError(recovered)}
+		}
+	}()
+	loaded := <-this.LoadMarketsHelperAsync(params...)
+	result = AsyncResult[map[string]any]{Err: loaded.Err}
+	if loaded.Err == nil && loaded.Value != nil {
+		result.Value = loaded.Value
+	}
+	return
 }
 
 func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[map[string]any] {
@@ -469,10 +485,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		if !reload {
 			if this.Markets() != nil {
 				if this.Markets_by_id() == nil {
-					// Only lock when writing
-					this.MarketsMutex.Lock()
 					this.SetMarkets(this.Markets(), nil) // returns this.Markets()
-					this.MarketsMutex.Unlock()
 					ch <- AsyncResult[map[string]any]{Value: this.Markets()}
 					return
 				}
@@ -503,8 +516,6 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		delete(this.Options, "cachedCurrencies")
 		// this.cachedCurrenciesMutex.Unlock()
 
-		// Lock only for writing
-		this.MarketsMutex.Lock()
 		this.SetMarkets(markets, currencies) // returns this.Markets() (panics when unset)
 		// prediction exchanges build an outcome lookup from the loaded markets via the
 		// PredictionExchange.SetMarkets override. Go has no virtual dispatch, so the base
@@ -514,7 +525,6 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		if pred, ok := this.Itf.(interface{ SetOutcomesFromMarkets() }); ok {
 			pred.SetOutcomesFromMarkets()
 		}
-		this.MarketsMutex.Unlock()
 
 		ch <- AsyncResult[map[string]any]{Value: this.Markets()}
 	}()
