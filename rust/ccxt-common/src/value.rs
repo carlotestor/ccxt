@@ -581,6 +581,15 @@ impl From<crate::ExchangeError> for Value {
 impl From<HashMap<String, Value>> for Value {
     fn from(m: HashMap<String, Value>) -> Self { Value::Map(m) }
 }
+impl From<HashMap<String, HashMap<String, Value>>> for Value {
+    fn from(m: HashMap<String, HashMap<String, Value>>) -> Self {
+        let mut out = HashMap::with_capacity(m.len());
+        for (k, v) in m {
+            out.insert(k, Value::Map(v));
+        }
+        Value::Map(out)
+    }
+}
 impl From<Vec<Value>> for Value {
     fn from(a: Vec<Value>) -> Self { Value::Array(a) }
 }
