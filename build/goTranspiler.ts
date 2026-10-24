@@ -18,6 +18,7 @@ import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { g06MapReads, g06MapReadsSelfTest } from './hx10w2-G06.js';
 import { hx10G06Check } from './hx10w3-G06.js';
+import { g06Trace } from './hx10w7-G06.js'; // hx10w7 G06
 import { g09Pass, g09Check } from './hx10w2-G09.js';
 import { g09w3Pass, g09w3Check } from './hx10w3-G09.js';
 import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
@@ -2036,6 +2037,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const name = head[2];
     if (((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf))
         && !h2kG10UntilReceiverNeverNil (masked, start, k, maskedFunc, lines[start], name, declOf, typeAt)) {
+        g06Trace ('recv|' + name + '|' + (typeAt (name, k) ?? '-') + '|' + masked[k].trim ());
         return;
     }
     // the call may span lines (a multi-line literal value): it must be the whole statement
@@ -2086,6 +2088,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const defaultedOk = (defaulted !== null) && (defaulted[3].startsWith ('"') || (typeAt (defaulted[3], k) === 'string'));
     let valueOut: string | undefined = undefined;
     if (keyOut === undefined) {
+        g06Trace ('key|' + name + '|' + key + '|' + (typeAt (key, k) ?? '-') + '|' + value + '|' + (valueType ?? '-') + '|' + masked[k].trim ());
         return;
     }
     if (/^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false|nil)$/.test (value) || goMapWritePlainValueExpr (valueMasked)) {
@@ -2109,6 +2112,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = hx4G39PointerValue (lines, value, valueMasked, typeAt (value, k))?.replace (/\n/g, '\n' + head[1]);  // hx4 G39
     }
     if ((keyOut === undefined) || (valueOut === undefined)) {
+        g06Trace ('value|' + name + '|' + key + '|' + (keyOut ?? '-') + '|' + value + '|' + (valueType ?? '-') + '|' + masked[k].trim ());
         return;
     }
     const suffix = lines[lastLine].substring (lines[lastLine].length - (tail.substring (close).split ('\n')[0].length));
