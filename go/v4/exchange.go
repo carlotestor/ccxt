@@ -33,9 +33,12 @@ type BaseExchange struct {
 	// and receive the loaded book back on their own reply channel
 	marketsLoadRequests    chan marketsLoadRequest
 	marketsLoadOnce        sync.Once
+	// the aux tables (base/quote currencies, transactions, the method cache) are
+	// owned by one goroutine: callers hand a request over the channel and get a copy back
+	auxTablesRequests      chan auxTablesRequest
+	auxTablesOnce          sync.Once
 	Itf                    any
 	DerivedExchange        IDerivedExchange
-	methodCache            sync.Map
 	cacheLoaded            bool
 	Version                string
 	Id                     string
@@ -51,7 +54,6 @@ type BaseExchange struct {
 	requestBookOnce        sync.Once
 	RequiredCredentials    map[string]any
 	HttpExceptions         map[string]any
-	MarketsById            *sync.Map
 	Timeframes             map[string]any
 	Features               map[string]any
 	Exceptions             map[string]any
@@ -72,8 +74,6 @@ type BaseExchange struct {
 	EnableRateLimit        bool
 	Url                    string
 	Hostname               string
-	BaseCurrencies         *sync.Map
-	QuoteCurrencies        *sync.Map
 	ReloadingMarkets       bool
 	MarketsLoading         bool
 	Outcomes               any
@@ -90,7 +90,6 @@ type BaseExchange struct {
 	Limits                 map[string]interface{}
 	Fees                   map[string]interface{}
 	Status                 map[string]interface{}
-	CurrenciesById         *sync.Map
 	ReduceFees             bool
 
 	AccountsById any
@@ -175,7 +174,6 @@ type BaseExchange struct {
 	FundingRates   map[string]any
 	Bidsasks       TickerCache
 	TriggerOrders  any // *ArrayCache
-	Transactions   *sync.Map
 	MyLiquidations any // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
@@ -272,7 +270,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)
-	this.Transactions = &sync.Map{}
+	this.PublishTransactions(map[string]any{})
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}
 	this.Clients = make(map[string]any)
@@ -364,36 +362,10 @@ func NewExchange() ICoreExchange {
 	return exchange
 }
 
+// WarmUpCache publishes the reflection method table for this exchange object; the aux
+// owner builds it once and every later caller gets the same table.
 func (this *BaseExchange) WarmUpCache() {
-	// itf fields
-	if this.cacheLoaded {
-		return
-	}
-	this.cacheLoaded = true
-	itf := this.Itf
-	baseValue := reflect.ValueOf(itf)
-	baseType := baseValue.Type()
-
-	for i := 0; i < baseType.NumMethod(); i++ {
-		method := baseType.Method(i)
-		name := method.Name
-		cacheKey := fmt.Sprintf("%s", name)
-
-		methodValue := baseValue.MethodByName(name)
-		methodType := method.Type
-		numIn := methodType.NumIn()
-		isVariadic := methodType.IsVariadic()
-
-		cacheValue := map[string]any{
-			"method":      method,
-			"methodValue": methodValue,
-			"methodType":  methodType,
-			"numIn":       numIn,
-			"isVariadic":  isVariadic,
-		}
-
-		this.methodCache.Store(cacheKey, cacheValue)
-	}
+	this.methodsFor(this.Itf)
 }
 
 func (this *BaseExchange) InitThrottler() {
@@ -1189,9 +1161,7 @@ func (this *BaseExchange) callInternal(name2 string, args ...any) <-chan AsyncRe
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		this.WarmUpCache()
-
-		ch <- <-CallInternalMethod(&this.methodCache, this.Itf, name2, args...)
+		ch <- <-CallInternalMethod(this.methodsFor(this.Itf), this.Itf, name2, args...)
 	}()
 	// res := <-CallInternalMethod(this.Itf, name2, args...)
 	// return res
@@ -2453,4 +2423,162 @@ func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
 		jittered = maxDelay // the ceiling holds regardless of jitter
 	}
 	return int(jittered)
+}
+
+// auxTables holds the base/quote currency tables, the transactions cache and the
+// reflection method table that used to be sync.Maps. One owner goroutine applies every
+// edit to a copy and publishes it, so a reader only ever sees a complete table.
+type auxTables struct {
+	baseCurrencies  map[string]any
+	quoteCurrencies map[string]any
+	transactions    map[string]any
+	methods         map[string]any
+	methodsItf      any
+}
+
+// auxTablesRequest is one access handed to the owner: edit runs on a fresh copy, read on
+// the published one, so no edit is ever half-visible.
+type auxTablesRequest struct {
+	edit  func(*auxTables) any
+	read  func(*auxTables) any
+	reply chan any
+}
+
+func auxTablesNext(current *auxTables) *auxTables {
+	next := &auxTables{}
+	*next = *current
+	return next
+}
+
+func (this *BaseExchange) auxTablesChannel() chan auxTablesRequest {
+	this.auxTablesOnce.Do(func() {
+		requests := make(chan auxTablesRequest)
+		this.auxTablesRequests = requests
+		go this.ownAuxTables(requests)
+	})
+	return this.auxTablesRequests
+}
+
+func (this *BaseExchange) ownAuxTables(requests <-chan auxTablesRequest) {
+	current := &auxTables{}
+	for request := range requests {
+		if request.edit == nil {
+			request.reply <- request.read(current)
+			continue
+		}
+		next := auxTablesNext(current)
+		value := request.edit(next)
+		current = next
+		request.reply <- value
+	}
+}
+
+// auxTablesSend is the only way in: the request is queued on the owner and answered
+// before it returns, so a completed write is visible to the next read.
+func (this *BaseExchange) auxTablesSend(request auxTablesRequest) any {
+	request.reply = make(chan any, 1)
+	this.auxTablesChannel() <- request
+	return <-request.reply
+}
+
+func (this *BaseExchange) auxTablesRead(read func(*auxTables) any) any {
+	return this.auxTablesSend(auxTablesRequest{read: read})
+}
+
+func (this *BaseExchange) auxTablesEdit(edit func(*auxTables) any) any {
+	return this.auxTablesSend(auxTablesRequest{edit: edit})
+}
+
+// the table is handed to the owner, which then holds the only copy of record
+func (this *BaseExchange) publishAuxTable(slot func(*auxTables, map[string]any), table any) {
+	this.auxTablesEdit(func(next *auxTables) any {
+		slot(next, MapTyped(table))
+		return nil
+	})
+}
+
+func (this *BaseExchange) PublishBaseCurrencies(table any) {
+	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.baseCurrencies = published }, table)
+}
+
+func (this *BaseExchange) PublishQuoteCurrencies(table any) {
+	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.quoteCurrencies = published }, table)
+}
+
+func (this *BaseExchange) PublishTransactions(table any) {
+	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.transactions = published }, table)
+}
+
+// auxTablesMap reads one published table; the owner never edits a published table in
+// place, it publishes a replacement, so the pointer stays valid for its holder.
+func (this *BaseExchange) auxTablesMap(read func(*auxTables) map[string]any) map[string]any {
+	table, _ := this.auxTablesRead(func(current *auxTables) any { return read(current) }).(map[string]any)
+	return table
+}
+
+func (this *BaseExchange) BaseCurrenciesTable() map[string]any {
+	return this.auxTablesMap(func(current *auxTables) map[string]any { return current.baseCurrencies })
+}
+
+func (this *BaseExchange) QuoteCurrenciesTable() map[string]any {
+	return this.auxTablesMap(func(current *auxTables) map[string]any { return current.quoteCurrencies })
+}
+
+func (this *BaseExchange) TransactionsTable() map[string]any {
+	return this.auxTablesMap(func(current *auxTables) map[string]any { return current.transactions })
+}
+
+// auxSameItf compares exchange objects; an uncomparable value never matches, so the
+// method table is rebuilt instead of trusted.
+func auxSameItf(published any, itf any) bool {
+	if (published == nil) || (itf == nil) {
+		return false
+	}
+	publishedType := reflect.TypeOf(published)
+	return (publishedType == reflect.TypeOf(itf)) && publishedType.Comparable() && (published == itf)
+}
+
+// reflectedMethods reads the method set of one exchange object into a lookup table.
+func reflectedMethods(itf any) map[string]any {
+	baseValue := reflect.ValueOf(itf)
+	if !baseValue.IsValid() {
+		return map[string]any{}
+	}
+	baseType := baseValue.Type()
+	methods := map[string]any{}
+
+	for i := 0; i < baseType.NumMethod(); i++ {
+		method := baseType.Method(i)
+		name := method.Name
+		cacheKey := fmt.Sprintf("%s", name)
+
+		methodValue := baseValue.MethodByName(name)
+		methodType := method.Type
+
+		methods[cacheKey] = map[string]any{
+			"method":      method,
+			"methodValue": methodValue,
+			"methodType":  methodType,
+			"numIn":       methodType.NumIn(),
+			"isVariadic":  methodType.IsVariadic(),
+		}
+	}
+	return methods
+}
+
+// methodsFor returns the method table published for itf, building it on the owner the
+// first time that object is seen, so no caller can observe a partial table.
+func (this *BaseExchange) methodsFor(itf any) map[string]any {
+	if itf == nil {
+		return nil
+	}
+	table, _ := this.auxTablesEdit(func(next *auxTables) any {
+		if auxSameItf(next.methodsItf, itf) {
+			return next.methods
+		}
+		next.methods = reflectedMethods(itf)
+		next.methodsItf = itf
+		return next.methods
+	}).(map[string]any)
+	return table
 }

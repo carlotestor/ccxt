@@ -3064,7 +3064,7 @@ func setDefaults(p any) {
 // name is the typed sync method. Mirrors GO_ASYNC_SUFFIX in build/goTranspiler.ts.
 const asyncMethodSuffix = "Async"
 
-func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...any) <-chan AsyncResult[any] {
+func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...any) <-chan AsyncResult[any] {
 	name := Capitalize(name2)
 	// baseValue := reflect.ValueOf(itf)
 	// baseType := baseValue.Type()
@@ -3087,9 +3087,9 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 		// Async-suffixed trampoline; the plain name is the typed sync method (or a plain
 		// sync helper when no trampoline exists), so the trampoline is looked up first.
 		cacheKey := fmt.Sprintf("%s", name)
-		cachedMethod, found := methodCache.Load(cacheKey + asyncMethodSuffix)
+		cachedMethod, found := methods[cacheKey+asyncMethodSuffix]
 		if !found {
-			cachedMethod, found = methodCache.Load(cacheKey)
+			cachedMethod, found = methods[cacheKey]
 		}
 
 		if !found {

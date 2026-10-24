@@ -1,7 +1,5 @@
 package ccxt
 
-import "sync"
-
 func (this *BaseExchange) SetEnableRateLimit(rateLimit bool) {
 	this.EnableRateLimit = rateLimit
 }
@@ -247,8 +245,9 @@ func (this *BaseExchange) SetVerbose(verbose any) {
 	this.Verbose = verbose.(bool)
 }
 
-func (this *BaseExchange) GetCache() *sync.Map {
-	return &this.methodCache
+// GetCache returns the published reflection method table for this exchange object.
+func (this *BaseExchange) GetCache() map[string]any {
+	return this.methodsFor(this.Itf)
 }
 
 func (this *BaseExchange) GetItf() any {
