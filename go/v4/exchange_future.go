@@ -179,23 +179,6 @@ func (f *Future) Await() <-chan AsyncResult[any] {
 	return ch
 }
 
-// Wrap an existing channel that returns (any, error) into Future
-func WrapFuture(ch <-chan struct {
-	val any
-	err error
-}) *Future {
-	f := NewFuture()
-	go func() {
-		v := <-ch
-		if v.err != nil {
-			f.Reject(v.err)
-		} else {
-			f.Resolve(v.val)
-		}
-	}()
-	return f
-}
-
 // Race multiple Futures: returns the first resolved or rejected value/error.
 // Uses a shared subscriber channel instead of one goroutine per future to
 // avoid O(N) goroutine creation on every call (fixes #28182).

@@ -431,9 +431,6 @@ func IsolatedBorrowRateMapToMap(d map[string]IsolatedBorrowRate) map[string]any 
 func LastPriceMapFromMap(data any) map[string]LastPrice {
 	return StructDictFromMap(data, LastPriceFromMap)
 }
-func LastPriceMapToMap(d map[string]LastPrice) map[string]any {
-	return StructDictToMap(d, LastPriceToMap)
-}
 
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
@@ -899,7 +896,6 @@ func PositionModeInfoFromMap(data any) PositionModeInfo {
 	}
 	return NewPositionModeInfo(m)
 }
-func PositionModeInfoToMap(v PositionModeInfo) map[string]any { return StructToMap(v) }
 
 func AccountFromMap(data any) Account {
 	m, ok := data.(map[string]any)
@@ -971,14 +967,8 @@ func CrossBorrowRateMapToMap(d map[string]CrossBorrowRate) map[string]any {
 func GreeksMapFromMap(data any) map[string]Greeks {
 	return StructDictFromMap(data, GreeksFromMap)
 }
-func GreeksMapToMap(d map[string]Greeks) map[string]any {
-	return StructDictToMap(d, GreeksToMap)
-}
 func OptionMapFromMap(data any) map[string]Option {
 	return StructDictFromMap(data, OptionFromMap)
-}
-func OptionMapToMap(d map[string]Option) map[string]any {
-	return StructDictToMap(d, OptionToMap)
 }
 
 func OrderBookFromMap(data any) OrderBook {
@@ -1043,9 +1033,6 @@ func MarginLoanFromMap(data any) MarginLoan {
 		return MarginLoan{}
 	}
 	return NewMarginLoan(m)
-}
-func MarginLoanToMap(v MarginLoan) map[string]any {
-	return StructToMap(v)
 }
 
 func BalanceFromMap(data any) Balance {
@@ -1122,9 +1109,6 @@ func PredictionTickerToMap(v PredictionTicker) map[string]any {
 }
 func PredictionTickerMapFromMap(data any) map[string]PredictionTicker {
 	return StructDictFromMap(data, PredictionTickerFromMap)
-}
-func PredictionTickerMapToMap(d map[string]PredictionTicker) map[string]any {
-	return StructDictToMap(d, PredictionTickerToMap)
 }
 
 func PredictionOrderFromMap(data any) PredictionOrder {
@@ -1212,9 +1196,6 @@ func PredictionTradingFeeFromMap(data any) PredictionTradingFee {
 	}
 	return NewPredictionTradingFee(m)
 }
-func PredictionTradingFeeToMap(v PredictionTradingFee) map[string]any {
-	return StructToMap(v)
-}
 
 func PredictionOpenInterestFromMap(data any) PredictionOpenInterest {
 	m, ok := data.(map[string]any)
@@ -1222,9 +1203,6 @@ func PredictionOpenInterestFromMap(data any) PredictionOpenInterest {
 		return PredictionOpenInterest{}
 	}
 	return NewPredictionOpenInterest(m)
-}
-func PredictionOpenInterestToMap(v PredictionOpenInterest) map[string]any {
-	return StructToMap(v)
 }
 
 func PredictionEventFromMap(data any) PredictionEvent {
@@ -1279,9 +1257,6 @@ func PredictionOutcomeMapToMap(d map[string]PredictionOutcome) map[string]any {
 }
 func PredictionEventMapFromMap(data any) map[string]PredictionEvent {
 	return StructDictFromMap(data, PredictionEventFromMap)
-}
-func PredictionEventMapToMap(d map[string]PredictionEvent) map[string]any {
-	return StructDictToMap(d, PredictionEventToMap)
 }
 
 func StructSliceToMaps[T any](v []T, to func(T) map[string]any) []map[string]any {
@@ -1365,9 +1340,6 @@ func MapSliceToList(s []map[string]any) []any {
 	}
 	return out
 }
-func MapElementToMap(m map[string]any) map[string]any {
-	return m
-}
 
 func StringSliceFromList(data any) []string {
 	if data == nil {
@@ -1384,9 +1356,6 @@ func StringSliceToList(s []string) []any {
 		out[i] = v
 	}
 	return out
-}
-func StringElementToAny(s string) any {
-	return s
 }
 
 // dynamicLists maps each list-of-struct channel element onto the []any of maps the untyped (TS-shaped) base code reads.
