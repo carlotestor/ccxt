@@ -59,9 +59,9 @@ func (f *Future) putState(st futureState) {
 	f.state <- st
 }
 
-// deliver performs the non-blocking wake-up send a promise owes its waiters;
+// deliverOutcome performs the non-blocking wake-up send a promise owes its waiters;
 // both channels involved are buffered with the single value they carry.
-func deliver(ch chan AsyncResult[any], outcome AsyncResult[any]) {
+func deliverOutcome(ch chan AsyncResult[any], outcome AsyncResult[any]) {
 	defer func() {
 		if r := recover(); r != nil {
 			// the waiter dropped its channel; the outcome stays readable in the state
@@ -109,7 +109,7 @@ func (f *Future) Resolve(args ...any) {
 	// capacity 1 and receives at most this one send, so the non blocking
 	// send cannot drop a wakeup
 	for _, sub := range subscribers {
-		deliver(sub, AsyncResult[any]{Value: value})
+		deliverOutcome(sub, AsyncResult[any]{Value: value})
 	}
 }
 
@@ -141,7 +141,7 @@ func (f *Future) Reject(reason any) {
 
 	failure := rejectionError(reason)
 	for _, sub := range subscribers {
-		deliver(sub, AsyncResult[any]{Err: failure})
+		deliverOutcome(sub, AsyncResult[any]{Err: failure})
 	}
 }
 
