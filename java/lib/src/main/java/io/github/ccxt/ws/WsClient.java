@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
@@ -62,7 +61,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
  * Netty-based WebSocket client for CCXT.
  * Matches the architecture of C# Client.cs and Go exchange_wsclient.go:
  * - Single async connection per URL
- * - ConcurrentHashMap for futures and subscriptions
+ * - Owner-thread maps for futures and subscriptions
  * - Ping/pong keep-alive loop
  * - Reconnection via lazy re-connect on next watch() call
  */
@@ -80,13 +79,16 @@ public class WsClient {
         }, "ccxt-ws-shutdown"));
     }
 
-    // State. Every field here is owned by this client's message thread: only an
-    // owner task (ownerCall/ownerRun) reads or writes it. futures/subscriptions/
-    // rejections stay concurrent maps because transpiled code touches them directly.
+    // State. Every field here is owned by this client's message thread: only an owner
+    // task (ownerCall/ownerRun) reads or writes it. The public maps are OwnerMap
+    // hand-off views over those owner-thread HashMaps, so transpiled code keeps its shape.
     public String url;
-    public Map<String, Future> futures = new ConcurrentHashMap<>();
-    public Map<String, Object> subscriptions = new ConcurrentHashMap<>();
-    public Map<String, Object> rejections = new ConcurrentHashMap<>();
+    private final Map<String, Future> futuresOwned = new java.util.LinkedHashMap<>();
+    private final Map<String, Object> subscriptionsOwned = new java.util.LinkedHashMap<>();
+    private final Map<String, Object> rejectionsOwned = new java.util.LinkedHashMap<>();
+    public final Map<String, Future> futures = new OwnerMap<>(this.futuresOwned);
+    public final Map<String, Object> subscriptions = new OwnerMap<>(this.subscriptionsOwned);
+    public final Map<String, Object> rejections = new OwnerMap<>(this.rejectionsOwned);
     public boolean isConnected = false;
     public boolean startedConnecting = false;
     public long connectionEstablished = 0;
@@ -113,7 +115,6 @@ public class WsClient {
 
     // Typed accessors for internal use
     public Map<String, Object> subscriptionsMap() { return subscriptions; }
-    private Map<String, Object> rejectionsMap() { return rejections; }
 
     // Config
     public long keepAlive = 30000;
@@ -222,6 +223,54 @@ public class WsClient {
         return reply.join();
     }
 
+    /**
+     * Map view whose state lives on the owner thread: every operation is an owner
+     * task, so the backing map is single-owner and readers never see a partial write.
+     * Bulk reads return a copy taken on the owner; nothing holds a reference to it.
+     */
+    private final class OwnerMap<K, V> extends java.util.AbstractMap<K, V> {
+        private final Map<K, V> owned;
+
+        OwnerMap(Map<K, V> owned) {
+            this.owned = owned;
+        }
+
+        private <R> R onOwner(java.util.function.Supplier<R> body) {
+            return WsClient.this.ownerCall(body);
+        }
+
+        private void onOwnerRun(Runnable body) {
+            WsClient.this.ownerRun(body);
+        }
+
+        private Map<K, V> snapshot() {
+            return onOwner(() -> new java.util.LinkedHashMap<>(this.owned));
+        }
+
+        @Override public int size() { return onOwner(() -> this.owned.size()); }
+        @Override public boolean isEmpty() { return onOwner(() -> this.owned.isEmpty()); }
+        @Override public boolean containsKey(Object key) { return onOwner(() -> this.owned.containsKey(key)); }
+        @Override public boolean containsValue(Object value) { return onOwner(() -> this.owned.containsValue(value)); }
+        @Override public V get(Object key) { return onOwner(() -> this.owned.get(key)); }
+        @Override public V getOrDefault(Object key, V fallback) { return onOwner(() -> this.owned.getOrDefault(key, fallback)); }
+        @Override public V put(K key, V value) { return onOwner(() -> this.owned.put(key, value)); }
+        @Override public V putIfAbsent(K key, V value) { return onOwner(() -> this.owned.putIfAbsent(key, value)); }
+        @Override public void putAll(Map<? extends K, ? extends V> other) { onOwnerRun(() -> this.owned.putAll(other)); }
+        @Override public V remove(Object key) { return onOwner(() -> this.owned.remove(key)); }
+        @Override public boolean remove(Object key, Object value) { return onOwner(() -> this.owned.remove(key, value)); }
+        @Override public V replace(K key, V value) { return onOwner(() -> this.owned.replace(key, value)); }
+        @Override public boolean replace(K key, V oldValue, V newValue) { return onOwner(() -> this.owned.replace(key, oldValue, newValue)); }
+        @Override public V computeIfAbsent(K key, java.util.function.Function<? super K, ? extends V> fn) { return onOwner(() -> this.owned.computeIfAbsent(key, fn)); }
+        @Override public V computeIfPresent(K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return onOwner(() -> this.owned.computeIfPresent(key, fn)); }
+        @Override public V compute(K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return onOwner(() -> this.owned.compute(key, fn)); }
+        @Override public V merge(K key, V value, java.util.function.BiFunction<? super V, ? super V, ? extends V> fn) { return onOwner(() -> this.owned.merge(key, value, fn)); }
+        @Override public void clear() { onOwnerRun(() -> this.owned.clear()); }
+        @Override public void forEach(java.util.function.BiConsumer<? super K, ? super V> action) { snapshot().forEach(action); }
+        @Override public java.util.Set<K> keySet() { return snapshot().keySet(); }
+        @Override public java.util.Collection<V> values() { return snapshot().values(); }
+        @Override public java.util.Set<Map.Entry<K, V>> entrySet() { return snapshot().entrySet(); }
+    }
+
     public WsClient(String url, String proxy,
                     BiConsumer<WsClient, Object> handleMessage,
                     Function<WsClient, Object> ping,
@@ -262,8 +311,8 @@ public class WsClient {
     }
 
     private Future futureOwned(String messageHash) {
-        Future f = futures.computeIfAbsent(messageHash, k -> new Future());
-        Object rejection = rejectionsMap().remove(messageHash);
+        Future f = futuresOwned.computeIfAbsent(messageHash, k -> new Future());
+        Object rejection = rejectionsOwned.remove(messageHash);
         if (rejection != null) {
             f.reject(rejection);
         }
@@ -295,8 +344,8 @@ public class WsClient {
             return;
         }
         String messageHash = messageHash2.toString();
-        Future f = futures.remove(messageHash);
-        rejectionsMap().remove(messageHash); // clear any stale rejection for this hash
+        Future f = futuresOwned.remove(messageHash);
+        rejectionsOwned.remove(messageHash); // clear any stale rejection for this hash
         if (f != null) {
             f.resolve(content);
         }
@@ -316,17 +365,17 @@ public class WsClient {
     private void rejectOwned(Object error, Object messageHash2) {
         if (messageHash2 != null) {
             String messageHash = messageHash2.toString();
-            Future f = futures.remove(messageHash);
+            Future f = futuresOwned.remove(messageHash);
             if (f == null) {
-                rejectionsMap().put(messageHash, error);
+                rejectionsOwned.put(messageHash, error);
             } else {
                 f.reject(error);
             }
         } else {
             // Drain first, then settle: a continuation may re-enter the client.
             var settled = new java.util.ArrayList<Future>();
-            for (String key : new java.util.ArrayList<>(futures.keySet())) {
-                Future f = futures.remove(key);
+            for (String key : new java.util.ArrayList<>(futuresOwned.keySet())) {
+                Future f = futuresOwned.remove(key);
                 if (f != null) {
                     settled.add(f);
                 }
@@ -617,7 +666,7 @@ public class WsClient {
             return;
         }
         this.error = wrapped;
-        this.subscriptionsMap().clear();
+        this.subscriptionsOwned.clear();
         this.reject(wrapped); // no messageHash: rejects every pending future
 
         if (this.onErrorCallback != null) {
@@ -799,8 +848,8 @@ public class WsClient {
                 ? this.closeReason
                 : new io.github.ccxt.errors.ExchangeClosedByUser("Connection closed by the user");
         var settled = new java.util.ArrayList<Future>();
-        for (String key : new java.util.ArrayList<>(futures.keySet())) {
-            Future f = futures.remove(key);
+        for (String key : new java.util.ArrayList<>(futuresOwned.keySet())) {
+            Future f = futuresOwned.remove(key);
             if (f != null && !f.isDone()) {
                 settled.add(f);
             }
