@@ -3260,25 +3260,6 @@ func (r AsyncResult[T]) Typed() T {
 	return r.Value
 }
 
-// AwaitResult receives once from an async core; on success conv builds the typed Value.
-func AwaitResult[T any](conv func(any) T, ch <-chan AsyncResult[any]) AsyncResult[T] {
-	r := <-ch
-	if r.Err != nil {
-		return AsyncResult[T]{Err: r.Err}
-	}
-	return AsyncResult[T]{Value: conv(r.Value)}
-}
-
-// AssertAs is the checked type assertion as a converter value.
-func AssertAs[T any](v any) T {
-	return v.(T)
-}
-
-// Untyped is the identity converter for results whose declared type is any.
-func Untyped(v any) any {
-	return v
-}
-
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
 // delivered, Value its typed view (zero on shape mismatch), Err the failure.
 type EndpointResult[T any] struct {
