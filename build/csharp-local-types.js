@@ -6455,6 +6455,12 @@ function callReturnType (csharp, initializer) {
         if (localType !== undefined) {
             return localType;
         }
+        // a venue method whose own body proves a non-null string at this site (its printed
+        // signature stays `string?`, so the candidate starts nullable and the declaration
+        // retry below promotes it with the identity cast)
+        if (sameFileGuardedStringCall (csharp, initializer)) {
+            return 'string?';
+        }
         // a prediction-tier local fed by a venue helper whose DECLARATION this module already
         // retypes (installCsharp*Returns): the call's own C# static type IS the table's box, so
         // the declaration names it with no cast (see predictionRetypedCallType)
@@ -10811,6 +10817,208 @@ function safeStringFamilyLocal (declaration) {
     return isThisCall && CSHARP_SAFE_STRING_METHODS_TYPED.has (callee.name?.text);
 }
 
+// ===== a venue method whose own body proves a non-null string =====
+//
+// `const messageType = this.getTypeByMarket (market)` prints `object messageType = …` and every
+// `messageType + 'x'` keeps `add (…)`: the TS return annotation is `Str`, so the printed C#
+// signature is `string?`. The BODY proves more than the signature — every `return` hands back a
+// string literal, and the only null return sits behind `if (<param> === undefined) return
+// undefined` — so at a site whose guard argument is a proven non-null reference (a
+// `this.market (…)` local, a dictionary parameter) that path cannot be taken and the call is a
+// non-null string. The declaration then names `string` with the identity `(string)` cast, which
+// is what lets its `+` reads print add(string, string) instead of the helper. Anything else
+// (a loose return shape, a statement this proof cannot follow, an argument whose type the
+// module cannot name) keeps the printer's `object`.
+const GUARDED_STRING_RETURN_CACHE = new WeakMap ();
+
+// the guard parameter names of a method whose every return is a non-null string literal except
+// the null/undefined returns under `if (<param> === undefined)`; undefined when the body has any
+// other shape (an assignment, a loop, a try, a computed return)
+function guardedStringReturnGuards (declaration) {
+    const body = declaration.body;
+    if (body?.kind !== ts.SyntaxKind.Block) {
+        return undefined;
+    }
+    const parameters = new Set ();
+    for (const parameter of (declaration.parameters ?? [])) {
+        if (parameter.name?.kind === ts.SyntaxKind.Identifier) {
+            parameters.add (parameter.name.text);
+        }
+    }
+    const returnsOf = (node) => {
+        const out = [];
+        const visit = (n) => {
+            if (n.kind === ts.SyntaxKind.ReturnStatement) {
+                out.push (n);
+                return;
+            }
+            if (ts.isFunctionLike (n)) {
+                return;
+            }
+            n.forEachChild (visit);
+        };
+        visit (node);
+        return out;
+    };
+    const isNullish = (node) => {
+        const value = stripParens (node);
+        return (value === undefined) || (value.kind === ts.SyntaxKind.NullKeyword)
+            || ((value.kind === ts.SyntaxKind.Identifier) && (value.text === 'undefined'));
+    };
+    const isLiteral = (node) => isStringLiteral (stripParens (node));
+    const guards = new Set ();
+    for (const statement of (body.statements ?? [])) {
+        if (statement.kind === ts.SyntaxKind.ReturnStatement) {
+            if (!isLiteral (statement.expression)) {
+                return undefined;
+            }
+            continue;
+        }
+        if (statement.kind !== ts.SyntaxKind.IfStatement) {
+            return undefined;
+        }
+        if (statement.elseStatement === undefined) {
+            // the null guard: `if (<param> === undefined) return undefined;`
+            const test = nullTestOf (statement.expression);
+            if ((test?.kind !== 'isNull') || (test.identifier === undefined) || !parameters.has (test.identifier.text)) {
+                return undefined;
+            }
+            const returned = returnsOf (statement.thenStatement);
+            if ((returned.length !== 1) || !isNullish (returned[0].expression)) {
+                return undefined;
+            }
+            guards.add (test.identifier.text);
+            continue;
+        }
+        // an if/else chain: every arm returns a string literal
+        const returned = [ ...returnsOf (statement.thenStatement), ...returnsOf (statement.elseStatement) ];
+        if ((returned.length === 0) || !returned.every ((arm) => isLiteral (arm.expression))) {
+            return undefined;
+        }
+    }
+    return (guards.size === 0) ? undefined : guards;
+}
+
+// the C# types whose spelling is a non-null reference: a value of one can never be the
+// undefined/null a guard tests for
+const NON_NULL_REFERENCE_ARGUMENT_TYPES = [
+    'string', 'Dictionary<string, object>', 'IDictionary<string, object>', 'List<object>', 'IList<object>',
+];
+
+// a value this module proves is never null: a call whose own printed return type has no `?`, a
+// constructor, a literal, a non-nullable `this.<member>` read. A conditional, a bare read, a
+// null/undefined literal and every unproven call are rejected (the guard could fire there).
+function nonNullReferenceValue (csharp, node) {
+    const value = stripParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case ts.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.FalseKeyword:
+        return 'literal';
+    case ts.SyntaxKind.NumericLiteral:
+        return 'literal';
+    case ts.SyntaxKind.NewExpression:
+    case ts.SyntaxKind.ObjectLiteralExpression:
+    case ts.SyntaxKind.ArrayLiteralExpression:
+        return 'literal';
+    case ts.SyntaxKind.CallExpression: {
+        const own = callReturnType (csharp, value);
+        return NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (own) ? own : undefined;
+    }
+    case ts.SyntaxKind.PropertyAccessExpression: {
+        if (value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        const member = CSHARP_LOCAL_THIS_MEMBER_TYPES[value.name?.text];
+        return NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (member) ? member : undefined;
+    }
+    }
+    return undefined;
+}
+
+// a local read whose printed declaration IS a non-null reference type AND whose every write
+// stores a value this module proves non-null: the type spelling alone proves nothing (a
+// `IDictionary<string, object> x = null;` declaration carries the same spelling)
+function nonNullReferenceLocal (csharp, node) {
+    const declaration = (typeof csharp.csharpReceiverBinding === 'function') ? csharp.csharpReceiverBinding (node) : undefined;
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const type = localIdentifierType (csharp, node);
+    if (!NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (type)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    if (declaration.initializer === undefined || nonNullReferenceValue (csharp, declaration.initializer) === undefined) {
+        return undefined;
+    }
+    for (const write of stringLocalWriteNodes (csharp, scope, declaration, node.text)) {
+        const parent = write.parent;
+        if ((parent?.operatorToken?.kind !== ts.SyntaxKind.EqualsToken) || (nonNullReferenceValue (csharp, parent.right) === undefined)) {
+            return undefined; // a compound write, or a value this proof cannot name
+        }
+    }
+    return type;
+}
+
+function nonNullReferenceArgument (csharp, argument) {
+    const value = stripParens (argument);
+    if (value?.kind === ts.SyntaxKind.Identifier) {
+        return nonNullReferenceLocal (csharp, value);
+    }
+    return nonNullReferenceValue (csharp, value);
+}
+
+// `this.<method>(…)` of the SAME class whose body proves a non-null string at this site
+function sameFileGuardedStringCall (csharp, node) {
+    const call = stripParens (node);
+    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = callee.name?.text;
+    const declaration = boundCollectionDeclaration (csharp, call, name);
+    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return false;
+    }
+    // the declaration must belong to the class the call is printed in
+    const owner = ts.findAncestor (declaration, (n) => ts.isClassLike (n));
+    const called = ts.findAncestor (call, (n) => ts.isClassLike (n));
+    if ((owner === undefined) || (owner !== called)) {
+        return false;
+    }
+    let guards = GUARDED_STRING_RETURN_CACHE.get (declaration);
+    if (!GUARDED_STRING_RETURN_CACHE.has (declaration)) {
+        guards = guardedStringReturnGuards (declaration);
+        GUARDED_STRING_RETURN_CACHE.set (declaration, guards);
+    }
+    if (guards === undefined) {
+        return false;
+    }
+    const parameters = declaration.parameters ?? [];
+    for (const guarded of guards) {
+        const index = parameters.findIndex ((parameter) => parameter.name?.kind === ts.SyntaxKind.Identifier && parameter.name.text === guarded);
+        if (index < 0) {
+            return false;
+        }
+        const argument = call.arguments?.[index];
+        if ((argument === undefined) || (nonNullReferenceArgument (csharp, argument) === undefined)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function nonNullStringDefaultCall (csharp, node, context) {
     let initializer = node;
     while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
@@ -11317,6 +11525,15 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // (see nonNullStringValue)
     if (!safe && csharpType === 'string?' && nonNullStringValue (csharp, declaration, declaration.initializer, 0) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
+        safe = true;
+    }
+    // a `this.<venue method> (…)` whose body proves a non-null string when its guard argument is
+    // non-null (sameFileGuardedStringCall): the printed signature is `string?`, so the non-null
+    // spelling takes the identity `(string)` cast — the box does not move, and its `+` reads
+    // print add(string, string)
+    if (!safe && csharpType === 'string?' && sameFileGuardedStringCall (csharp, declaration.initializer) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
         safe = true;
     }
     // the safeValue-twin box is only named when no use of the local treats it as the other
