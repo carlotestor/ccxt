@@ -3138,11 +3138,15 @@ export class RustTranspilerBuilder {
             if (depth !== 0) { out += content.slice(idx); break; }
             const inner = content.slice(idx + marker.length, j);
             const semi = content.indexOf(';', j);
-            // Optional sibling `if let Err(<name>) = _try_result { … }`.
+            // Optional sibling catch: the ast printer's
+            // `if let Err(<name>) = _try_result { … }`, or the already-lowered
+            // `if _try_result.is_err() { … }` this pass emits (re-run safe).
             let after = semi + 1;
             while (after < content.length && /\s/.test(content[after])) after++;
-            const ifMatch = content.slice(after).match(
-                /^if\s+let\s+Err\(([a-zA-Z_][a-zA-Z0-9_]*)\)\s*=\s*_try_result\s*\{/);
+            const catchRx = new RegExp(
+                '^if\\s+let\\s+Err\\(([a-zA-Z_][a-zA-Z0-9_]*)\\)\\s*=\\s*_try_result\\s*\\{'
+                + '|^if\\s+_try_result\\.is_err\\(\\)\\s*\\{');
+            const ifMatch = content.slice(after).match(catchRx);
             let errName = '_e';
             let catchBody = '';
             let consumeEnd = semi + 1;
@@ -3151,7 +3155,7 @@ export class RustTranspilerBuilder {
                 // body references the un-prefixed `e` / `<name>` — bind the
                 // name the body actually uses (`#![allow(unused)]` covers
                 // the case where the body ignores it).
-                errName = ifMatch[1].replace(/^_/, '');
+                if (ifMatch[1]) errName = ifMatch[1].replace(/^_/, '');
                 let d2 = 1, k = after + ifMatch[0].length, inStr2 = false, esc2 = false;
                 while (k < content.length && d2 > 0) {
                     const c = content[k];
@@ -3178,6 +3182,11 @@ export class RustTranspilerBuilder {
             // Recurse so nested try/catch in either body is handled too.
             let tryBody     = this.rewriteTryCatchAsync(inner, isVoid);
             const catchPart = this.rewriteTryCatchAsync(catchBody, isVoid);
+            // A handler that never reads its binding needs no `Value` payload:
+            // `Err(_)` / `is_err()` are native, so the helper call disappears
+            // (hx10 R10). Bindings the body does read keep `panic_to_value`.
+            const errUsed = ifMatch !== null
+                && new RegExp(`(?<![A-Za-z0-9_])${errName}(?![A-Za-z0-9_])`).test(catchPart);
             // Inside an `async {}` catch_unwind block, `return ident;`
             // tries to move out of an outer-scope variable that the
             // catch arm and code after the match also need to read.
@@ -3207,6 +3216,9 @@ export class RustTranspilerBuilder {
             if (hasBreakContinue) {
                 out += `{${tryBody}}`;
             } else {
+                const errArm = errUsed
+                    ? `Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} }`
+                    : `Err(_) => { ${catchPart} }`;
                 // The catch binding is the panic payload (`Box<dyn Any>`);
                 // convert it to a `Value` so the catch body (which treats
                 // `e` as an error object) type-checks.
@@ -3225,7 +3237,7 @@ export class RustTranspilerBuilder {
                     } else {
                         out += `let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {${voidBody} #[allow(unreachable_code)] { false }}));\n`;
                     }
-                    out += `match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} } }`;
+                    out += `match _try_result { Ok(__try_ret) => { if __try_ret { return; } } ${errArm} }`;
                     i = consumeEnd;
                     continue;
                 }
@@ -3239,9 +3251,11 @@ export class RustTranspilerBuilder {
                     // from the enclosing fn on the success path. Failure
                     // (the panic case) runs the catch body. Use `match`
                     // so both arms see one move of `_try_result`.
-                    out += `match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} } }`;
+                    out += `match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } ${errArm} }`;
                 } else {
-                    const catchHead = `if let Err(_try_err) = _try_result { let ${errName}: Value = panic_to_value(_try_err);`;
+                    const catchHead = errUsed
+                        ? `if let Err(_try_err) = _try_result { let ${errName}: Value = panic_to_value(_try_err);`
+                        : `if _try_result.is_err() {`;
                     out += `${catchHead}${catchPart}}`;
                 }
             }
