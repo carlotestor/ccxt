@@ -56,7 +56,6 @@ public partial class BaseExchange
         }
 
         private readonly CancellationTokenSource connectCancellation = new CancellationTokenSource();
-        private ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         public TaskCompletionSource<bool> connected = null;
 
