@@ -86,6 +86,7 @@ function overwriteFileAndFolder(path: string, content: string) {
         content = nativeJavaJ06FieldOps(content); // hx10w2 J06
         content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
         content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
+        if (path.includes('/java/lib/')) { content = nativeJ05CallReceiverReads(content); } // hx10 wave-7 J05
     }
     overwriteFile(path, content);
 }
@@ -4878,7 +4879,6 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
-        const j05dbg = (javaSource.match(/Helpers\.GetValue\(new ArrayList<Object>\(Arrays\.asList\(/g) || []).length
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
         javaSource = hx4J06ObjectValues(javaSource) // hx4 J06
         javaSource = nativeJavaJ26MapLocals(javaSource) // hx4 J26
@@ -4902,9 +4902,6 @@ class NewTranspiler {
         javaSource = nativeJavaBF02FieldOps(javaSource) // hx10 w4 BF02
         javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
         javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
-        javaSource = nativeJ05CallReceiverReads(javaSource) // hx10 wave-7 J05
-        const j05dbgAfter = (javaSource.match(/Helpers\.GetValue\(new ArrayList<Object>\(Arrays\.asList\(/g) || []).length
-        if (j05dbg || j05dbgAfter) { javaSource += '/*J05DBG b=' + j05dbg + ' a=' + j05dbgAfter + ' p=' + javaSource.includes('j05parts') + '*/' }
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
@@ -7589,7 +7586,6 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = nativeJavaJ06FieldOps(content); // hx10w2 J06
     content = j01wsNativeOps(content); // hx10 wave-3 J01
     content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
-    content = nativeJ05CallReceiverReads(content); // hx10 wave-7 J05
     return content;
 }
 
