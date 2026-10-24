@@ -349,7 +349,13 @@ public class ArrayCache extends ArrayList<Object> {
             // resets them before its next append — the reset is deferred in Cache.ts anyway
             CacheView view = this.published.latest(CacheView.EMPTY);
             this.requestPoll(symbol);
-            newUpdatesValue = (symbol == null) ? view.allNewUpdates : view.newUpdates.get(symbol);
+            // if/else, not a ternary: `int ?: Integer` unboxes the map result and NPEs on an
+            // unseen symbol, where Cache.ts returns undefined and the caller gets `limit` back
+            if (symbol == null) {
+                newUpdatesValue = view.allNewUpdates;
+            } else {
+                newUpdatesValue = view.newUpdates.get(symbol);
+            }
         }
         if (newUpdatesValue == null) {
             return limit;
