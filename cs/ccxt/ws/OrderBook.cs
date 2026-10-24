@@ -75,6 +75,10 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
     // so nothing off the loop ever reads a member of the live book.
     private readonly BlockingCollection<BookRows> _published = new BlockingCollection<BookRows>(1);
 
+    // The thread that last mutated the book: the client's receive loop in production.
+    // limit() trims in place only on that thread; anyone else gets a trimmed snapshot.
+    private int _ownerThread;
+
     // The pair a caller copies from: one hand-off, so the two halves can never come
     // from different book states.
     internal BookRows TakePair()
@@ -90,8 +94,10 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         return rows;
     }
 
-    // Owner-loop publication point, called by a side after every mutation: trims both
-    // sides to depth, then posts the frozen pair. Nothing off the loop calls this.
+    // Owner-loop publication point, called by a side after every mutation: posts the
+    // frozen pair. Nothing off the loop calls this. Depth is not enforced here: the
+    // ported contract trims in limit(), and a delta past the trimmed tail has to
+    // survive until the next limit() call (the base desync regression asserts that).
     internal void PublishRows()
     {
         var askSide = this.asks as OrderBookSide;
@@ -100,11 +106,7 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
         {
             return;
         }
-        // depth is enforced here, at the message boundary the ported limit() call sites
-        // expect, so the pair a caller receives is already bounded and the live book
-        // never needs a caller-side trim
-        askSide.TrimToDepth();
-        bidSide.TrimToDepth();
+        this._ownerThread = Thread.CurrentThread.ManagedThreadId;
         // refresh both sides' own publications from the live lists, so a reset that
         // cleared them without going through storeArray cannot leave a stale pair
         askSide.Publish();
@@ -272,9 +274,16 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
 
     public IOrderBook limit()
     {
-        // Ported delivery contract: the book a caller receives is depth-bounded. The
-        // owner trims both sides when it posts the pair, so this call has nothing left
-        // to trim and must not touch the live book from a caller thread.
+        // Ported delivery contract: limit() bounds the book to depth. Only the thread
+        // that mutates the book may trim the live sides; a caller that is not on that
+        // loop gets a trimmed snapshot of the published pair instead.
+        if (this._ownerThread != 0 && this._ownerThread != Thread.CurrentThread.ManagedThreadId)
+        {
+            return this.Copy().limit();
+        }
+        (this.asks as OrderBookSide)?.TrimToDepth();
+        (this.bids as OrderBookSide)?.TrimToDepth();
+        this.PublishRows();
         return this;
     }
 
@@ -334,11 +343,9 @@ public class OrderBook : Dictionary<string, object>, IOrderBook
             this["outcomeId"] = Exchange.SafeValue(snapshot as dict, "outcomeId");
             this["market"] = Exchange.SafeValue(snapshot as dict, "market");
         }
-        // depth is enforced at message level, the way the ported limit() call sites and
-        // the ws order-book test expect: a delta beyond the trimmed tail survives until
-        // the next message boundary trims again
-        (this.asks as OrderBookSide)?.TrimToDepth();
-        (this.bids as OrderBookSide)?.TrimToDepth();
+        // depth is trimmed by limit(), as the port does: reset only replays the
+        // snapshot, so a delta that lands past the tail before the next limit() call
+        // still finds the row it is meant to update
     }
 
     public void reset(object snapshot = null)
@@ -405,9 +412,16 @@ public class CountedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        // Ported delivery contract: the book a caller receives is depth-bounded. The
-        // owner trims both sides when it posts the pair, so this call has nothing left
-        // to trim and must not touch the live book from a caller thread.
+        // Ported delivery contract: limit() bounds the book to depth. Only the thread
+        // that mutates the book may trim the live sides; a caller that is not on that
+        // loop gets a trimmed snapshot of the published pair instead.
+        if (this._ownerThread != 0 && this._ownerThread != Thread.CurrentThread.ManagedThreadId)
+        {
+            return this.Copy().limit();
+        }
+        (this.asks as OrderBookSide)?.TrimToDepth();
+        (this.bids as OrderBookSide)?.TrimToDepth();
+        this.PublishRows();
         return this;
     }
 
@@ -464,9 +478,16 @@ public class IndexedOrderBook : OrderBook, IOrderBook
 
     public IOrderBook limit()
     {
-        // Ported delivery contract: the book a caller receives is depth-bounded. The
-        // owner trims both sides when it posts the pair, so this call has nothing left
-        // to trim and must not touch the live book from a caller thread.
+        // Ported delivery contract: limit() bounds the book to depth. Only the thread
+        // that mutates the book may trim the live sides; a caller that is not on that
+        // loop gets a trimmed snapshot of the published pair instead.
+        if (this._ownerThread != 0 && this._ownerThread != Thread.CurrentThread.ManagedThreadId)
+        {
+            return this.Copy().limit();
+        }
+        (this.asks as OrderBookSide)?.TrimToDepth();
+        (this.bids as OrderBookSide)?.TrimToDepth();
+        this.PublishRows();
         return this;
     }
 
