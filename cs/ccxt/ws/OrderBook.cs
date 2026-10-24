@@ -53,7 +53,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     // Thread that last mutated this book: the ws receive loop once a book is live. A
     // limit() call from that same thread is single-threaded use (tests, local books) and
     // may trim in place; any other thread gets a trimmed copy instead of a live write.
-    private int _mutatorThread = -1;
+    protected int _mutatorThread = -1;
 
     // The pair a caller copies from: one publication, so the two halves can never
     // come from different book states.
