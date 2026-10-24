@@ -253,7 +253,7 @@ public class WsClient {
         @Override public boolean containsValue(Object value) { return onOwner(() -> this.owned.containsValue(value)); }
         @Override public V get(Object key) { return onOwner(() -> this.owned.get(key)); }
         @Override public V getOrDefault(Object key, V fallback) { return onOwner(() -> this.owned.getOrDefault(key, fallback)); }
-        @Override public V put(K key, V value) { return onOwner(() -> this.owned.put(key, value)); }
+        @Override public V put(K key, V value) { return onOwner(() -> (value == null) ? this.owned.remove(key) : this.owned.put(key, value)); }
         @Override public V putIfAbsent(K key, V value) { return onOwner(() -> this.owned.putIfAbsent(key, value)); }
         @Override public void putAll(Map<? extends K, ? extends V> other) { onOwnerRun(() -> this.owned.putAll(other)); }
         @Override public V remove(Object key) { return onOwner(() -> this.owned.remove(key)); }
