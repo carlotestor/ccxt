@@ -7,22 +7,23 @@ using System.Collections.Generic;
 public partial class BaseExchange
 {
 
-    private Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
-    private readonly object wsBackoffStateSync = new object();
+    // the ws owner is the only reader and writer of this table; a dialer hands the whole
+    // read-modify-write over, so two concurrent dials cannot both see a first dial
+    private readonly Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
     public int calculateWsBackoffDelay(string url)
     {
-        var wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>());
-        var backoff = this.safeDict(wsOptions, "backoff", new Dictionary<string, object>());
-        var baseDelay = this.safeInteger(backoff, "base", 1000) ?? 1000;
-        var factor = this.safeInteger(backoff, "factor", 2) ?? 2;
-        var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
-        var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
-        var now = this.milliseconds();
-        lock (wsBackoffStateSync)
+        return (int)WebSocketClient.onOwner(() =>
         {
+            var wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>());
+            var backoff = this.safeDict(wsOptions, "backoff", new Dictionary<string, object>());
+            var baseDelay = this.safeInteger(backoff, "base", 1000) ?? 1000;
+            var factor = this.safeInteger(backoff, "factor", 2) ?? 2;
+            var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
+            var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
+            var now = this.milliseconds();
             long attempts = 0;
             long lastAttempt = 0;
             if (this.wsBackoffState.TryGetValue(url, out var history))
@@ -37,7 +38,7 @@ public partial class BaseExchange
             this.wsBackoffState[url] = new long[] { attempts + 1, now };
             if (attempts == 0)
             {
-                return 0; // first dial or recovered, connect immediately
+                return (object)0; // first dial or recovered, connect immediately
             }
             var delay = baseDelay;
             var capped = Math.Min(attempts, 20); // overflow guard
@@ -47,8 +48,8 @@ public partial class BaseExchange
             }
             var jitterMillis = now % 1000; // rng-free jitter
             var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
-            return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
-        }
+            return (object)(int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
+        });
     }
 
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();

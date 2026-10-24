@@ -23,16 +23,36 @@ public class Throttler
 {
     private ThrottlerConfig config = new ThrottlerConfig();
 
-    //  Callers post a request and get its completion task back. The single owner loop
-    //  below owns the pending order, the tokens and the timestamps; these two fields are
-    //  only the hand-off, and no throttle state is reachable from a caller through them.
-    private readonly ConcurrentQueue<ThrottleRequest> arrivals = new ConcurrentQueue<ThrottleRequest>();
-    private readonly SemaphoreSlim arrivalSignal = new SemaphoreSlim(0);
+    //  Callers post a request and park on its completion; the owner thread below drains
+    //  the channel in arrival order and is the only reader or writer of the pending
+    //  order, the tokens and the timestamps. The channel is the whole hand-off.
+    private readonly Handoff arrivals = new Handoff();
 
     private sealed class ThrottleRequest
     {
         public double cost;
         public readonly TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    //  in-box netstandard2.0 channel: producers never block, the owner parks in Take()
+    private sealed class Handoff
+    {
+        private readonly BlockingCollection<ThrottleRequest> queue = new BlockingCollection<ThrottleRequest>();
+
+        public void post(ThrottleRequest item)
+        {
+            this.queue.Add(item);
+        }
+
+        public ThrottleRequest next()
+        {
+            return this.queue.Take();
+        }
+
+        public bool tryNext(out ThrottleRequest item)
+        {
+            return this.queue.TryTake(out item);
+        }
     }
 
     public Throttler(Dictionary<string, object> configInput)
@@ -52,24 +72,25 @@ public class Throttler
                 this.config.MaxWeight = this.config.WindowSize / this.config.RateLimit;
             }
         }
-        //  The owner loop runs for the lifetime of the instance, parked on the hand-off.
-        _ = this.loop();
+        //  The owner runs for the lifetime of the instance, parked on the channel.
+        Task.Factory.StartNew(this.loop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
     /// <summary>
     /// Moves everything handed over so far into the owner's own pending order. Only the
-    /// owner loop calls this, so the queue is drained by its single reader.
+    /// owner thread calls this, so the queue is drained by its single reader.
     /// </summary>
-    private async Task fillPending(Queue<ThrottleRequest> pending)
+    private void fillPending(Queue<ThrottleRequest> pending)
     {
-        await this.arrivalSignal.WaitAsync();
-        while (this.arrivals.TryDequeue(out var arrived))
+        pending.Enqueue(this.arrivals.next());
+        ThrottleRequest arrived;
+        while (this.arrivals.tryNext(out arrived))
         {
             pending.Enqueue(arrived);
         }
     }
 
-    private async Task leakyBucketLoop()
+    private void leakyBucketLoop()
     {
         var pending = new Queue<ThrottleRequest>();
         var lastTimestamp = milliseconds();
@@ -78,11 +99,7 @@ public class Throttler
         {
             if (pending.Count == 0)
             {
-                await this.fillPending(pending);
-                if (pending.Count == 0)
-                {
-                    continue;
-                }
+                this.fillPending(pending);
             }
             var first = pending.Peek();
             var cost = first.cost;
@@ -90,12 +107,11 @@ public class Throttler
             {
                 tokens = tokens - cost;
                 first.completion.TrySetResult(true);
-                await Task.Delay(0);
                 pending.Dequeue();
             }
             else
             {
-                await Task.Delay((int)(this.config.Delay * 1000));
+                Thread.Sleep((int)(this.config.Delay * 1000));
                 var current = milliseconds();
                 var elapsed = current - lastTimestamp;
                 lastTimestamp = current;
@@ -104,7 +120,7 @@ public class Throttler
         }
     }
 
-    private async Task rollingWindowLoop()
+    private void rollingWindowLoop()
     {
         var pending = new Queue<ThrottleRequest>();
         var timestamps = new List<(long timestamp, double cost)>();
@@ -112,11 +128,7 @@ public class Throttler
         {
             if (pending.Count == 0)
             {
-                await this.fillPending(pending);
-                if (pending.Count == 0)
-                {
-                    continue;
-                }
+                this.fillPending(pending);
             }
             var first = pending.Peek();
             var cost = first.cost;
@@ -128,7 +140,6 @@ public class Throttler
             {
                 timestamps.Add((now, cost));
                 first.completion.TrySetResult(true);
-                await Task.Delay(0);
                 pending.Dequeue();
             }
             else if (timestamps.Count == 0)
@@ -136,7 +147,6 @@ public class Throttler
                 //  a single cost above the whole window can never fit: grant it rather
                 //  than leave the owner and every caller behind it waiting forever
                 first.completion.TrySetResult(true);
-                await Task.Delay(0);
                 pending.Dequeue();
             }
             else
@@ -145,21 +155,21 @@ public class Throttler
                 var waitTime = (earliest + windowSize) - now;
                 if (waitTime > 0)
                 {
-                    await Task.Delay((int)waitTime);
+                    Thread.Sleep((int)waitTime);
                 }
             }
         }
     }
 
-    private async Task loop()
+    private void loop()
     {
         if (this.config.Algorithm == "leakyBucket")
         {
-            await leakyBucketLoop();
+            this.leakyBucketLoop();
         }
         else
         {
-            await rollingWindowLoop();
+            this.rollingWindowLoop();
         }
     }
 
@@ -171,8 +181,7 @@ public class Throttler
     {
         var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config.Cost);
         var request = new ThrottleRequest { cost = cost };
-        this.arrivals.Enqueue(request);
-        this.arrivalSignal.Release();
+        this.arrivals.post(request);
         return Task.FromResult<Task>(request.completion.Task);
     }
 
