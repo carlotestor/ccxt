@@ -16,8 +16,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * <h2>Ownership</h2>
  * The exchange ws owner thread is the only writer of the rows and the price index (every
  * store/storeArray call site is a ws frame handler). Readers only see the immutable row copy
- * published after each mutation, and a trim asked for by a reader is queued for the owner
- * instead of truncating live rows off-thread.
+ * published after each mutation; a trim asked for by a reader is queued for the owner, and the
+ * reader's own snapshot is capped meanwhile, so limit() stays synchronous for whoever calls it.
  */
 public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.IOrderBookSide {
 
@@ -187,6 +187,8 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
      * Truncate to max depth. Called explicitly by exchange code after applying deltas.
      * The owner trims immediately; any other caller only queues the trim, so live rows are
      * never truncated off the owner thread and the owner applies it before its next write.
+     * The queued trim still caps that caller's {@link #snapshot()}, so the caller sees the
+     * limited book the moment limit() returns.
      */
     public void limit() {
         if (this.isOwner()) {
@@ -206,17 +208,30 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
     @Override
     public void clear() {
         this.owner = Thread.currentThread();
+        // a trim requested before this write is satisfied by the clear itself; drop the
+        // request so the reader-visible cap does not outlive the rows it was asked for
+        this.drainTrim();
         super.clear();
         this.index.clear();
         this.publishRows();
     }
 
-    /** Snapshot copy for safe iteration: live for the owner, the published rows for anyone else. */
+    /**
+     * Snapshot copy for safe iteration: live for the owner, the published rows for anyone else.
+     * A trim the owner has not applied yet still caps the copy a reader gets, so limit() keeps
+     * its synchronous meaning for the caller that asked for it (see limit()).
+     */
     public List<Object> snapshot() {
         if (this.isOwner()) {
             return new ArrayList<>(this);
         }
-        return new ArrayList<>(this.publishedRows.latest(Collections.emptyList()));
+        List<Object> rows = this.publishedRows.latest(Collections.emptyList());
+        if (this.trimRequests.isEmpty()) {
+            return new ArrayList<>(rows);
+        }
+        int size = rows.size();
+        int capped = (this.depth >= 0 && this.depth < size) ? this.depth : size;
+        return new ArrayList<>(rows.subList(0, capped));
     }
 
     public OrderBookSide copy() {
