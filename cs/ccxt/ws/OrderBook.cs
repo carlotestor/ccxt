@@ -55,6 +55,10 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     // may trim in place; any other thread gets a trimmed copy instead of a live write.
     protected int _mutatorThread = -1;
 
+    // Set once a caller has copied this book, i.e. it has left the loop. From then on
+    // limit() never touches the live sides, whatever thread it runs on.
+    protected bool _handedOff;
+
     // The pair a caller copies from: one publication, so the two halves can never
     // come from different book states.
     internal BookRows PublishedRows()
@@ -230,7 +234,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         {
             return this;
         }
-        if (this._mutatorThread == Thread.CurrentThread.ManagedThreadId)
+        if (!this._handedOff && (this._mutatorThread == Thread.CurrentThread.ManagedThreadId))
         {
             // this thread is the one that mutates the book, so trimming in place is not
             // concurrent with anything
@@ -321,6 +325,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         // Build from the owner's last publication, never from the live sides: this
         // runs on the caller's thread, the sides are mutated on the receive loop.
+        this._handedOff = true;
         var rows = this.PublishedRows();
         var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
         var copy = new OrderBook(new Dictionary<string, object>());
@@ -384,7 +389,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
         {
             return this;
         }
-        if (this._mutatorThread == Thread.CurrentThread.ManagedThreadId)
+        if (!this._handedOff && (this._mutatorThread == Thread.CurrentThread.ManagedThreadId))
         {
             // this thread is the one that mutates the book, so trimming in place is not
             // concurrent with anything
@@ -409,6 +414,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
     {
         // Build from the owner's last publication, never from the live sides: this
         // runs on the caller's thread, the sides are mutated on the receive loop.
+        this._handedOff = true;
         var rows = this.PublishedRows();
         var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
         var copy = new CountedOrderBook(new Dictionary<string, object>());
@@ -464,7 +470,7 @@ public class IndexedOrderBook : OrderBook, IOrderBook
         {
             return this;
         }
-        if (this._mutatorThread == Thread.CurrentThread.ManagedThreadId)
+        if (!this._handedOff && (this._mutatorThread == Thread.CurrentThread.ManagedThreadId))
         {
             // this thread is the one that mutates the book, so trimming in place is not
             // concurrent with anything
@@ -489,6 +495,7 @@ public class IndexedOrderBook : OrderBook, IOrderBook
     {
         // Build from the owner's last publication, never from the live sides: this
         // runs on the caller's thread, the sides are mutated on the receive loop.
+        this._handedOff = true;
         var rows = this.PublishedRows();
         var depth = (this.asks is OrderBookSide askDepth) ? askDepth._depth : 0;
         var copy = new IndexedOrderBook(new Dictionary<string, object>());
