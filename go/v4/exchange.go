@@ -197,13 +197,16 @@ type BaseExchange struct {
 	FetchHistoryCache     *ConcurrentListForRequests
 
 	// ws
-	WsClients   map[string]any // one websocket client per URL
-	WsClientsMu sync.Mutex
-	// the ws dispatch loop: owner of the ws cache maps and of Balance (see exchange_ws_cache.go)
-	wsStore    *wsCacheStore
-	wsStoreMu  sync.Mutex
-	Balance    any
-	Positions  any
+	WsClients map[string]any // one websocket client per URL
+	// the ws dispatch loop: owner of the ws cache maps, of the client registry and of Balance
+	// (see exchange_ws_cache.go); sync.Once starts it once and stops it once, no lock at a use site
+	wsStore         *wsCacheStore
+	wsStoreOnce     sync.Once
+	wsStoreStopOnce sync.Once
+	Balance         any
+	Positions       any
+	// the ws client registry: the dispatch loop is its only reader and writer, so a use site needs
+	// no lock; user-path reads ask the loop for a copy (WsClientsSnapshot)
 	Clients    map[string]any
 	newUpdates bool
 	streaming  map[string]any
@@ -1884,11 +1887,8 @@ func (this *BaseExchange) OnConnected(client any, message any) {
 }
 
 func (this *BaseExchange) OnError(client any, err any) {
-	this.WsClientsMu.Lock()
-	if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c.(ClientInterface).GetError() != nil {
-		delete(this.Clients, client.(ClientInterface).GetUrl())
-	}
-	this.WsClientsMu.Unlock()
+	// the registry edit runs on the dispatch loop, the registry's only writer
+	this.wsClientDeleteIfErrored(client.(ClientInterface).GetUrl())
 	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
 }
 
@@ -1896,23 +1896,26 @@ func (this *BaseExchange) OnClose(client any, err any) {
 	if client.(ClientInterface).GetError() != nil {
 		// connection closed due to an error, do nothing
 	} else {
-		this.WsClientsMu.Lock()
-		delete(this.Clients, client.(ClientInterface).GetUrl())
-		this.WsClientsMu.Unlock()
+		this.wsClientDelete(client.(ClientInterface).GetUrl())
 	}
 }
 
 // Client returns (and caches) a *WSClient for the given WS URL.
 func (this *BaseExchange) Client(url any) *WSClient {
-	// TODO: what to do with errors
 	// callers reach this through generated WS code where the url is a
 	// pointer-carried string; normalize once so the assertions below hold
 	url = derefScalar(url)
-	this.WsClientsMu.Lock()
-	defer this.WsClientsMu.Unlock()
-	if client, ok := this.Clients[url.(string)]; ok {
-		return client.(*WSClient)
+	// get-or-create runs on the dispatch loop: one client per URL, one registry writer
+	created := this.wsClientGetOrCreate(url.(string), func() any { return this.newWsClient(url) })
+	if client, ok := created.(*WSClient); ok {
+		return client
 	}
+	return nil
+}
+
+// newWsClient builds one ws client for url; the dispatch loop calls it, so a URL builds once.
+func (this *BaseExchange) newWsClient(url any) *WSClient {
+	// TODO: what to do with errors
 	// TODO: add options to NewWSClient
 	wsOptions := SafeValue(this.Options, "ws", map[string]any{})
 	// proxy agents
@@ -1956,7 +1959,6 @@ func (this *BaseExchange) Client(url any) *WSClient {
 	var proxyUrl string = this.getWsProxy()
 	client := NewWSClient(url.(string), this.WsDispatch, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, proxyUrl, options)
 
-	this.Clients[url.(string)] = client
 	return client
 }
 
@@ -2232,11 +2234,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 		if wsClient, ok := client.(*WSClient); ok {
 			wsClient.Close()
 		}
-		this.WsClientsMu.Lock()
-		if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c == client {
-			delete(this.Clients, client.(ClientInterface).GetUrl())
-		}
-		this.WsClientsMu.Unlock()
+		this.wsClientDeleteIfSame(client.(ClientInterface).GetUrl(), client)
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
 		this.WsCacheSet("Orderbooks", symbol, this.OrderBook())
 	} else {
@@ -2254,13 +2252,8 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
 	// ##### language-specific cleanup of WS & REST resources #####
 	// [WS]
-	this.WsClientsMu.Lock()
-	clients := make([]*WSClient, 0, len(this.Clients))
-	for _, c := range this.Clients {
-		clients = append(clients, c.(*WSClient))
-	}
-	this.Clients = make(map[string]any)
-	this.WsClientsMu.Unlock()
+	// the registry is drained on its owner, so the loop hands back every client and clears it
+	clients := this.wsClientDrain()
 	errs := make([]error, 0)
 	for _, c := range clients {
 		if future := c.Close(); future != nil {

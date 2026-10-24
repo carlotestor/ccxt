@@ -6,7 +6,8 @@ package ccxt
 // the loop an operation, so a use site needs no lock and no sync.Map.
 //
 // Ownership argument: the loop is the only reader and writer, frames and operations arrive on one
-// select, and a Positions cache's own mutex still guards its rows. Not verified with -race.
+// select, the ws client registry is read and written by the loop alone (user-path reads ask for a
+// copy), and a Positions cache's own mutex still guards its rows. Not verified with -race.
 //
 
 const (
@@ -22,6 +23,13 @@ const (
 	wsOpKeys
 	wsOpObjGet
 	wsOpObjSet
+	// registry operations: the same loop owns the ws client registry
+	wsOpClientGetOrCreate
+	wsOpClientDelete
+	wsOpClientDeleteIfErrored
+	wsOpClientDeleteIfSame
+	wsOpClientDrain
+	wsOpClientList
 )
 
 type wsFrame struct {
@@ -37,11 +45,12 @@ type wsCacheRead struct {
 }
 
 type wsCacheOp struct {
-	op    int
-	field string
-	key   any
-	value any
-	reply chan any
+	op     int
+	field  string
+	key    any
+	value  any
+	create func() any
+	reply  chan any
 }
 
 type wsCacheStore struct {
@@ -51,11 +60,10 @@ type wsCacheStore struct {
 	done   chan struct{}
 }
 
-// wsCacheStoreNow returns the exchange's dispatch loop, starting it on first use.
+// wsCacheStoreNow returns the exchange's dispatch loop, starting it once. sync.Once publishes the
+// store and its goroutine to every later caller, so a use site needs no lock.
 func (this *BaseExchange) wsCacheStoreNow() *wsCacheStore {
-	this.wsStoreMu.Lock()
-	defer this.wsStoreMu.Unlock()
-	if this.wsStore == nil {
+	this.wsStoreOnce.Do(func() {
 		store := &wsCacheStore{
 			frames: make(chan wsFrame, 4096),
 			ops:    make(chan *wsCacheOp),
@@ -64,7 +72,7 @@ func (this *BaseExchange) wsCacheStoreNow() *wsCacheStore {
 		}
 		this.wsStore = store
 		go this.wsCacheLoop(store)
-	}
+	})
 	return this.wsStore
 }
 
@@ -94,15 +102,13 @@ func (this *BaseExchange) wsCacheLoop(store *wsCacheStore) {
 }
 
 // wsCacheStop ends the dispatch loop and waits for it, so no second owner can overlap the first.
+// The store stays published: a later caller finds the closed stop channel and runs inline.
 func (this *BaseExchange) wsCacheStop() {
-	this.wsStoreMu.Lock()
-	store := this.wsStore
-	this.wsStore = nil
-	this.wsStoreMu.Unlock()
-	if store != nil {
+	store := this.wsCacheStoreNow()
+	this.wsStoreStopOnce.Do(func() {
 		close(store.stop)
 		<-store.done
-	}
+	})
 }
 
 func (this *BaseExchange) wsCacheField(name string) map[string]any {
@@ -153,6 +159,8 @@ func (this *BaseExchange) wsBalanceMap() map[string]any {
 // generated code, so every key is dereferenced first; a non-string key finds nothing.
 func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 	switch req.op {
+	case wsOpClientGetOrCreate, wsOpClientDelete, wsOpClientDeleteIfErrored, wsOpClientDeleteIfSame, wsOpClientDrain, wsOpClientList:
+		return this.wsClientsApply(req)
 	case wsOpObjGet:
 		if field := this.wsCacheObjectField(req.field); field != nil {
 			return *field
@@ -263,6 +271,150 @@ func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 		return true
 	}
 	return nil
+}
+
+// ---- ws client registry: owned by the same dispatch goroutine ----
+// The registry field is read and written by this loop alone. Generated Go reads it from a user
+// goroutine, so those reads are rewritten (build/hx10w6-OG03.ts) to WsClientsSnapshot, which asks
+// the owner for a copy: no caller ever touches the field, so its publication needs no lock.
+
+// wsClientsPublished is the registry as the owner holds it; only this goroutine reads it.
+func (this *BaseExchange) wsClientsPublished() map[string]any {
+	if this.Clients == nil {
+		return map[string]any{}
+	}
+	return this.Clients
+}
+
+// wsClientsCopy is the next registry: a copy of the owner's one, safe to edit and swap in.
+func (this *BaseExchange) wsClientsCopy() map[string]any {
+	next := make(map[string]any, len(this.Clients)+1)
+	for url, client := range this.Clients {
+		next[url] = client
+	}
+	return next
+}
+
+// wsClientsApply is the registry's only write path and runs on the dispatch goroutine.
+func (this *BaseExchange) wsClientsApply(req *wsCacheOp) any {
+	url, keyIsString := req.key.(string)
+	registry := this.wsClientsPublished()
+	switch req.op {
+	case wsOpClientGetOrCreate:
+		if !keyIsString {
+			return nil
+		}
+		if existing, ok := registry[url]; ok {
+			return existing
+		}
+		created := req.create()
+		if created == nil {
+			return nil
+		}
+		next := this.wsClientsCopy()
+		next[url] = created
+		this.Clients = next
+		return created
+	case wsOpClientDelete:
+		if _, ok := registry[url]; keyIsString && ok {
+			next := this.wsClientsCopy()
+			delete(next, url)
+			this.Clients = next
+		}
+		return nil
+	case wsOpClientDeleteIfErrored:
+		// the owner answers with the entry's own error, exactly as the locked read did
+		if existing, ok := registry[url]; keyIsString && ok && existing.(ClientInterface).GetError() != nil {
+			next := this.wsClientsCopy()
+			delete(next, url)
+			this.Clients = next
+		}
+		return nil
+	case wsOpClientDeleteIfSame:
+		if existing, ok := registry[url]; keyIsString && ok && existing == req.value {
+			next := this.wsClientsCopy()
+			delete(next, url)
+			this.Clients = next
+		}
+		return nil
+	case wsOpClientDrain:
+		clients := make([]*WSClient, 0, len(registry))
+		for _, client := range registry {
+			clients = append(clients, client.(*WSClient))
+		}
+		this.Clients = map[string]any{}
+		return clients
+	case wsOpClientList:
+		// a copy taken on the owner: the caller walks it on its own goroutine, so the registry
+		// map itself never leaves this loop
+		out := make(map[string]any, len(registry))
+		for key, client := range registry {
+			out[key] = client
+		}
+		return out
+	}
+	return nil
+}
+
+// wsClientsDo hands one registry operation to the dispatch goroutine and waits for the answer. Only
+// user-path code and the ws client's own loops call it: a handler runs on that goroutine and never
+// touches the registry, so no caller waits on itself.
+func (this *BaseExchange) wsClientsDo(req *wsCacheOp) any {
+	store := this.wsCacheStoreNow()
+	req.reply = make(chan any, 1)
+	select {
+	case store.ops <- req:
+		return <-req.reply
+	case <-store.stop:
+		// the loop is gone: wait for it to finish, then the caller is the only writer
+		<-store.done
+		return this.wsClientsApply(req)
+	}
+}
+
+// wsClientGetOrCreate answers the client registered for url, letting the owner build it when absent.
+func (this *BaseExchange) wsClientGetOrCreate(url string, create func() any) any {
+	return this.wsClientsDo(&wsCacheOp{op: wsOpClientGetOrCreate, key: url, create: create})
+}
+
+func (this *BaseExchange) wsClientDelete(url string) {
+	this.wsClientsDo(&wsCacheOp{op: wsOpClientDelete, key: url})
+}
+
+func (this *BaseExchange) wsClientDeleteIfErrored(url string) {
+	this.wsClientsDo(&wsCacheOp{op: wsOpClientDeleteIfErrored, key: url})
+}
+
+func (this *BaseExchange) wsClientDeleteIfSame(url string, client any) {
+	this.wsClientsDo(&wsCacheOp{op: wsOpClientDeleteIfSame, key: url, value: client})
+}
+
+// wsClientDrain clears the registry on its owner and returns the clients it held.
+func (this *BaseExchange) wsClientDrain() []*WSClient {
+	clients, _ := this.wsClientsDo(&wsCacheOp{op: wsOpClientDrain}).([]*WSClient)
+	if clients == nil {
+		return []*WSClient{}
+	}
+	return clients
+}
+
+// WsClientsSnapshot copies the ws client registry on the dispatch goroutine. Generated Go walks the
+// whole registry from a user goroutine (cleanCache over Object.values(this.clients)), so it reads
+// this copy instead of the field the owner keeps editing.
+func (this *BaseExchange) WsClientsSnapshot() map[string]any {
+	snapshot, _ := this.wsClientsDo(&wsCacheOp{op: wsOpClientList}).(map[string]any)
+	if snapshot == nil {
+		return map[string]any{}
+	}
+	return snapshot
+}
+
+// WsClientRemove drops the entry for url on the owner: generated venue overrides unregister a client
+// with Remove(this.clients, url), and a delete has to run where the registry lives.
+func (this *BaseExchange) WsClientRemove(url any) {
+	if key, ok := derefScalar(url).(string); ok {
+		this.wsClientDelete(key)
+	}
 }
 
 // wsCacheDo hands one operation to the dispatch goroutine and waits for its answer. Only
