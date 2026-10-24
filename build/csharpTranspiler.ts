@@ -10,6 +10,7 @@ import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 import { hx10C05NativeCompareMath, hx10C05SelfTest } from './hx10w2-C05.js'
+import { hx10C05NativeArithmeticEquality } from './hx10w7-C05.js' // hx10 wave7 C05: isEqual over native arithmetic
 import { hx10C05TupleSlotTypes, hx10C05SnippetChecks } from './hx10w3-C05.js' // hx10 wave3 C05: destructured tuple slots
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
@@ -9376,7 +9377,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const w3c02Out = hx10w3C02CandidateReads (c02Out); // hx10w3 C02
     const c06Out = c06_apply (objectNull, w3c02Out); // hx10w2 C06
     const c06w3Out = c06w3ParseJson (c06Out); // hx10w3 C06
-    return bf01Apply (c04Apply (hx10w3C03WsStateReads (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01
+    return hx10C05NativeArithmeticEquality (bf01Apply (c04Apply (hx10w3C03WsStateReads (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out)))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05
 }
 
 function nativeC07HelperCalls (content: string): string {
