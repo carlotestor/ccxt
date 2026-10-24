@@ -95,8 +95,8 @@ public class OrderBook : Dictionary<string, object>, IDictionary<string, object>
     }
 
     // Owner-loop publication point, after every mutation: posts the frozen pair.
-    // Depth is not trimmed here - the port trims in limit(), so a delta past the
-    // trimmed tail survives until the next limit() call.
+    // The pair's row arrays are depth-bounded slices; the live sides keep every row,
+    // so a delta past the trimmed tail still lands when the next message arrives.
     internal void PublishRows()
     {
         var askSide = this.asks as OrderBookSide;
@@ -121,10 +121,10 @@ public class OrderBook : Dictionary<string, object>, IDictionary<string, object>
         object outcome;
         var hasOutcome = this.TryGetValue("outcome", out outcome) && outcome != null;
         var posted = new BookRows(
-            askSide.Published,
-            askSide.PublishedPrices,
-            bidSide.Published,
-            bidSide.PublishedPrices,
+            SliceRows(askSide.Published, askSide._depth),
+            SlicePrices(askSide.PublishedPrices, askSide._depth),
+            SliceRows(bidSide.Published, bidSide._depth),
+            SlicePrices(bidSide.PublishedPrices, bidSide._depth),
             askSide._depth,
             Exchange.SafeValue(this as dict, "nonce"),
             Exchange.SafeValue(this as dict, "timestamp"),
@@ -142,6 +142,40 @@ public class OrderBook : Dictionary<string, object>, IDictionary<string, object>
         {
             this._published.TryTake(out stale);
         }
+    }
+
+    // Depth-bounded view for readers. The live lists keep every row, because a delta
+    // past the trimmed tail must still find its row; only the published pair is capped.
+    // A full-length or unbounded side hands its own array over: Publish() assigns a
+    // fresh array on every mutation and never mutates a published one afterwards.
+    private static object[] SliceRows(object[] rows, int depth)
+    {
+        if (rows == null)
+        {
+            return null;
+        }
+        if (depth <= 0 || rows.Length <= depth)
+        {
+            return rows;
+        }
+        var cut = new object[depth];
+        Array.Copy(rows, cut, depth);
+        return cut;
+    }
+
+    private static decimal[] SlicePrices(decimal[] prices, int depth)
+    {
+        if (prices == null)
+        {
+            return null;
+        }
+        if (depth <= 0 || prices.Length <= depth)
+        {
+            return prices;
+        }
+        var cut = new decimal[depth];
+        Array.Copy(prices, cut, depth);
+        return cut;
     }
 
     // the ported API treats Add as an upsert, so a duplicate key must not throw
