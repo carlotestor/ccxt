@@ -304,6 +304,18 @@ function j01w7CastFree (text: string): boolean {
     return !/\((?:final\s+)?(?:[A-Z][\w.]*|(?:java|io|com)\.[\w.]+)(?:<[^()]*>)?\)/.test (text);
 }
 
+// Only a ws handler member runs on the exchange's single owner executor (OJ04). Any other member
+// (watch*, load*Snapshot on spawn's virtual executor, setSandboxMode) can write the same map from
+// another thread, so there the helper keeps the map's monitor and the site stays unchanged.
+const J01W7_OWNER_MEMBER = /^(?:handle[A-Z]\w*|parseWSBalances)$/;
+
+function j01w7OwnerMember (member: string): boolean {
+    const head = /^ {4}(?:public|private|protected)[^\n]*$/m.exec (member);
+    if (head === null) return false;
+    const name = /\b(\w+)\s*\(/.exec (head[0])?.[1];
+    return name !== undefined && J01W7_OWNER_MEMBER.test (name);
+}
+
 interface FieldOptions { sets?: FieldSets }
 
 
@@ -339,7 +351,7 @@ export function j01w7FieldPuts (content: string, options: FieldOptions = {}): st
                 // field elsewhere in it changes nothing here; only a tier-2 field needs the veto
                 const selfWrite = !tier1 && new RegExp (`(?<![\\w.$])this\\.${name}\\s*=(?![=>])`).test (member);
                 const stringKey = j01w7KeyIsString (member, args[1]!);
-                if (!selfWrite && stringKey && j01w7CastFree (args[1]!) && j01w7CastFree (args[2]!) && (tier1 || j01w7NonNull (member, args[2]!, 0))) {
+                if (!selfWrite && stringKey && j01w7OwnerMember (member) && j01w7CastFree (args[1]!) && j01w7CastFree (args[2]!) && (tier1 || j01w7NonNull (member, args[2]!, 0))) {
                     // proven String key on a proven plain map field: the helper's Map branch is exactly put
                     text = `this.${name}.put(${args[1]}, ${args[2]})`;
                 }
@@ -355,10 +367,10 @@ export function j01w7FieldPuts (content: string, options: FieldOptions = {}): st
 export function j01w7FieldPutsSelfTest (): string[] {
     const problems: string[] = [];
     const sets: FieldSets = { tier1: new Set ([ 'balance', 'tickers', 'orderbooks' ]), tier2: new Set ([ 'trades' ]) };
-    const run = (body: string, signature = 'Object v') => j01w7FieldPuts (
-        `public class ZzJ01 extends BaseExchange\n{\n    public Object m(${signature})\n    {\n${body}\n    }\n}`,
+    const run = (body: string, signature = 'Object v', member = 'handleZz') => j01w7FieldPuts (
+        `public class ZzJ01 extends BaseExchange\n{\n    public Object ${member}(${signature})\n    {\n${body}\n    }\n}`,
         { sets });
-    const cases: [string, string, string | undefined][] = [
+    const cases: [string, string, string | undefined, string | undefined, string | undefined][] = [
         [ 'literal key nullable value on tier 1', '        Helpers.addElementToObject(this.tickers, "BTC/USDT", ticker);', 'this.tickers.put("BTC/USDT", ticker);', 'Object ticker' ],
         [ 'String key from a String local', '        String type = this.safeString(v, "t");\n        Helpers.addElementToObject(this.balance, type, this.iso8601(v));', 'this.balance.put(type, this.iso8601(v));' ],
         [ 'String cast key', '        Helpers.addElementToObject(this.orderbooks, (String) v, this.orderBook(new HashMap<String, Object>() {{}}, v));', undefined ],
@@ -376,9 +388,14 @@ export function j01w7FieldPutsSelfTest (): string[] {
         [ 'value position', '        return Helpers.addElementToObject(this.tickers, "a", v);', undefined ],
         [ 'two args', '        Helpers.addElementToObject(this.tickers, "a");', undefined ],
         [ 'guarded receiver', '        Helpers.addElementToObject((this.tickers == null ? null : this.tickers.get("a")), "b", v);', undefined ],
+        // off-owner members keep the helper: there the map's monitor is the only serialisation with
+        // a writer on the watch path, on spawn's virtual executor, or on a user-thread API
+        [ 'watch member keeps the helper', '        Helpers.addElementToObject(this.balance, "info", info);', undefined, 'Object info', 'watchBalance' ],
+        [ 'spawned snapshot loader keeps the helper', '        Helpers.addElementToObject(this.balance, "info", info);', undefined, 'Object info', 'loadBalanceSnapshot' ],
+        [ 'sandbox setter keeps the helper', '        Helpers.addElementToObject(this.balance, "info", info);', undefined, 'Object info', 'setSandboxMode' ],
     ];
-    for (const [ name, body, expect, signature ] of cases) {
-        const input = run (body, signature);
+    for (const [ name, body, expect, signature, member ] of cases) {
+        const input = run (body, signature, member);
         const out = j01w7FieldPuts (input, { sets });
         const ok = expect === undefined ? out === input : out.includes (expect);
         if (!ok) problems.push (`hx10w7 J01: ${name}\n${out}`);
