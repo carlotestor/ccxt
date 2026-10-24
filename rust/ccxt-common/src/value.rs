@@ -607,25 +607,17 @@ impl From<serde_json::Value> for Value {
 /// directly from the cached real `<Id>Core`. Production / non-test code
 /// leaves the callback unset and falls through to the normal map lookup.
 type LiveLookupFn = fn(id: &str, key: &str) -> Option<Value>;
-// Plain atomic-load-style global — `tokio::main` spawns worker threads
-// that wouldn't see a `thread_local!` value set in main, so the lookup
-// has to be shared across all threads. Stored as a usize because
-// `AtomicPtr<fn>` is awkward to express. `fn` pointers are always
-// non-null when set; 0 means "not installed".
-static LIVE_LOOKUP_PTR: std::sync::atomic::AtomicUsize =
-    std::sync::atomic::AtomicUsize::new(0);
+// Write-once registry: the test harness installs it from `main` before any
+// worker thread runs and nothing replaces it. One-shot cell, so every read is a
+// plain fn-pointer load with no lock and no atomic at the use site.
+static LIVE_LOOKUP: once_cell::sync::OnceCell<LiveLookupFn> = once_cell::sync::OnceCell::new();
 
 pub fn set_live_lookup(f: LiveLookupFn) {
-    LIVE_LOOKUP_PTR.store(f as usize, std::sync::atomic::Ordering::Release);
+    let _ = LIVE_LOOKUP.set(f);
 }
 
 fn live_lookup_get() -> Option<LiveLookupFn> {
-    let n = LIVE_LOOKUP_PTR.load(std::sync::atomic::Ordering::Acquire);
-    if n == 0 { None } else {
-        // SAFETY: only ever stored as `fn(&str, &str) -> Option<Value>`
-        // via `set_live_lookup`; the pointer-to-fn round-trip is sound.
-        Some(unsafe { std::mem::transmute::<usize, LiveLookupFn>(n) })
-    }
+    LIVE_LOOKUP.get().copied()
 }
 
 // Companion to `LiveLookupFn` but for writing: routes `exchange.setMarkets(...)`
@@ -634,20 +626,14 @@ fn live_lookup_get() -> Option<LiveLookupFn> {
 // runs against the real instance the method dispatch will use. Returns the
 // resulting markets. See `Value::set_markets`.
 type LiveSetMarketsFn = fn(id: &str, markets: Value) -> Value;
-static LIVE_SET_MARKETS_PTR: std::sync::atomic::AtomicUsize =
-    std::sync::atomic::AtomicUsize::new(0);
+static LIVE_SET_MARKETS: once_cell::sync::OnceCell<LiveSetMarketsFn> = once_cell::sync::OnceCell::new();
 
 pub fn set_live_set_markets(f: LiveSetMarketsFn) {
-    LIVE_SET_MARKETS_PTR.store(f as usize, std::sync::atomic::Ordering::Release);
+    let _ = LIVE_SET_MARKETS.set(f);
 }
 
 fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
-    let n = LIVE_SET_MARKETS_PTR.load(std::sync::atomic::Ordering::Acquire);
-    if n == 0 { None } else {
-        // SAFETY: only ever stored as `fn(&str, Value) -> Value` via
-        // `set_live_set_markets`; the pointer-to-fn round-trip is sound.
-        Some(unsafe { std::mem::transmute::<usize, LiveSetMarketsFn>(n) })
-    }
+    LIVE_SET_MARKETS.get().copied()
 }
 
 /// Hot-path `get_value` variant that takes the key as a `&str` directly,
@@ -1204,6 +1190,58 @@ where
         Ok(Ok(v)) => v,
         Ok(Err(payload)) => std::panic::resume_unwind(payload),
         Err(_) => panic!("ccxt: WS state store owner dropped the reply"),
+    }
+}
+
+// ── Owner thread: one writer, channel hand-off ──────────────────────────────
+// State several tasks must reach but that no lock may guard at a use site: one
+// plain thread owns it, callers hand it a job and wait for the reply. Nothing is
+// shared, so there is no lock to nest, poison or forget, and no reader can see
+// the state half-applied.
+pub(crate) type OwnerJob<S> = Box<dyn FnOnce(&mut S) + Send + 'static>;
+
+pub(crate) struct OwnerThread<S> {
+    tx: tokio::sync::mpsc::UnboundedSender<OwnerJob<S>>,
+    owner: std::sync::OnceLock<std::thread::ThreadId>,
+}
+
+impl<S: Send + 'static> OwnerThread<S> {
+    pub(crate) fn spawn(name: &str, init: S) -> Self {
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<OwnerJob<S>>();
+        let handle = std::thread::Builder::new()
+            .name(name.to_string())
+            .spawn(move || {
+                let mut state = init;
+                while let Some(job) = rx.blocking_recv() { job(&mut state); }
+            })
+            .expect("ccxt: cannot start an owner thread");
+        let owner = std::sync::OnceLock::new();
+        let _ = owner.set(handle.thread().id());
+        OwnerThread { tx, owner }
+    }
+
+    /// Runs `f` on the owner and returns its result. A job that calls back into
+    /// its own owner would wait on itself, so that panics instead of hanging.
+    pub(crate) fn run<R, F>(&self, f: F) -> R
+    where R: Send + 'static, F: FnOnce(&mut S) -> R + Send + 'static {
+        if self.owner.get() == Some(&std::thread::current().id()) {
+            panic!("ccxt: owner-thread job called back into its own state (would deadlock)");
+        }
+        let (tx, rx) = std::sync::mpsc::sync_channel::<std::thread::Result<R>>(1);
+        self.tx.send(Box::new(move |state: &mut S| {
+            let _ = tx.send(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(state))));
+        })).unwrap_or_else(|_| panic!("ccxt: owner thread is gone"));
+        match rx.recv() {
+            Ok(Ok(v)) => v,
+            Ok(Err(payload)) => std::panic::resume_unwind(payload),
+            Err(_) => panic!("ccxt: owner thread dropped the reply"),
+        }
+    }
+
+    /// Hands `f` over without waiting; a no-op once the owner is gone.
+    pub(crate) fn post<F>(&self, f: F)
+    where F: FnOnce(&mut S) + Send + 'static {
+        let _ = self.tx.send(Box::new(f));
     }
 }
 
