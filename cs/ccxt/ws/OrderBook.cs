@@ -80,6 +80,10 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         }
         askSide.TrimToDepth();
         bidSide.TrimToDepth();
+        // refresh both sides' own publications from the live lists, so a reset that
+        // cleared them without going through storeArray cannot leave a stale pair
+        askSide.Publish();
+        bidSide.Publish();
         this._publishedRows = new BookRows(askSide.Published, askSide.PublishedPrices, bidSide.Published, bidSide.PublishedPrices);
     }
 

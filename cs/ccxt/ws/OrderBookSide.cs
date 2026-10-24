@@ -282,11 +282,13 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     // off-loop readers, plus the asks+bids pair captured by the owning book.
     internal void PublishSide()
     {
-        this.Publish();
         if (this.owner != null)
         {
+            // the owner refreshes and freezes both sides as one coherent pair
             this.owner.PublishRows();
+            return;
         }
+        this.Publish();
     }
 
     internal decimal[] PublishedPrices = Array.Empty<decimal>();
