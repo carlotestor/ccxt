@@ -214,6 +214,12 @@ type BaseExchange struct {
 
 	// last nonce lock
 	lastNonceMutex sync.Mutex
+
+	// urls views: `urls` holds a Dict per section in the TS base (`urls: { api: Dict }`) and is
+	// written only at config time, so these name the dictionaries it holds (RefreshUrlsViews
+	// re-derives them after every write) and a read is the dictionary's own map index.
+	UrlsApi         map[string]any            // urls["api"], exactly as stored
+	UrlsApiSections map[string]map[string]any // urls["api"] entries that are dictionaries
 }
 
 // Exchange is the thin, public REST exchange type. All shared infrastructure lives in the
@@ -291,6 +297,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Accounts = make([]any, 0)
 
 	this.initializeProperties(extendedProperties)
+	this.RefreshUrlsViews()
 	this.AfterConstruct(userConfig)
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
@@ -812,6 +819,24 @@ func optionMethodLabel(methodName any) string {
 		return "exchange-wide"
 	}
 	return ToString(methodName) + "()"
+}
+
+// RefreshUrlsViews re-derives the typed urls views after a write of urls or of one of its
+// entries (options init, SetSandboxMode, EnableDemoTrading). urls is written at config time
+// only, so the generated reads are plain map indexes on these views.
+func (this *BaseExchange) RefreshUrlsViews() {
+	this.UrlsApi = MapTyped(this.Urls["api"])
+	this.UrlsApiSections = nil
+	if this.UrlsApi == nil {
+		return
+	}
+	sections := make(map[string]map[string]any, len(this.UrlsApi))
+	for key, value := range this.UrlsApi {
+		if section := MapTyped(value); section != nil {
+			sections[key] = section
+		}
+	}
+	this.UrlsApiSections = sections
 }
 
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan AsyncResult[any] {
