@@ -99,6 +99,27 @@ public partial class BaseExchange
             return sections["api"] as IDictionary<string, object>;
         }
     }
+    // urls['api'] entries that are themselves dictionaries, so urlsApi['ws'] indexes as a map.
+    // urls is written at config time only; RefreshUrlsViews re-derives this at every such write.
+    public Dictionary<string, IDictionary<string, object>> urlsApiSections { get; private set; } = new Dictionary<string, IDictionary<string, object>>();
+
+    public void RefreshUrlsViews()
+    {
+        var api = this.urlsApi;
+        var sections = new Dictionary<string, IDictionary<string, object>>();
+        if (api != null)
+        {
+            foreach (var entry in api)
+            {
+                var section = entry.Value as IDictionary<string, object>;
+                if (section != null)
+                {
+                    sections[entry.Key] = section;
+                }
+            }
+        }
+        this.urlsApiSections = sections;
+    }
     // currencies stays `object` (cs/tests/Generated/TestMethods.cs assigns a boxed local into it),
     // but every writer stores a string-keyed dictionary: this view is that dictionary.
     public IDictionary<string, object> currenciesDict
@@ -336,6 +357,7 @@ public partial class BaseExchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
+        this.RefreshUrlsViews();
         this.limits = SafeValue(extendedProperties, "limits") as dict;
 
         this.streaming = SafeValue(extendedProperties, "streaming") as dict;
