@@ -501,17 +501,9 @@ type IDerivedExchange interface {
 	Market(symbol any) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) Conversion
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
-<<<<<<< go/v4/exchange_interface.go
-	HandleErrors(statusCode any, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
+	HandleErrors(statusCode int64, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
 	// HandleMessage is not here: a venue declares its ws frame shape (map[string]any for an
 	// object frame, any for an array/text frame), so the dispatch loop binds it by assertion.
-||||||| /tmp/hx10w9-b
-	HandleErrors(statusCode any, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
-	HandleMessage(client any, message any)
-=======
-	HandleErrors(statusCode int64, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
-	HandleMessage(client any, message any)
->>>>>>> /tmp/hx10w9-t
 	OnError(client any, err any)
 	OnClose(client any, err any)
 	OnConnected(client any, err any)

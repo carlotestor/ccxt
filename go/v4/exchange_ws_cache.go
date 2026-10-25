@@ -80,40 +80,14 @@ type wsCacheStore struct {
 	frames chan wsFrame
 	ops    chan *wsCacheOp
 	done   chan struct{}
-	handle func(client any, message any) // the venue's HandleMessage, bound to its frame shape
 }
 
 // wsCacheStoreNow returns the exchange's dispatch loop. startOwners created it at construction,
 // before the exchange was published, so a use site needs no lock.
 func (this *BaseExchange) wsCacheStoreNow() *wsCacheStore {
-<<<<<<< go/v4/exchange_ws_cache.go
-	this.wsStoreOnce.Do(func() {
-		store := &wsCacheStore{
-			frames: make(chan wsFrame, 4096),
-			ops:    make(chan *wsCacheOp),
-			stop:   make(chan struct{}),
-			done:   make(chan struct{}),
-			handle: this.wsFrameHandler(),
-		}
-		this.wsStore = store
-		go this.wsCacheLoop(store)
-	})
-||||||| /tmp/hx10w9-b
-	this.wsStoreOnce.Do(func() {
-		store := &wsCacheStore{
-			frames: make(chan wsFrame, 4096),
-			ops:    make(chan *wsCacheOp),
-			stop:   make(chan struct{}),
-			done:   make(chan struct{}),
-		}
-		this.wsStore = store
-		go this.wsCacheLoop(store)
-	})
-=======
 	if this.wsStore == nil {
 		this.startOwners()
 	}
->>>>>>> /tmp/hx10w9-t
 	return this.wsStore
 }
 
@@ -130,10 +104,15 @@ func (this *BaseExchange) WsDispatch(client any, message any) {
 
 func (this *BaseExchange) wsCacheLoop(store *wsCacheStore) {
 	defer close(store.done)
+	// bound on the first frame: the store starts before the venue sets DerivedExchange
+	var handle func(client any, message any)
 	for {
 		select {
 		case frame := <-store.frames:
-			store.handle(frame.client, frame.message)
+			if handle == nil {
+				handle = this.wsFrameHandler()
+			}
+			handle(frame.client, frame.message)
 		case req := <-store.ops:
 			if req.op == wsOpStop {
 				req.reply <- true
