@@ -1792,10 +1792,7 @@ export default class nado extends nadoRest {
         }
     }
 
-    handleUnsubscriptionCache (messageHash: Str) {
-        if (messageHash === undefined) {
-            return;
-        }
+    handleUnsubscriptionCache (messageHash: string) {
         if (messageHash.indexOf ('trade:') === 0) {
             const symbol = messageHash.replace ('trade:', '');
             if (symbol in this.trades) {

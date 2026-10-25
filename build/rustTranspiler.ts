@@ -24,6 +24,7 @@ import { r06Push } from './hx10w2-r06.js';
 import { r06w3Push } from './hx10w3-R06.js'; // hx10 W3 R06
 import { r08DictReads } from './hx10w3-R08.js';
 import { r10ClientHandle } from './hx10w7-R10.js'; // hx10 wave-7 R10
+import { hx10w9Rp02ParamKind, hx10w9Rp02DispatchArg, hx10w9Rp02SplitArgs, hx10w9Rp02RefMapParamNames } from './hx10w9-RP02.js'; // hx10 wave-9 RP02
 
 ansi.nice;
 
@@ -6785,6 +6786,8 @@ export class RustTranspilerBuilder {
      */
     dropDeadValueSlotClones(content: string): string {
         if (!content.includes('.clone()')) return content;
+        // hx10w9 RP02: a `&mut IndexMap` parameter is never moved, only copied.
+        const refMapParams = hx10w9Rp02RefMapParamNames(content);
         const masked = this.maskStrings(content);
         const blocks = this.rustBlocksOf(masked);
         const closures = blocks.filter(b => b.kind === 'closure');
@@ -6876,6 +6879,7 @@ export class RustTranspilerBuilder {
                 if (borrow.test(masked.slice(blocks[b].headerStart, blocks[b].open))) { blocked = true; break; }
             }
             if (blocked) continue;
+            if (refMapParams.has(ident)) continue;
             if (!this.rustLocalMovesAfter(masked, blocks, closures, rs, end, ident)) continue;
             out += content.slice(last, rs) + ident;
             last = end;
@@ -7648,7 +7652,7 @@ export class RustTranspilerBuilder {
             // Args inside the parens — collect (Value-typed) names so we
             // can pack them into a `vec![...]` to forward.
             const argList = m[2];
-            const params = argList.split(',').slice(1).map(s => s.trim()).filter(Boolean);
+            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
             const vecArgs: string[] = [];
             let hasSlice = false;
             for (const p of params) {
@@ -7705,7 +7709,7 @@ export class RustTranspilerBuilder {
             // Build the forwarding call. The trait method takes fixed-arity
             // `Value` args; we pull them from the inherent method's params.
             const argList = m[3];
-            const params = argList.split(',').slice(1).map(s => s.trim()).filter(p => p.length > 0);
+            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
             // Classify each inherent param: 'value' (a fixed Value),
             // 'slice' (the `optional_args: &[Value]` bag), or unknown.
             type ParamInfo = { name: string, kind: 'value' | 'slice' | 'other' };
@@ -7870,9 +7874,10 @@ export class RustTranspilerBuilder {
             const isVoid = !isValue;
             // Skip if there's no `self` receiver.
             if (!/\bself\b/.test(argList)) continue;
-            const params = argList.split(',').slice(1).map(s => s.trim()).filter(p => p.length > 0);
+            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
             const paramKinds = params.map(p => {
                 if (/:\s*&\[/.test(p)) return 'slice';
+                if (hx10w9Rp02ParamKind(p) !== undefined) return 'map';
                 if (/:\s*Value\b/.test(p)) return 'value';
                 if (/:\s*bool\b/.test(p)) return 'bool';
                 return 'other';
@@ -7990,6 +7995,8 @@ export class RustTranspilerBuilder {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'bool') {
                     callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'map') {
+                    callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8041,6 +8048,8 @@ ${arms.join('\n')}
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'bool') {
                     callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'map') {
+                    callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8121,6 +8130,8 @@ ${arms.join('\n')}
                 } else if (paramKinds[i] === 'bool') {
                     // A native `bool` slot takes the same truthiness the body used.
                     callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'map') {
+                    callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     // Pass the remaining args as a slice of `args` itself.
                     callArgs.push(this.dispatchSliceArg(i));
@@ -8163,6 +8174,8 @@ ${isBase
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'bool') {
                     callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'map') {
+                    callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8237,15 +8250,17 @@ ${fallthrough}
             const isVoid = retType === '';
             const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
             if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable
-            const params = argList.split(',').slice(1).map(s => s.trim()).filter(Boolean);
-            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other')));
+            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
+            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (hx10w9Rp02ParamKind(p) !== undefined ? 'map' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other'))));
             if (kinds.some(k => k === 'other')) continue;
             seen.add(name);
             const callArgs = kinds.map((k, i) => k === 'slice'
                 ? this.dispatchSliceArg(i)
                 : k === 'bool'
                     ? `args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`
-                    : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                    : k === 'map'
+                        ? hx10w9Rp02DispatchArg(i)
+                        : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
             const call = `self.${name}(${callArgs.join(', ')})`;
             arms.push(isVoid
                 ? `            "${name}" => { ${call}; crate::Value::Null },`
