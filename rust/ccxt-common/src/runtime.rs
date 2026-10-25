@@ -122,6 +122,7 @@ pub fn multiply(a: &Value, b: &Value) -> Value {
     }
 }
 
+// Printed by the rust `/` wrapper table; keep at 0 call sites.
 pub fn divide(a: &Value, b: &Value) -> Value {
     match (as_f64(a), as_f64(b)) {
         (Some(_), Some(y)) if y == 0.0 => Value::Null,

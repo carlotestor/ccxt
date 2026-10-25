@@ -414,6 +414,7 @@ public class Helpers {
         return (first < second) ? a : b;
     }
 
+    // Printed by javaTranspiler's Math.max fallback; keep at 0 call sites.
     public static Object mathMax(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -1133,6 +1134,7 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
         }
     }
 
+    // Printed by javaTranspiler's Math.abs arm; keep at 0 call sites.
     public static Object mathAbs(Object val) {
         if (val == null) {
             return null;
