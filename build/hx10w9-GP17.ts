@@ -119,10 +119,11 @@ function gp17TupleReturn (line: string): string[] | undefined {
     return undefined;
 }
 
-// `func (this *X) <producer> (…) []any {` -> the same line with the pair result
+// `func (this *X) <producer> (…) []any {` -> the same line with the pair result. The params
+// slot stays `any`: an implicit endpoint threads a list body through it, which MapTyped drops.
 function gp17TwinSignature (content: string, producer: string, slot0: string): string {
     const pattern = new RegExp ('(func \\(this \\*\\w+\\) ' + producer + ' ?\\([^)]*\\) )(?:\\[\\]any|any)( \\{)', 'g');
-    return content.replace (pattern, '$1(' + slot0 + ', map[string]any)$2');
+    return content.replace (pattern, '$1(' + slot0 + ', any)$2');
 }
 
 /** One `return []any{ value, params }` at body depth -> `return value, MapTyped(params)`. */
@@ -158,7 +159,7 @@ export function hx10w9Gp17TupleTwins (content: string): string {
         if (parts === undefined) {
             continue;
         }
-        raw[returns[0]] = '\treturn ' + parts[0] + ', MapTyped(' + parts[1] + ')';
+        raw[returns[0]] = '\treturn ' + parts[0] + ', ' + parts[1];
         masked[returns[0]] = raw[returns[0]];
         raw[i] = gp17TwinSignature (raw[i], producer, GP17_TWIN_SLOT0[producer]);
         masked[i] = raw[i];
@@ -411,11 +412,23 @@ function gp17ResolveSite (raw: string[], masked: string[], index: number, produc
         }
     };
     declare (params, params.type, 'map[string]any');
+    // the twin hands the params slot back as `any`, so a map-typed local takes the same
+    // MapTyped conversion its element read performed
+    let paramsBind = params.name;
+    if ((params.name !== '_') && (params.type === 'map[string]any')) {
+        const raw = gp17Temporary (masked, start, end, params.name + 'Raw');
+        if (raw === undefined) {
+            return undefined;
+        }
+        pre.push (indent + 'var ' + raw + ' any = nil');
+        post.push (indent + params.name + ' = ' + qualifier + 'MapTyped(' + raw + ')');
+        paramsBind = raw;
+    }
     let bind = '';
     if (value.deref === undefined) {
         // the pair's first result is the local itself: both slots bind in one assignment
         declare (value, value.type, slot0);
-        bind = indent + value.name + ', ' + params.name + ' = ' + call + gp17Note (value, params);
+        bind = indent + value.name + ', ' + paramsBind + ' = ' + call + gp17Note (value, params);
     } else {
         // the site derefs the element, so the pointer lands in a temporary first
         const temporary = gp17Temporary (masked, start, end, value.name + 'Ptr');
@@ -423,7 +436,7 @@ function gp17ResolveSite (raw: string[], masked: string[], index: number, produc
             return undefined;
         }
         pre.push (indent + 'var ' + temporary + ' ' + slot0 + ' = nil');
-        bind = indent + temporary + ', ' + params.name + ' = ' + call + gp17Note (value, params);
+        bind = indent + temporary + ', ' + paramsBind + ' = ' + call + gp17Note (value, params);
         if (value.deref === 'getvalue') {
             if ((value.keep !== undefined) || (value.nilProven === true)) {
                 post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
@@ -438,9 +451,8 @@ function gp17ResolveSite (raw: string[], masked: string[], index: number, produc
             post.push (indent + ((value.declared) ? (value.name + ' = ' + fallback) : ('var ' + value.name + ' bool = ' + fallback)));
             post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
         } else if (value.deref === 'any') {
-            if (!value.declared) {
-                post.push (indent + 'var ' + value.name + ' any = nil');
-            }
+            // the old iife answered nil for a nil pointer, so a local declared above is reset
+            post.push (indent + ((value.declared) ? (value.name + ' = nil') : ('var ' + value.name + ' any = nil')));
             post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
         } else {
             post.push (indent + ((value.declared) ? (value.name + ' = ' + temporary) : ('var ' + value.name + ' ' + value.deref + ' = ' + temporary)));
@@ -603,7 +615,17 @@ function gp17InlinePairReads (content: string, qualifier: string): string {
         const paramsMatch = params.exec (masked[i]);
         const paramsRaw = params.exec (raw[i]);
         if ((paramsMatch !== null) && (paramsRaw !== null) && (GP17_TWIN_SLOT0[paramsMatch[4]] !== undefined)) {
-            raw[i] = paramsMatch[1] + '_, ' + paramsMatch[2] + ' := this.' + paramsRaw[4] + '(' + paramsRaw[5] + ')';
+            if (paramsMatch[3] === 'any') {
+                raw[i] = paramsMatch[1] + '_, ' + paramsMatch[2] + ' := this.' + paramsRaw[4] + '(' + paramsRaw[5] + ')';
+            } else {
+                // the twin's params slot is `any`: a map-typed local still needs the conversion
+                const temporary = paramsMatch[2] + 'Raw';
+                if (gp17Mentions (masked.join ('\n'), temporary)) {
+                    continue;
+                }
+                raw[i] = paramsMatch[1] + temporary + ', _ := this.' + paramsRaw[4] + '(' + paramsRaw[5] + ')\n'
+                    + paramsMatch[1] + 'var ' + paramsMatch[2] + ' map[string]any = ' + qualifier + 'MapTyped(' + temporary + ')';
+            }
             masked[i] = raw[i];
             changed = true;
         }
@@ -675,8 +697,8 @@ export function hx10w9Gp17SelfTest (): string[] {
         + '\treturn []any{value, paramsOmitted}\n'
         + '}\n';
     const twinOut = hx10w9Gp17TupleTwins (twin);
-    ok (twinOut.indexOf ('optionalArgs ...any) (*string, map[string]any) {') >= 0, 'twin signature carries the pair: ' + twinOut);
-    ok (twinOut.indexOf ('\treturn value, MapTyped(paramsOmitted)\n') >= 0, 'single pair return: ' + twinOut);
+    ok (twinOut.indexOf ('optionalArgs ...any) (*string, any) {') >= 0, 'twin signature carries the pair: ' + twinOut);
+    ok (twinOut.indexOf ('\treturn value, paramsOmitted\n') >= 0, 'single pair return: ' + twinOut);
     ok (twinOut.indexOf ('return this.Omit(params, paramName)\n') >= 0, 'inner closure return untouched: ' + twinOut);
     ok (hx10w9Gp17TupleTwins (twinOut) === twinOut, 'second application is a no-op');
     // a second body-level return path keeps the slice: the result types could differ
@@ -693,17 +715,17 @@ export function hx10w9Gp17SelfTest (): string[] {
         + '\tvar paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])\n';
     const bound = f (held + '\t_ = tag\n\t_ = paramsWithdrawTag\n');
     ok (bound.indexOf ('tagparamsWithdrawTagVariable') < 0, 'holder dropped: ' + bound);
-    ok (bound.indexOf ('\ttag, paramsWithdrawTag = ' + pair + '\n') >= 0, 'native pair bind: ' + bound);
-    ok (bound.indexOf ('MapTyped(') < 0, 'params slot reads natively: ' + bound);
+    ok (bound.indexOf ('\ttag, paramsWithdrawTagRaw = ' + pair + '\n') >= 0, 'native pair bind: ' + bound);
+    ok (bound.indexOf ('\tparamsWithdrawTag = MapTyped(paramsWithdrawTagRaw)') >= 0, 'the map local keeps its conversion: ' + bound);
     ok (bound.indexOf ('\tvar tag *string = nil\n') >= 0, 'the value keeps its annotation: ' + bound);
     ok (hx10w9Gp17ParamsSlotBinds (bound) === bound, 'second application is a no-op');
     // the SafeStringPtr read of slot 0
     const safe = f ('\tvar v []any = ' + pair + '\n\tvar tag *string = SafeStringPtr(v[0])\n\tvar paramsTag map[string]any = MapTyped(v[1])\n\t_ = tag\n\t_ = paramsTag\n');
-    ok (safe.indexOf ('\ttag, paramsTag = ' + pair + '\n') >= 0, 'a deref consumer binds natively: ' + safe);
+    ok (safe.indexOf ('\ttag, paramsTagRaw = ' + pair + '\n') >= 0, 'a deref consumer binds natively: ' + safe);
     // a boxed `any` element keeps its box
     const boxed = f ('\tvar v []any = ' + pair + '\n\ttagOption := v[0]\n\tvar paramsTag map[string]any = MapTyped(v[1])\n\t_ = tagOption\n\t_ = paramsTag\n');
     ok (boxed.indexOf ('\tvar tagOption any = nil\n') >= 0, 'a boxed element stays any: ' + boxed);
-    ok (boxed.indexOf ('\ttagOption, paramsTag = ' + pair + '\n') >= 0, 'boxed element binds too: ' + boxed);
+    ok (boxed.indexOf ('\ttagOption, paramsTagRaw = ' + pair + '\n') >= 0, 'boxed element binds too: ' + boxed);
     // a holder read anywhere else keeps the box
     ok (f (held + '\t_ = tagparamsWithdrawTagVariable\n').indexOf ('tagparamsWithdrawTagVariable') >= 0, 'escaped holder kept');
     // a second MapTyped read of slot 1 keeps the box
@@ -714,7 +736,7 @@ export function hx10w9Gp17SelfTest (): string[] {
     const iife = '\tvar h []any = ' + pair + '\n\tx := func() any {\n\t\tif p, _ := h[0].(*string); p != nil {\n\t\t\treturn *p\n\t\t}\n'
         + '\t\treturn nil\n\t}()\n\tvar q map[string]any = MapTyped(h[1])\n\t_ = x\n\t_ = q\n';
     const iifeOut = f (iife);
-    ok ((iifeOut.indexOf ('func() any {') < 0) && (iifeOut.indexOf ('MapTyped(') < 0), 'the deref iife and the params unwrap both go: ' + iifeOut);
+    ok ((iifeOut.indexOf ('func() any {') < 0) && (iifeOut.indexOf ('q = MapTyped(qRaw)') >= 0), 'the deref iife gives way to the bind: ' + iifeOut);
     ok (iifeOut.indexOf ('if xPtr != nil { x = *xPtr }') >= 0, 'the deref keeps its meaning: ' + iifeOut);
     // the bounded read of a two-element tuple is the same pair
     const bounds = '\tvar h []any = ' + pair + '\n\tvar x *string = SafeStringPtr(func() any {\n\t\tif 0 >= 0 && 0 < len(h) {\n'
