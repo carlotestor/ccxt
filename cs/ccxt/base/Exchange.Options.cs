@@ -73,7 +73,8 @@ public partial class BaseExchange
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
     public Dictionary<string, object> features { get; set; }
-    public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
+    // options: read the published snapshot, mutate through the config owner (OwnedTable)
+    public ccxt.pro.OwnedTable<object> options { get; set; } = new ccxt.pro.OwnedTable<object>();
     public bool isSandboxModeEnabled { get; set; } = false;
 
     public IDictionary<string, object> markets { get; set; } = null;
@@ -159,7 +160,7 @@ public partial class BaseExchange
     }
     public object last_request_url { get; set; }
 
-    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> fetchHistoryCache = new ();
+    public readonly ccxt.pro.OwnedHistory<Dictionary<string, object>> fetchHistoryCache = new ();
 
     public int fetchHistoryCacheSize = 0;
 
@@ -346,13 +347,12 @@ public partial class BaseExchange
         {
             extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
             var extendedDict = extendedOptions as dict;
-            var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
-            this.options = concurrentExtendedDict;
+            this.options = new ccxt.pro.OwnedTable<object>(extendedDict);
         }
         else
         {
             var dict2 = this.getDefaultOptions() as dict;
-            this.options = new ConcurrentDictionary<string, object>(dict2);
+            this.options = new ccxt.pro.OwnedTable<object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", null) as dict;
