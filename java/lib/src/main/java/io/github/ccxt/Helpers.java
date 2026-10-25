@@ -406,6 +406,14 @@ public class Helpers {
         return false;
     }
 
+    // Printed by javaTranspiler's Math.min fallback; keep at 0 call sites.
+    public static Object mathMin(Object a, Object b) {
+        if (a == null || b == null) return null;
+        double first = toDouble(a);
+        double second = toDouble(b);
+        return (first < second) ? a : b;
+    }
+
     public static Object mathMax(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -701,6 +709,30 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             if (end > str.length()) end = str.length();
             if (start > end) start = end;
             return str.substring(start, end);
+        }
+    }
+
+    // Printed by javaTranspiler's x.concat(y) arm; keep at 0 call sites.
+    public static Object concat(Object a, Object b) {
+        if (a == null && b == null) return null;
+        if (a == null) return b;
+        if (b == null) return a;
+
+        if (a instanceof List && b instanceof List) {
+            List result = new ArrayList((List) a);
+            result.addAll((List) b);
+            return result;
+        } else if (a instanceof List && !(b instanceof List)) {
+            List result = new ArrayList((List) a);
+            result.add(b);
+            return result;
+        } else if (!(a instanceof List) && b instanceof List) {
+            List result = new ArrayList();
+            result.add(a);
+            result.addAll((List) b);
+            return result;
+        } else {
+            throw new IllegalStateException("Unsupported types for concatenation.");
         }
     }
 
@@ -1074,6 +1106,23 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
         }
 
         return str.substring(0, length);
+    }
+
+    // Printed by javaTranspiler's padStart fallback; keep at 0 call sites.
+    public static String padStart(Object input, Object length2, Object padStr) {
+        int length = toInt(length2);
+        String str = toString(input);
+        String pad = toString(padStr);
+
+        if (pad.isEmpty()) {
+            throw new IllegalArgumentException("padStr must not be empty");
+        }
+
+        while (str.length() < length) {
+            str = pad + str;
+        }
+
+        return str.substring(str.length() - length);
     }
 
     public static String json(Object obj) {

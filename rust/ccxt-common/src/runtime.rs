@@ -130,6 +130,32 @@ pub fn divide(a: &Value, b: &Value) -> Value {
     }
 }
 
+// Printed by the rust `%` / `%=` wrapper table; keep at 0 call sites.
+pub fn mod_val(a: &Value, b: &Value) -> Value {
+    if both_ints(a, b) {
+        let yi = as_i64(b).unwrap();
+        if yi == 0 { return Value::Null; }
+        return Value::Int(as_i64(a).unwrap() % yi);
+    }
+    match (as_f64(a), as_f64(b)) {
+        (Some(_), Some(y)) if y == 0.0 => Value::Null,
+        (Some(x), Some(y)) => Value::Float(x % y),
+        _ => Value::Null,
+    }
+}
+
+// Printed by printPrefixUnaryExpression when native negation declines; keep.
+pub fn negate(v: &Value) -> Value {
+    match v {
+        Value::Int(n)   => Value::Int(-n),
+        Value::Float(f) => Value::Float(-f),
+        _ => match as_f64(v) {
+            Some(x) => Value::Float(-x),
+            None    => Value::Null,
+        },
+    }
+}
+
 // ── comparisons ─────────────────────────────────────────────────────────────
 
 pub fn is_equal(a: &Value, b: &Value) -> bool {
