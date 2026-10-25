@@ -13,12 +13,11 @@ const GP27_SEND = /^ch <- (?:(ccxt)\.)?AsyncResult\[.*\]\{Value: (.*)\}$/;
 const GP27_RECV = /^\t*(r\d*) := <-(?:ccxt\.)?this\.(Watch|WatchMultiple)\(/;
 
 // every body line goChan3 can emit for one want, after GO05 dropped the *sync.Map arm
-function gp27Body (ind: string, v: string, want: string, q: string): string[] {
+function gp27Arms (ind: string, v: string, want: string, q: string, spaced: boolean): string[] {
     const box = v + 'Box';
     const arms = [ ind + 'case ' + want + ':', ind + '\t' + v + ' = ' + box ];
     if (want === '[]any') {
-        arms.push (ind + 'case ' + q + 'IArrayCache:', ind + '\t' + v + ' = ' + box + '.ToArray()');
-        arms.push (ind + 'case ' + q + 'IArrayCache:', ind + '\t' + v + ' = ' + box + '.ToArray ()');
+        arms.push (ind + 'case ' + q + 'IArrayCache:', ind + '\t' + v + ' = ' + box + (spaced ? '.ToArray ()' : '.ToArray()'));
     }
     arms.push (ind + 'case nil:', ind + 'default:', ind + '\tpanic(' + q + 'ExchangeError("resolved value is not ' + want + '"))');
     return arms;
@@ -26,9 +25,8 @@ function gp27Body (ind: string, v: string, want: string, q: string): string[] {
 
 // the two exact arm sequences (the array-cache arm's `.ToArray ()` is the gofmt variant)
 function gp27Known (ind: string, v: string, want: string, q: string): string[][] {
-    const plain = gp27Body (ind, v, want, q).filter ((line) => !line.endsWith ('.ToArray ()'));
-    const spaced = gp27Body (ind, v, want, q).filter ((line) => !line.endsWith ('.ToArray()'));
-    return (want === '[]any') ? [ plain, spaced ] : [ plain ];
+    const plain = gp27Arms (ind, v, want, q, false);
+    return (want === '[]any') ? [ plain, gp27Arms (ind, v, want, q, true) ] : [ plain ];
 }
 
 function gp27Count (text: string, name: string): number {
@@ -57,7 +55,7 @@ function gp27SiteAt (lines: string[], i: number): Gp27Site | undefined {
     if (!headLine.startsWith (ind) || headLine.startsWith (ind + '\t')) {
         return undefined;
     }
-    const head = GP27_SWITCH.exec (headLine);
+    const head = GP27_SWITCH.exec (headLine.substring (ind.length));
     if ((head === null) || (head[1] !== v + 'Box')) {
         return undefined;
     }
@@ -73,7 +71,7 @@ function gp27SiteAt (lines: string[], i: number): Gp27Site | undefined {
         return undefined;
     }
     const sendLine = lines[end + 1] ?? '';
-    const send = GP27_SEND.exec (sendLine);
+    const send = (sendLine.startsWith (ind) && !sendLine.startsWith (ind + '\t')) ? GP27_SEND.exec (sendLine.substring (ind.length)) : null;
     if (send === null) {
         return undefined;
     }
@@ -117,8 +115,12 @@ function gp27SiteAt (lines: string[], i: number): Gp27Site | undefined {
             break;
         }
     }
-    // the local: declared here, written by the switch, read by the send, nowhere else
-    if (gp27Count (lines.slice (fstart, fend).join ('\n'), v) !== 3) {
+    // the local: written only inside the coercion and read only by the send (string literals are
+    // masked so a message spelling the name does not count as a read)
+    const mask = (text: string): string => text.replace (/"[^"\n]*"/g, '""');
+    const inBlock = gp27Count (mask (lines.slice (i, end + 1).join ('\n')), v);
+    const scope = mask (lines.slice (fstart, fend).join ('\n'));
+    if (gp27Count (scope, v) !== (inBlock + 1)) {
         return undefined;
     }
     const recv = GP27_RECV.exec (lines[recvLine]) as RegExpExecArray;
@@ -150,16 +152,24 @@ export function hx10w10GP27Pass (content: string): string {
     if (sites.length === 0) {
         return content;
     }
-    const out = [ ...lines ];
+    const drop = new Set<number> ();
+    const edit = new Map<number, string> ();
     for (const site of sites) {
-        const recv = GP27_RECV.exec (out[site.recvLine]) as RegExpExecArray;
-        out[site.recvLine] = out[site.recvLine].replace ('.' + recv[2] + '(', '.' + site.twin + '(');
-        out[site.sendLine] = out[site.sendLine].replace (new RegExp ('(?<![\\w.])' + site.v + '(?![\\w])'), site.rv + '.Value');
+        const recv = GP27_RECV.exec (lines[site.recvLine]) as RegExpExecArray;
+        edit.set (site.recvLine, lines[site.recvLine].replace ('.' + recv[2] + '(', '.' + site.twin + '('));
+        edit.set (site.sendLine, lines[site.sendLine].replace (new RegExp ('(?<![\\w.])' + site.v + '(?![\\w])'), site.rv + '.Value'));
         for (let k = site.from; k <= site.to; k++) {
-            out[k] = '';
+            drop.add (k);
         }
     }
-    return out.filter ((line) => line !== '').join ('\n');
+    const out: string[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        if (drop.has (k)) {
+            continue;
+        }
+        out.push (edit.get (k) ?? lines[k]);
+    }
+    return out.join ('\n');
 }
 
 // a core of the emitted shape, so the self-check reads like a generated file
