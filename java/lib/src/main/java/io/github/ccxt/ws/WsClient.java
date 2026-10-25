@@ -95,9 +95,9 @@ public class WsClient {
     public CompletableFuture<Boolean> connected;
     public long lastPong = 0;
     // mirrors js Client.error: null while live, the terminal error once retired.
-    // Owner-written; Exchange's watch-retry path assigns it from its own thread,
-    // so this one field stays volatile until that call site hands off instead.
-    public volatile Object error = null;
+    // Owner-thread state like the rest of the client: a caller reads it through errorState()
+    // and publishes it through setError(), both of which are owner tasks.
+    private Object error = null;
     public boolean isMock = false; // static ws tests: transport is stubbed, sends are recorded
     public final java.util.List<Object> mockSentMessages = new java.util.ArrayList<>(); // owner thread only
     /**
@@ -221,6 +221,20 @@ public class WsClient {
             return body.get(); // owner already retired: discarded client
         }
         return reply.join();
+    }
+
+    /** The terminal error (null while live), read on the owner thread. */
+    public Object errorState() {
+        return this.ownerCall(() -> this.error);
+    }
+
+    /** Publish the terminal error; the owner performs the write, and only the first one lands. */
+    public void setError(Object terminal) {
+        this.ownerRun(() -> {
+            if (this.error == null) {
+                this.error = terminal;
+            }
+        });
     }
 
     /**

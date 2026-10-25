@@ -355,6 +355,129 @@ public class BaseExchange {
         @Override public void clear () {
             this.ownedApply (OP_CLEAR, null, null);
         }
+
+        /** The backing map itself: owner thread only, for an owner task that is already there. */
+        Map<String, Object> ownerMap () { return this.owner; }
+    }
+
+    /** The options store as the owner thread sees it: the raw map, never the hand-off view. */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> optionsRaw () {
+        if (this.options instanceof SynchronizedOptions ownerStore) return ownerStore.ownerMap ();
+        return this.options;
+    }
+
+    /** One owner task for a whole counter read-modify-write of the options store. */
+    public Long nextCounter (final String key, final long step) {
+        return this.nextCounterAbove (key, step, null);
+    }
+
+    /**
+     * As {@link #nextCounter}, but never below {@code floor}. The increment is ONE owner task:
+     * two separate options hand-offs would let another writer land between the read and the write,
+     * so a monitor is not the right guard and the serialization belongs to the owner thread.
+     */
+    public Long nextCounterAbove (final String key, final long step, final Long floor) {
+        return (Long) owned (new OwnedTask<Object> () {
+            @Override Object run () {
+                Map<String, Object> store = BaseExchange.this.optionsRaw ();
+                Long previous = BaseExchange.this.safeInteger (store, key, 0L);
+                Long next = (floor != null && (previous == null || floor > previous))
+                        ? floor
+                        : Long.valueOf ((previous == null ? 0L : previous.longValue ()) + step);
+                store.put (key, next);
+                return next;
+            }
+        });
+    }
+
+    /**
+     * Map whose contents live on the state-owner thread: every operation is one owner task, so a
+     * writer that hands the whole map over needs no concurrent map and no lock. Bulk reads take a
+     * copy on the owner; nothing else holds a reference to the backing map.
+     */
+    public static final class OwnedMap<K, V> extends java.util.AbstractMap<K, V> {
+        // op codes for the owner-side switch: every public Map call becomes one hand-off, and an
+        // explicit op keeps the hand-off call sites free of closures
+        private static final int OP_GET = 0;
+        private static final int OP_CONTAINS = 1;
+        private static final int OP_SIZE = 2;
+        private static final int OP_IS_EMPTY = 3;
+        private static final int OP_ENTRY_SET = 4;
+        private static final int OP_KEY_SET = 5;
+        private static final int OP_VALUES = 6;
+        private static final int OP_PUT = 7;
+        private static final int OP_PUT_IF_ABSENT = 8;
+        private static final int OP_REMOVE = 9;
+        private static final int OP_REMOVE_PAIR = 10;
+        private static final int OP_CLEAR = 11;
+        private static final int OP_COMPUTE = 12;
+        private static final int OP_COMPUTE_IF_ABSENT = 13;
+        private static final int OP_COMPUTE_IF_PRESENT = 14;
+        private static final int OP_GET_OR_DEFAULT = 15;
+
+        private final Map<K, V> owner = new LinkedHashMap<K, V> ();
+
+        private Object ownedApply (final int op, final Object key, final Object value, final Object fn) {
+            return owned (new OwnedTask<Object> () {
+                @Override Object run () { return OwnedMap.this.ownerApply (op, key, value, fn); }
+            });
+        }
+
+        // runs on the state-owner thread only: `owner` is that thread's map
+        @SuppressWarnings("unchecked")
+        private Object ownerApply (int op, Object key, Object value, Object fn) {
+            switch (op) {
+                case OP_GET: return this.owner.get (key);
+                case OP_GET_OR_DEFAULT: {
+                    V present = this.owner.get (key);
+                    return (present != null) ? present : value;
+                }
+                case OP_CONTAINS: return Boolean.valueOf (this.owner.containsKey (key));
+                case OP_SIZE: return Integer.valueOf (this.owner.size ());
+                case OP_IS_EMPTY: return Boolean.valueOf (this.owner.isEmpty ());
+                case OP_ENTRY_SET: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).entrySet ();
+                case OP_KEY_SET: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).keySet ();
+                case OP_VALUES: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).values ();
+                case OP_PUT: return this.owner.put ((K) key, (V) value);
+                case OP_PUT_IF_ABSENT: return this.owner.putIfAbsent ((K) key, (V) value);
+                case OP_REMOVE: return this.owner.remove (key);
+                case OP_REMOVE_PAIR: return Boolean.valueOf (this.owner.remove (key, value));
+                case OP_CLEAR: this.owner.clear (); return null;
+                case OP_COMPUTE: return this.owner.compute ((K) key, (java.util.function.BiFunction<? super K, ? super V, ? extends V>) fn);
+                case OP_COMPUTE_IF_ABSENT: return this.owner.computeIfAbsent ((K) key, (java.util.function.Function<? super K, ? extends V>) fn);
+                case OP_COMPUTE_IF_PRESENT: return this.owner.computeIfPresent ((K) key, (java.util.function.BiFunction<? super K, ? super V, ? extends V>) fn);
+                default: throw new IllegalArgumentException ("unknown owned-map op: " + op);
+            }
+        }
+
+        @Override public int size () { return ((Integer) this.ownedApply (OP_SIZE, null, null, null)).intValue (); }
+        @Override public boolean isEmpty () { return Boolean.TRUE.equals (this.ownedApply (OP_IS_EMPTY, null, null, null)); }
+        @Override public boolean containsKey (Object key) { return Boolean.TRUE.equals (this.ownedApply (OP_CONTAINS, key, null, null)); }
+        @SuppressWarnings("unchecked")
+        @Override public V get (Object key) { return (V) this.ownedApply (OP_GET, key, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V getOrDefault (Object key, V fallback) { return (V) this.ownedApply (OP_GET_OR_DEFAULT, key, fallback, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V put (K key, V value) { return (V) this.ownedApply (OP_PUT, key, value, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V putIfAbsent (K key, V value) { return (V) this.ownedApply (OP_PUT_IF_ABSENT, key, value, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V remove (Object key) { return (V) this.ownedApply (OP_REMOVE, key, null, null); }
+        @Override public boolean remove (Object key, Object value) { return Boolean.TRUE.equals (this.ownedApply (OP_REMOVE_PAIR, key, value, null)); }
+        @SuppressWarnings("unchecked")
+        @Override public V compute (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE, key, null, fn); }
+        @SuppressWarnings("unchecked")
+        @Override public V computeIfAbsent (K key, java.util.function.Function<? super K, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE_IF_ABSENT, key, null, fn); }
+        @SuppressWarnings("unchecked")
+        @Override public V computeIfPresent (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE_IF_PRESENT, key, null, fn); }
+        @Override public void clear () { this.ownedApply (OP_CLEAR, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Set<Map.Entry<K, V>> entrySet () { return (java.util.Set<Map.Entry<K, V>>) this.ownedApply (OP_ENTRY_SET, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Set<K> keySet () { return (java.util.Set<K>) this.ownedApply (OP_KEY_SET, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Collection<V> values () { return (java.util.Collection<V>) this.ownedApply (OP_VALUES, null, null, null); }
     }
     public boolean isSandboxModeEnabled = false;
 
@@ -449,7 +572,10 @@ public class BaseExchange {
     public Map<String, Object> trades = new HashMap<>();
     public Map<String, Object> orderbooks = new HashMap<>();
     public Map<String, Object> ohlcvs = new HashMap<>();
-    public Object clients = new ConcurrentHashMap<String, Object>();
+    // exchange ws clients by url: contents live on the state-owner thread (see OwnedMap), so a
+    // create/get/remove is one owner task and no concurrent map is needed; venue code still reads
+    // it as a plain Map through the hand-off view
+    public Object clients = new OwnedMap<String, Client>();
 
     // regular maps / misc
     public Object transactions = new LinkedHashMap<String, Object>();
@@ -1911,14 +2037,16 @@ public class BaseExchange {
 
     }
 
-    private final java.util.concurrent.locks.ReentrantLock lastNonceReentrantLock = new java.util.concurrent.locks.ReentrantLock();
-
+    // `incrementingNonce` hands its whole read-modify-write to the state owner (nextCounterAbove),
+    // so the sequence needs neither a monitor nor a lock. These two only exist because the ts base
+    // declares them; a caller that still brackets the counter with them would be unserialized, so
+    // they fail loudly instead of pretending to guard.
     public void lockLastNonce() {
-        this.lastNonceReentrantLock.lock();
+        throw new IllegalStateException("incrementingNonce is owner-serialized: nextCounterAbove");
     }
 
     public void unlockLastNonce() {
-        this.lastNonceReentrantLock.unlock();
+        throw new IllegalStateException("incrementingNonce is owner-serialized: nextCounterAbove");
     }
 
     // TS `loadMarkets (reload = false, params = {})`; venues override it with this signature
@@ -2053,11 +2181,18 @@ public class BaseExchange {
         return this.wsOwnerExecutor;
     }
 
+    /** The ws client registry as its hand-off view; every Map call is one owner task. */
+    @SuppressWarnings("unchecked")
+    private Map<String, Client> clientsMap() {
+        return (Map<String, Client>) this.clients;
+    }
+
     @SuppressWarnings("unchecked")
     public Client client(Object url2) {
         String url = url2.toString();
-        return ((java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients)
-                .computeIfAbsent(url, u -> {
+        // one owner task: the registry lives on the state-owner thread, so two threads asking for
+        // the same url get the one client without a concurrent map
+        return this.clientsMap().computeIfAbsent(url, u -> {
                     Object ws = this.safeValue(this.options, "ws", new java.util.HashMap<String, Object>());
                     Object wsOptions = this.safeValue(ws, "options", new java.util.HashMap<String, Object>());
                     long keepAlive = 30000;
@@ -2199,7 +2334,7 @@ public class BaseExchange {
     }
 
     public void onClose(Client client, Object error) {
-        if (client.error == null) {
+        if (client.errorState() == null) {
             // server disconnected a working connection
             Object reason = (error != null)
                     ? wrapAsNetworkError(error)
@@ -2219,8 +2354,7 @@ public class BaseExchange {
         // detach the client that errored, by reference: a reconnect may have
         // installed a healthy replacement under the same url in the meantime.
         // see https://github.com/ccxt/ccxt/issues/30463
-        var clientsMap = (java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients;
-        clientsMap.remove(client.url, client);
+        this.clientsMap().remove(client.url, client);
         // no client.close() here: its executor shutdown races in-flight handleMessage
         client.scheduleExecutorShutdown();
     }
@@ -8988,11 +9122,7 @@ public Object describe()
     public Object incrementingNonce()
     {
         Long currentNonce = this.nonce();
-        this.lockLastNonce();
-        Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        Object result = ((((currentNonce != null && (lastNonce == null || currentNonce > lastNonce))))) ? currentNonce : (lastNonce + 1L);
-        this.options.put("lastNonce", result);
-        this.unlockLastNonce();
+        Object result = this.nextCounterAbove("lastNonce", 1L, currentNonce);
         return result;
     }
 

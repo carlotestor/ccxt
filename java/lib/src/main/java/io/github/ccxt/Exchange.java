@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import io.github.ccxt.types.OpenInterest;
@@ -89,11 +88,10 @@ public class Exchange extends BaseExchange implements TypedSurface {
             // instead, reject the watcher, close and drop the connection and the cached
             // orderbook, so the next watchOrderBook() call resubscribes cleanly
             client.reject(error, messageHash);
-            if (client.error == null) {
-                client.error = error; // onClose must not treat this as a server disconnect
-            }
+            // onClose must not treat this as a server disconnect; setError keeps the first error
+            client.setError(error);
             client.close();
-            ((java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients).remove(client.url, client);
+            ((Map<String, Object>) this.clients).remove(client.url, client);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         } catch (Exception e) {
             client.reject(e, messageHash);
