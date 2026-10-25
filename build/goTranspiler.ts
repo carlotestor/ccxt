@@ -82,6 +82,20 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'transfer': [ 0, 3 ], 'setMarginMode': [ 0 ],
 };
 
+// hx10w9 GP13: the slice mirror of the string table below. These six ws methods take their
+// symbols list as `string[]`/`string[][]` in ts/src, and the hand-written Go wrappers in
+// go/v4/exchange_wrappers.go already declare `symbols []string` / `symbolsAndTimeframes [][]string`.
+// The ast printer types the base and every override from this table and opens a call-site array
+// literal as that slice (`[ sym ]` -> `[]string{sym}`), so `.length` becomes len().
+// Only the unWatch half is proven: every call site of these two passes a literal the printer
+// opens as the slice, and every venue override (or inherited base method) prints the same type.
+// The watch* twins stay boxed: their wrapper symbols are `Str`/`this.symbol(..)` (an `any` box in
+// Go) or a `*string` from a `safe*` reader, so a slice parameter would need a conversion call.
+const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } } = {
+    'unWatchTradesForSymbols': { 0: '[]string' },
+    'unWatchOrderBookForSymbols': { 0: '[]string' },
+};
+
 const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createOrder': [ 0, 1, 2 ], 'createOrderWs': [ 0, 1, 2 ], 'createLimitOrder': [ 0, 1 ], 'createLimitOrderWs': [ 0, 1 ],
     'createMarketOrder': [ 0, 1 ], 'createMarketOrderWs': [ 0, 1 ], 'createMarketOrderWithCost': [ 0, 1 ],
@@ -4986,6 +5000,8 @@ class NewTranspiler {
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
                 "unifiedInt64Params": GO_UNIFIED_INT64_PARAMS,
+                // hx10w9 GP13: the ws watch family's symbols list prints `[]string`/`[][]string`
+                "unifiedSliceParams": GO_UNIFIED_SLICE_PARAMS,
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
             //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
