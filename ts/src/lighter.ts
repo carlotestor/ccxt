@@ -396,7 +396,7 @@ export default class lighter extends Exchange {
 
     async loadAccount (chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params: Dict = {}) {
         this.initAuthObject (accountIndex, apiKeyIndex);
-        const cachedAuths = this.safeDict (this.options['auths'][accountIndex], apiKeyIndex);
+        const cachedAuths = this.safeDict (this.safeDict (this.safeDict (this.options, 'auths', {}), accountIndex, {}), apiKeyIndex);
         let signer = this.safeValue (cachedAuths, 'signer');
         if (signer !== undefined) {
             return signer;
@@ -465,7 +465,7 @@ export default class lighter extends Exchange {
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         this.initAuthObject (strAccountIndex, strApiKeyIndex);
-        let signer = this.safeDict (this.options['auths'][strAccountIndex][strApiKeyIndex], 'signer');
+        let signer = this.safeDict (this.safeDict (this.safeDict (this.safeDict (this.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex, {}), 'signer');
         if (signer !== undefined) {
             return true;
         }
@@ -584,7 +584,7 @@ export default class lighter extends Exchange {
             'api_key_index': this.parseToInt (apiKeyIndex),
             'account_index': this.parseToInt (accountIndex),
         };
-        const token = this.lighterCreateAuthToken (this.options['auths'][(accountIndex as string)][(apiKeyIndex as string)]['signer'], request);
+        const token = this.lighterCreateAuthToken (this.safeValue (cachedAuth, 'signer'), request);
         this.options['auths'][(accountIndex as string)][(apiKeyIndex as string)]['deadline'] = deadline;
         this.options['auths'][(accountIndex as string)][(apiKeyIndex as string)]['token'] = token;
         return token;
@@ -726,7 +726,7 @@ export default class lighter extends Exchange {
         const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (paramsApiKeyIndex, 'changeApiKey', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
-        const signerNotLoad = this.options['auths'][strAccountIndex][strApiKeyIndex]['signer'];
+        const signerNotLoad = this.safeValue (this.safeDict (this.safeDict (this.safeDict (this.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex, {}), 'signer');
         const [ privateKey, publicKey ] = this.lighterGenerateApiKey (signerNotLoad);
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, this.extend (paramsAccountIndex, { 'skipNonce': false }));
         const signRaw: Dict = {
