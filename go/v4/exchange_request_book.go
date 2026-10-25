@@ -53,12 +53,9 @@ type requestBook struct {
 }
 
 func (this *BaseExchange) requestBookChannel() chan requestBookOp {
-	this.requestBookOnce.Do(func() {
-		ops := make(chan requestBookOp)
-		this.requestBookOps = ops
-		book := &requestBook{exchange: this, counters: map[string]int64{}}
-		go book.run(ops)
-	})
+	if this.requestBookOps == nil {
+		this.startOwners()
+	}
 	return this.requestBookOps
 }
 

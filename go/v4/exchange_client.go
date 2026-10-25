@@ -18,7 +18,6 @@ import (
 	"log"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -64,18 +63,15 @@ type Client struct {
 
 	// every piece of shared client state below is owned by exactly one goroutine and
 	// reached only through its request channel: futures/rejections/pong by the store,
-	// the transport handle by the conn owner, the once-only dial by the dial owner
-	store     *clientStore
-	storeOnce sync.Once
+	// the transport handle by the conn owner, the once-only dial by the dial owner.
+	// NewClient creates all four owners before it returns the client.
+	store *clientStore
 
 	connState *connOwner
-	connOnce  sync.Once
 
-	dials    *dialOwner
-	dialOnce sync.Once
+	dials *dialOwner
 
 	subscriptions *subscriptionMap // map[string]any, owned by its own goroutine
-	subsOnce      sync.Once
 
 	ReadLoopClosed chan struct{}
 
@@ -249,7 +245,9 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		Disconnected:          NewFuture(),
 		DecompressBinary:      derefScalar(finalConfig["DecompressBinary"]).(bool),
 	}
-
+	c.store = newClientStore(c)
+	c.connState = newConnOwner()
+	c.dials = newDialOwner()
 	return c
 }
 
@@ -595,13 +593,8 @@ func (this *subscriptionMap) call(kind subsKind, key string, value any) subsRepl
 	return <-reply
 }
 
-// subsTable lazily creates the table for a Client built as a struct literal.
+// subsTable returns the subscription owner NewClient created.
 func (this *Client) subsTable() *subscriptionMap {
-	this.subsOnce.Do(func() {
-		if this.subscriptions == nil {
-			this.subscriptions = newSubscriptionMap()
-		}
-	})
 	return this.subscriptions
 }
 
@@ -858,14 +851,9 @@ func (this *clientStore) call(kind storeKind, hash string, value any) storeReply
 	return <-reply
 }
 
-// storeTable lazily creates the store for a Client built as a struct literal; the
-// owner goroutine publishes the first Futures snapshot before this returns.
+// storeTable returns the futures owner NewClient created; it published the first
+// Futures snapshot before NewClient returned.
 func (this *Client) storeTable() *clientStore {
-	this.storeOnce.Do(func() {
-		if this.store == nil {
-			this.store = newClientStore(this)
-		}
-	})
 	return this.store
 }
 
@@ -964,13 +952,8 @@ func (this *connOwner) call(op connOp) connReply {
 	return <-op.reply
 }
 
-// connTable lazily creates the conn owner for a Client built as a struct literal.
+// connTable returns the conn owner NewClient created.
 func (this *Client) connTable() *connOwner {
-	this.connOnce.Do(func() {
-		if this.connState == nil {
-			this.connState = newConnOwner()
-		}
-	})
 	return this.connState
 }
 
@@ -1040,12 +1023,7 @@ func (this *dialOwner) run(fn func()) {
 	<-done
 }
 
-// dialTable lazily creates the dial owner for a Client built as a struct literal.
+// dialTable returns the dial owner NewClient created.
 func (this *Client) dialTable() *dialOwner {
-	this.dialOnce.Do(func() {
-		if this.dials == nil {
-			this.dials = newDialOwner()
-		}
-	})
 	return this.dials
 }

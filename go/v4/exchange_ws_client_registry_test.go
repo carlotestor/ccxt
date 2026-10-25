@@ -11,8 +11,16 @@ import (
 // asks the loop for a copy. These tests pin the hand-off, the get-or-create identity and that the
 // snapshot is a copy, not just that the tree compiles.
 
-func TestWsClientRegistryOwnsOneClientPerUrl(t *testing.T) {
+// newOwnedBaseExchange builds a bare base exchange the way a constructor does: startOwners
+// runs before the object is used, so the hand-off paths need no lazy start.
+func newOwnedBaseExchange() *BaseExchange {
 	exchange := &BaseExchange{}
+	exchange.startOwners()
+	return exchange
+}
+
+func TestWsClientRegistryOwnsOneClientPerUrl(t *testing.T) {
+	exchange := newOwnedBaseExchange()
 	defer exchange.wsCacheStop()
 	builds := 0
 	build := func() any {
@@ -37,7 +45,7 @@ func TestWsClientRegistryOwnsOneClientPerUrl(t *testing.T) {
 }
 
 func TestWsClientRegistryDeleteOnlyOnTheOwnersTerms(t *testing.T) {
-	exchange := &BaseExchange{}
+	exchange := newOwnedBaseExchange()
 	defer exchange.wsCacheStop()
 	kept := NewWSClient("wss://b", nil, nil, nil, nil, "")
 	other := NewWSClient("wss://b", nil, nil, nil, nil, "")
@@ -55,7 +63,7 @@ func TestWsClientRegistryDeleteOnlyOnTheOwnersTerms(t *testing.T) {
 }
 
 func TestWsClientRegistryDeleteIfErrored(t *testing.T) {
-	exchange := &BaseExchange{}
+	exchange := newOwnedBaseExchange()
 	defer exchange.wsCacheStop()
 	client := NewWSClient("wss://e", nil, nil, nil, nil, "")
 	exchange.wsClientGetOrCreate("wss://e", func() any { return client })
@@ -72,7 +80,7 @@ func TestWsClientRegistryDeleteIfErrored(t *testing.T) {
 }
 
 func TestWsClientRegistryDrainHandsBackEveryClient(t *testing.T) {
-	exchange := &BaseExchange{}
+	exchange := newOwnedBaseExchange()
 	defer exchange.wsCacheStop()
 	want := map[string]*WSClient{}
 	for _, url := range []string{"wss://c", "wss://d"} {
@@ -96,7 +104,7 @@ func TestWsClientRegistryDrainHandsBackEveryClient(t *testing.T) {
 }
 
 func TestWsClientRegistryConcurrentGetOrCreateBuildsOnce(t *testing.T) {
-	exchange := &BaseExchange{}
+	exchange := newOwnedBaseExchange()
 	defer exchange.wsCacheStop()
 	var mu sync.Mutex
 	builds := 0
@@ -129,7 +137,7 @@ func TestWsClientRegistryConcurrentGetOrCreateBuildsOnce(t *testing.T) {
 }
 
 func TestWsClientRegistrySnapshotIsACopy(t *testing.T) {
-	exchange := &BaseExchange{}
+	exchange := newOwnedBaseExchange()
 	defer exchange.wsCacheStop()
 	client := NewWSClient("wss://g", nil, nil, nil, nil, "")
 	exchange.wsClientGetOrCreate("wss://g", func() any { return client })

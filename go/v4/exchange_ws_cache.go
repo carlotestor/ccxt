@@ -30,6 +30,8 @@ const (
 	wsOpClientDeleteIfSame
 	wsOpClientDrain
 	wsOpClientList
+	// wsOpStop ends the loop from inside the loop, so stopping needs no lock
+	wsOpStop
 )
 
 type wsFrame struct {
@@ -77,14 +79,14 @@ type wsCacheOp struct {
 type wsCacheStore struct {
 	frames chan wsFrame
 	ops    chan *wsCacheOp
-	stop   chan struct{}
 	done   chan struct{}
 	handle func(client any, message any) // the venue's HandleMessage, bound to its frame shape
 }
 
-// wsCacheStoreNow returns the exchange's dispatch loop, starting it once. sync.Once publishes the
-// store and its goroutine to every later caller, so a use site needs no lock.
+// wsCacheStoreNow returns the exchange's dispatch loop. startOwners created it at construction,
+// before the exchange was published, so a use site needs no lock.
 func (this *BaseExchange) wsCacheStoreNow() *wsCacheStore {
+<<<<<<< go/v4/exchange_ws_cache.go
 	this.wsStoreOnce.Do(func() {
 		store := &wsCacheStore{
 			frames: make(chan wsFrame, 4096),
@@ -96,6 +98,22 @@ func (this *BaseExchange) wsCacheStoreNow() *wsCacheStore {
 		this.wsStore = store
 		go this.wsCacheLoop(store)
 	})
+||||||| /tmp/hx10w9-b
+	this.wsStoreOnce.Do(func() {
+		store := &wsCacheStore{
+			frames: make(chan wsFrame, 4096),
+			ops:    make(chan *wsCacheOp),
+			stop:   make(chan struct{}),
+			done:   make(chan struct{}),
+		}
+		this.wsStore = store
+		go this.wsCacheLoop(store)
+	})
+=======
+	if this.wsStore == nil {
+		this.startOwners()
+	}
+>>>>>>> /tmp/hx10w9-t
 	return this.wsStore
 }
 
@@ -105,7 +123,7 @@ func (this *BaseExchange) WsDispatch(client any, message any) {
 	store := this.wsCacheStoreNow()
 	select {
 	case store.frames <- wsFrame{client: client, message: message}:
-	case <-store.stop:
+	case <-store.done:
 		// the exchange was closed while the read loop was still draining
 	}
 }
@@ -114,24 +132,36 @@ func (this *BaseExchange) wsCacheLoop(store *wsCacheStore) {
 	defer close(store.done)
 	for {
 		select {
-		case <-store.stop:
-			return
 		case frame := <-store.frames:
 			store.handle(frame.client, frame.message)
 		case req := <-store.ops:
+			if req.op == wsOpStop {
+				req.reply <- true
+				return
+			}
 			req.reply <- this.wsCacheApply(req)
 		}
 	}
 }
 
 // wsCacheStop ends the dispatch loop and waits for it, so no second owner can overlap the first.
-// The store stays published: a later caller finds the closed stop channel and runs inline.
+// The stop is queued on the loop like any other operation: the loop is the only one that closes
+// done, and a caller that arrives after it exited returns at once.
 func (this *BaseExchange) wsCacheStop() {
 	store := this.wsCacheStoreNow()
-	this.wsStoreStopOnce.Do(func() {
-		close(store.stop)
+	select {
+	case <-store.done:
+		return
+	default:
+	}
+	// a stop queued behind another stop finds the loop gone and returns on done
+	reply := make(chan any, 1)
+	select {
+	case store.ops <- &wsCacheOp{op: wsOpStop, reply: reply}:
+		<-reply
 		<-store.done
-	})
+	case <-store.done:
+	}
 }
 
 func (this *BaseExchange) wsCacheField(name string) map[string]any {
@@ -382,9 +412,8 @@ func (this *BaseExchange) wsClientsDo(req *wsCacheOp) any {
 	select {
 	case store.ops <- req:
 		return <-req.reply
-	case <-store.stop:
-		// the loop is gone: wait for it to finish, then the caller is the only writer
-		<-store.done
+	case <-store.done:
+		// the loop is gone, so the caller is the only writer
 		return this.wsClientsApply(req)
 	}
 }
@@ -443,7 +472,7 @@ func (this *BaseExchange) wsCacheDo(op int, field string, key any, value any) an
 	select {
 	case store.ops <- req:
 		return <-req.reply
-	case <-store.stop:
+	case <-store.done:
 		// the loop is gone, so the caller runs the operation itself
 		return this.wsCacheApply(req)
 	}

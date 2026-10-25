@@ -14,8 +14,8 @@ import (
 
 func testResolveClient() *Client {
 	// the futures, rejections and pong state live in the client's own owner
-	// goroutine now, a zero-value client starts it on first use
-	return &Client{}
+	// goroutine, which NewClient starts before it returns the client
+	return NewClient("", nil, nil, nil, nil)
 }
 
 // Await checks resolved state and appends its subscriber under one lock, so

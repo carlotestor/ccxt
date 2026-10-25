@@ -17,7 +17,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	starkfelt "github.com/NethermindEth/juno/core/felt"
@@ -31,66 +30,62 @@ type BaseExchange struct {
 	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
 	// markets loading is one owner goroutine: callers hand a request over the channel
 	// and receive the loaded book back on their own reply channel
-	marketsLoadRequests    chan marketsLoadRequest
-	marketsLoadOnce        sync.Once
+	marketsLoadRequests chan marketsLoadRequest
 	// the aux tables (base/quote currencies, transactions, the method cache) are
 	// owned by one goroutine: callers hand a request over the channel and get a copy back
-	auxTablesRequests      chan auxTablesRequest
-	auxTablesOnce          sync.Once
-	Itf                    any
-	DerivedExchange        IDerivedExchange
-	cacheLoaded            bool
-	Version                string
-	Id                     string
-	Name                   string
-	Options                map[string]any
-	Has                    map[string]any
-	Api                    map[string]any
-	TransformedApi         map[string]any
+	auxTablesRequests chan auxTablesRequest
+	Itf               any
+	DerivedExchange   IDerivedExchange
+	cacheLoaded       bool
+	Version           string
+	Id                string
+	Name              string
+	Options           map[string]any
+	Has               map[string]any
+	Api               map[string]any
+	TransformedApi    map[string]any
 	// the markets book is owned by one goroutine (see exchange_markets_book.go)
-	marketsBookChannel     chan marketsBookRequest
-	marketsBookOnce        sync.Once
-	requestBookOps         chan requestBookOp
-	requestBookOnce        sync.Once
-	RequiredCredentials    map[string]any
-	HttpExceptions         map[string]any
-	Timeframes             map[string]any
-	Features               map[string]any
-	Exceptions             map[string]any
-	Precision              map[string]any
-	Urls                   map[string]any // config-time writes only (SetSandboxMode, EnableDemoTrading)
-	UserAgents             map[string]any
-	Timeout                int64
-	MAX_VALUE              float64
-	RateLimit              float64
-	RollingWindowSize      float64 // set to 0.0 to use leaky bucket rate limiter
-	RateLimiterAlgorithm   string
-	TokenBucket            map[string]any
-	Throttler              *Throttler
-	NewUpdates             bool
-	Alias                  bool
-	Verbose                bool
-	UserAgent              string
-	EnableRateLimit        bool
-	Url                    string
-	Hostname               string
-	ReloadingMarkets       bool
-	MarketsLoading         bool
-	Outcomes               any
-	Outcomes_by_id         any
-	Events                 any
-	Events_by_slug         any
-	ReloadingEvents        bool
-	EventsLoading          any
-	Symbols                []string
-	Codes                  []string
-	Ids                    []string
-	CommonCurrencies       map[string]any
-	PrecisionMode          int
-	Limits                 map[string]interface{}
-	Fees                   map[string]interface{}
-	Status                 map[string]interface{}
-	ReduceFees             bool
+	marketsBookChannel   chan marketsBookRequest
+	requestBookOps       chan requestBookOp
+	RequiredCredentials  map[string]any
+	HttpExceptions       map[string]any
+	Timeframes           map[string]any
+	Features             map[string]any
+	Exceptions           map[string]any
+	Precision            map[string]any
+	Urls                 map[string]any // config-time writes only (SetSandboxMode, EnableDemoTrading)
+	UserAgents           map[string]any
+	Timeout              int64
+	MAX_VALUE            float64
+	RateLimit            float64
+	RollingWindowSize    float64 // set to 0.0 to use leaky bucket rate limiter
+	RateLimiterAlgorithm string
+	TokenBucket          map[string]any
+	Throttler            *Throttler
+	NewUpdates           bool
+	Alias                bool
+	Verbose              bool
+	UserAgent            string
+	EnableRateLimit      bool
+	Url                  string
+	Hostname             string
+	ReloadingMarkets     bool
+	MarketsLoading       bool
+	Outcomes             any
+	Outcomes_by_id       any
+	Events               any
+	Events_by_slug       any
+	ReloadingEvents      bool
+	EventsLoading        any
+	Symbols              []string
+	Codes                []string
+	Ids                  []string
+	CommonCurrencies     map[string]any
+	PrecisionMode        int
+	Limits               map[string]interface{}
+	Fees                 map[string]interface{}
+	Status               map[string]interface{}
+	ReduceFees           bool
 
 	AccountsById any
 	Accounts     any
@@ -198,14 +193,15 @@ type BaseExchange struct {
 	// ws
 	WsClients map[string]any // one websocket client per URL
 	// the ws dispatch loop: owner of the ws cache maps, of the client registry and of Balance
-	// (see exchange_ws_cache.go); sync.Once starts it once and stops it once, no lock at a use site
-	wsStore         *wsCacheStore
-	wsStoreOnce     sync.Once
-	wsStoreStopOnce sync.Once
+	// (see exchange_ws_cache.go); startOwners starts it at construction, no lock at a use site
+	wsStore *wsCacheStore
+	// ownersStarted is written only by startOwners, which runs at construction before the
+	// exchange is handed to any other goroutine
+	ownersStarted bool
 	// a plain map: a handler's read is the map's own index; entries stay boxed because TS `balance` is a
 	// Dict of Dicts, and the loop's views type one level at a time
-	Balance         map[string]any
-	Positions       any
+	Balance   map[string]any
+	Positions any
 	// the ws client registry: the dispatch loop is its only reader and writer, so a use site needs
 	// no lock; user-path reads ask the loop for a copy (WsClientsSnapshot)
 	Clients    map[string]any
@@ -244,6 +240,7 @@ const (
 
 func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
 	// this = &Exchange{}
+	this.startOwners()
 	this.FetchHistoryCache = NewConcurrentListForRequests()
 	if this.Options == nil {
 		this.Options = map[string]any{}
@@ -305,6 +302,37 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	}
 }
 
+// startOwners creates the owner goroutine behind each request channel. It runs from Init or
+// InitParent, before the exchange is handed to any other goroutine. A venue's Describe() can
+// read the tables first, so an accessor that finds its channel nil starts the owners too: both
+// run in the constructing goroutine, so no second owner can race the first.
+func (this *BaseExchange) startOwners() {
+	if this.ownersStarted {
+		return
+	}
+	this.ownersStarted = true
+
+	this.marketsLoadRequests = make(chan marketsLoadRequest)
+	go this.ownMarketsLoad(this.marketsLoadRequests)
+
+	this.auxTablesRequests = make(chan auxTablesRequest)
+	go this.ownAuxTables(this.auxTablesRequests)
+
+	this.marketsBookChannel = make(chan marketsBookRequest)
+	go this.ownMarketsBook(this.marketsBookChannel)
+
+	this.requestBookOps = make(chan requestBookOp)
+	book := &requestBook{exchange: this, counters: map[string]int64{}}
+	go book.run(this.requestBookOps)
+
+	this.wsStore = &wsCacheStore{
+		frames: make(chan wsFrame, 4096),
+		ops:    make(chan *wsCacheOp),
+		done:   make(chan struct{}),
+	}
+	go this.wsCacheLoop(this.wsStore)
+}
+
 func (this *BaseExchange) Init(userConfig map[string]any) {
 	if this.FetchHistoryCache == nil {
 		this.FetchHistoryCache = NewConcurrentListForRequests()
@@ -312,6 +340,7 @@ func (this *BaseExchange) Init(userConfig map[string]any) {
 	if this.Options == nil {
 		this.Options = map[string]any{}
 	}
+	this.startOwners()
 
 	// to do
 }
@@ -402,14 +431,12 @@ func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[map
 	return out
 }
 
-// marketsLoadChannel starts the load owner on first use, so every later caller sees
-// a running owner and a request send can never race the start.
+// marketsLoadChannel returns the load owner's request channel, created by startOwners at
+// construction, so a request send can never race the start.
 func (this *BaseExchange) marketsLoadChannel() chan marketsLoadRequest {
-	this.marketsLoadOnce.Do(func() {
-		requests := make(chan marketsLoadRequest)
-		this.marketsLoadRequests = requests
-		go this.ownMarketsLoad(requests)
-	})
+	if this.marketsLoadRequests == nil {
+		this.startOwners()
+	}
 	return this.marketsLoadRequests
 }
 
@@ -2471,11 +2498,9 @@ func auxTablesNext(current *auxTables) *auxTables {
 }
 
 func (this *BaseExchange) auxTablesChannel() chan auxTablesRequest {
-	this.auxTablesOnce.Do(func() {
-		requests := make(chan auxTablesRequest)
-		this.auxTablesRequests = requests
-		go this.ownAuxTables(requests)
-	})
+	if this.auxTablesRequests == nil {
+		this.startOwners()
+	}
 	return this.auxTablesRequests
 }
 

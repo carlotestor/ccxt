@@ -50,14 +50,12 @@ func marketsBookWithEntry(source map[string]any, key any, value any) map[string]
 	return copied
 }
 
-// marketsBookRequests starts the owner synchronously, so a caller that can send a
-// request can never observe a half-started owner.
+// marketsBookRequests returns the book owner's channel, created by startOwners at
+// construction, so a caller can never observe a half-started owner.
 func (this *BaseExchange) marketsBookRequests() chan marketsBookRequest {
-	this.marketsBookOnce.Do(func() {
-		requests := make(chan marketsBookRequest)
-		this.marketsBookChannel = requests
-		go this.ownMarketsBook(requests)
-	})
+	if this.marketsBookChannel == nil {
+		this.startOwners()
+	}
 	return this.marketsBookChannel
 }
 
