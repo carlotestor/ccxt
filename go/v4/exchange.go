@@ -113,16 +113,17 @@ type BaseExchange struct {
 
 	// type check this
 	Number any
-	// keys
-	Secret        interface{}
-	ApiKey        interface{}
-	Password      interface{}
-	Uid           interface{}
-	AccountId     interface{}
+	// keys: plain strings, so `this.ApiKey + ":" + this.Secret` is a native Go concat and an
+	// absent key is "" rather than a nil box. Token/Login/Twofa stay boxed (SetToken writes raw).
+	Secret        string
+	ApiKey        string
+	Password      string
+	Uid           string
+	AccountId     string
 	Token         interface{}
 	Login         interface{}
-	PrivateKey    interface{}
-	WalletAddress interface{}
+	PrivateKey    string
+	WalletAddress string
 	Twofa         interface{}
 
 	httpClient   *http.Client
