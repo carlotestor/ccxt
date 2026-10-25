@@ -438,14 +438,11 @@ function gp17ResolveSite (raw: string[], masked: string[], index: number, produc
         pre.push (indent + 'var ' + temporary + ' ' + slot0 + ' = nil');
         bind = indent + temporary + ', ' + paramsBind + ' = ' + call + gp17Note (value, params);
         if (value.deref === 'getvalue') {
-            if ((value.keep !== undefined) || (value.nilProven === true)) {
-                post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
-            } else {
-                if (!value.declared) {
-                    post.push (indent + 'var ' + value.name + ' any = nil');
-                }
-                post.push (indent + value.name + ' = ' + qualifier + 'DerefScalar(' + temporary + ')');
+            // the old GetValue answered nil for a nil pointer: reset first, then deref natively
+            if ((value.keep === undefined) && (value.nilProven !== true)) {
+                post.push (indent + ((value.declared) ? (value.name + ' = nil') : ('var ' + value.name + ' any = nil')));
             }
+            post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
         } else if (value.deref === 'bool') {
             const fallback = value.fallback ?? 'false';
             post.push (indent + ((value.declared) ? (value.name + ' = ' + fallback) : ('var ' + value.name + ' bool = ' + fallback)));
@@ -607,7 +604,7 @@ function gp17InlinePairReads (content: string, qualifier: string): string {
             const temporary = boxedMatch[2] + 'Ptr';
             raw[i] = boxedMatch[1] + temporary + ', _ := this.' + boxedRaw[3] + '(' + boxedRaw[4] + ')\n'
                 + boxedMatch[1] + 'var ' + boxedMatch[2] + ' any = nil\n'
-                + boxedMatch[1] + boxedMatch[2] + ' = ' + qualifier + 'DerefScalar(' + temporary + ')';
+                + boxedMatch[1] + 'if ' + temporary + ' != nil { ' + boxedMatch[2] + ' = *' + temporary + ' }';
             masked[i] = raw[i];
             changed = true;
             continue;
