@@ -1,15 +1,16 @@
-// hx10w10-GP28: AddElementToObject(this.Trades | this.Orderbooks, k, v) -> native map store. Both are
-//    hand-written `map[string]any` fields of BaseExchange (go/v4/exchange.go) whose only
+// hx10w10-GP28: AddElementToObject(this.Trades, k, v) -> native map store. `Trades` is a
+//    hand-written `map[string]any` field of BaseExchange (go/v4/exchange.go) whose only
 //    whole-field writes are fresh `map[string]any{}` literals, so the receiver is never the
 //    typed-nil map the helper treats as absent: the helper's map branch is `m[key] =
-//    derefScalar(value)` with a nil key skipped. The key is a `*string` local the function never
+//    derefScalar(value)` with a nil key skipped. (Orderbooks is the same shape, but G02 owns
+//    those stores and turns them into WsCacheSet, so folding them only adds a second guard.) The key is a `*string` local the function never
 //    rebinds, so the store goes under `if k != nil {`; the value is an `any` local whose every
 //    write is a cache/order-book constructor (or a read back from the same field), and
 //    derefScalar leaves those pointer types untouched.
 
 // fields the base exchange struct declares `map[string]any` and never assigns anything but a
 // fresh map literal (go/v4/exchange.go: setDefaults only)
-const GP28_MAP_FIELDS: string[] = [ 'Trades', 'Orderbooks' ];
+const GP28_MAP_FIELDS: string[] = [ 'Trades' ];
 
 // constructors whose Go return is a pointer outside derefScalar's switch (exchange_helpers.go)
 const GP28_POINTER_CTOR = /^(?:ccxt\.)?(?:NewArrayCache(?:ByTimestamp|BySymbolById|BySymbolBySide)?|NewOrderBook|IndexedOrderBook|OrderBook)\s*\(/;
@@ -208,7 +209,7 @@ function gp28EachFunc (content: string, visit: (lines: string[], masked: string[
 }
 
 export function gp28Stores (content: string): string {
-    if (!/AddElementToObject\(this\.(?:Trades|Orderbooks), /.test (content)) {
+    if (!/AddElementToObject\(this\.(?:Trades), /.test (content)) {
         return content;
     }
     return gp28EachFunc (content, gp28FieldFunc) ?? content;
@@ -241,17 +242,10 @@ export function hx10w10Gp28Check (): string[] {
         '\t\tstored = ccxt.NewArrayCache(1000)\n' +
         '\t\tccxt.AddElementToObject(this.Trades, symbol, stored)\n' +
         '\t}\n' +
-        '\tvar orderbook any = this.SafeValue(this.Orderbooks, symbol)\n' +
-        '\tif orderbook == nil {\n' +
-        '\t\torderbook = ccxt.NewOrderBook(map[string]any{})\n' +
-        '\t}\n' +
-        '\tccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)\n' +
-
         '\treturn\n' +
         '}\n';
     const out = gp28Stores (body);
     ok (out.indexOf ('if symbol != nil {\n\t\t\tthis.Trades[*symbol] = stored\n\t\t}') >= 0, 'trades store is not guarded-native: ' + out);
-    ok (out.indexOf ('if symbol != nil {\n\t\tthis.Orderbooks[*symbol] = orderbook\n\t}') >= 0, 'orderbooks store is not guarded-native: ' + out);
     ok (gp28Stores (out) === out, 'not idempotent');
     return problems;
 }
