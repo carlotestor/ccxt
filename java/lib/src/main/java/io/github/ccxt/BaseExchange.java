@@ -355,6 +355,78 @@ public class BaseExchange {
         @Override public void clear () {
             this.ownedApply (OP_CLEAR, null, null);
         }
+
+        /** The backing map itself: owner thread only, for an owner task that is already there. */
+        Map<String, Object> ownerMap () { return this.owner; }
+    }
+
+    /** The options store as the owner thread sees it: the raw map, never the hand-off view. */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> optionsRaw () {
+        Object store = this.options;
+        if (store instanceof SynchronizedOptions ownerStore) return ownerStore.ownerMap ();
+        return (Map<String, Object>) store;
+    }
+
+    /** One owner task for a whole counter read-modify-write of the options store. */
+    public Long nextCounter (final String key, final long step) {
+        return this.nextCounterAbove (key, step, null);
+    }
+
+    /**
+     * As {@link #nextCounter}, but never below {@code floor}. The increment is ONE owner task:
+     * two separate options hand-offs would let another writer land between the read and the write,
+     * so a monitor is not the right guard and the serialization belongs to the owner thread.
+     */
+    public Long nextCounterAbove (final String key, final long step, final Long floor) {
+        return (Long) owned (new OwnedTask<Object> () {
+            @Override Object run () {
+                Map<String, Object> store = BaseExchange.this.optionsRaw ();
+                Long previous = BaseExchange.this.safeInteger (store, key, 0L);
+                Long next = (floor != null && (previous == null || floor > previous))
+                        ? floor
+                        : Long.valueOf ((previous == null ? 0L : previous.longValue ()) + step);
+                store.put (key, next);
+                return next;
+            }
+        });
+    }
+
+    /**
+     * Map whose contents live on the state-owner thread: every operation is one owner task, so a
+     * writer that hands the whole map over needs no concurrent map and no lock. Bulk reads take a
+     * copy on the owner; nothing else holds a reference to the backing map.
+     */
+    public static final class OwnedMap<K, V> extends java.util.AbstractMap<K, V> {
+        private final Map<K, V> owner = new LinkedHashMap<K, V> ();
+
+        private <R> R ownedApply (final java.util.function.Supplier<R> body) {
+            return owned (new OwnedTask<R> () {
+                @Override R run () { return body.get (); }
+            });
+        }
+
+        private Map<K, V> snapshot () {
+            return this.ownedApply (() -> new LinkedHashMap<K, V> (this.owner));
+        }
+
+        @Override public int size () { return this.ownedApply (() -> Integer.valueOf (this.owner.size ())); }
+        @Override public boolean isEmpty () { return this.ownedApply (() -> Boolean.valueOf (this.owner.isEmpty ())); }
+        @Override public boolean containsKey (Object key) { return this.ownedApply (() -> this.owner.containsKey (key)); }
+        @Override public V get (Object key) { return this.ownedApply (() -> this.owner.get (key)); }
+        @Override public V getOrDefault (Object key, V fallback) { return this.ownedApply (() -> this.owner.getOrDefault (key, fallback)); }
+        @Override public V put (K key, V value) { return this.ownedApply (() -> this.owner.put (key, value)); }
+        @Override public V putIfAbsent (K key, V value) { return this.ownedApply (() -> this.owner.putIfAbsent (key, value)); }
+        @Override public V remove (Object key) { return this.ownedApply (() -> this.owner.remove (key)); }
+        @Override public boolean remove (Object key, Object value) { return this.ownedApply (() -> this.owner.remove (key, value)); }
+        @Override public V computeIfAbsent (K key, java.util.function.Function<? super K, ? extends V> fn) { return this.ownedApply (() -> this.owner.computeIfAbsent (key, fn)); }
+        @Override public V computeIfPresent (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return this.ownedApply (() -> this.owner.computeIfPresent (key, fn)); }
+        @Override public V compute (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return this.ownedApply (() -> this.owner.compute (key, fn)); }
+        @Override public void clear () { this.ownedApply (() -> { this.owner.clear (); return null; }); }
+        @Override public void forEach (java.util.function.BiConsumer<? super K, ? super V> action) { this.snapshot ().forEach (action); }
+        @Override public java.util.Set<K> keySet () { return this.snapshot ().keySet (); }
+        @Override public java.util.Collection<V> values () { return this.snapshot ().values (); }
+        @Override public java.util.Set<Map.Entry<K, V>> entrySet () { return this.snapshot ().entrySet (); }
     }
     public boolean isSandboxModeEnabled = false;
 
@@ -449,7 +521,10 @@ public class BaseExchange {
     public Map<String, Object> trades = new HashMap<>();
     public Map<String, Object> orderbooks = new HashMap<>();
     public Map<String, Object> ohlcvs = new HashMap<>();
-    public Object clients = new ConcurrentHashMap<String, Object>();
+    // exchange ws clients by url: contents live on the state-owner thread (see OwnedMap), so a
+    // create/get/remove is one owner task and no concurrent map is needed; venue code still reads
+    // it as a plain Map through the hand-off view
+    public Object clients = new OwnedMap<String, Client>();
 
     // regular maps / misc
     public Object transactions = new LinkedHashMap<String, Object>();
@@ -1911,14 +1986,16 @@ public class BaseExchange {
 
     }
 
-    private final java.util.concurrent.locks.ReentrantLock lastNonceReentrantLock = new java.util.concurrent.locks.ReentrantLock();
-
+    // `incrementingNonce` hands its whole read-modify-write to the state owner (nextCounterAbove),
+    // so the sequence needs neither a monitor nor a lock. These two only exist because the ts base
+    // declares them; a caller that still brackets the counter with them would be unserialized, so
+    // they fail loudly instead of pretending to guard.
     public void lockLastNonce() {
-        this.lastNonceReentrantLock.lock();
+        throw new IllegalStateException("incrementingNonce is owner-serialized: nextCounterAbove");
     }
 
     public void unlockLastNonce() {
-        this.lastNonceReentrantLock.unlock();
+        throw new IllegalStateException("incrementingNonce is owner-serialized: nextCounterAbove");
     }
 
     // TS `loadMarkets (reload = false, params = {})`; venues override it with this signature
@@ -2053,11 +2130,18 @@ public class BaseExchange {
         return this.wsOwnerExecutor;
     }
 
+    /** The ws client registry as its hand-off view; every Map call is one owner task. */
+    @SuppressWarnings("unchecked")
+    private Map<String, Client> clientsMap() {
+        return (Map<String, Client>) this.clients;
+    }
+
     @SuppressWarnings("unchecked")
     public Client client(Object url2) {
         String url = url2.toString();
-        return ((java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients)
-                .computeIfAbsent(url, u -> {
+        // one owner task: the registry lives on the state-owner thread, so two threads asking for
+        // the same url get the one client without a concurrent map
+        return this.clientsMap().computeIfAbsent(url, u -> {
                     Object ws = this.safeValue(this.options, "ws", new java.util.HashMap<String, Object>());
                     Object wsOptions = this.safeValue(ws, "options", new java.util.HashMap<String, Object>());
                     long keepAlive = 30000;
@@ -2199,7 +2283,7 @@ public class BaseExchange {
     }
 
     public void onClose(Client client, Object error) {
-        if (client.error == null) {
+        if (client.errorState() == null) {
             // server disconnected a working connection
             Object reason = (error != null)
                     ? wrapAsNetworkError(error)
@@ -2219,8 +2303,7 @@ public class BaseExchange {
         // detach the client that errored, by reference: a reconnect may have
         // installed a healthy replacement under the same url in the meantime.
         // see https://github.com/ccxt/ccxt/issues/30463
-        var clientsMap = (java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients;
-        clientsMap.remove(client.url, client);
+        this.clientsMap().remove(client.url, client);
         // no client.close() here: its executor shutdown races in-flight handleMessage
         client.scheduleExecutorShutdown();
     }
@@ -8988,11 +9071,7 @@ public Object describe()
     public Object incrementingNonce()
     {
         Long currentNonce = this.nonce();
-        this.lockLastNonce();
-        Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        Object result = ((((currentNonce != null && (lastNonce == null || currentNonce > lastNonce))))) ? currentNonce : (lastNonce + 1L);
-        this.options.put("lastNonce", result);
-        this.unlockLastNonce();
+        Object result = this.nextCounterAbove("lastNonce", 1L, currentNonce);
         return result;
     }
 
