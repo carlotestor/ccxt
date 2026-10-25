@@ -27,16 +27,6 @@ const GP17_TUPLE_SLOT0: { [producer: string]: string } = {
     'HandleOptionIntegerAndParams2': 'int64',
 };
 
-const GP17_TWIN_SLOT0: { [producer: string]: string } = {
-    'HandleParamString': '*string',
-    'HandleParamString2': '*string',
-    'HandleNetworkCodeAndParams': '*string',
-    'HandleParamBool': '*bool',
-    'HandleParamBool2': '*bool',
-    'HandleParamInteger': '*int64',
-    'HandleParamInteger2': '*int64',
-};
-
 interface Gp17Lines {
     raw: string[];
     masked: string[];
