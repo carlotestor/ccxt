@@ -257,7 +257,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 
 		statusText := http.StatusText(resp.StatusCode)
 		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
-		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
+		handleErrorResult := this.DerivedExchange.HandleErrors(int64(resp.StatusCode), statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {
