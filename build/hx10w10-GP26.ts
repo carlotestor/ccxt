@@ -190,8 +190,9 @@ export function hx10w10Gp26TypedReads (content: string): string {
                 if (!gp26WritesArePlain (body, receiver)) {
                     continue;
                 }
-                const keyIsString = key.startsWith ('"') || ((gp26DeclOf (lines, span.start, k, key)?.type === 'string'))
-                    || GP26_KEY_TYPE.test (lines[span.start].split (',').find ((p) => p.trim ().startsWith (key + ' ')) ?? '');
+                const keyDecl = gp26DeclOf (lines, span.start, k, key);
+                const keyIsString = key.startsWith ('"') || ((keyDecl !== undefined) ? (keyDecl.type === 'string')
+                    : GP26_KEY_TYPE.test (lines[span.start].split (',').find ((p) => p.trim ().startsWith (key + ' ')) ?? ''));
                 if (!keyIsString) {
                     continue;
                 }
