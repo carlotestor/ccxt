@@ -380,6 +380,15 @@ function gp17ResolveSite  (raw: string[], masked: string[], index: number, produ
     if ((value.deref === 'getvalue') && (value.keep === undefined) && gp17NilProven (masked, start, index, value.name)) {
         value.nilProven = true;
     }
+    // a local the site assigns must already be declared above it: when it is not, the bind
+    // declares it, so no site can leave behind a name it never introduced
+    const declareAbove = (slot: Gp17Slot) => (slot.declared && gp17DeclaredAbove (masked, start, index, slot.name));
+    if (value.declared && !declareAbove (value)) {
+        value.declared = false;
+    }
+    if (params.declared && !declareAbove (params)) {
+        params.declared = false;
+    }
     const pre: string[] = [];
     const post: string[] = [];
     const declare = (slot: Gp17Slot, type: string) => {
@@ -401,20 +410,26 @@ function gp17ResolveSite  (raw: string[], masked: string[], index: number, produ
         }
         pre.push (indent + 'var ' + temporary + ' ' + slot0 + ' = nil');
         bind = indent + temporary + ', ' + params.name + ' = ' + call + gp17Note (value, params);
-        if (value.deref === 'any') {
-            post.push (indent + 'var ' + value.name + ' any = nil');
-            post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
-        } else if (value.deref === 'getvalue') {
-            if ((value.keep === undefined) && (value.nilProven !== true)) {
-                post.push (indent + value.name + ' = DerefScalar(' + temporary + ')');
-            } else {
+        if (value.deref === 'getvalue') {
+            if ((value.keep !== undefined) || (value.nilProven === true)) {
                 post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
+            } else {
+                if (!value.declared) {
+                    post.push (indent + 'var ' + value.name + ' any = nil');
+                }
+                post.push (indent + value.name + ' = DerefScalar(' + temporary + ')');
             }
         } else if (value.deref === 'bool') {
-            post.push (indent + value.name + ' = ' + (value.fallback ?? 'false'));
+            const fallback = value.fallback ?? 'false';
+            post.push (indent + ((value.declared) ? (value.name + ' = ' + fallback) : ('var ' + value.name + ' bool = ' + fallback)));
+            post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
+        } else if (value.deref === 'any') {
+            if (!value.declared) {
+                post.push (indent + 'var ' + value.name + ' any = nil');
+            }
             post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
         } else {
-            post.push (indent + 'var ' + value.name + ' ' + value.deref + ' = ' + temporary);
+            post.push (indent + ((value.declared) ? (value.name + ' = ' + temporary) : ('var ' + value.name + ' ' + value.deref + ' = ' + temporary)));
         }
     }
     return { 'from': index, 'to': at - 1, 'pre': pre, 'bind': bind, 'post': post, 'keep': value.keep };
@@ -430,6 +445,17 @@ function gp17TrailingNote (source: string, printed: string): string | undefined 
         at = source.indexOf ('//', at + 2);
     }
     return undefined;
+}
+
+// `var <name> …` anywhere above the site in the same function (a parameter included)
+function gp17DeclaredAbove (masked: string[], start: number, index: number, name: string): boolean {
+    const declaration = new RegExp ('^[ \\t]*var ' + name + ' ');
+    for (let j = start; j < index; j++) {
+        if (declaration.test (masked[j])) {
+            return true;
+        }
+    }
+    return new RegExp ('[(, ]' + name + ' ').test (masked[start] ?? '');
 }
 
 // a local declared `var x … = nil` once before the site and never written there holds nil, so
@@ -632,10 +658,9 @@ export function hx10w9Gp17SelfTest (): string[] {
         + '\t\t\treturn DerefScalar(h[1])\n\t\t}\n\t\treturn nil\n\t}()\n\t_ = x\n\t_ = q\n';
     ok (f (bounds).indexOf ('var x *string = xPtr') >= 0, 'the bounded read binds: ' + f (bounds));
     // a TupleSlice holder of a hand-written pair twin, its value read through GetValue
-    const tuple = '\tvar marginMode any = nil\n\tvar paramsQuery any = nil\n'
-        + '\tmarginModeparamsQueryVariable := TupleSlice(this.HandleMarginModeAndParams("createOrder", paramsQuery))\n'
-        + '\tmarginMode = GetValue(marginModeparamsQueryVariable, 0)\n\tparamsQuery = marginModeparamsQueryVariable[1]\n'
-        + '\t_ = marginMode\n\t_ = paramsQuery\n';
+    const tuple = '\tmarginModeparamsQueryVariable := TupleSlice(this.HandleMarginModeAndParams("createOrder", paramsQuery))\n'
+        + '\tvar marginMode any = nil\n\tmarginMode = GetValue(marginModeparamsQueryVariable, 0)\n'
+        + '\tparamsQuery = marginModeparamsQueryVariable[1]\n\t_ = marginMode\n\t_ = paramsQuery\n';
     const tupleOut = f (tuple);
     ok (tupleOut.indexOf ('TupleSlice(') < 0, 'the tuple holder binds: ' + tupleOut);
     ok (tupleOut.indexOf ('if marginModePtr != nil { marginMode = *marginModePtr }') >= 0, 'the GetValue deref stays a deref: ' + tupleOut);
