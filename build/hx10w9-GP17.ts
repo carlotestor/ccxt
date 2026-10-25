@@ -170,7 +170,7 @@ export function hx10w9Gp17TupleTwins (content: string): string {
 // `var <holder> []any = this.<producer> (…)` — the destructuring holder of one pair helper
 // `var <h> []any = this.<P> (…)` / `<h> := TupleSlice (this.<P> (…))` — one pair's holder
 function gp17Holder (line: string): { indent: string, name: string, call: string, producer: string } | undefined {
-    const head = /^([ \t]*)(?:var ([A-Za-z_]\w*) \[\]any = |([A-Za-z_]\w*) := )(.*)$/.exec (line);
+    const head = /^([ \t]*)(?:var ([A-Za-z_]\w*) (?:\[\]any|any) = |([A-Za-z_]\w*) := )(.*)$/.exec (line);
     if (head === null) {
         return undefined;
     }
@@ -195,7 +195,7 @@ interface Gp17Site {
     pre: string[];
     bind: string;
     post: string[];
-    keep: number | undefined;
+    keep: number[];
 }
 
 interface Gp17Slot {
@@ -237,6 +237,11 @@ function gp17SingleLine (raw: string[], masked: string[], at: number, holder: st
     const safeAssign = h ('^([ \\t]*)([A-Za-z_]\\w*) = (?:ccxt\\.)?(?:SafeStringPtr|SafeBoolPtr|SafeIntegerPtr)\\((?:ccxt\\.)?HOLDER\\[0\\]\\)$');
     if (safeAssign !== null) {
         found.slot0 = withNote ({ 'name': safeAssign[2], 'type': '', 'declared': true, 'keep': undefined, 'deref': undefined });
+        return found;
+    }
+    const getValuePtr = h ('^([ \\t]*)(?:var ([A-Za-z_]\\w*) ' + GP17_PTR + ' = |([A-Za-z_]\\w*) = )(?:ccxt\\.)?(?:SafeStringPtr|SafeBoolPtr|SafeIntegerPtr)\\((?:ccxt\\.)?GetValue\\(HOLDER, 0\\)\\)$');
+    if ((getValuePtr !== null) && (getValuePtr[2] !== undefined) && (getValuePtr[2 + 1] !== undefined)) {
+        found.slot0 = withNote ({ 'name': getValuePtr[2], 'type': getValuePtr[3], 'declared': false, 'keep': undefined, 'deref': undefined });
         return found;
     }
     const getValue0 = h ('^([ \\t]*)(?:var ([A-Za-z_]\\w*) ([A-Za-z_\\[\\]\\w]+) = |([A-Za-z_]\\w*) (?::=|=) )(?:ccxt\\.)?GetValue\\(HOLDER, 0\\)$');
@@ -363,8 +368,12 @@ function gp17ResolveSite  (raw: string[], masked: string[], index: number, produ
         }
         break;
     }
-    if ((value === undefined) || (params === undefined)) {
+    if (value === undefined) {
         return undefined;
+    }
+    if (params === undefined) {
+        // the caller never reads the params slot of this pair
+        params = { 'name': '_', 'type': '', 'declared': true, 'keep': undefined, 'deref': undefined };
     }
     // the holder is read nowhere else in the function
     const start = gp17FunctionStart (masked, index);
@@ -380,27 +389,32 @@ function gp17ResolveSite  (raw: string[], masked: string[], index: number, produ
     if ((value.deref === 'getvalue') && (value.keep === undefined) && gp17NilProven (masked, start, index, value.name)) {
         value.nilProven = true;
     }
-    // a local the site assigns must already be declared above it: when it is not, the bind
-    // declares it, so no site can leave behind a name it never introduced
-    const declareAbove = (slot: Gp17Slot) => (slot.declared && gp17DeclaredAbove (masked, start, index, slot.name));
-    if (value.declared && !declareAbove (value)) {
-        value.declared = false;
+    // a declaration of either local inside the site is kept, so it still declares them; one
+    // outside it, above, is the site's own `var x T = nil`; otherwise the bind declares them
+    const keep = new Set<number> ();
+    for (let j = index + 1; j < at; j++) {
+        const declares = /^([ \t]*)var ([A-Za-z_]\w*) (?:\*?[a-z0-9]+|any) = nil$/.exec (masked[j]);
+        if ((declares !== null) && ((declares[2] === value.name) || (declares[2] === params.name))) {
+            keep.add (j);
+        }
     }
-    if (params.declared && !declareAbove (params)) {
-        params.declared = false;
-    }
+    const declaredFor = (slot: Gp17Slot) => slot.declared
+        || [ ...keep ].some ((j) => new RegExp ('^[ \\t]*var ' + slot.name + ' ').test (masked[j]))
+        || gp17DeclaredAbove (masked, start, index, slot.name);
+    value.declared = declaredFor (value);
+    params.declared = declaredFor (params);
     const pre: string[] = [];
     const post: string[] = [];
-    const declare = (slot: Gp17Slot, type: string) => {
+    const declare = (slot: Gp17Slot, type: string, fallback: string) => {
         if (!slot.declared && (slot.keep === undefined)) {
-            pre.push (indent + 'var ' + slot.name + ' ' + type + ' = nil');
+            pre.push (indent + 'var ' + slot.name + ' ' + ((type === '') ? fallback : type) + ' = nil');
         }
     };
-    declare (params, params.type);
+    declare (params, params.type, 'map[string]any');
     let bind = '';
     if (value.deref === undefined) {
         // the pair's first result is the local itself: both slots bind in one assignment
-        declare (value, value.type);
+        declare (value, value.type, slot0);
         bind = indent + value.name + ', ' + params.name + ' = ' + call + gp17Note (value, params);
     } else {
         // the site derefs the element, so the pointer lands in a temporary first
@@ -432,7 +446,7 @@ function gp17ResolveSite  (raw: string[], masked: string[], index: number, produ
             post.push (indent + ((value.declared) ? (value.name + ' = ' + temporary) : ('var ' + value.name + ' ' + value.deref + ' = ' + temporary)));
         }
     }
-    return { 'from': index, 'to': at - 1, 'pre': pre, 'bind': bind, 'post': post, 'keep': value.keep };
+    return { 'from': index, 'to': at - 1, 'pre': pre, 'bind': bind, 'post': post, 'keep': [ ...keep ] };
 }
 
 // the `//` note the mask blanked out of the read, when the read carries one
@@ -550,11 +564,59 @@ function gp17BlockRead (masked: string[], at: number, holder: string, slot0: str
     return undefined;
 }
 
+// `var x *string = SafeStringPtr (GetValue (this.<P> (…), 0))`: one element of the pair, read
+// without a holder. The twin hands that element back as its first result.
+function gp17InlinePairReads (content: string): string {
+    if (content.indexOf ('GetValue(this.') < 0) {
+        return content;
+    }
+    const lines = gp17Split (content);
+    if (lines === undefined) {
+        return content;
+    }
+    const { raw, masked } = lines;
+    const call = '(?:ccxt\\.)?this\\.(\\w+)\\((.*)\\)';
+    const pointer = new RegExp ('^([ \\t]*)var ([A-Za-z_]\\w*) (\\*string|\\*bool|\\*int64) = (?:ccxt\\.)?(?:SafeStringPtr|SafeBoolPtr|SafeIntegerPtr)' + '\\((?:ccxt\\.)?GetValue\\(' + call + ', 0\\)\\)$');
+    const boxed = new RegExp ('^([ \\t]*)var ([A-Za-z_]\\w*) any = (?:ccxt\\.)?GetValue\\(' + call + ', 0\\)$');
+    const params = new RegExp ('^([ \\t]*)var ([A-Za-z_]\\w*) (map\\[string\\]any|any) = (?:ccxt\\.)?(?:MapTyped\\()?(?:ccxt\\.)?GetValue\\(' + call + ', 1\\)\\)?$');
+    let changed = false;
+    for (let i = 0; i < masked.length; i++) {
+        const pointerMatch = pointer.exec (masked[i]);
+        const pointerRaw = pointer.exec (raw[i]);
+        if ((pointerMatch !== null) && (pointerRaw !== null) && (GP17_TWIN_SLOT0[pointerMatch[4]] === pointerMatch[3])) {
+            raw[i] = pointerMatch[1] + pointerMatch[2] + ', _ := this.' + pointerRaw[4] + '(' + pointerRaw[5] + ')';
+            masked[i] = raw[i];
+            changed = true;
+            continue;
+        }
+        const boxedMatch = boxed.exec (masked[i]);
+        const boxedRaw = boxed.exec (raw[i]);
+        if ((boxedMatch !== null) && (boxedRaw !== null) && (GP17_TWIN_SLOT0[boxedMatch[3]] !== undefined)) {
+            const temporary = boxedMatch[2] + 'Ptr';
+            raw[i] = boxedMatch[1] + temporary + ', _ := this.' + boxedRaw[3] + '(' + boxedRaw[4] + ')\n'
+                + boxedMatch[1] + 'var ' + boxedMatch[2] + ' any = nil\n'
+                + boxedMatch[1] + boxedMatch[2] + ' = DerefScalar(' + temporary + ')';
+            masked[i] = raw[i];
+            changed = true;
+            continue;
+        }
+        const paramsMatch = params.exec (masked[i]);
+        const paramsRaw = params.exec (raw[i]);
+        if ((paramsMatch !== null) && (paramsRaw !== null) && (GP17_TWIN_SLOT0[paramsMatch[4]] !== undefined)) {
+            raw[i] = paramsMatch[1] + '_, ' + paramsMatch[2] + ' := this.' + paramsRaw[4] + '(' + paramsRaw[5] + ')';
+            masked[i] = raw[i];
+            changed = true;
+        }
+    }
+    return changed ? raw.join ('\n') : content;
+}
+
 export function hx10w9Gp17ParamsSlotBinds (content: string): string {
     if ((content.indexOf ('[]any = this.') < 0) && (content.indexOf ('TupleSlice(this.') < 0)
         && (content.indexOf ('TupleSlice(ccxt.this.') < 0)) {
         return content;
     }
+    content = gp17InlinePairReads (content);
     const lines = gp17Split (content);
     if (lines === undefined) {
         return content;
@@ -573,8 +635,8 @@ export function hx10w9Gp17ParamsSlotBinds (content: string): string {
         }
         edits.set (i, site.pre);
         for (let j = site.from + 1; j <= site.to; j++) {
-            // the value's own declaration stays, every element read goes away
-            if (j !== site.keep) {
+            // a declaration of either local stays, every element read goes away
+            if (site.keep.indexOf (j) < 0) {
                 edits.set (j, null);
             }
         }
