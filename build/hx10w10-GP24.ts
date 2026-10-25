@@ -13,11 +13,19 @@ const GP24_BANNER = 'IT IS GENERATED AND WILL BE OVERWRITTEN';
 // the two packages the native `.toString()` arms and the native string ops emit
 const GP24_PACKAGES = [ 'strconv', 'strings' ];
 
+// blank every string literal and comment, so a package named in text never counts as a use
+function gp24MaskCode (content: string): string {
+    return content
+        .replace (/`[^`]*`/g, (m) => m.replace (/[^\n]/g, ' '))
+        .replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => ' '.repeat (m.length))
+        .replace (/\/\*[\s\S]*?\*\//g, (m) => m.replace (/[^\n]/g, ' '))
+        .replace (/\/\/[^\n]*/g, (m) => ' '.repeat (m.length));
+}
+
 // a real selector use on a code line: a comment or a string literal naming the package must not
 // declare an unused import (go build rejects it)
 function gp24UsesPackage (content: string, pkg: string): boolean {
-    const rx = new RegExp ('\\b' + pkg + '\\.[A-Z]\\w*\\s*\\(');
-    return content.split ('\n').some ((line) => rx.test (line.replace (/\/\/.*$/, '')));
+    return new RegExp ('\\b' + pkg + '\\.[A-Z]\\w*\\s*\\(').test (gp24MaskCode (content));
 }
 
 export function hx10w10GP24BaseImports (content: string): string {
@@ -38,15 +46,6 @@ export function installHx10w10GP24BaseImportSeam (go: any): void {
     if (go !== undefined) {
         go.goBaseFileStdlibImportSeamPaths = /(?:base\/Exchange(?:\.nooverloads\.\d+)?|base\/PredictionExchange)\.ts$/;
     }
-}
-
-// blank every string literal and comment, so a package named in text never counts as a use
-function gp24MaskCode (content: string): string {
-    return content
-        .replace (/`[^`]*`/g, (m) => m.replace (/[^\n]/g, ' '))
-        .replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => ' '.repeat (m.length))
-        .replace (/\/\*[\s\S]*?\*\//g, (m) => m.replace (/[^\n]/g, ' '))
-        .replace (/\/\/[^\n]*/g, (m) => ' '.repeat (m.length));
 }
 
 // A generated file can lose the text an import was declared for: the base-test rewrites delete
@@ -174,7 +173,7 @@ export function hx10w10GP24Wired (): string[] {
     if (!source.includes ('installHx10w10GP24BaseImportSeam (this.transpiler.goTranspiler)')) {
         problems.push ('hx10w10 GP24: setupTranspiler does not install the seam');
     }
-    if (!source.includes ('content = hx10w10GP24PruneImports (content);')) {
+    if (!source.includes ('hx10w10GP24PruneImports (content) : content')) {
         problems.push ('hx10w10 GP24: overwriteFileAndFolder does not prune');
     }
     return problems;
