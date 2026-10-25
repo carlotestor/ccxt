@@ -82,7 +82,9 @@ public partial class BaseExchange
         return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
     }
 
-    public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
+    // live clients by url; every member hands its work to this exchange's ws owner, so the
+    // registry has one writer (see ccxt.pro.OwnedTable), assigned in the BaseExchange ctor
+    public ccxt.pro.OwnedTable<WebSocketClient> clients;
     public static ClientWebSocket ws = null;
 
     // A book created here is bound to this exchange's ws owner: every mutation of it
