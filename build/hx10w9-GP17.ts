@@ -464,8 +464,8 @@ function gp17ResolveSite (raw: string[], masked: string[], index: number, produc
     // explicit `var … any` is introduced; the value must sit in the same block for that
     const inSite = (slot: Gp17Slot) => (slot.keep !== undefined)
         || [ ...keep ].some ((j) => new RegExp ('^[ \\t]*var ' + slot.name + ' ').test (masked[j]));
-    const short = (params.name !== '_') && (value.type !== 'any') && !params.declared
-        && (params.keep === undefined) && (!value.declared || inSite (value));
+    const short = (params.name !== '_') && !params.declared && !inSite (params)
+        && ((value.deref !== undefined) || ((value.type !== 'any') && (!value.declared || inSite (value))));
     if (!short) {
         declare (params, params.type, 'map[string]any');
     }
@@ -496,6 +496,14 @@ function gp17ResolveSite (raw: string[], masked: string[], index: number, produc
             const fallback = value.fallback ?? 'false';
             post.push (indent + ((value.declared) ? (value.name + ' = ' + fallback) : ('var ' + value.name + ' bool = ' + fallback)));
             post.push (indent + 'if ' + temporary + ' != nil { ' + value.name + ' = *' + temporary + ' }');
+        } else if (value.deref === 'iife') {
+            // `x := func() any {…}` keeps its shape: the pair's pointer replaces the element read
+            post.push (indent + value.name + ((value.declared) ? ' = ' : ' := ') + 'func() any {');
+            post.push (indent + '\tif ' + temporary + ' != nil {');
+            post.push (indent + '\t\treturn *' + temporary);
+            post.push (indent + '\t}');
+            post.push (indent + '\treturn nil');
+            post.push (indent + '}()');
         } else if (value.deref === 'any') {
             // the old iife answered nil for a nil pointer, so a local declared above is reset
             post.push (indent + ((value.declared) ? (value.name + ' = nil') : ('var ' + value.name + ' any = nil')));
@@ -522,8 +530,11 @@ function gp17TrailingNote (source: string, printed: string): string | undefined 
 // `var <name> …` anywhere above the site in the same function (a parameter included)
 function gp17DeclaredAbove (masked: string[], start: number, index: number, name: string): boolean {
     const declaration = new RegExp ('^[ \\t]*var ' + name + ' ');
+    // a short declaration anywhere above may be in this scope or an outer one: either way the
+    // bind must assign, never re-declare
+    const shortDeclaration = new RegExp ('^[ \\t]*(?:[A-Za-z_]\\w*, )*' + name + '(?:, [A-Za-z_]\\w*)* (?:\\[\\]any )?:=');
     for (let j = start; j < index; j++) {
-        if (declaration.test (masked[j])) {
+        if (declaration.test (masked[j]) || shortDeclaration.test (masked[j])) {
             return true;
         }
     }
@@ -586,7 +597,7 @@ function gp17BlockRead (masked: string[], at: number, holder: string, slot0: str
         const guard = new RegExp ('^[ \\t]*if p, _ := ' + holder + '\\[0\\]\\.\\(' + slot0.replace ('*', '\\*') + '\\); p != nil \\{$').test (lineAt (1));
         if (guard && /^[ \t]*return \*p$/.test (lineAt (2)) && /^([ \t]*)\}\(\)$/.test (lineAt (5))) {
             return {
-                'value': { 'name': iife[2], 'type': 'any', 'declared': (iife[3] === '='), 'keep': undefined, 'deref': 'any' },
+                'value': { 'name': iife[2], 'type': 'any', 'declared': (iife[3] === '='), 'keep': undefined, 'deref': 'iife' },
                 'slot': 0,
                 'to': at + 5,
             };
@@ -772,13 +783,12 @@ export function hx10w9Gp17SelfTest (): string[] {
     const iife = '\tx := nil\n\t_ = x\n\tvar h []any = ' + pair + '\n\tx = func() any {\n\t\tif p, _ := h[0].(*string); p != nil {\n\t\t\treturn *p\n\t\t}\n'
         + '\t\treturn nil\n\t}()\n\tvar q map[string]any = MapTyped(h[1])\n\t_ = x\n\t_ = q\n';
     const iifeOut = f (iife);
-    ok (iifeOut.indexOf ('func() any {') < 0, 'the declared deref iife goes: ' + iifeOut);
-    ok (iifeOut.indexOf ('x = nil\n') >= 0, 'the nil answer the old read gave is kept: ' + iifeOut);
-    ok (iifeOut.indexOf ('if xPtr != nil { x = *xPtr }') >= 0, 'the deref keeps its meaning: ' + iifeOut);
-    // a fresh `x := func() any {…}` stays: an explicit any local would be a rise
+    ok (iifeOut.indexOf ('x = func() any {\n\t\tif xPtr != nil {\n\t\t\treturn *xPtr') >= 0, 'the declared deref iife reads the pair: ' + iifeOut);
+    ok ((iifeOut.indexOf ('h[0]') < 0) && (iifeOut.indexOf ('MapTyped(') < 0), 'the element reads both go: ' + iifeOut);
+    // a fresh `x := func() any {…}` keeps its short declaration (an explicit any local would rise)
     const fresh = '\tvar h []any = ' + pair + '\n\tx := func() any {\n\t\tif p, _ := h[0].(*string); p != nil {\n\t\t\treturn *p\n\t\t}\n'
         + '\t\treturn nil\n\t}()\n\tvar q map[string]any = MapTyped(h[1])\n\t_ = x\n\t_ = q\n';
-    ok (f (fresh).indexOf ('func() any {') >= 0, 'a fresh any deref keeps the iife');
+    ok (f (fresh).indexOf ('x := func() any {\n\t\tif xPtr != nil {') >= 0, 'a fresh deref keeps the iife: ' + f (fresh));
     // the callerMethodName probe may carry a list body: it reads inline, not through the map slot
     const hop = (body: string) => hx10w9Gp17ParamsSlotBinds ('package ccxt\n\nfunc (this *X) HandleOptionAndParams (params any, methodName any) any {\n' + body + '\treturn nil\n}\n');
     const probe = hop ('\tvar h []any = this.HandleParamString(params, \"callerMethodName\", methodName)\n'
