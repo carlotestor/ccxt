@@ -445,11 +445,11 @@ function gp17ResolveSite (raw: string[], masked: string[], index: number, produc
             'from': index,
             'to': at - 1,
             'pre': [
-                indent + 'var ' + value.name + ' *string = ' + qualifier + 'SafeString(' + args[0] + ', ' + args[1] + ', ' + args[2] + ')',
+                indent + 'var ' + value.name + ' *string = this.SafeString(' + args[0] + ', ' + args[1] + ', ' + args[2] + ')',
                 indent + params.name + ' := ' + args[0],
             ],
             'bind': '',
-            'post': [ indent + 'if ' + value.name + ' != nil { ' + params.name + ' = ' + qualifier + 'Omit(' + args[0] + ', ' + args[1] + ') }' ],
+            'post': [ indent + 'if ' + value.name + ' != nil { ' + params.name + ' = this.Omit(' + args[0] + ', ' + args[1] + ') }' ],
             'keep': [],
         };
     }
