@@ -49,7 +49,7 @@ export function hx10w10JO01Counters (content: string): string {
             while (j < lines.length && lines[j] !== '        }') { body.push (lines[j]); j++; }
             const shape = (j < lines.length) ? counterBody (body) : undefined;
             if (shape !== undefined && shape[0] === decl[2]) {
-                out.push ('        ' + decl[1] + ' ' + decl[2] + ' = this.nextCounter("' + shape[1] + '", 1L);');
+                out.push ('        Long ' + decl[2] + ' = this.nextCounter("' + shape[1] + '", 1L);');
                 i = j;
                 continue;
             }
@@ -83,7 +83,7 @@ export function jo01SelfTest (): string[] {
           '        Long next = this.nextCounter("requestId", 1L);' ],
         [ 'uncast sum, object declaration',
           '    public String requestId()\n    {\n        Object requestId;\n        synchronized (this) {\n        requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);\n        this.options.put("requestId", requestId);\n        }\n        return (String) (String.valueOf(requestId));\n    }',
-          '        Object requestId = this.nextCounter("requestId", 1L);' ],
+          '        Long requestId = this.nextCounter("requestId", 1L);' ],
     ];
     for (const [ name, body, expect ] of pos) {
         const out = run (body);

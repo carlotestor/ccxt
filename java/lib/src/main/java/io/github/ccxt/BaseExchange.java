@@ -363,9 +363,8 @@ public class BaseExchange {
     /** The options store as the owner thread sees it: the raw map, never the hand-off view. */
     @SuppressWarnings("unchecked")
     private Map<String, Object> optionsRaw () {
-        Object store = this.options;
-        if (store instanceof SynchronizedOptions ownerStore) return ownerStore.ownerMap ();
-        return (Map<String, Object>) store;
+        if (this.options instanceof SynchronizedOptions ownerStore) return ownerStore.ownerMap ();
+        return this.options;
     }
 
     /** One owner task for a whole counter read-modify-write of the options store. */
@@ -398,35 +397,87 @@ public class BaseExchange {
      * copy on the owner; nothing else holds a reference to the backing map.
      */
     public static final class OwnedMap<K, V> extends java.util.AbstractMap<K, V> {
+        // op codes for the owner-side switch: every public Map call becomes one hand-off, and an
+        // explicit op keeps the hand-off call sites free of closures
+        private static final int OP_GET = 0;
+        private static final int OP_CONTAINS = 1;
+        private static final int OP_SIZE = 2;
+        private static final int OP_IS_EMPTY = 3;
+        private static final int OP_ENTRY_SET = 4;
+        private static final int OP_KEY_SET = 5;
+        private static final int OP_VALUES = 6;
+        private static final int OP_PUT = 7;
+        private static final int OP_PUT_IF_ABSENT = 8;
+        private static final int OP_REMOVE = 9;
+        private static final int OP_REMOVE_PAIR = 10;
+        private static final int OP_CLEAR = 11;
+        private static final int OP_COMPUTE = 12;
+        private static final int OP_COMPUTE_IF_ABSENT = 13;
+        private static final int OP_COMPUTE_IF_PRESENT = 14;
+        private static final int OP_GET_OR_DEFAULT = 15;
+
         private final Map<K, V> owner = new LinkedHashMap<K, V> ();
 
-        private <R> R ownedApply (final java.util.function.Supplier<R> body) {
-            return owned (new OwnedTask<R> () {
-                @Override R run () { return body.get (); }
+        private Object ownedApply (final int op, final Object key, final Object value, final Object fn) {
+            return owned (new OwnedTask<Object> () {
+                @Override Object run () { return OwnedMap.this.ownerApply (op, key, value, fn); }
             });
         }
 
-        private Map<K, V> snapshot () {
-            return this.ownedApply (() -> new LinkedHashMap<K, V> (this.owner));
+        // runs on the state-owner thread only: `owner` is that thread's map
+        @SuppressWarnings("unchecked")
+        private Object ownerApply (int op, Object key, Object value, Object fn) {
+            switch (op) {
+                case OP_GET: return this.owner.get (key);
+                case OP_GET_OR_DEFAULT: {
+                    V present = this.owner.get (key);
+                    return (present != null) ? present : value;
+                }
+                case OP_CONTAINS: return Boolean.valueOf (this.owner.containsKey (key));
+                case OP_SIZE: return Integer.valueOf (this.owner.size ());
+                case OP_IS_EMPTY: return Boolean.valueOf (this.owner.isEmpty ());
+                case OP_ENTRY_SET: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).entrySet ();
+                case OP_KEY_SET: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).keySet ();
+                case OP_VALUES: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).values ();
+                case OP_PUT: return this.owner.put ((K) key, (V) value);
+                case OP_PUT_IF_ABSENT: return this.owner.putIfAbsent ((K) key, (V) value);
+                case OP_REMOVE: return this.owner.remove (key);
+                case OP_REMOVE_PAIR: return Boolean.valueOf (this.owner.remove (key, value));
+                case OP_CLEAR: this.owner.clear (); return null;
+                case OP_COMPUTE: return this.owner.compute ((K) key, (java.util.function.BiFunction<? super K, ? super V, ? extends V>) fn);
+                case OP_COMPUTE_IF_ABSENT: return this.owner.computeIfAbsent ((K) key, (java.util.function.Function<? super K, ? extends V>) fn);
+                case OP_COMPUTE_IF_PRESENT: return this.owner.computeIfPresent ((K) key, (java.util.function.BiFunction<? super K, ? super V, ? extends V>) fn);
+                default: throw new IllegalArgumentException ("unknown owned-map op: " + op);
+            }
         }
 
-        @Override public int size () { return this.ownedApply (() -> Integer.valueOf (this.owner.size ())); }
-        @Override public boolean isEmpty () { return this.ownedApply (() -> Boolean.valueOf (this.owner.isEmpty ())); }
-        @Override public boolean containsKey (Object key) { return this.ownedApply (() -> this.owner.containsKey (key)); }
-        @Override public V get (Object key) { return this.ownedApply (() -> this.owner.get (key)); }
-        @Override public V getOrDefault (Object key, V fallback) { return this.ownedApply (() -> this.owner.getOrDefault (key, fallback)); }
-        @Override public V put (K key, V value) { return this.ownedApply (() -> this.owner.put (key, value)); }
-        @Override public V putIfAbsent (K key, V value) { return this.ownedApply (() -> this.owner.putIfAbsent (key, value)); }
-        @Override public V remove (Object key) { return this.ownedApply (() -> this.owner.remove (key)); }
-        @Override public boolean remove (Object key, Object value) { return this.ownedApply (() -> this.owner.remove (key, value)); }
-        @Override public V computeIfAbsent (K key, java.util.function.Function<? super K, ? extends V> fn) { return this.ownedApply (() -> this.owner.computeIfAbsent (key, fn)); }
-        @Override public V computeIfPresent (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return this.ownedApply (() -> this.owner.computeIfPresent (key, fn)); }
-        @Override public V compute (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return this.ownedApply (() -> this.owner.compute (key, fn)); }
-        @Override public void clear () { this.ownedApply (() -> { this.owner.clear (); return null; }); }
-        @Override public void forEach (java.util.function.BiConsumer<? super K, ? super V> action) { this.snapshot ().forEach (action); }
-        @Override public java.util.Set<K> keySet () { return this.snapshot ().keySet (); }
-        @Override public java.util.Collection<V> values () { return this.snapshot ().values (); }
-        @Override public java.util.Set<Map.Entry<K, V>> entrySet () { return this.snapshot ().entrySet (); }
+        @Override public int size () { return ((Integer) this.ownedApply (OP_SIZE, null, null, null)).intValue (); }
+        @Override public boolean isEmpty () { return Boolean.TRUE.equals (this.ownedApply (OP_IS_EMPTY, null, null, null)); }
+        @Override public boolean containsKey (Object key) { return Boolean.TRUE.equals (this.ownedApply (OP_CONTAINS, key, null, null)); }
+        @SuppressWarnings("unchecked")
+        @Override public V get (Object key) { return (V) this.ownedApply (OP_GET, key, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V getOrDefault (Object key, V fallback) { return (V) this.ownedApply (OP_GET_OR_DEFAULT, key, fallback, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V put (K key, V value) { return (V) this.ownedApply (OP_PUT, key, value, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V putIfAbsent (K key, V value) { return (V) this.ownedApply (OP_PUT_IF_ABSENT, key, value, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V remove (Object key) { return (V) this.ownedApply (OP_REMOVE, key, null, null); }
+        @Override public boolean remove (Object key, Object value) { return Boolean.TRUE.equals (this.ownedApply (OP_REMOVE_PAIR, key, value, null)); }
+        @SuppressWarnings("unchecked")
+        @Override public V compute (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE, key, null, fn); }
+        @SuppressWarnings("unchecked")
+        @Override public V computeIfAbsent (K key, java.util.function.Function<? super K, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE_IF_ABSENT, key, null, fn); }
+        @SuppressWarnings("unchecked")
+        @Override public V computeIfPresent (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE_IF_PRESENT, key, null, fn); }
+        @Override public void clear () { this.ownedApply (OP_CLEAR, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Set<Map.Entry<K, V>> entrySet () { return (java.util.Set<Map.Entry<K, V>>) this.ownedApply (OP_ENTRY_SET, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Set<K> keySet () { return (java.util.Set<K>) this.ownedApply (OP_KEY_SET, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Collection<V> values () { return (java.util.Collection<V>) this.ownedApply (OP_VALUES, null, null, null); }
     }
     public boolean isSandboxModeEnabled = false;
 
