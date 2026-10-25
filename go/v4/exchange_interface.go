@@ -502,7 +502,8 @@ type IDerivedExchange interface {
 	ParseConversion(conversion any, optionalArgs ...any) Conversion
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
 	HandleErrors(statusCode any, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
-	HandleMessage(client any, message any)
+	// HandleMessage is not here: a venue declares its ws frame shape (map[string]any for an
+	// object frame, any for an array/text frame), so the dispatch loop binds it by assertion.
 	OnError(client any, err any)
 	OnClose(client any, err any)
 	OnConnected(client any, err any)

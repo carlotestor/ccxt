@@ -37,6 +37,27 @@ type wsFrame struct {
 	message any
 }
 
+// wsFrameHandler binds a venue's HandleMessage to the frame shape it declares: an object-framed
+// venue takes map[string]any (GP12), an array/text-framed venue the untyped frame. Resolved once
+// per exchange, so dispatching a frame costs one call and no interface lookup.
+func (this *BaseExchange) wsFrameHandler() func(client any, message any) {
+	if venue, ok := this.DerivedExchange.(interface {
+		HandleMessage(client any, message map[string]any)
+	}); ok {
+		return func(client any, message any) {
+			if frame, isObject := message.(map[string]any); isObject {
+				venue.HandleMessage(client, frame)
+			}
+		}
+	}
+	if venue, ok := this.DerivedExchange.(interface {
+		HandleMessage(client any, message any)
+	}); ok {
+		return func(client any, message any) { venue.HandleMessage(client, message) }
+	}
+	return func(client any, message any) {}
+}
+
 // wsCacheRead carries the comma-ok answer of a read, so the caller learns both the value and
 // whether the key was there.
 type wsCacheRead struct {
@@ -58,6 +79,7 @@ type wsCacheStore struct {
 	ops    chan *wsCacheOp
 	stop   chan struct{}
 	done   chan struct{}
+	handle func(client any, message any) // the venue's HandleMessage, bound to its frame shape
 }
 
 // wsCacheStoreNow returns the exchange's dispatch loop, starting it once. sync.Once publishes the
@@ -69,6 +91,7 @@ func (this *BaseExchange) wsCacheStoreNow() *wsCacheStore {
 			ops:    make(chan *wsCacheOp),
 			stop:   make(chan struct{}),
 			done:   make(chan struct{}),
+			handle: this.wsFrameHandler(),
 		}
 		this.wsStore = store
 		go this.wsCacheLoop(store)
@@ -94,7 +117,7 @@ func (this *BaseExchange) wsCacheLoop(store *wsCacheStore) {
 		case <-store.stop:
 			return
 		case frame := <-store.frames:
-			this.DerivedExchange.HandleMessage(frame.client, frame.message)
+			store.handle(frame.client, frame.message)
 		case req := <-store.ops:
 			req.reply <- this.wsCacheApply(req)
 		}
