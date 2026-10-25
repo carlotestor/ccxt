@@ -310,7 +310,7 @@ public partial class PredictionExchange : BaseExchange
         return s;
     }
 
-    public virtual object filterEventsByTags(object events, IList<object> tags = null)
+    public virtual object filterEventsByTags(object events, IList<object>? tags = null)
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested

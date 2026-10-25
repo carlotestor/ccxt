@@ -201,9 +201,30 @@ public partial class BaseExchange
 
     // WS options
 
-    public IDictionary<string, object> tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    // WS caches. Each is a plain dictionary owned by this exchange's ws owner thread
+    // (see ccxt.WsOwner): the owner-routed view hands every member call over to it, and
+    // a store of a fresh dictionary re-wraps rather than dropping the facade.
+    private IDictionary<string, object> tickersState = new ccxt.pro.OwnedMap();
+    private IDictionary<string, object> fundingRatesState = new ccxt.pro.OwnedMap();
+    private IDictionary<string, object> bidsasksState = new ccxt.pro.OwnedMap();
+
+    public IDictionary<string, object> tickers
+    {
+        get { return this.tickersState; }
+        set { this.tickersState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> fundingRates
+    {
+        get { return this.fundingRatesState; }
+        set { this.fundingRatesState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> bidsasks
+    {
+        get { return this.bidsasksState; }
+        set { this.bidsasksState = this.wrapWsCache(value); }
+    }
 
     public object transactions = new dict();
     // ws caches: always an ArrayCache subclass or null (every writer in cs/**, bitstamp's
@@ -212,17 +233,41 @@ public partial class BaseExchange
     public ccxt.pro.ArrayCache myTrades;
     public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
-    public IDictionary<string, object> balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    private IDictionary<string, object> balanceState = new ccxt.pro.OwnedMap();
+
+    public IDictionary<string, object> balance
+    {
+        get { return this.balanceState; }
+        set { this.balanceState = this.wrapWsCache(value); }
+    }
 
     public bool newUpdates;
 
     public object positions;
     public ccxt.pro.ArrayCache liquidations;
     public object myLiquidations;
-    public IDictionary<string, object> trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    private IDictionary<string, object> tradesState = new ccxt.pro.OwnedMap();
+    private IDictionary<string, object> orderbooksState = new ccxt.pro.OwnedMap();
 
-    public IDictionary<string, object> ohlcvs = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> trades
+    {
+        get { return this.tradesState; }
+        set { this.tradesState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> orderbooks
+    {
+        get { return this.orderbooksState; }
+        set { this.orderbooksState = this.wrapWsCache(value); }
+    }
+
+    private IDictionary<string, object> ohlcvsState = new ccxt.pro.OwnedMap();
+
+    public IDictionary<string, object> ohlcvs
+    {
+        get { return this.ohlcvsState; }
+        set { this.ohlcvsState = this.wrapWsCache(value); }
+    }
     public object wssProxy { get; set; } = null;
     public object wss_proxy { get; set; } = null;
 
