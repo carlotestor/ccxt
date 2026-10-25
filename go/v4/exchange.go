@@ -2102,6 +2102,77 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 	return future.Await()
 }
 
+// WatchMap is Watch for a subscription whose resolved value the caller reads as a dictionary: the
+// coercion the generated send used to inline at every call site is applied here once.
+func (this *BaseExchange) WatchMap(args ...any) <-chan AsyncResult[map[string]any] {
+	return watchResolvedMap(this.Watch(args...))
+}
+
+func (this *BaseExchange) WatchMultipleMap(args ...any) <-chan AsyncResult[map[string]any] {
+	return watchResolvedMap(this.WatchMultiple(args...))
+}
+
+// WatchList and WatchMultipleList are the list-valued twins of the two above.
+func (this *BaseExchange) WatchList(args ...any) <-chan AsyncResult[[]any] {
+	return watchResolvedList(this.Watch(args...))
+}
+
+func (this *BaseExchange) WatchMultipleList(args ...any) <-chan AsyncResult[[]any] {
+	return watchResolvedList(this.WatchMultiple(args...))
+}
+
+// resolvedMapValue is the coercion a dictionary-valued ws core applied at its send: a map passes,
+// an absent value stays absent, any other shape is the same error.
+func resolvedMapValue(value any) map[string]any {
+	switch v := value.(type) {
+	case map[string]any:
+		return v
+	case nil:
+		return nil
+	default:
+		panic(ExchangeError("resolved value is not map[string]any"))
+	}
+}
+
+func resolvedListValue(value any) []any {
+	switch v := value.(type) {
+	case []any:
+		return v
+	case IArrayCache:
+		return v.ToArray()
+	case nil:
+		return nil
+	default:
+		panic(ExchangeError("resolved value is not []any"))
+	}
+}
+
+// watchResolvedMap narrows a watch result to the shape its core declares; a wrong shape reaches the
+// receiver as the Err the core would have panicked with (ReturnPanicError keeps the semantics).
+func watchResolvedMap(in <-chan AsyncResult[any]) <-chan AsyncResult[map[string]any] {
+	out := make(chan AsyncResult[map[string]any], 1)
+	go func() {
+		defer close(out)
+		defer ReturnPanicError(out)
+		if r, ok := <-in; ok {
+			out <- AsyncResult[map[string]any]{Value: resolvedMapValue(r.Value), Err: r.Err}
+		}
+	}()
+	return out
+}
+
+func watchResolvedList(in <-chan AsyncResult[any]) <-chan AsyncResult[[]any] {
+	out := make(chan AsyncResult[[]any], 1)
+	go func() {
+		defer close(out)
+		defer ReturnPanicError(out)
+		if r, ok := <-in; ok {
+			out <- AsyncResult[[]any]{Value: resolvedListValue(r.Value), Err: r.Err}
+		}
+	}()
+	return out
+}
+
 // Spawn starts an async call on its own goroutine and hands back a *Future.
 // The goroutine is the root of its stack, so every panic is recovered here and rejects the
 // Future with the error value ("break" resolves nil); a failed outcome rejects with its Err.
