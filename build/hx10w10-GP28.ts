@@ -136,6 +136,23 @@ function gp28CloseBrace (text: string): number {
     return -1;
 }
 
+// the nearest enclosing `if` header dereferences the key: that block only runs on a non-nil
+// key, so the store needs no guard (and the pass that owns the InOp block already writes it bare)
+function gp28HeaderProvesKey (masked: string[], k: number, key: string): boolean {
+    const indent = masked[k].length - masked[k].trimStart ().length;
+    for (let j = k - 1; j >= 0; j--) {
+        const line = masked[j];
+        if (line.trim () === '') {
+            continue;
+        }
+        if ((line.length - line.trimStart ().length) >= indent) {
+            continue;
+        }
+        return /^if\b.*\{$/.test (line.trim ()) && (new RegExp ('\\*' + key + '\\b').test (line));
+    }
+    return false;
+}
+
 function gp28FieldFunc (lines: string[], masked: string[], start: number, end: number) {
     const funcText = masked.slice (start, end + 1).join ('\n');
     for (let k = start + 1; k < end; k++) {
@@ -181,10 +198,11 @@ function gp28FieldFunc (lines: string[], masked: string[], start: number, end: n
             continue;
         }
         const target = 'this.' + field;
-        if (keyType === 'string') {
-            lines[k] = head[1] + target + '[' + key + '] = ' + value;
+        const index = ((keyType === '*string') ? '*' : '') + key;
+        if ((keyType === 'string') || gp28HeaderProvesKey (masked, k, key)) {
+            lines[k] = head[1] + target + '[' + index + '] = ' + value;
         } else {
-            lines[k] = head[1] + 'if ' + key + ' != nil {\n' + head[1] + '\t' + target + '[*' + key + '] = ' + value + '\n' + head[1] + '}';
+            lines[k] = head[1] + 'if ' + key + ' != nil {\n' + head[1] + '\t' + target + '[' + index + '] = ' + value + '\n' + head[1] + '}';
         }
         masked[k] = gp28Mask (lines[k]);
     }
@@ -246,6 +264,13 @@ export function hx10w10Gp28Check (): string[] {
         '}\n';
     const out = gp28Stores (body);
     ok (out.indexOf ('if symbol != nil {\n\t\t\tthis.Trades[*symbol] = stored\n\t\t}') >= 0, 'trades store is not guarded-native: ' + out);
+    const inBlock = 'package ccxt\n\nfunc (this *X) f(symbol *string) {\n' +
+        '\tif _, ok := this.Trades[*symbol]; !ok {\n' +
+        '\t\tccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(1))\n' +
+        '\t}\n' +
+        '\treturn\n' +
+        '}\n';
+    ok (gp28Stores (inBlock).indexOf ('\t\tthis.Trades[*symbol] = ccxt.NewArrayCache(1)\n') >= 0, 'InOp header already derefs the key: ' + gp28Stores (inBlock));
     ok (gp28Stores (out) === out, 'not idempotent');
     return problems;
 }
