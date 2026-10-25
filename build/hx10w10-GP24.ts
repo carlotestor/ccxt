@@ -33,10 +33,10 @@ export function hx10w10GP24BaseImports (content: string): string {
     return text;
 }
 
-// the printer may only emit a stdlib call in a base file once its writer declares the import
+// the printer may only emit a stdlib call in the two base files whose writer declares the import
 export function installHx10w10GP24BaseImportSeam (go: any): void {
     if (go !== undefined) {
-        go.goBaseFileStdlibImportSeam = true;
+        go.goBaseFileStdlibImportSeamPaths = /(?:base\/Exchange(?:\.nooverloads\.\d+)?|base\/PredictionExchange)\.ts$/;
     }
 }
 
@@ -121,11 +121,19 @@ export function hx10w10GP24Check (): string[] {
     if (hx10w10GP24BaseImports (raw) !== raw) {
         problems.push ('hx10w10 GP24: an unbannered file changed');
     }
-    // the seam flag is what the printer reads
+    // the seam flag is what the printer reads: the two base sources only, never a sliced writer's
     const go: any = {};
     installHx10w10GP24BaseImportSeam (go);
-    if (go.goBaseFileStdlibImportSeam !== true) {
-        problems.push ('hx10w10 GP24: the seam flag was not installed');
+    const seam = go.goBaseFileStdlibImportSeamPaths;
+    if (!(seam instanceof RegExp)) {
+        problems.push ('hx10w10 GP24: the seam paths were not installed');
+    } else {
+        if (!seam.test ('ts/src/base/Exchange.ts') || !seam.test ('ts/src/base/Exchange.nooverloads.42.ts') || !seam.test ('ts/src/base/PredictionExchange.ts')) {
+            problems.push ('hx10w10 GP24: the seam misses a base source');
+        }
+        if (seam.test ('ts/src/test/base/test.cache.ts') || seam.test ('ts/src/test/base/test.orderBook.ts') || seam.test ('ts/src/test/base/test.afterConstructor.ts')) {
+            problems.push ('hx10w10 GP24: the seam covers a sliced writer');
+        }
     }
     // an import whose text a later rewrite deleted is dropped; a used one stays
     const unusedFile = GP24_HEAD + 'import "strconv"\n\nfunc f (a any) string {\n\treturn ToString(a)\n}\n';
