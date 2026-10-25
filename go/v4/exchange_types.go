@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -56,20 +55,6 @@ func SafeBoolTyped(m any, key any) *bool {
 	return nil
 }
 
-func SafeMapToMap(sm *sync.Map) map[string]any {
-	if sm == nil {
-		return nil
-	}
-	result := make(map[string]any)
-	sm.Range(func(key, value any) bool {
-		if strKey, ok := key.(string); ok {
-			result[strKey] = value
-		}
-		return true
-	})
-	return result
-}
-
 // SafeMapTyped reads a free-form dictionary member (TS `Dict`), nil when absent or not a map.
 func SafeMapTyped(m any, key any) map[string]any {
 	res := SafeValue(m, key, nil)
@@ -78,9 +63,6 @@ func SafeMapTyped(m any, key any) map[string]any {
 	}
 	if asMap, ok := res.(map[string]any); ok {
 		return asMap
-	}
-	if asSyncMap, ok := res.(*sync.Map); ok {
-		return SafeMapToMap(asSyncMap)
 	}
 	return nil
 }
@@ -121,7 +103,7 @@ func SafeDict2Typed(m any, key1 any, key2 any, optionalArgs ...any) map[string]a
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	isDict := func(v any) bool {
 		switch derefScalar(v).(type) {
-		case map[string]any, *sync.Map, Dict, map[any]any, OrderBookInterface:
+		case map[string]any, Dict, map[any]any, OrderBookInterface:
 			return true
 		}
 		return false
@@ -354,9 +336,6 @@ func NewMarketsMap(data2 any) map[string]MarketInterface {
 		data2 = make(map[string]any)
 	}
 	// data := ConvertToMap(data2)
-	if dataMap, ok := data2.(*sync.Map); ok {
-		data2 = SafeMapToMap(dataMap)
-	}
 	data := MapOrEmpty(data2)
 	result := make(map[string]MarketInterface)
 	for key, value := range data {
@@ -1060,9 +1039,6 @@ func NewBalance(balanceData2 any) Balance {
 func NewBalances(balancesData2 any) Balances {
 	if balancesData2 == nil {
 		balancesData2 = make(map[string]any)
-	}
-	if dataMap, ok := balancesData2.(*sync.Map); ok {
-		balancesData2 = SafeMapToMap(dataMap)
 	}
 	balancesData := balancesData2.(map[string]any)
 	balancesMap := make(map[string]Balance)
@@ -2852,9 +2828,6 @@ func NewDepositWithdrawFeeNetworkEntry(data any) DepositWithdrawFeeNetworkEntry 
 	if data == nil {
 		return DepositWithdrawFeeNetworkEntry{}
 	}
-	if syncMap, ok := data.(*sync.Map); ok {
-		data = SafeMapToMap(syncMap)
-	}
 	m, ok := data.(map[string]any)
 	if !ok {
 		return DepositWithdrawFeeNetworkEntry{}
@@ -2891,9 +2864,6 @@ type DepositWithdrawFee struct {
 func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 	if data == nil {
 		return DepositWithdrawFee{}
-	}
-	if syncMap, ok := data.(*sync.Map); ok {
-		data = SafeMapToMap(syncMap)
 	}
 	m, ok := data.(map[string]any)
 	if !ok {
@@ -2938,9 +2908,6 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 func NewDepositWithdrawFeeMap(data2 any) map[string]DepositWithdrawFee {
 	if data2 == nil {
 		data2 = make(map[string]any)
-	}
-	if dataMap, ok := data2.(*sync.Map); ok {
-		data2 = SafeMapToMap(dataMap)
 	}
 	data := MapOrEmpty(data2)
 	result := make(map[string]DepositWithdrawFee)

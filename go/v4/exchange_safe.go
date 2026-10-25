@@ -4,7 +4,6 @@ import (
 	// "errors"
 	"encoding/json"
 	"fmt"
-	"sync"
 
 	// "reflect"
 	"strconv"
@@ -122,22 +121,6 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			}
 		}
 		return defVal
-	} else if syncDict, ok := obj.(*sync.Map); ok {
-		if syncDict == nil {
-			return defVal
-		}
-		for _, key := range keys {
-			if key == nil {
-				continue
-			}
-			keyStr := fmt.Sprintf("%v", key)
-			if value, found := syncDict.Load(keyStr); found {
-				value = derefScalar(value)
-				if value != nil && value != "" {
-					return value
-				}
-			}
-		}
 	}
 
 	switch v := obj.(type) {

@@ -1,7 +1,5 @@
 package ccxt
 
-import "sync"
-
 func (this *BaseExchange) initializeProperties(extendedProperties map[string]any) {
 
 	this.TransformedApi = map[string]any{}
@@ -82,7 +80,7 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 }
 
 // MapToSafeMap copies the input into a plain dictionary: the safe dictionary type is
-// a map now, so no *sync.Map producer remains in the runtime.
+// a plain map now, so the input is no longer wrapped in a concurrent one.
 func (this *BaseExchange) MapToSafeMap(input map[string]any) map[string]any {
 	if input == nil {
 		return nil
@@ -92,18 +90,4 @@ func (this *BaseExchange) MapToSafeMap(input map[string]any) map[string]any {
 		copied[k] = v
 	}
 	return copied
-}
-
-func (this *BaseExchange) SafeMapToMap(sm *sync.Map) map[string]any {
-	if sm == nil {
-		return nil
-	}
-	result := make(map[string]any)
-	sm.Range(func(key, value any) bool {
-		if strKey, ok := key.(string); ok {
-			result[strKey] = value
-		}
-		return true
-	})
-	return result
 }

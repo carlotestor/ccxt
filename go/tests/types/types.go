@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"sync"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
@@ -249,23 +248,4 @@ func main() {
 	testWsOrderBook(exchange)
 
 	Green("All tests passed")
-}
-
-func MapToSafeMap(input map[string]any) *sync.Map {
-	var sm sync.Map
-	for k, v := range input {
-		sm.Store(k, v)
-	}
-	return &sm
-}
-
-func SafeMapToMap(sm *sync.Map) map[string]any {
-	result := make(map[string]any)
-	sm.Range(func(key, value any) bool {
-		if strKey, ok := key.(string); ok {
-			result[strKey] = value
-		}
-		return true
-	})
-	return result
 }

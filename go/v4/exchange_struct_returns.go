@@ -1,23 +1,17 @@
 package ccxt
 
-import (
-	"reflect"
-	"sync"
-)
+import "reflect"
 
 // Runtime side of the struct-typed row builders (build/go-struct-returns.ts): the generated
 // ParseTicker/SafeTicker/... return a struct, every untyped caller boxes it back with <T>ToMap.
 // The structs carry exactly the keys declared in ts/src/base/types.ts; Info is the raw response.
 
 // RowDict is the box coercion every <T>FromMap builder takes over from its call sites: a
-// dictionary (even a nil one) passes through, a *sync.Map is converted, anything else is not
-// a dictionary. It answers what the site's four-arm switch answered before.
+// dictionary (even a nil one) passes through, anything else is not a dictionary. It answers
+// what the site's coercion switch answered before.
 func RowDict(data any) (map[string]any, bool) {
 	if m, ok := data.(map[string]any); ok {
 		return m, true
-	}
-	if sm, ok := data.(*sync.Map); ok {
-		return SafeMapToMap(sm), true
 	}
 	return nil, false
 }
@@ -672,9 +666,6 @@ func WatchResolved[T any](v any) T {
 			return any(c.ToArray()).(T)
 		}
 	case map[string]any:
-		if m, ok := v.(*sync.Map); ok {
-			return any(SafeMapToMap(m)).(T)
-		}
 	case bool:
 		return any(IsTrue(v)).(T)
 	case *string:

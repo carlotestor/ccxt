@@ -3,7 +3,7 @@ package ccxt
 // The ws caches on BaseExchange (Orderbooks / Ohlcvs / Trades / FundingRates / Tickers / Bidsasks),
 // the markets book and the boxed Balance / Positions fields are touched by exactly one goroutine:
 // the exchange's ws dispatch loop. Handlers run there and touch them directly; user-path code hands
-// the loop an operation, so a use site needs no lock and no sync.Map.
+// the loop an operation, so a use site needs no lock and no concurrent map.
 //
 // Ownership argument: the loop is the only reader and writer, frames and operations arrive on one
 // select, the ws client registry is read and written by the loop alone (user-path reads ask for a

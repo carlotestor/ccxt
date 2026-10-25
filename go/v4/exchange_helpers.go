@@ -117,16 +117,6 @@ func EvalTruthy(val any) bool {
 		return len(v) > 0
 	case map[string]any:
 		return len(v) > 0
-	case *sync.Map:
-		if v == nil {
-			return false
-		}
-		hasAny := false
-		v.Range(func(_, _ any) bool {
-			hasAny = true
-			return false // stop after the first item
-		})
-		return hasAny
 	case []string:
 		return len(v) > 0
 	case []int64:
@@ -190,10 +180,10 @@ func GetValue(collection any, key any) any {
 	return derefScalar(getValue(collection, key))
 }
 
-// MapTyped converts a boxed dictionary into a plain map: a map passes through, a
-// *sync.Map is converted, anything else (including nil) reads as a nil map, exactly
-// what the boxed value answered through GetValue/ObjectKeys/InOp. The printer emits it
-// for a local whose TypeScript type proves the box holds the market dictionary.
+// MapTyped converts a boxed dictionary into a plain map: a map passes through, anything
+// else (including nil) reads as a nil map, exactly what the boxed value answered through
+// GetValue/ObjectKeys/InOp. The printer emits it for a local whose TypeScript type proves
+// the box holds the market dictionary.
 func MapTyped(v any) map[string]any {
 	v = derefScalar(v)
 	if v == nil {
@@ -201,9 +191,6 @@ func MapTyped(v any) map[string]any {
 	}
 	if asMap, ok := v.(map[string]any); ok {
 		return asMap
-	}
-	if asSyncMap, ok := v.(*sync.Map); ok {
-		return SafeMapToMap(asSyncMap)
 	}
 	return nil
 }
@@ -307,19 +294,6 @@ func getValue(collection any, key any) any {
 		val, ok := v[keyStr]
 		if ok {
 			return val
-		}
-	case *sync.Map:
-		if v == nil {
-			return nil
-		}
-		if !isStr {
-			return nil
-		}
-		val, ok := v.Load(keyStr)
-		if ok {
-			return val
-		} else {
-			return nil
 		}
 	case []any:
 		if keyNum >= 0 && keyNum < len(v) {
@@ -781,10 +755,6 @@ func IsEqual(a, b any) bool {
 		if bVal, ok := b.(string); ok {
 			return aVal == bVal
 		}
-	case *sync.Map:
-		if aVal == nil {
-			return true
-		}
 	}
 
 	if a == nil || b == nil {
@@ -1060,13 +1030,6 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 		if key, ok := stringOrInt.(string); ok {
 			obj[key] = book
 		}
-	case *sync.Map:
-		if key, ok := stringOrInt.(string); ok {
-			obj.Store(key, value)
-			// return nil
-		} else {
-			// return fmt.Errorf("invalid key type for sync.Map: expected string")
-		}
 	case map[string]map[string]*ArrayCacheByTimestamp:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(map[string]*ArrayCacheByTimestamp); ok {
@@ -1174,15 +1137,6 @@ func InOp(dict any, key any) bool {
 		_, ok := v[key.(string)]
 		if ok {
 			return true
-		}
-	case *sync.Map:
-		if v == nil {
-			return false
-		}
-		if keyStr, ok := key.(string); ok {
-			if _, ok := v.Load(keyStr); ok {
-				return true
-			}
 		}
 	case OrderBookInterface:
 		// WsOrderBook is a typed struct, not a map - without this case every key-presence
@@ -1299,8 +1253,6 @@ func IsDictionary(v any) bool {
 	}
 	switch v.(type) {
 	case map[string]any:
-		return true
-	case *sync.Map:
 		return true
 	case Dict:
 		return true
@@ -1641,18 +1593,6 @@ func ObjectKeys(v any) []string {
 			keys = append(keys, key)
 		}
 		return keys
-	} else if syncMap, ok := v.(*sync.Map); ok {
-		keys := []string{}
-		if syncMap == nil {
-			return keys
-		}
-		syncMap.Range(func(k, _ any) bool {
-			if keyStr, ok := k.(string); ok {
-				keys = append(keys, keyStr)
-			}
-			return true
-		})
-		return keys
 	}
 	return nil
 	// val := reflect.ValueOf(v)
@@ -1680,16 +1620,6 @@ func ObjectValues(v any) []any {
 		for _, value := range mapObject {
 			values = append(values, value)
 		}
-		return values
-	} else if syncMap, ok := v.(*sync.Map); ok {
-		values := []any{}
-		if syncMap == nil {
-			return values
-		}
-		syncMap.Range(func(_, value any) bool {
-			values = append(values, value)
-			return true
-		})
 		return values
 	}
 	return nil
@@ -1855,7 +1785,7 @@ func IsNil(x any) bool {
 // derefScalar reproduces untyped-nil semantics for a maybe-undefined value that
 // travels as a pointer: a nil pointer becomes untyped nil (absent), a non-nil one
 // becomes the value it points at. Pointer types that are values in their own right
-// (*sync.Map, *PreciseStruct, *ArrayCache, ...) are returned untouched.
+// (*PreciseStruct, *ArrayCache, ...) are returned untouched.
 // DerefScalar is the exported form of derefScalar, used by transpiled code that
 // stores a Safe* result in an `any` local and then compares it inline.
 func DerefScalar(v any) any {
@@ -2934,12 +2864,6 @@ func Remove(dict any, key any) {
 			cache.Remove(keyStr)
 		}
 		delete(v, keyStr)
-		return
-	case *sync.Map:
-		// the javascript delete statement is a no-op on a missing key and
-		// never throws, mirror that semantic instead of panicking, concurrent
-		// transpiled deletes of the same key raced here and panicked the loser
-		v.Delete(keyStr)
 		return
 	case map[string]map[string]any:
 		// the ohlcv book is two-level; the javascript delete is a no-op on a missing key

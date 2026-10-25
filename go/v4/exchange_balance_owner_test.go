@@ -77,25 +77,6 @@ func TestWsBalanceOwnerKeepsTheHandlerMap(t *testing.T) {
 	}
 }
 
-func TestWsBalanceOwnerNormalisesABoxedSyncMap(t *testing.T) {
-	exchange := &BaseExchange{}
-	defer exchange.wsCacheStop()
-	raw := &sync.Map{}
-	raw.Store("spot", "1")
-	// a whole-map assignment can still hand the owner a box: its entries move into the field's map
-	exchange.WsCacheReplace("Balance", raw)
-
-	if got := exchange.WsCacheGetScalar("Balance", "spot"); got != "1" {
-		t.Fatalf("read = %v, want the seeded value", got)
-	}
-	if exchange.Balance == nil {
-		t.Fatalf("the owner must leave a plain map in the field")
-	}
-	if _, ok := exchange.Balance["spot"]; !ok {
-		t.Fatalf("the boxed entries must land in the field's own map")
-	}
-}
-
 func TestWsBalanceOwnerConcurrentOps(t *testing.T) {
 	exchange := &BaseExchange{}
 	defer exchange.wsCacheStop()

@@ -607,7 +607,7 @@ func (this *BaseExchange) ConvertToBigInt(data any) any {
 }
 
 // CreateSafeDictionary returns a plain dictionary: helpers read map[string]any
-// natively, so the safe dictionary is not a *sync.Map producer any more.
+// natively, so the safe dictionary is not a concurrent-map producer any more.
 func (this *BaseExchange) CreateSafeDictionary(isWs ...bool) map[string]any {
 	return map[string]any{}
 }
@@ -2446,8 +2446,8 @@ func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
 }
 
 // auxTables holds the base/quote currency tables, the transactions cache and the
-// reflection method table that used to be sync.Maps. One owner goroutine applies every
-// edit to a copy and publishes it, so a reader only ever sees a complete table.
+// reflection method table that used to be concurrent maps. One owner goroutine applies
+// every edit to a copy and publishes it, so a reader only ever sees a complete table.
 type auxTables struct {
 	baseCurrencies  map[string]any
 	quoteCurrencies map[string]any
