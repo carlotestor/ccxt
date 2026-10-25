@@ -62,6 +62,41 @@ function gp26FuncSpans (lines: string[]): Gp26Span[] {
     return spans;
 }
 
+// brace depth at the start of every line, and the lowest depth any line reaches inside itself
+function gp26Depths (masked: string[]): { start: number[]; low: number[] } {
+    const start: number[] = [];
+    const low: number[] = [];
+    let depth = 0;
+    for (const line of masked) {
+        start.push (depth);
+        let inner = depth;
+        for (const ch of line) {
+            if (ch === '{') {
+                depth++;
+            } else if (ch === '}') {
+                depth--;
+                inner = Math.min (inner, depth);
+            }
+        }
+        low.push (inner);
+    }
+    return { start, low };
+}
+
+// the declaring block is still open at the read: no line between them closes it
+function gp26Visible (decl: Gp26Decl, at: number, depths: { start: number[], low: number[] }): boolean {
+    const level = depths.start[decl.index];
+    if (depths.start[at] < level) {
+        return false;
+    }
+    for (let k = decl.index + 1; k < at; k++) {
+        if (depths.low[k] < level) {
+            return false;
+        }
+    }
+    return true;
+}
+
 interface Gp26Decl { index: number; type: string; init: string; }
 
 const GP26_VAR = /^\s*var ([A-Za-z_]\w*) ([\w\[\]\*\.]+) = (.*)$/;
@@ -117,6 +152,7 @@ function gp26WritesArePlain (body: string, name: string): boolean {
 
 // `GetValue(m, k)` / `ccxt.GetValue(m, k)` with an identifier receiver and a plain key
 const GP26_READ = /(?<![\w.])(?:ccxt\.)?GetValue\(\s*([A-Za-z_]\w*)\s*,\s*([A-Za-z_]\w*|"[^"\n]*")\s*\)/g;
+const GP26_READ_ONE = new RegExp ('^' + GP26_READ.source.replace (/\/g$/, ''));
 const GP26_KEY_TYPE = /^\s*([A-Za-z_]\w*) string\s*$/;
 
 export function hx10w10Gp26TypedReads (content: string): string {
@@ -128,6 +164,7 @@ export function hx10w10Gp26TypedReads (content: string): string {
     if (lines.length !== masked.length) {
         return content;
     }
+    const depths = gp26Depths (masked);
     for (const span of gp26FuncSpans (lines)) {
         const body = masked.slice (span.start, span.end + 1).join ('\n');
         for (let k = span.start + 1; k < span.end; k++) {
@@ -135,11 +172,19 @@ export function hx10w10Gp26TypedReads (content: string): string {
                 continue;
             }
             for (const match of [ ...masked[k].matchAll (GP26_READ) ].reverse ()) {
-                const receiver = match[1];
-                const key = match[2];
                 const at = match.index!;
+                // the key text comes from the real line: the masked copy has its literal blanked
+                const parsed = GP26_READ_ONE.exec (lines[k].substring (at, at + match[0].length));
+                if (parsed === null) {
+                    continue;
+                }
+                const receiver = parsed[1];
+                const key = parsed[2];
                 const decl = gp26DeclOf (lines, span.start, k, receiver);
                 if ((decl === undefined) || (decl.type !== GP26_MAP) || (decl.index >= k)) {
+                    continue;
+                }
+                if (!gp26Visible (decl, k, depths)) {
                     continue;
                 }
                 if (!gp26WritesArePlain (body, receiver)) {
