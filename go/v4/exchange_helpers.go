@@ -3226,6 +3226,20 @@ func EndpointRaw[T any](in <-chan EndpointResult[T]) <-chan AsyncResult[any] {
 	return out
 }
 
+// EndpointTyped is EndpointRaw's inverse: a runtime-dispatched endpoint (no baked path, so it
+// cannot use Fetch2Result) still has a declared response shape, and the receiver reads it as
+// that shape instead of converting the box at every call site.
+func EndpointTyped[T any](in <-chan AsyncResult[any]) <-chan EndpointResult[T] {
+	out := make(chan EndpointResult[T], 1)
+	go func() {
+		defer close(out)
+		if r, ok := <-in; ok {
+			out <- EndpointResult[T]{Value: endpointValue[T](r.Value), Raw: r.Value, Err: r.Err}
+		}
+	}()
+	return out
+}
+
 // ReturnPanicErrorT is ReturnPanicError for an EndpointResult channel.
 func ReturnPanicErrorT[T any](ch chan EndpointResult[T]) {
 	if r := recover(); r != nil {
