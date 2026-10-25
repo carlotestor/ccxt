@@ -138,8 +138,9 @@ function elemKind(expr: string, locals: Map<string, Local>, depth = 0): string |
         const close = closeParen(e, open);
         if (close !== e.length) return undefined;
         const inner = e.slice(open + 1, close - 1);
-        // The printer's `split` idiom maps every part through `Value::Str`.
-        if (/\.map\(\|__p\| Value::Str\(/.test(inner)) return 'str';
+        // The printer's `split` idiom maps every part through `Value::Str` — as a `|__p|` closure or,
+        // since the ast closure pass, as the `From` fn item on the split parts.
+        if (/\.map\(\|__p\| Value::Str\(|\.split\([^()]*\)\.map\(Value::from\)/.test(inner)) return 'str';
         return undefined;
     }
     if (/^(?:crate::runtime::)?split\(/.test(e)) return 'str';
@@ -447,6 +448,11 @@ export function r07StringSelfTest(): string[] {
             'join-on-str-array-local',
             'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());\n    join(&parts, &Value::Str("-".into()))\n}\n',
             'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());\n    Value::str(parts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"))\n}\n',
+        ],
+        [
+            'join-on-str-array-local-from-split',
+            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());\n    join(&parts, &Value::Str("-".into()))\n}\n',
+            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());\n    Value::str(parts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"))\n}\n',
         ],
         [
             'unproven-join-keeps-helper',
