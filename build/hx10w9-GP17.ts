@@ -296,7 +296,7 @@ function gp17SingleLine (raw: string[], masked: string[], at: number, holder: st
     return found;
 }
 // the value of one call site: `temp` asks for a local the pointer result is materialised into
-function gp17ResolveSite  (raw: string[], masked: string[], index: number, producer: string): Gp17Site | undefined {
+function gp17ResolveSite (raw: string[], masked: string[], index: number, producer: string, qualifier: string): Gp17Site | undefined {
     const decl = gp17Holder (masked[index]);
     const rawDecl = gp17Holder (raw[index]);
     const slot0 = gp17Slot0 (producer);
@@ -431,7 +431,7 @@ function gp17ResolveSite  (raw: string[], masked: string[], index: number, produ
                 if (!value.declared) {
                     post.push (indent + 'var ' + value.name + ' any = nil');
                 }
-                post.push (indent + value.name + ' = DerefScalar(' + temporary + ')');
+                post.push (indent + value.name + ' = ' + qualifier + 'DerefScalar(' + temporary + ')');
             }
         } else if (value.deref === 'bool') {
             const fallback = value.fallback ?? 'false';
@@ -566,7 +566,7 @@ function gp17BlockRead (masked: string[], at: number, holder: string, slot0: str
 
 // `var x *string = SafeStringPtr (GetValue (this.<P> (…), 0))`: one element of the pair, read
 // without a holder. The twin hands that element back as its first result.
-function gp17InlinePairReads (content: string): string {
+function gp17InlinePairReads (content: string, qualifier: string): string {
     if (content.indexOf ('GetValue(this.') < 0) {
         return content;
     }
@@ -595,7 +595,7 @@ function gp17InlinePairReads (content: string): string {
             const temporary = boxedMatch[2] + 'Ptr';
             raw[i] = boxedMatch[1] + temporary + ', _ := this.' + boxedRaw[3] + '(' + boxedRaw[4] + ')\n'
                 + boxedMatch[1] + 'var ' + boxedMatch[2] + ' any = nil\n'
-                + boxedMatch[1] + boxedMatch[2] + ' = DerefScalar(' + temporary + ')';
+                + boxedMatch[1] + boxedMatch[2] + ' = ' + qualifier + 'DerefScalar(' + temporary + ')';
             masked[i] = raw[i];
             changed = true;
             continue;
@@ -616,7 +616,9 @@ export function hx10w9Gp17ParamsSlotBinds (content: string): string {
         && (content.indexOf ('TupleSlice(ccxt.this.') < 0)) {
         return content;
     }
-    content = gp17InlinePairReads (content);
+    // a file outside package ccxt reaches the runtime helpers through the ccxt qualifier
+    const qualifier = /^package\s+(?!ccxt\b)/m.test (content) ? 'ccxt.' : '';
+    content = gp17InlinePairReads (content, qualifier);
     const lines = gp17Split (content);
     if (lines === undefined) {
         return content;
@@ -629,7 +631,7 @@ export function hx10w9Gp17ParamsSlotBinds (content: string): string {
         if ((decl === undefined) || (gp17Slot0 (decl.producer) === undefined) || edits.has (i)) {
             continue;
         }
-        const site = gp17ResolveSite (raw, masked, i, decl.producer);
+        const site = gp17ResolveSite (raw, masked, i, decl.producer, qualifier);
         if (site === undefined) {
             continue;
         }
