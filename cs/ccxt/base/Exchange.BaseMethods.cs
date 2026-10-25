@@ -1036,7 +1036,7 @@ public partial class BaseExchange
         this.options["enableDemoTrading"] = enable;
     }
 
-    public virtual Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public virtual Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -4760,7 +4760,7 @@ public partial class BaseExchange
         return results;
     }
 
-    public async virtual Task<object> fetch2(string path, object api = null, object method = null, object parameters = null, object config = null)
+    public async virtual Task<object> fetch2(string path, IList<object> api = null, object method = null, object parameters = null, object config = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -4844,7 +4844,7 @@ public partial class BaseExchange
         return null;  // this line is never reached, but exists for c# value return requirement
     }
 
-    public async virtual Task<object> request(string path, object api = null, object method = null, object parameters = null, object config = null)
+    public async virtual Task<object> request(string path, IList<object> api = null, object method = null, object parameters = null, object config = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -8299,19 +8299,19 @@ public partial class BaseExchange
         Int64 hour = (60 * minute);
         Int64 day = (24 * hour);
         Int64 week = (7 * day);
-        if (isEqual((msInt % week), 0))
+        if (((msInt % week) == 0))
         {
             return (((object)this.parseToInt(((double?)msInt / week))).ToString() + "w");
         }
-        if (isEqual((msInt % day), 0))
+        if (((msInt % day) == 0))
         {
             return (((object)this.parseToInt(((double?)msInt / day))).ToString() + "d");
         }
-        if (isEqual((msInt % hour), 0))
+        if (((msInt % hour) == 0))
         {
             return (((object)this.parseToInt(((double?)msInt / hour))).ToString() + "h");
         }
-        if (isEqual((msInt % minute), 0))
+        if (((msInt % minute) == 0))
         {
             return (((object)this.parseToInt(((double?)msInt / minute))).ToString() + "m");
         }

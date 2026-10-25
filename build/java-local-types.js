@@ -193,6 +193,7 @@ import path from 'node:path';
 import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
+import { javaVenueCalleeType, installHx10w9JD01 } from './hx10w9-JD01.js';
 
 // ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
@@ -1602,6 +1603,12 @@ function syncCoreCallType (printer, node) {
     const methodName = node.expression.name?.text;
     if (methodName === undefined || JAVA_CORE_SYNC_DECLINED.has (methodName)) {
         return undefined;
+    }
+    // hx10w9-JD01: a generated venue callee's own printed signature decides here, not the
+    // previous on-disk generation of the file this build rewrites
+    const emitted = javaVenueCalleeType (printer, node);
+    if (emitted !== undefined) {
+        return emitted.type;
     }
     const entry = javaCoreDeclarationTable (node)?.get (methodName);
     if (entry === undefined || entry.future || entry.types.size !== 1) {
@@ -5903,6 +5910,11 @@ export function installJavaLocalTypes (transpiler) {
     if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaLocalTypesPatched) {
         return;
     }
+    installHx10w9JD01(printer, (declaration) => {
+        // only the family this unit decides: a sync whole-call to a generated venue method
+        const initializer = declaration?.initializer === undefined ? undefined : unwrapParens (declaration.initializer);
+        return initializer === undefined ? undefined : javaVenueCalleeType (printer, initializer)?.type;
+    });
     // (1) string/list method signatures. Wrapped on the printer instance so every
     // declaration — base tier and every venue override — goes through the same table.
     const upstreamFunctionType = printer.printFunctionType.bind (printer);

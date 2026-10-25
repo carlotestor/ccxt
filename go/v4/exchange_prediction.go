@@ -534,7 +534,7 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 		"event":     nil,
 		"info":      map[string]any{},
 	}
-	return MapTyped(outcomeObjValue)
+	return outcomeObjValue
 }
 func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optionalArgs ...any) any {
 	outcomeObj := GetArg(optionalArgs, 0, nil)
