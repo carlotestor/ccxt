@@ -6408,9 +6408,9 @@ function h2kJ06NativeHandlerDispatch (content: string): string {
         // the handler local: one declaration, never reassigned
         const decls = body.filter((l) => new RegExp('^\\s*\\S.*\\b' + v + ' = ').test(l) || new RegExp('^\\s*' + v + ' = ').test(l));
         if (decls.length !== 1) continue;
-        const dm = new RegExp('^\\s*Object ' + v + ' = (?:this\\.safeValue\\((\\w+), \\w+\\)|\\((\\w+) == null \\|\\| \\w+ == null \\? null : (\\w+)\\.get\\(\\w+\\)\\));\\s*$').exec(decls[0]);
+        const dm = new RegExp('^\\s*Object ' + v + ' = (?:this\\.safeValue\\((\\w+), \\w+\\)|\\((\\w+) == null \\|\\| \\w+ == null \\? null : (\\w+)\\.get\\(\\w+\\)\\)|\\(+java\\.util\\.Objects\\.equals\\(\\w+, null\\)\\)+ \\? null : this\\.safeValue\\((\\w+), \\w+\\));\\s*$').exec(decls[0]);
         if (dm === null || (dm[2] !== undefined && dm[2] !== dm[3])) continue;
-        const map = dm[1] ?? dm[2];
+        const map = dm[1] ?? dm[2] ?? dm[4];
         // the map: one literal declaration of string values, only read afterwards
         const mapDecl = body.findIndex((l) => new RegExp('^\\s*Map<String, Object> ' + map + ' = new HashMap<String, Object>\\(\\) \\{\\{\\s*$').test(l));
         if (mapDecl < 0) continue;
