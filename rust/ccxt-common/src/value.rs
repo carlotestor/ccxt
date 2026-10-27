@@ -2232,7 +2232,7 @@ impl Value {
         if let Value::Dict(m) = &*self {
             if try_book_meta_write(m, k, &v) { return; }
         }
-        crate::runtime::add_element_to_object(self, &Value::Str(k.into()), v);
+        crate::runtime::add_element_to_object(self, &Value::Str(k.to_string().into()), v);
     }
 
     /// `book.limit()` — trim both sides to `_depth`. Returns a clone
