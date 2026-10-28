@@ -4929,6 +4929,7 @@ class NewTranspiler {
         javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
         javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
         javaSource = hx10w10JO01(javaSource) // hx10 wave-10 JO01: counter RMW is one owner task
+        javaSource = h2kJ06NativeCallDynamically(javaSource) // h2k J06 again: later passes put handler decls in their final shape
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
