@@ -91,6 +91,7 @@ function overwriteFileAndFolder(path: string, content: string) {
         content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
         if (path.includes('/java/lib/')) { content = nativeJ05CallReceiverReads(content); } // hx10 wave-7 J05
         content = j12AsyncThrows(content); // hx10 wave-7 J12
+        if (path.includes('/java/lib/')) { content = h2kJ06NativeCallDynamically(content); } // h2k J06 on the final text: the handler map prints `Map<String, Object> .. = new HashMap` only after applyJavaImports
     }
     overwriteFile(path, content);
 }
