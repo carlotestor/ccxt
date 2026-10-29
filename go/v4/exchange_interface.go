@@ -34,7 +34,7 @@ type ICancelOrder interface {
 	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IEditOrder interface {
-	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order]
+	EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IEditOrderWithClientOrderId interface {
 	EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order]
