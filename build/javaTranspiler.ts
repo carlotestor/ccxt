@@ -4942,6 +4942,7 @@ class NewTranspiler {
         javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
         javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
         javaSource = hx10w10JO01(javaSource) // hx10 wave-10 JO01: counter RMW is one owner task
+        javaSource = hx11w8StringKeyThisPut(javaSource) // hx11w8 string-key-refine: this.<map field>.put(String, v)
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
@@ -5848,7 +5849,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), wsReadsTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j05CallReceiverSelfTest(), j12SelfTest(), jo01SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), wsReadsTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j05CallReceiverSelfTest(), j12SelfTest(), jo01SelfTest(), hx11w8StringKeyThisPutSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -9008,6 +9009,63 @@ function j34MapLocalsSelfTest (): string[] {
         const out = nativeJavaJ34MapLocals (input);
         const ok = expect === undefined ? out === input : out.includes (expect);
         if (!ok) problems.push (`hx4 J34 map locals: ${name}\n${out}`);
+    }
+    return problems;
+}
+
+// hx11w8 printer-java-addelement-string-key-refine: Helpers.addElementToObject on this.tickers / this.orderbooks / this.ohlcvs
+// with a String literal or a String-declared local key. The fields are declared Map<String, Object> and BaseExchange only ever assigns
+// them a HashMap (createSafeDictionary), so the helper's null-remove arm is unreachable and the typed put is the same write.
+// No cast form: any other key type is left to the helper.
+export function hx11w8StringKeyThisPut (content: string): string {
+    if (!/Helpers\.addElementToObject\(this\.(?:tickers|orderbooks|ohlcvs), /.test (content)) return content;
+    const lines = content.split ('\n');
+    let from = 0;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        if (/^    (?:public|private|protected)\b/.test (lines[i])) from = i;
+        const m = /^(\s*)Helpers\.addElementToObject\((this\.(?:tickers|orderbooks|ohlcvs)), (.*)\);(\s*\/\/.*)?$/.exec (lines[i]);
+        if (m === null) continue;
+        const args = j26Args (`(${m[3]})`, 0);
+        if (args === undefined || args.length !== 2) continue;
+        const [ key, value ] = args.map ((a) => a.trim ());
+        if (!/^(?:"(?:[^"\\]|\\.)*"|[A-Za-z_]\w*)$/.test (key)) continue;
+        if (key[0] !== '"') {
+            let to = i + 1;
+            while (to < lines.length && !/^    (?:public|private|protected)\b/.test (lines[to])) to++;
+            const member = [ lines[from], ...lines.slice (from + 1, to) ].join ('\n');
+            const types = new Set<string> ();
+            for (const d of member.matchAll (new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.<>?, ]+?) ${key}(?=\\s*(?:=(?!=)|[,);:]))`, 'gm'))) {
+                const t = d[1].replace (/^final /, '').trim ();
+                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
+                types.add (t);
+            }
+            if (types.size !== 1 || [ ...types ][0] !== 'String') continue;
+        }
+        lines[i] = `${m[1]}${m[2]}.put(${key}, ${value});${m[4] ?? ''}`;
+        changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+function hx11w8StringKeyThisPutSelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (sig: string, body: string) => `public class Woo extends WooRest\n{\n    public Object m(${sig})\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string, string | undefined][] = [
+        [ 'String param key', 'String symbol, Object v', '        Helpers.addElementToObject(this.orderbooks, symbol, v);', '        this.orderbooks.put(symbol, v);' ],
+        [ 'String local key', 'Object v', '        String symbol = "a";\n        Helpers.addElementToObject(this.tickers, symbol, v);', '        this.tickers.put(symbol, v);' ],
+        [ 'literal key', 'Object v', '        Helpers.addElementToObject(this.ohlcvs, "a", v);', '        this.ohlcvs.put("a", v);' ],
+        [ 'Object key kept', 'Object symbol, Object v', '        Helpers.addElementToObject(this.tickers, symbol, v);', undefined ],
+        [ 'call key kept', 'Map<String, Object> market, Object v', '        Helpers.addElementToObject(this.tickers, market.get("symbol"), v);', undefined ],
+        [ 'options kept', 'String k, Object v', '        Helpers.addElementToObject(this.options, k, v);', undefined ],
+        [ 'balance kept', 'String k, Object v', '        Helpers.addElementToObject(this.balance, k, v);', undefined ],
+        [ 'mixed decl kept', 'Object v', '        String symbol = "a";\n        Object symbol = 1;\n        Helpers.addElementToObject(this.tickers, symbol, v);', undefined ],
+    ];
+    for (const [ name, sig, body, expect ] of cases) {
+        const input = cls (sig, body);
+        const out = hx11w8StringKeyThisPut (input);
+        const ok = expect === undefined ? out === input : out.includes (expect);
+        if (!ok) problems.push (`hx11w8 string-key this put: ${name}\n${out}`);
     }
     return problems;
 }
