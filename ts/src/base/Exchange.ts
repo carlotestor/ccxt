@@ -6739,17 +6739,12 @@ export class BaseExchange {
 
     async fetch2 (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
         if (this.enableRateLimit) {
-            const cost = this.calculateRateLimiterCost (api, method, path, params, config);
-            await this.throttle (cost);
+            await this.throttle (this.calculateRateLimiterCost (api, method, path, params, config));
         }
-        const retries = 0;
         // implicit endpoints may pass a list body as params: keep it an untyped box
         const requestParams: object = params;
-        const [ retriesSlot, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
-        const retriesMaxRetriesOnFailure = this.parseToInt (retriesSlot);
-        const retryDelay = 0;
-        const [ retryDelaySlot, paramsMaxRetriesOnFailureDelay ] = this.handleOptionIntegerAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
-        const retryDelayMaxRetriesOnFailureDelay = this.parseToInt (retryDelaySlot);
+        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (requestParams, path, 'maxRetriesOnFailure', 0);
+        const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionIntegerAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', 0);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retriesMaxRetriesOnFailure + 1; i++) {
             let fetchData: NullableDict = undefined;
