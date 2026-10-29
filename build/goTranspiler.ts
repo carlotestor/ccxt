@@ -97,6 +97,8 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'fetchLedgerEntry': [ 0 ], 'withdrawWs': [ 0, 2 ], 'fetchOrdersByStatusWs': [ 0 ],
     'editOrder': [ 0 ], 'fetchOrder': [ 0 ], 'fetchOrderRequest': [ 0 ], 'fetchOrderTrades': [ 0 ], 'withdraw': [ 0 ],
     'transfer': [ 0, 3 ], 'setMarginMode': [ 0 ],
+    // hx11 w8: every fetchOpenOrder/fetchClosedOrder/fetchDeposit override declares `id: string`
+    'fetchOpenOrder': [ 0 ], 'fetchClosedOrder': [ 0 ], 'fetchDeposit': [ 0 ],
     // required `code: string` currency-code params (every declaration in ts/src is a required string)
     'fetchBorrowRateHistory': [ 0 ], 'fetchVolatilityHistory': [ 0 ], 'futuresTransfer': [ 0 ], 'createGiftCode': [ 0 ],
     'transferIn': [ 0 ], 'transferOut': [ 0 ], 'fetchDepositMethods': [ 0 ], 'fetchNetworkDepositAddress': [ 0 ],
