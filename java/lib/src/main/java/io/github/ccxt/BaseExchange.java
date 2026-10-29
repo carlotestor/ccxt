@@ -7555,7 +7555,7 @@ public Map<String, Object> describe()
             }
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object feeValues = new ArrayList<Object>(reduced.values());
+        List<Object> feeValues = new ArrayList<Object>(reduced.values());
         for (var i = 0; i < ((List<?>)feeValues).size(); i++)
         {
             List<Object> reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i)));
@@ -12678,7 +12678,7 @@ public Map<String, Object> describe()
                 List<Object> clients = Helpers.objectValues(this.clients);
                 for (var i = 0; i < ((List<?>)clients).size(); i++)
                 {
-                    Client client = (Client)Helpers.GetValue(clients, i);
+                    Client client = (Client)(clients == null || i < 0 || i >= clients.size() ? null : clients.get(i));
                     Map<String, io.github.ccxt.ws.Future> futures = client.futures;
                     if (futures.containsKey("fetchPositionsSnapshot"))
                     {

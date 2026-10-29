@@ -3937,7 +3937,7 @@ public class Hyperliquid extends HyperliquidApi
                     }
                 }
             }
-            Object deduplicated = new ArrayList<Object>(deduplicatedByOid.values());
+            List<Object> deduplicated = new ArrayList<Object>(deduplicatedByOid.values());
             return this.parseOrders(deduplicated, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
