@@ -6745,9 +6745,11 @@ export class BaseExchange {
         const retries = 0;
         // implicit endpoints may pass a list body as params: keep it an untyped box
         const requestParams: object = params;
-        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
+        const [ retriesSlot, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
+        const retriesMaxRetriesOnFailure = this.parseToInt (retriesSlot);
         const retryDelay = 0;
-        const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionIntegerAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
+        const [ retryDelaySlot, paramsMaxRetriesOnFailureDelay ] = this.handleOptionIntegerAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
+        const retryDelayMaxRetriesOnFailureDelay = this.parseToInt (retryDelaySlot);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retriesMaxRetriesOnFailure + 1; i++) {
             let fetchData: NullableDict = undefined;
@@ -6778,7 +6780,7 @@ export class BaseExchange {
                             const index = i + 1;
                             this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + index.toString () + ' of ' + retriesMaxRetriesOnFailure.toString () + '...');
                         }
-                        if ((retryDelayMaxRetriesOnFailureDelay !== undefined) && (retryDelayMaxRetriesOnFailureDelay !== 0)) {
+                        if (retryDelayMaxRetriesOnFailureDelay !== 0) {
                             await this.sleep (retryDelayMaxRetriesOnFailureDelay);
                         }
                     } else {
