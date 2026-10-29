@@ -36,7 +36,7 @@ function calleeAlwaysOrderMap (lines: string[], callee: string): boolean {
         const ret = /^\s*return\b\s*(.*)$/.exec (line);
         if (ret !== null) {
             returns++;
-            if (!ORDER_TO_MAP.test (ret[1].trim ()) || !balancedWhole (ret[1].trim ())) {
+            if (!ORDER_TO_MAP.test (ret[1].trim ())) {  // the call may continue on later lines
                 return false;
             }
         }
