@@ -7558,7 +7558,7 @@ public Map<String, Object> describe()
         Object feeValues = new ArrayList<Object>(reduced.values());
         for (var i = 0; i < ((List<?>)feeValues).size(); i++)
         {
-            Object reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i)));
+            List<Object> reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i)));
             result = (List<Object>) this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -12675,7 +12675,7 @@ public Map<String, Object> describe()
             } else if (java.util.Objects.equals(topic, "positions") && (!java.util.Objects.equals(this.positions, null)))
             {
                 this.positions = null;
-                Object clients = Helpers.objectValues(this.clients);
+                List<Object> clients = Helpers.objectValues(this.clients);
                 for (var i = 0; i < ((List<?>)clients).size(); i++)
                 {
                     Client client = (Client)Helpers.GetValue(clients, i);
