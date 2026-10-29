@@ -9035,7 +9035,7 @@ export function hx11w8StringKeyThisPut (content: string): string {
             while (to < lines.length && !/^    (?:public|private|protected)\b/.test (lines[to])) to++;
             const member = [ lines[from], ...lines.slice (from + 1, to) ].join ('\n');
             const types = new Set<string> ();
-            for (const d of member.matchAll (new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.<>?, ]+?) ${key}(?=\\s*(?:=(?!=)|[,);:]))`, 'gm'))) {
+            for (const d of member.matchAll (new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${key}(?=\\s*(?:=(?!=)|[,);:]))`, 'g'))) {
                 const t = d[1].replace (/^final /, '').trim ();
                 if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
                 types.add (t);
