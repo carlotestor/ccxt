@@ -2022,6 +2022,7 @@ const VENUE_RETURN_KINDS = {
     // hx10w3 J02: `parseWsBalance (…): Balances` is a dict view — the field it feeds (this.balance)
     // prints Map<String, Object>, so the venue declarations and their callers must say so too
     'parseWsBalance': [ JAVA_ARRAY_TYPE_MAP () ],
+    'getMarketFromClientAndMessage': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2119,7 +2120,26 @@ function venueReturnCast (printer, node, method, javaType) {
     if (enclosingFunction (node) !== method) {
         return undefined;
     }
+    // a const local fed by this.market/safeMarket is already declared Map<String, Object>: no cast
+    if (javaType === JAVA_ARRAY_TYPE_MAP () && constMapCallLocal (printer, expression)) {
+        return undefined;
+    }
     return '(' + javaType + ')';
+}
+
+function constMapCallLocal (printer, expression) {
+    if (!ts.isIdentifier (expression)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    const init = declaration !== undefined && ts.isVariableDeclaration (declaration) ? unwrapParens (declaration.initializer) : undefined;
+    return init !== undefined && isThisCall (init) && JAVA_MAP_RETURN_METHODS.has (init.expression.name.text)
+        && resolvesToMethodNamed (printer, init, init.expression.name.text);
 }
 
 // `this.omitZero (<String>)` binds the hand-written `String omitZero (String)` overload
