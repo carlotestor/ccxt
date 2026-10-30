@@ -10023,9 +10023,9 @@ impl KucoinCore {
                 m
             });
         }
-        let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
-        if (type_var.as_str() == Some("match")) {
-            type_var = Value::Null;
+        let mut type_var: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
+        if (type_var.as_deref() == Some("match")) {
+            type_var = None;
         }
         let mut costString: Value = self.safe_string2(trade.clone(), Value::Str("funds".into()), Value::Str("dealValue".into()), &[]);
         return self.safe_trade(Value::Map({
@@ -10036,7 +10036,7 @@ impl KucoinCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString);

@@ -3800,10 +3800,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "dealStock", &[]);
-        let mut remaining: Value = self.safe_string_k(order.clone(), "left", &[]);
-        let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
-        if (clientOrderId.as_str() == Some("")) {
-            clientOrderId = Value::Null;
+        let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "left", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "clientOrderId", &[]);
+        if (clientOrderId.as_deref() == Some("")) {
+            clientOrderId = None;
         }
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "activation_price", &[]);
@@ -3811,7 +3811,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut orderType: Value = self.parse_order_type(type_var.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         if (orderType.as_str() == Some("market")) {
-            remaining = Value::Null;
+            remaining = None;
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
         let mut cost: Option<String> = self.safe_string_k_opt(order.clone(), "dealMoney", &[]);
@@ -3843,7 +3843,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), orderId);
         m.insert("symbol".to_string(), symbol);
-        m.insert("clientOrderId".to_string(), clientOrderId);
+        m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
@@ -3856,7 +3856,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("amount".to_string(), amount);
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
-        m.insert("remaining".to_string(), remaining);
+        m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);

@@ -792,16 +792,16 @@ impl CexCore {
         //        "pair": ["BTC", "USDT"]
         //    }
         let mut pair: Value = self.safe_list_k(ticker.clone(), "pair", &[Value::from(vec![])]);
-        let mut baseId: Value = self.safe_string_k(ticker.clone(), "symbol1", &[]);
-        if (baseId == Value::Null) {
-            baseId = self.safe_string(pair.clone(), Value::Int(0), &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol1", &[]);
+        if (baseId.is_none()) {
+            baseId = self.safe_string_opt(pair.clone(), Value::Int(0), &[]);
         }
-        let mut quoteId: Value = self.safe_string_k(ticker.clone(), "symbol2", &[]);
-        if (quoteId == Value::Null) {
-            quoteId = self.safe_string(pair, Value::Int(1), &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol2", &[]);
+        if (quoteId.is_none()) {
+            quoteId = self.safe_string_opt(pair, Value::Int(1), &[]);
         }
-        let mut base: Value = self.safe_currency_code(baseId, &[]);
-        let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut symbol: Value = Value::Null;
         if (base != Value::Null) && (quote != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
@@ -1192,15 +1192,15 @@ impl CexCore {
         let mut isTransaction: bool = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("tx");
         let mut orderId: Value = self.safe_string2(data.clone(), Value::Str("id".into()), Value::Str("order".into()), &[]);
         let mut remains: Value = self.safe_string_k(data.clone(), "remains", &[]);
-        let mut baseId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
-        let mut quoteId: Value = self.safe_string_k(data.clone(), "symbol2", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(data.clone(), "symbol", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(data.clone(), "symbol2", &[]);
         let mut pair: Value = self.safe_dict_k(data.clone(), "pair", &[]);
         if (pair != Value::Null) {
-            baseId = self.safe_string_k(pair.clone(), "symbol1", &[]);
-            quoteId = self.safe_string_k(pair, "symbol2", &[]);
+            baseId = self.safe_string_k_opt(pair.clone(), "symbol1", &[]);
+            quoteId = self.safe_string_k_opt(pair, "symbol2", &[]);
         }
-        let mut base: Value = self.safe_currency_code(baseId, &[]);
-        let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
             return;
         }
@@ -1301,15 +1301,15 @@ impl CexCore {
             }
             self.currency_from_precision(market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), amount.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         }
-        let mut baseId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        let mut quoteId: Value = self.safe_string_k(order.clone(), "symbol2", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol2", &[]);
         let mut pair: Value = self.safe_dict_k(order.clone(), "pair", &[]);
         if (pair != Value::Null) {
-            baseId = self.safe_string_k(order.clone(), "symbol1", &[]);
-            quoteId = self.safe_string_k(order.clone(), "symbol2", &[]);
+            baseId = self.safe_string_k_opt(order.clone(), "symbol1", &[]);
+            quoteId = self.safe_string_k_opt(order.clone(), "symbol2", &[]);
         }
-        let mut base: Value = self.safe_currency_code(baseId, &[]);
-        let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut symbol: Value = Value::Null;
         if (base != Value::Null) && (quote != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());

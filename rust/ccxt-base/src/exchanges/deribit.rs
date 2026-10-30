@@ -3067,9 +3067,9 @@ impl DeribitCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "creation_timestamp", &[]);
         let mut lastUpdate: Value = self.safe_integer_k(order.clone(), "last_update_timestamp", &[]);
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "order_id", &[]);
-        let mut priceString: Value = self.safe_string_k(order.clone(), "price", &[]);
-        if (priceString.as_str() == Some("market_price")) {
-            priceString = Value::Null;
+        let mut priceString: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
+        if (priceString.as_deref() == Some("market_price")) {
+            priceString = None;
         }
         let mut averageString: Option<String> = self.safe_string_k_opt(order.clone(), "average_price", &[]);
         // Inverse contracts amount is in USD which in ccxt is the cost
@@ -3121,7 +3121,7 @@ impl DeribitCore {
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), priceString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order, "stop_price", &[]));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost);

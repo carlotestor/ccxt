@@ -1507,16 +1507,16 @@ impl AlpacaCore {
             ohlcvs = self.safe_list(bars.clone(), marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
             if paginate.as_bool() == Some(true) {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
-                let mut pageToken: Value = self.safe_string_k(response.clone(), "next_page_token", &[]);
+                let mut pageToken: Option<String> = self.safe_string_k_opt(response.clone(), "next_page_token", &[]);
                 {
                                         let mut i: Value = Value::Int(1);
                     let mut __for_first_220: bool = true;
                     while { if !__for_first_220 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
                     let mut ohlcvsLength: f64 = ((ohlcvs.len() as i64) as f64);
-                    if (pageToken == Value::Null) || ((limit != Value::Null) && (ohlcvsLength >= limit.as_f64().unwrap_or(f64::NAN))) {
+                    if (pageToken.is_none()) || ((limit != Value::Null) && (ohlcvsLength >= limit.as_f64().unwrap_or(f64::NAN))) {
                         break;
                     }
-                    request.insert("page_token".into(), pageToken.clone());
+                    request.insert("page_token".into(), pageToken.clone().map(Value::from).unwrap_or(Value::Null));
                     let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[query.clone()]);
                     response = self.market_public_get_v1beta3_crypto_loc_bars(&[__ws_arg_5]).await;
                     bars = self.safe_dict_k(response.clone(), "bars", &[Value::Map({
@@ -1529,7 +1529,7 @@ impl AlpacaCore {
                         break;
                     }
                     ohlcvs = self.array_concat(ohlcvs.clone(), page);
-                    pageToken = self.safe_string_k(response.clone(), "next_page_token", &[]);
+                    pageToken = self.safe_string_k_opt(response.clone(), "next_page_token", &[]);
                 }
                 }
             }

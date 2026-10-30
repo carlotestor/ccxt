@@ -2055,9 +2055,9 @@ impl BigoneCore {
         }  else {
             side = Value::Str("sell".into());
         }
-        let mut triggerPrice: Value = self.safe_string_k(order.clone(), "stop_price", &[]);
-        if crate::precise::Precise::stringEq(&triggerPrice, &Value::Str("0".into())).as_bool() == Some(true) {
-            triggerPrice = Value::Null;
+        let mut triggerPrice: Option<String> = self.safe_string_k_opt(order.clone(), "stop_price", &[]);
+        if crate::precise::Precise::stringEq(&triggerPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            triggerPrice = None;
         }
         let mut immediateOrCancel: Value = self.safe_bool_k(order.clone(), "immediate_or_cancel", &[]);
         let mut timeInForce: Value = Value::Null;
@@ -2089,7 +2089,7 @@ impl BigoneCore {
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "post_only", &[]));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avg_deal_price", &[]));

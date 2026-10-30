@@ -2648,25 +2648,25 @@ impl LimitlessCore {
         }  else if (timeInForce.as_str() == Some("FAK")) {
             type_var = Value::Str("market".into());
         }
-        let mut rawStatus: Value = self.safe_string_k(rawOrder, "status", &[]);
+        let mut rawStatus: Option<String> = self.safe_string_k_opt(rawOrder, "status", &[]);
         let mut execution: Value = self.safe_dict_k(data, "execution", &[]);
         let mut fee: Value = Value::Null;
         let mut filled: Value = Value::Null;
         let mut cost: Value = Value::Null;
         if (execution != Value::Null) {
-            rawStatus = self.safe_string_k(execution.clone(), "settlementStatus", &[]);
+            rawStatus = self.safe_string_k_opt(execution.clone(), "settlementStatus", &[]);
             let mut totals: Value = self.safe_dict_k(execution, "totalsRaw", &[]);
             cost = self.safe_string_k(totals.clone(), "usdGross", &[]);
             filled = self.safe_string_k(totals.clone(), "contractsGross", &[]);
             let mut feeCurrency: Value = Value::Str("USDC".into());
-            let mut feeCost: Value = self.safe_string_k(totals.clone(), "usdFee", &[]);
+            let mut feeCost: Option<String> = self.safe_string_k_opt(totals.clone(), "usdFee", &[]);
             if (side.as_str() == Some("buy")) {
                 feeCurrency = outcomeSymbol.clone().map(Value::from).unwrap_or(Value::Null);
-                feeCost = self.safe_string_k(totals, "contractsFee", &[]);
+                feeCost = self.safe_string_k_opt(totals, "contractsFee", &[]);
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(self.apply_scale(feeCost, &[]), &[]));
+                    m.insert("cost".to_string(), self.parse_number(self.apply_scale(feeCost.map(Value::from).unwrap_or(Value::Null), &[]), &[]));
                     m.insert("currency".to_string(), feeCurrency);
                 m
             });
@@ -2679,7 +2679,7 @@ impl LimitlessCore {
         m.insert("timestamp".to_string(), ts);
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_order_status(rawStatus).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.safe_string_k(mkt.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(mkt.clone(), "label", &[]));

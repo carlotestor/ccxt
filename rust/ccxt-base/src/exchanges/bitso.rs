@@ -2176,20 +2176,20 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut address: Value = self.safe_string_k(payload, "account_identifier", &[]);
+        let mut address: Option<String> = self.safe_string_k_opt(payload, "account_identifier", &[]);
         let mut tag: Value = Value::Null;
-        if Value::Int(address.as_str().and_then(|__s| __s.find("?dt=")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            let mut parts: Value = Value::Array(address.as_str().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default());
-            address = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        if Value::Int(address.as_deref().and_then(|__s| __s.find("?dt=")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            let mut parts: Value = Value::Array(address.as_deref().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default());
+            address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             tag = self.safe_string(parts, Value::Int(1), &[]);
         }
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag);
     m
 });

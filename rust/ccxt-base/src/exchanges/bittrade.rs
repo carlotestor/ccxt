@@ -1643,12 +1643,12 @@ impl BittradeCore {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]);
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("ts".into()), Value::Str("created-at".into()), &[]);
         let mut order: Option<String> = self.safe_string_k_opt(trade.clone(), "order-id", &[]);
-        let mut side: Value = self.safe_string_k(trade.clone(), "direction", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "direction", &[]);
         let mut type_var: Value = Value::Null;
         let mut typeRaw: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
         if (typeRaw.is_some()) {
             let mut typeParts: Value = Value::Array(typeRaw.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
-            side = self.safe_string(typeParts.clone(), Value::Int(0), &[]);
+            side = self.safe_string_opt(typeParts.clone(), Value::Int(0), &[]);
             type_var = self.safe_string(typeParts, Value::Int(1), &[]);
         }
         let mut takerOrMaker: Option<String> = self.safe_string_k_opt(trade.clone(), "role", &[]);
@@ -1684,7 +1684,7 @@ impl BittradeCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("type".to_string(), type_var);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
@@ -2301,8 +2301,8 @@ impl BittradeCore {
             market = self.market(symbol);
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let mut accountId: Value = self.safe_string_k(params.clone(), "account-id", &[]);
-        if (accountId == Value::Null) {
+        let mut accountId: Option<String> = self.safe_string_k_opt(params.clone(), "account-id", &[]);
+        if (accountId.is_none()) {
             // pick the first account
             self.load_accounts(&[]).await;
             {
@@ -2311,15 +2311,15 @@ impl BittradeCore {
                 while { if !__for_first_449 { i += 1; } __for_first_449 = false; i < (self.accounts.len() as i64) } {
                 let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("spot")) {
-                    accountId = self.safe_string_k(account, "id", &[]);
-                    if (accountId != Value::Null) {
+                    accountId = self.safe_string_k_opt(account, "id", &[]);
+                    if (accountId.is_some()) {
                         break;
                     }
                 }
             }
             }
         }
-        request.insert("account-id".into(), accountId);
+        request.insert("account-id".into(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
             request.insert("size".into(), limit.clone());
         }

@@ -3510,9 +3510,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "createdAtTimestamp", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transfer.clone(), "assetSymbol", &[]);
-        let mut status: Value = self.safe_string_k(transfer.clone(), "status", &[]);
-        if (status == Value::Null) {
-            status = self.safe_string_k(transfer.clone(), "message", &[]);
+        let mut status: Option<String> = self.safe_string_k_opt(transfer.clone(), "status", &[]);
+        if (status.is_none()) {
+            status = self.safe_string_k_opt(transfer.clone(), "message", &[]);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3523,7 +3523,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "quantity", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(transfer.clone(), "fromTradingAccountId", &[]));
         m.insert("toAccount".to_string(), self.safe_string_k(transfer.clone(), "toTradingAccountId", &[]));
-        m.insert("status".to_string(), self.parse_transfer_status(status).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transfer_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), transfer);
     m
 });

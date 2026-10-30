@@ -938,15 +938,15 @@ impl LbankCore {
             let mut __for_first_916: bool = true;
             while { if !__for_first_916 { j += 1; } __for_first_916 = false; j < (rawCurrency.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(j), &[]);
-            let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain", &[]);
-            if (networkId == Value::Null) {
-                networkId = self.safe_string_k(networkEntry.clone(), "assetCode", &[]); // use type as fallback if networkId is not present
+            let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "chain", &[]);
+            if (networkId.is_none()) {
+                networkId = self.safe_string_k_opt(networkEntry.clone(), "assetCode", &[]); // use type as fallback if networkId is not present
             }
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), networkId);
+        m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1645,13 +1645,13 @@ impl LbankCore {
         if (amountString == Value::Null) {
             amountString = self.safe_string_k(trade.clone(), "dealQuantity", &[]);
         }
-        let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        if (priceString == Value::Null) {
-            priceString = self.safe_string_k(trade.clone(), "dealPrice", &[]);
+        let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        if (priceString.is_none()) {
+            priceString = self.safe_string_k_opt(trade.clone(), "dealPrice", &[]);
         }
-        let mut costString: Value = self.safe_string_k(trade.clone(), "quoteQty", &[]);
-        if (costString == Value::Null) {
-            costString = self.safe_string_k(trade.clone(), "dealVolumePrice", &[]);
+        let mut costString: Option<String> = self.safe_string_k_opt(trade.clone(), "quoteQty", &[]);
+        if (costString.is_none()) {
+            costString = self.safe_string_k_opt(trade.clone(), "dealVolumePrice", &[]);
         }
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("tradeType".into()), Value::Str("type".into()), &[]);
         let mut type_var: Value = Value::Null;
@@ -1698,9 +1698,9 @@ impl LbankCore {
         m.insert("type".to_string(), type_var);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), priceString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString);
-        m.insert("cost".to_string(), costString);
+        m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), trade);
     m

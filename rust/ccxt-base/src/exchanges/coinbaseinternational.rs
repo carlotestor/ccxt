@@ -2634,14 +2634,14 @@ impl CoinbaseinternationalCore {
     m
 })]);
         let mut amount: Value = self.safe_number_k(transfer.clone(), "change", &[]);
-        let mut fromAccount: Value = self.safe_string_k(transfer.clone(), "username", &[]);
-        let mut toAccount: Value = self.safe_string_k(info.clone(), "other_user", &[]);
+        let mut fromAccount: Option<String> = self.safe_string_k_opt(transfer.clone(), "username", &[]);
+        let mut toAccount: Option<String> = self.safe_string_k_opt(info.clone(), "other_user", &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let mut cashflow: Value = self.safe_string2(transfer.clone(), Value::Str("cashflow".into()), Value::Str("change".into()), &[]);
             amount = self.parse_number(crate::precise::Precise::stringAbs(&cashflow), &[]);
             if !(crate::precise::Precise::stringLt(&cashflow, &Value::Str("0".into())).as_bool() == Some(true)) {
-                fromAccount = self.safe_string_k(info, "other_user", &[]);
-                toAccount = self.safe_string_k(transfer.clone(), "username", &[]);
+                fromAccount = self.safe_string_k_opt(info, "other_user", &[]);
+                toAccount = self.safe_string_k_opt(transfer.clone(), "username", &[]);
             }
         }
         return Value::Map({
@@ -2652,8 +2652,8 @@ impl CoinbaseinternationalCore {
         m.insert("datetime".to_string(), self.iso8601(transactionTimestamp));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
         m.insert("amount".to_string(), amount);
-        m.insert("fromAccount".to_string(), fromAccount);
-        m.insert("toAccount".to_string(), toAccount);
+        m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
+        m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Str("ok".into()));
     m
 });
@@ -2764,16 +2764,16 @@ impl CoinbaseinternationalCore {
         let mut maintenanceMargin: Option<String> = self.safe_string_k_opt(position.clone(), "maintenance_margin", &[]);
         let mut contracts: Value = self.safe_number_k(position.clone(), "size", &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let mut size: Value = self.safe_string_k(position.clone(), "size", &[]);
+            let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
             if (marketResolved.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-                notional = size.clone();
+                notional = size.clone().map(Value::from).unwrap_or(Value::Null);
                 if (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                    size = self.safe_string_k(position.clone(), "size_currency", &[]);
+                    size = self.safe_string_k_opt(position.clone(), "size_currency", &[]);
                 }
             }  else {
-                notional = crate::precise::Precise::stringMul(&size, &self.safe_string_k(position.clone(), "mark_price", &[]));
+                notional = crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(position.clone(), "mark_price", &[]));
             }
-            let mut contractsString: Value = self.safe_string_k(position.clone(), "contracts", &[crate::precise::Precise::stringDiv(&size, &self.safe_string(marketResolved.clone(), Value::Str("contractSize".into()), &[]))]);
+            let mut contractsString: Value = self.safe_string_k(position.clone(), "contracts", &[crate::precise::Precise::stringDiv(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(marketResolved.clone(), Value::Str("contractSize".into()), &[]))]);
             contracts = self.parse_number(crate::precise::Precise::stringAbs(&contractsString), &[]);
         }
         return self.safe_position(Value::Map({

@@ -1093,9 +1093,9 @@ impl NdaxCore {
         //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
         //     }
         //
-        let mut sessionToken: Value = self.safe_string_k(response.clone(), "SessionToken", &[]);
-        if (sessionToken != Value::Null) {
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone()); }
+        let mut sessionToken: Option<String> = self.safe_string_k_opt(response.clone(), "SessionToken", &[]);
+        if (sessionToken.is_some()) {
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
             return response;
         }
         let mut pending2faToken: Option<String> = self.safe_string_k_opt(response.clone(), "Pending2FaToken", &[]);
@@ -1118,8 +1118,8 @@ impl NdaxCore {
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            sessionToken = self.safe_string_k(responseInner.clone(), "SessionToken", &[]);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken); }
+            sessionToken = self.safe_string_k_opt(responseInner.clone(), "SessionToken", &[]);
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.map(Value::from).unwrap_or(Value::Null)); }
             return responseInner;
         }
         return response;
@@ -1448,12 +1448,12 @@ impl NdaxCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "TimeStamp", &[]);
-        let mut marketId: Value = self.safe_string_k(ticker.clone(), "InstrumentId", &[]);
-        if (marketId == Value::Null) {
-            marketId = self.safe_string_k(ticker.clone(), "trading_pairs", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "InstrumentId", &[]);
+        if (marketId.is_none()) {
+            marketId = self.safe_string_k_opt(ticker.clone(), "trading_pairs", &[]);
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market, Value::Str("_".into())]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[marketResolved.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]);
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("LastTradedPx".into()), Value::Str("last_price".into()), &[]);
         let mut percentage: Value = self.safe_string2(ticker.clone(), Value::Str("Rolling24HrPxChangePercent".into()), Value::Str("price_change_percent_24h".into()), &[]);
         let mut change: Option<String> = self.safe_string_k_opt(ticker.clone(), "Rolling24HrPxChange", &[]);
@@ -3094,15 +3094,15 @@ impl NdaxCore {
         //         "NotionalProductId": 0
         //     }
         //
-        let mut id: Value = self.safe_string_k(transaction.clone(), "DepositId", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(transaction.clone(), "DepositId", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "ProductId", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut type_var: Value = Value::Null;
-        if (id != Value::Null) {
+        if (id.is_some()) {
             type_var = Value::Str("deposit".into());
         }  else {
-            id = self.safe_string_k(transaction.clone(), "WithdrawId", &[]);
-            if (id != Value::Null) {
+            id = self.safe_string_k_opt(transaction.clone(), "WithdrawId", &[]);
+            if (id.is_some()) {
                 type_var = Value::Str("withdrawal".into());
             }
         }
@@ -3130,7 +3130,7 @@ impl NdaxCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), self.safe_string2(templateForm.clone(), Value::Str("TxId".into()), Value::Str("TXId".into()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

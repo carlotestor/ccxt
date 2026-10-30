@@ -2022,14 +2022,14 @@ impl HollaexCore {
         //         "created_at":"2021-05-12T02:43:05.446Z"
         //     }
         //
-        let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
+        let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
         let mut tag: Value = Value::Null;
-        if (address != Value::Null) {
-            let mut parts: Value = Value::Array(address.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
-            address = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        if (address.is_some()) {
+            let mut parts: Value = Value::Array(address.as_deref().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+            address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             tag = self.safe_string(parts, Value::Int(1), &[]);
         }
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "currency", &[]);
         let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_map().cloned().unwrap_or_default();
         let mut networkId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "network", &[]);
@@ -2038,7 +2038,7 @@ impl HollaexCore {
         m.insert("info".to_string(), depositAddress);
         m.insert("currency".to_string(), currencyResolved.get("code").cloned().unwrap_or(Value::Null));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyResolved.get("code").cloned().unwrap_or(Value::Null)]));
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag);
     m
 });
@@ -2363,17 +2363,17 @@ impl HollaexCore {
         let mut updated: Value = self.parse8601(self.safe_string_k(transaction.clone(), "updated_at", &[]));
         let mut type_var: Option<String> = self.safe_string_k_opt(transaction.clone(), "type", &[]);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
-        let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
+        let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut addressTo: Value = Value::Null;
         let mut addressFrom: Value = Value::Null;
         let mut tag: Value = Value::Null;
         let mut tagTo: Value = Value::Null;
         let mut tagFrom: Value = Value::Null;
-        if (address != Value::Null) {
-            let mut parts: Value = Value::Array(address.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
-            address = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        if (address.is_some()) {
+            let mut parts: Value = Value::Array(address.as_deref().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+            address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             tag = self.safe_string(parts, Value::Int(1), &[]);
-            addressTo = address.clone();
+            addressTo = address.clone().map(Value::from).unwrap_or(Value::Null);
             tagTo = tag.clone();
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
@@ -2412,7 +2412,7 @@ impl HollaexCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), addressFrom);
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo);
         m.insert("tagFrom".to_string(), tagFrom);
         m.insert("tag".to_string(), tag);

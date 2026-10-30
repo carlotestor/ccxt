@@ -7805,22 +7805,22 @@ if _try_result.is_err() {
 })]);
         let mut reduceOnlyInitial: Value = self.safe_bool_k(initial.clone(), "is_reduce_only", &[]);
         let mut reduceOnly: Value = self.safe_bool_k(order.clone(), "is_reduce_only", &[reduceOnlyInitial]);
-        let mut clientOrderId: Value = self.safe_string_k(order.clone(), "text", &[]);
-        if (clientOrderId == Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "text", &[]);
+        if (clientOrderId.is_none()) {
             if (matches!(&order, Value::Dict(__d) if __d.contains_key("initial"))) {
-                clientOrderId = self.safe_string_k(initial, "text", &[]);
+                clientOrderId = self.safe_string_k_opt(initial, "text", &[]);
             }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("trigger"))) {
                 let mut triggerOrder: Value = self.safe_dict_k(order.clone(), "trigger", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                clientOrderId = self.safe_string_k(triggerOrder, "text", &[]);
+                clientOrderId = self.safe_string_k_opt(triggerOrder, "text", &[]);
             }
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "id", &[]));
-        m.insert("clientOrderId".to_string(), clientOrderId);
+        m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);

@@ -806,15 +806,15 @@ impl BtcturkCore {
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         let mut open: Option<String> = self.safe_string_k_opt(ticker.clone(), "open", &[]);
-        let mut change: Value = self.safe_string_k(ticker.clone(), "daily", &[]);
-        let mut percentage: Value = self.safe_string_k(ticker.clone(), "dailyPercent", &[]);
-        let mut average: Value = self.safe_string_k(ticker.clone(), "average", &[]);
+        let mut change: Option<String> = self.safe_string_k_opt(ticker.clone(), "daily", &[]);
+        let mut percentage: Option<String> = self.safe_string_k_opt(ticker.clone(), "dailyPercent", &[]);
+        let mut average: Option<String> = self.safe_string_k_opt(ticker.clone(), "average", &[]);
         if (open.is_some()) && (last.is_some()) && !(crate::precise::Precise::stringEq(&open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
             // The reported daily fields can disagree with last - open.
             // Let safeTicker derive the unified change, percentage and average from these prices.
-            change = Value::Null;
-            percentage = Value::Null;
-            average = Value::Null;
+            change = None;
+            percentage = None;
+            average = None;
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -832,9 +832,9 @@ impl BtcturkCore {
         m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), change);
-        m.insert("percentage".to_string(), percentage);
-        m.insert("average".to_string(), average);
+        m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
+        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
+        m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);

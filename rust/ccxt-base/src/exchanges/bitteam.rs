@@ -2980,14 +2980,14 @@ impl BitteamCore {
         let mut params: Value = self.safe_dict_k(transaction.clone(), "params", &[]);
         let mut txid: Option<String> = self.safe_string_k_opt(params, "tx_id", &[]);
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestamp", &[]);
-        let mut networkId: Value = self.safe_string_k(transaction.clone(), "blockChain", &[]);
-        if (networkId == Value::Null) {
+        let mut networkId: Option<String> = self.safe_string_k_opt(transaction.clone(), "blockChain", &[]);
+        if (networkId.is_none()) {
             let mut links: Value = self.safe_list_k(currencyObject.clone(), "links", &[Value::from(vec![])]);
             let mut blockChain: Value = self.safe_dict(links, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            networkId = self.safe_string_k(blockChain, "blockChain", &[]);
+            networkId = self.safe_string_k_opt(blockChain, "blockChain", &[]);
         }
         let mut addressFrom: Option<String> = self.safe_string_k_opt(transaction.clone(), "sender", &[]);
         let mut addressTo: Option<String> = self.safe_string_k_opt(transaction.clone(), "recipient", &[]);
@@ -3002,7 +3002,7 @@ impl BitteamCore {
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId, code.clone()]));
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));

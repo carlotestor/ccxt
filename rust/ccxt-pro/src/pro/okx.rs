@@ -1298,31 +1298,31 @@ impl OkxCore {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[]);
-        let mut ask: Value = self.safe_string_k(ticker.clone(), "askPx", &[]);
-        let mut askVolume: Value = self.safe_string_k(ticker.clone(), "askSz", &[]);
-        let mut bid: Value = self.safe_string_k(ticker.clone(), "bidPx", &[]);
-        let mut bidVolume: Value = self.safe_string_k(ticker.clone(), "bidSz", &[]);
-        if (ask == Value::Null) {
+        let mut ask: Option<String> = self.safe_string_k_opt(ticker.clone(), "askPx", &[]);
+        let mut askVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "askSz", &[]);
+        let mut bid: Option<String> = self.safe_string_k_opt(ticker.clone(), "bidPx", &[]);
+        let mut bidVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "bidSz", &[]);
+        if (ask.is_none()) {
             let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[Value::from(vec![])]);
             let mut firstAsk: Value = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]);
-            ask = self.safe_string(firstAsk.clone(), Value::Int(0), &[]);
-            askVolume = self.safe_string(firstAsk, Value::Int(1), &[]);
+            ask = self.safe_string_opt(firstAsk.clone(), Value::Int(0), &[]);
+            askVolume = self.safe_string_opt(firstAsk, Value::Int(1), &[]);
         }
-        if (bid == Value::Null) {
+        if (bid.is_none()) {
             let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[Value::from(vec![])]);
             let mut firstBid: Value = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]);
-            bid = self.safe_string(firstBid.clone(), Value::Int(0), &[]);
-            bidVolume = self.safe_string(firstBid, Value::Int(1), &[]);
+            bid = self.safe_string_opt(firstBid.clone(), Value::Int(0), &[]);
+            bidVolume = self.safe_string_opt(firstBid, Value::Int(1), &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("ask".to_string(), ask);
-        m.insert("askVolume".to_string(), askVolume);
-        m.insert("bid".to_string(), bid);
-        m.insert("bidVolume".to_string(), bidVolume);
+        m.insert("ask".to_string(), ask.map(Value::from).unwrap_or(Value::Null));
+        m.insert("askVolume".to_string(), askVolume.map(Value::from).unwrap_or(Value::Null));
+        m.insert("bid".to_string(), bid.map(Value::from).unwrap_or(Value::Null));
+        m.insert("bidVolume".to_string(), bidVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
 }), &[marketResolved]);

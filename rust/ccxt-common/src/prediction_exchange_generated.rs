@@ -1853,7 +1853,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cost: Value = self.safe_string_k(outcomeOrder.clone(), "cost", &[]);
         let mut average: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "average", &[]));
         let mut price: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "price", &[]));
-        let mut side: Value = self.safe_string_k(outcomeOrder.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "side", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "status", &[]);
         let mut lastTradeTimestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]);
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
@@ -1881,8 +1881,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (tradeCost.is_some()) {
                     cost = crate::precise::Precise::stringAdd(&cost, &tradeCost.clone().map(Value::from).unwrap_or(Value::Null));
                 }
-                if (side == Value::Null) {
-                    side = self.safe_string_k(trade.clone(), "side", &[]);
+                if (side.is_none()) {
+                    side = self.safe_string_k_opt(trade.clone(), "side", &[]);
                 }
                 let mut tradeTimestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
                 if (tradeTimestamp != Value::Null) {
@@ -1957,7 +1957,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("timeInForce".to_string(), timeInForce);
-                m.insert("side".to_string(), side);
+                m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("price".to_string(), self.parse_number(price, &[]));
                 m.insert("average".to_string(), self.parse_number(average, &[]));
                 m.insert("amount".to_string(), self.parse_number(amount, &[]));

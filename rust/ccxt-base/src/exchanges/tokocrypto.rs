@@ -3216,19 +3216,19 @@ impl TokocryptoCore {
         if (internalRaw.is_some()) {
             internal = Value::Bool(true);
         }
-        let mut id: Value = self.safe_string_k(transaction.clone(), "id", &[]);
-        if (id == Value::Null) {
+        let mut id: Option<String> = self.safe_string_k_opt(transaction.clone(), "id", &[]);
+        if (id.is_none()) {
             let mut data: Value = self.safe_dict_k(transaction.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            id = self.safe_string_k(data, "withdrawId", &[]);
+            id = self.safe_string_k_opt(data, "withdrawId", &[]);
             type_var = Value::Str("withdrawal".into());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid);
         m.insert("type".to_string(), type_var.clone());
         m.insert("currency".to_string(), code.clone());

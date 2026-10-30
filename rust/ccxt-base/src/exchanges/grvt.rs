@@ -2619,8 +2619,8 @@ if _try_result.is_err() {
         let mut direction: Value = Value::Null;
         let mut txId: Value = Value::Null;
         let mut networkCode: Value = Value::Null;
-        let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "from_account_id", &[]);
-        let mut addressTo: Value = self.safe_string_k(transaction.clone(), "to_account_id", &[]);
+        let mut addressFrom: Option<String> = self.safe_string_k_opt(transaction.clone(), "from_account_id", &[]);
+        let mut addressTo: Option<String> = self.safe_string_k_opt(transaction.clone(), "to_account_id", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut metaData: Value = self.omit_zero(self.safe_string_k(transaction.clone(), "transfer_metadata", &[]));
@@ -2630,9 +2630,9 @@ if _try_result.is_err() {
             txId = self.safe_string_k(parsedMeta.clone(), "provider_tx_id", &[]);
             networkCode = self.network_id_to_code(&[self.safe_string_k(parsedMeta.clone(), "chainid", &[]), code.clone()]);
             if (direction.as_str() == Some("withdrawal")) {
-                addressTo = self.safe_string_k(parsedMeta.clone(), "endpoint", &[]);
+                addressTo = self.safe_string_k_opt(parsedMeta.clone(), "endpoint", &[]);
             }  else if (direction.as_str() == Some("deposit")) {
-                addressFrom = self.safe_string_k(parsedMeta, "endpoint", &[]);
+                addressFrom = self.safe_string_k_opt(parsedMeta, "endpoint", &[]);
             }
         }
         let mut timestamp: Value = self.safe_integer_product2(transaction.clone(), Value::Str("event_time".into()), Value::Str("initiated_time".into()), Value::Float(0.000001), &[]);
@@ -2649,8 +2649,8 @@ if _try_result.is_err() {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
-        m.insert("addressFrom".to_string(), addressFrom);
-        m.insert("addressTo".to_string(), addressTo);
+        m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);

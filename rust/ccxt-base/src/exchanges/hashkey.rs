@@ -1598,7 +1598,7 @@ impl HashkeyCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "marginToken", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
         let mut marketType: Value = Value::Str("spot".into());
         let mut isSpot: bool = true;
         let mut isSwap: bool = false;
@@ -1609,10 +1609,10 @@ impl HashkeyCore {
             marketType = Value::Str("swap".into());
             isSpot = false;
             isSwap = true;
-            baseId = self.safe_string_k(market.clone(), "underlying", &[]);
+            baseId = self.safe_string_k_opt(market.clone(), "underlying", &[]);
             suffix = Value::Str(format!("{}{}", Value::Str(":".into()), self.safe_string_k(market.clone(), "marginToken", &[Value::Str("".into())])).into());
         }
-        let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
+        let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
@@ -1685,7 +1685,7 @@ impl HashkeyCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
-        m.insert("baseId".to_string(), baseId);
+        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), active);
         m.insert("type".to_string(), marketType);
@@ -2112,19 +2112,19 @@ impl HashkeyCore {
             takerOrMaker = Value::Str("taker".into());
             side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }
-        let mut feeCost: Value = self.safe_string_k(trade.clone(), "commission", &[]);
-        let mut feeCurrncyId: Value = self.safe_string_k(trade.clone(), "commissionAsset", &[]);
+        let mut feeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "commission", &[]);
+        let mut feeCurrncyId: Option<String> = self.safe_string_k_opt(trade.clone(), "commissionAsset", &[]);
         let mut feeInfo: Value = self.safe_dict_k(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
         if (feeInfo != Value::Null) {
-            feeCost = self.safe_string_k(feeInfo.clone(), "fee", &[]);
-            feeCurrncyId = self.safe_string_k(feeInfo, "feeCoinId", &[]);
+            feeCost = self.safe_string_k_opt(feeInfo.clone(), "fee", &[]);
+            feeCurrncyId = self.safe_string_k_opt(feeInfo, "feeCoinId", &[]);
         }
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
-                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrncyId, &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
+                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrncyId.map(Value::from).unwrap_or(Value::Null), &[]));
                 m
             });
         }
@@ -2614,9 +2614,9 @@ impl HashkeyCore {
         //
         let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut tag: Value = self.safe_string_k(depositAddress.clone(), "addressExt", &[]);
-        if (tag.as_str() == Some("")) {
-            tag = Value::Null;
+        let mut tag: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "addressExt", &[]);
+        if (tag.as_deref() == Some("")) {
+            tag = None;
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2624,7 +2624,7 @@ impl HashkeyCore {
         m.insert("currency".to_string(), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag);
+        m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -4299,9 +4299,9 @@ impl HashkeyCore {
         let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut reduceOnly: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut feeCurrncyId: Value = self.safe_string_k(order.clone(), "feeCoin", &[]);
-        if (feeCurrncyId.as_str() == Some("")) {
-            feeCurrncyId = Value::Null;
+        let mut feeCurrncyId: Option<String> = self.safe_string_k_opt(order.clone(), "feeCoin", &[]);
+        if (feeCurrncyId.as_deref() == Some("")) {
+            feeCurrncyId = None;
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4328,7 +4328,7 @@ impl HashkeyCore {
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), self.safe_currency_code(feeCurrncyId, &[]));
+        m.insert("currency".to_string(), self.safe_currency_code(feeCurrncyId.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "feeAmount", &[])));
     m
 }));
@@ -5331,7 +5331,7 @@ impl HashkeyCore {
             return Value::Null;
         }
         let mut errorInArray: bool = false;
-        let mut responseCodeString: Value = self.safe_string_k(response.clone(), "code", &[]);
+        let mut responseCodeString: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
         let mut responseCodeInteger: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64(); // some codes in response are returned as '0000' others as 0
         if (responseCodeInteger == Some(0)) {
             let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]); // for batch methods
@@ -5343,15 +5343,15 @@ impl HashkeyCore {
                 let mut entryCodeInteger: Option<i64> = self.safe_integer_k(entry.clone(), "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {
                     errorInArray = true;
-                    responseCodeString = self.safe_string_k(entry, "code", &[]);
+                    responseCodeString = self.safe_string_k_opt(entry, "code", &[]);
                 }
             }
             }
         }
         if (code.as_f64() != Some(200.0)) || errorInArray {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), responseCodeString.clone(), feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCodeString, feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), responseCodeString.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCodeString.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

@@ -3016,9 +3016,9 @@ impl BydfiCore {
         }
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "createTime", &[]);
         // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
-        let mut positionMargin: Value = self.safe_string_k(position.clone(), "positionMargin", &[]);
-        if (positionMargin != Value::Null) && !(crate::precise::Precise::stringGt(&positionMargin, &Value::Str("0".into())).as_bool() == Some(true)) {
-            positionMargin = Value::Null;
+        let mut positionMargin: Option<String> = self.safe_string_k_opt(position.clone(), "positionMargin", &[]);
+        if (positionMargin.is_some()) && !(crate::precise::Precise::stringGt(&positionMargin.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            positionMargin = None;
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3029,7 +3029,7 @@ impl BydfiCore {
         m.insert("markPrice".to_string(), self.parse_number(self.safe_string_k(position.clone(), "markPrice", &[]), &[]));
         m.insert("lastPrice".to_string(), self.parse_number(self.safe_string_k(position.clone(), "avgClosePositionPrice", &[]), &[]));
         m.insert("notional".to_string(), self.parse_number(self.safe_string_k(position.clone(), "closePositionCost", &[]), &[]));
-        m.insert("positionMargin".to_string(), self.parse_number(positionMargin, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(positionMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.parse_number(self.safe_string_k(position.clone(), "unPnl", &[]), &[]));
         m.insert("realizedPnl".to_string(), self.parse_number(self.safe_string_k(position.clone(), "positionProfits", &[]), &[]));

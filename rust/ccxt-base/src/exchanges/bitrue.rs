@@ -1520,23 +1520,23 @@ impl BitrueCore {
             isInverse = (Value::Bool(side == Some(0)));
         }
         let mut isContract: Value = (Value::Bool((type_var != "spot")));
-        let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
-        let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteAsset", &[]);
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
         if matches!(&isContract, Value::Bool(true)) {
             let mut symbolSplit: Value = Value::Array(id.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
-            baseId = self.safe_string(symbolSplit.clone(), Value::Int(1), &[]);
-            quoteId = self.safe_string(symbolSplit, Value::Int(2), &[]);
+            baseId = self.safe_string_opt(symbolSplit.clone(), Value::Int(1), &[]);
+            quoteId = self.safe_string_opt(symbolSplit, Value::Int(2), &[]);
             if (isLinear.as_bool() == Some(true)) {
-                settleId = quoteId.clone();
+                settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
-                settleId = baseId.clone();
+                settleId = baseId.clone().map(Value::from).unwrap_or(Value::Null);
             }
             settle = self.safe_currency_code(settleId.clone(), &[]);
         }
-        let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-        let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
@@ -1577,8 +1577,8 @@ impl BitrueCore {
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
         m.insert("settle".to_string(), settle);
-        m.insert("baseId".to_string(), baseId);
-        m.insert("quoteId".to_string(), quoteId);
+        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), Value::str(type_var));
         m.insert("spot".to_string(), isSpot);
@@ -3350,19 +3350,19 @@ impl BitrueCore {
         //
         let mut id: Value = self.safe_string2(transaction.clone(), Value::Str("id".into()), Value::Str("withdrawId".into()), &[]);
         let mut tagType: Option<String> = self.safe_string_k(transaction.clone(), "tagType", &[]).as_str().map(str::to_owned);
-        let mut addressTo: Value = self.safe_string_k(transaction.clone(), "addressTo", &[]);
-        let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "addressFrom", &[]);
+        let mut addressTo: Option<String> = self.safe_string_k_opt(transaction.clone(), "addressTo", &[]);
+        let mut addressFrom: Option<String> = self.safe_string_k_opt(transaction.clone(), "addressFrom", &[]);
         let mut tagTo: Value = Value::Null;
         let mut tagFrom: Value = Value::Null;
         if (tagType.is_some()) {
-            if (addressTo != Value::Null) {
-                let mut parts: Value = Value::Array(addressTo.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
-                addressTo = self.safe_string(parts.clone(), Value::Int(0), &[]);
+            if (addressTo.is_some()) {
+                let mut parts: Value = Value::Array(addressTo.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+                addressTo = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
                 tagTo = self.safe_string(parts.clone(), Value::Int(1), &[]);
             }
-            if (addressFrom != Value::Null) {
-                let mut parts: Value = Value::Array(addressFrom.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
-                addressFrom = self.safe_string(parts.clone(), Value::Int(0), &[]);
+            if (addressFrom.is_some()) {
+                let mut parts: Value = Value::Array(addressFrom.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+                addressFrom = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
                 tagFrom = self.safe_string(parts.clone(), Value::Int(1), &[]);
             }
         }
@@ -3406,9 +3406,9 @@ impl BitrueCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), network);
-        m.insert("address".to_string(), addressTo.clone());
-        m.insert("addressTo".to_string(), addressTo);
-        m.insert("addressFrom".to_string(), addressFrom);
+        m.insert("address".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tagTo.clone());
         m.insert("tagTo".to_string(), tagTo);
         m.insert("tagFrom".to_string(), tagFrom);

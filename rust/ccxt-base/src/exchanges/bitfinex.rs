@@ -2688,13 +2688,13 @@ impl BitfinexCore {
             }
         }
         }
-        let mut price: Value = self.safe_string(orderList.clone(), Value::Int(16), &[]);
+        let mut price: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(16), &[]);
         let mut triggerPrice: Value = Value::Null;
         if (orderType.as_str() == Some("EXCHANGE STOP")) || (orderType.as_str() == Some("EXCHANGE STOP LIMIT")) {
-            price = Value::Null;
+            price = None;
             triggerPrice = self.safe_string(orderList.clone(), Value::Int(16), &[]);
             if (orderType.as_str() == Some("EXCHANGE STOP LIMIT")) {
-                price = self.safe_string(orderList.clone(), Value::Int(19), &[]);
+                price = self.safe_string_opt(orderList.clone(), Value::Int(19), &[]);
             }
         }
         let mut status: Value = Value::Null;
@@ -2718,7 +2718,7 @@ impl BitfinexCore {
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), Value::Null);

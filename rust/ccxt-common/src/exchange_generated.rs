@@ -2989,8 +2989,8 @@ pub trait ExchangeBase:
         let mut average: Value = self.omit_zero(self.safe_string_k(orderDict.clone(), "average", &[]));
         let mut price: Value = self.omit_zero(self.safe_string_k(orderDict.clone(), "price", &[]));
         let mut lastTradeTimeTimestamp: Value = self.safe_integer_k(orderDict.clone(), "lastTradeTimestamp", &[]);
-        let mut symbol: Value = self.safe_string_k(orderDict.clone(), "symbol", &[]);
-        let mut side: Value = self.safe_string_k(orderDict.clone(), "side", &[]);
+        let mut symbol: Option<String> = self.safe_string_k_opt(orderDict.clone(), "symbol", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(orderDict.clone(), "side", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(orderDict.clone(), "status", &[]);
         let mut parseFilled: bool = filled == Value::Null;
         let mut parseCost: bool = cost == Value::Null;
@@ -2998,8 +2998,8 @@ pub trait ExchangeBase:
         let mut fee: Value = self.safe_value_k(orderDict.clone(), "fee", &[]);
         let mut parseFee: bool = fee == Value::Null;
         let mut parseFees: bool = self.safe_value_k(orderDict.clone(), "fees", &[]) == Value::Null;
-        let mut parseSymbol: bool = symbol == Value::Null;
-        let mut parseSide: bool = side == Value::Null;
+        let mut parseSymbol: bool = symbol.is_none();
+        let mut parseSide: bool = side.is_none();
         let mut shouldParseFees: bool = parseFee || parseFees;
         let mut fees: Value = self.safe_list_k(orderDict.clone(), "fees", &[Value::from(vec![])]);
         let mut trades: Value = Value::from(vec![]);
@@ -3058,10 +3058,10 @@ pub trait ExchangeBase:
                         cost = crate::precise::Precise::stringAdd(&cost, &tradeCost.clone().map(Value::from).unwrap_or(Value::Null));
                     }
                     if parseSymbol {
-                        symbol = self.safe_string_k(trade.clone(), "symbol", &[]);
+                        symbol = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
                     }
                     if parseSide {
-                        side = self.safe_string_k(trade.clone(), "side", &[]);
+                        side = self.safe_string_k_opt(trade.clone(), "side", &[]);
                     }
                     let mut tradeTimestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
                     if parseLastTradeTimeTimestamp && (tradeTimestamp != Value::Null) {
@@ -3256,9 +3256,9 @@ pub trait ExchangeBase:
         m.insert("clientOrderId".to_string(), self.safe_string_k(orderDict.clone(), "clientOrderId", &[]));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(orderDict.clone(), "type", &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimeTimestamp);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
         m.insert("price".to_string(), self.parse_number(price, &[]));
@@ -9134,13 +9134,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn safe_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut symbol: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
-        if (symbol == Value::Null) {
-            symbol = self.safe_string_k(market, "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k_opt(interest.clone(), "symbol", &[]);
+        if (symbol.is_none()) {
+            symbol = self.safe_string_k_opt(market, "symbol", &[]);
         }
         return self.extend(interest.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseVolume".to_string(), self.safe_number_k(interest.clone(), "baseVolume", &[]));
         m.insert("quoteVolume".to_string(), self.safe_number_k(interest.clone(), "quoteVolume", &[]));
         m.insert("openInterestAmount".to_string(), self.safe_number_k(interest.clone(), "openInterestAmount", &[]));

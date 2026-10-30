@@ -4298,14 +4298,14 @@ impl BtseCore {
         //
         // rows echo the short symbol form, while positionId carries the full market
         // id, optionally suffixed with the isolated wallet discriminator after a pipe
-        let mut marketId: Value = self.safe_string_k(position.clone(), "positionId", &[]);
-        if (marketId != Value::Null) {
-            let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("|").map(Value::from).collect()).unwrap_or_default());
-            marketId = self.safe_string(parts, Value::Int(0), &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "positionId", &[]);
+        if (marketId.is_some()) {
+            let mut parts: Value = Value::Array(marketId.as_deref().map(|__s| __s.split("|").map(Value::from).collect()).unwrap_or_default());
+            marketId = self.safe_string_opt(parts, Value::Int(0), &[]);
         }  else {
-            marketId = self.safe_string_k(position.clone(), "symbol", &[]);
+            marketId = self.safe_string_k_opt(position.clone(), "symbol", &[]);
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "timestamp", &[]);
         let mut marginType: Option<String> = self.safe_string_k_opt(position.clone(), "marginType", &[]);
         let mut side: Value = self.safe_string_lower2(position.clone(), Value::Str("positionDirection".into()), Value::Str("side".into()), &[]);

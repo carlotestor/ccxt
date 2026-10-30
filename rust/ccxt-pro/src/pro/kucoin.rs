@@ -3446,12 +3446,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Option<String> = self.safe_string_k_opt(trade.clone(), "orderType", &[]);
         let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
         let mut tradeId: Option<String> = self.safe_string_k_opt(trade.clone(), "tradeId", &[]);
-        let mut price: Value = self.safe_string_k(trade.clone(), "matchPrice", &[]);
-        let mut amount: Value = self.safe_string_k(trade.clone(), "matchSize", &[]);
-        if (price == Value::Null) {
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "matchPrice", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "matchSize", &[]);
+        if (price.is_none()) {
             // /spot/tradeFills
-            price = self.safe_string_k(trade.clone(), "price", &[]);
-            amount = self.safe_string_k(trade.clone(), "size", &[]);
+            price = self.safe_string_k_opt(trade.clone(), "price", &[]);
+            amount = self.safe_string_k_opt(trade.clone(), "size", &[]);
         }
         let mut order: Option<String> = self.safe_string_k_opt(trade.clone(), "orderId", &[]);
         let mut timestamp: Value = self.safe_integer_product2(trade.clone(), Value::Str("ts".into()), Value::Str("time".into()), Value::Float(0.000001), &[]);
@@ -3469,8 +3469,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), self.safe_string_k(trade, "liquidity", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -3531,9 +3531,9 @@ impl DeepcoinCore {
         }
         let mut state: Option<String> = self.safe_string_k_opt(order.clone(), "state", &[]);
         let mut orderType: Option<String> = self.safe_string_k_opt(order.clone(), "ordType", &[]);
-        let mut average: Value = self.safe_string_k(order.clone(), "avgPx", &[]);
-        if (average.as_str() == Some("")) {
-            average = Value::Null;
+        let mut average: Option<String> = self.safe_string_k_opt(order.clone(), "avgPx", &[]);
+        if (average.as_deref() == Some("")) {
+            average = None;
         }
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(order.clone(), "feeCcy", &[]);
         let mut fee: Value = Value::Null;
@@ -3560,7 +3560,7 @@ impl DeepcoinCore {
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(orderType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_string2(order.clone(), Value::Str("px".into()), Value::Str("ordPx".into()), &[]));
-        m.insert("average".to_string(), average);
+        m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "sz", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "accFillSz", &[]));
         m.insert("remaining".to_string(), Value::Null);
@@ -4351,7 +4351,7 @@ impl DeepcoinCore {
         let mut messageCode: Value = self.safe_string_k(response, "code", &[]);
         let mut sCode: Value = self.safe_string_k(data.clone(), "sCode", &[]);
         let mut sMsg: Option<String> = self.safe_string_k_opt(data.clone(), "sMsg", &[]);
-        let mut errorCode: Value = self.safe_string_k(data.clone(), "errorCode", &[]);
+        let mut errorCode: Option<String> = self.safe_string_k_opt(data.clone(), "errorCode", &[]);
         if (msg != Value::Null) && (msg.as_str() == Some("")) && (sMsg.is_some()) {
             msg = sMsg.clone().map(Value::from).unwrap_or(Value::Null);
         }
@@ -4365,13 +4365,13 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                errorCode = self.safe_string_k(entry, "errorCode", &[]);
+                errorCode = self.safe_string_k_opt(entry, "errorCode", &[]);
             }
             }
         }
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-        if (sCode == Value::Null) && (errorCode != Value::Null) {
-            sCode = errorCode;
+        if (sCode == Value::Null) && (errorCode.is_some()) {
+            sCode = errorCode.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut retCode: Option<String> = self.safe_string_k_opt(data.clone(), "retCode", &[]);
         if (sCode == Value::Null) && (retCode.is_some()) {

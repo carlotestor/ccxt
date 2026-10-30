@@ -1718,20 +1718,20 @@ impl BlofinCore {
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "orderId", &[]);
         let mut feeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
-        let mut feeCurrency: Value = self.safe_string_k(trade.clone(), "feeCurrency", &[]);
-        let mut isSpot: bool = feeCurrency != Value::Null;
-        if (feeCurrency == Value::Null) {
-            feeCurrency = self.safe_string_k(marketResolved.clone(), "settle", &[]);
-        }  else if (feeCurrency.as_str() == Some("base_currency")) {
-            feeCurrency = self.safe_string_k(marketResolved.clone(), "base", &[]);
-        }  else if (feeCurrency.as_str() == Some("quote_currency")) {
-            feeCurrency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+        let mut feeCurrency: Option<String> = self.safe_string_k_opt(trade.clone(), "feeCurrency", &[]);
+        let mut isSpot: bool = feeCurrency.is_some();
+        if (feeCurrency.is_none()) {
+            feeCurrency = self.safe_string_k_opt(marketResolved.clone(), "settle", &[]);
+        }  else if (feeCurrency.as_deref() == Some("base_currency")) {
+            feeCurrency = self.safe_string_k_opt(marketResolved.clone(), "base", &[]);
+        }  else if (feeCurrency.as_deref() == Some("quote_currency")) {
+            feeCurrency = self.safe_string_k_opt(marketResolved.clone(), "quote", &[]);
         }
         if (feeCost.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), feeCurrency.clone());
+                    m.insert("currency".to_string(), feeCurrency.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }
@@ -1757,7 +1757,7 @@ impl BlofinCore {
                     m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("currency".to_string(), feeCurrency);
+        m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
     m
 }));
                 m
@@ -3354,9 +3354,9 @@ impl BlofinCore {
         let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "currency", &[]);
         let mut networkId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "chain", &[]);
-        let mut tag: Value = self.safe_string_k(depositAddress.clone(), "tag", &[]);
-        if (tag.as_str() == Some("")) {
-            tag = Value::Null;
+        let mut tag: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "tag", &[]);
+        if (tag.as_deref() == Some("")) {
+            tag = None;
         }
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -3365,7 +3365,7 @@ impl BlofinCore {
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
         m.insert("network".to_string(), self.chain_id_to_network_code(networkId.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag);
+        m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
 });
 

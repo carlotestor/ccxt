@@ -2754,18 +2754,18 @@ impl ToobitCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
-        let mut rawSideLower: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
+        let mut rawSideLower: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
         let mut reduceOnly: Value = Value::Null;
-        if (rawSideLower != Value::Null) {
+        if (rawSideLower.is_some()) {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            let mut sideParts: Value = Value::Array(rawSideLower.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut sideParts: Value = Value::Array(rawSideLower.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
             let mut sideSuffix: Option<String> = self.safe_string(sideParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             if (sideSuffix.is_some()) {
                 reduceOnly = (Value::Bool(sideSuffix.as_deref() == Some("close")));
             }
-            rawSideLower = self.safe_string(sideParts, Value::Int(0), &[]);
+            rawSideLower = self.safe_string_opt(sideParts, Value::Int(0), &[]);
         }
         // omitZero already maps '0.0' to undefined
         let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[]));
@@ -2783,7 +2783,7 @@ impl ToobitCore {
         m.insert("type".to_string(), self.parse_order_type(rawType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), (Value::Bool(rawType.as_deref() == Some("LIMIT_MAKER"))));
-        m.insert("side".to_string(), rawSideLower);
+        m.insert("side".to_string(), rawSideLower.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "price", &[])));
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "cumulativeQuoteQty", &[])));

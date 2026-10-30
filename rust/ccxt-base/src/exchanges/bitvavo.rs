@@ -2738,16 +2738,16 @@ impl BitvavoCore {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut rawType: Option<String> = self.safe_string_k_opt(item.clone(), "type", &[]);
         let mut type_var: Value = self.parse_ledger_entry_type(rawType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut currencyId: Value = self.safe_string_k(item.clone(), "receivedCurrency", &[]);
-        let mut amount: Value = self.safe_string_k(item.clone(), "receivedAmount", &[]);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "receivedCurrency", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(item.clone(), "receivedAmount", &[]);
         let mut direction: Value = Value::Str("in".into());
-        if (amount == Value::Null) {
-            currencyId = self.safe_string_k(item.clone(), "sentCurrency", &[]);
-            amount = self.safe_string_k(item.clone(), "sentAmount", &[]);
+        if (amount.is_none()) {
+            currencyId = self.safe_string_k_opt(item.clone(), "sentCurrency", &[]);
+            amount = self.safe_string_k_opt(item.clone(), "sentAmount", &[]);
             direction = Value::Str("out".into());
         }
-        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "executedAt", &[]));
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k_opt(item.clone(), "feesAmount", &[]);
@@ -2771,7 +2771,7 @@ impl BitvavoCore {
         m.insert("referenceAccount".to_string(), self.safe_string_k(item, "address", &[]));
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code);
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);

@@ -1997,10 +1997,10 @@ impl LunoCore {
         }
         self.load_accounts(&[]).await;
         let mut currency: Value = Value::Null;
-        let mut id: Value = self.safe_string_k(params.clone(), "id", &[]); // account id
+        let mut id: Option<String> = self.safe_string_k_opt(params.clone(), "id", &[]); // account id
         let mut minRowParam: Value = self.safe_integer_k(params.clone(), "min_row", &[]);
         let mut maxRowParam: Value = self.safe_integer_k(params.clone(), "max_row", &[]);
-        if (id == Value::Null) {
+        if (id.is_none()) {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a currency code argument if no account id specified in params".into()))));
             }
@@ -2010,7 +2010,7 @@ impl LunoCore {
             if (account == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
             }
-            id = self.safe_string_k(account, "id", &[]);
+            id = self.safe_string_k_opt(account, "id", &[]);
         }
         if ((minRowParam == Value::Null) || (maxRowParam == Value::Null)) && ((minRowParam != Value::Null) || (maxRowParam != Value::Null)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined".into()))));
@@ -2032,7 +2032,7 @@ impl LunoCore {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                 m.insert("min_row".to_string(), min_row);
                 m.insert("max_row".to_string(), max_row);
             m

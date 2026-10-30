@@ -2498,15 +2498,15 @@ impl UpbitCore {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut lastTradeTimestamp: Value = Value::Null;
-        let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "volume", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "remaining_volume", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "executed_volume", &[]);
         let mut cost: Value = Value::Null;
         if (type_var.as_str() == Some("price")) {
             type_var = Value::Str("market".into());
-            cost = price.clone();
-            price = Value::Null;
+            cost = price.clone().map(Value::from).unwrap_or(Value::Null);
+            price = None;
         }
         let mut average: Value = Value::Null;
         let mut fee: Value = Value::Null;
@@ -2574,7 +2574,7 @@ impl UpbitCore {
         m.insert("timeInForce".to_string(), self.safe_string_upper_k(order, "time_in_force", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), self.parse_number(cost, &[]));
         m.insert("average".to_string(), self.parse_number(average, &[]));

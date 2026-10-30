@@ -2731,8 +2731,8 @@ impl CoinbaseexchangeCore {
         }
         self.load_accounts(&[]).await;
         let mut currency: Value = Value::Null;
-        let mut id: Value = self.safe_string_k(params.clone(), "id", &[]); // account id
-        if (id == Value::Null) {
+        let mut id: Option<String> = self.safe_string_k_opt(params.clone(), "id", &[]); // account id
+        if (id.is_none()) {
             if (code != Value::Null) {
                 currency = self.currency(code.clone());
                 let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("code".into()));
@@ -2740,21 +2740,21 @@ impl CoinbaseexchangeCore {
                 if (account == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositsWithdrawals() could not find account id for ".into())).into()), code)));
                 }
-                id = self.safe_string_k(account.clone(), "id", &[]);
+                id = self.safe_string_k_opt(account.clone(), "id", &[]);
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (id != Value::Null) {
-            request.insert("id".into(), id.clone());
+        if (id.is_some()) {
+            request.insert("id".into(), id.clone().map(Value::from).unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        if (id == Value::Null) {
+        if (id.is_none()) {
             let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             let mut transfers: Value = self.private_get_transfers(&[__ws_arg_26]).await;
             //

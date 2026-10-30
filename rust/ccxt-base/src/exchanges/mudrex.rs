@@ -1775,9 +1775,9 @@ impl MudrexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut positionId: Value = self.safe_string_k(params.clone(), "position_id", &[]);
+        let mut positionId: Option<String> = self.safe_string_k_opt(params.clone(), "position_id", &[]);
         let mut amount: Value = self.safe_value_k(params.clone(), "amount", &[]);
-        if (positionId == Value::Null) {
+        if (positionId.is_none()) {
             let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             let mut candidates: Value = self.filter_by(positions, Value::Str("symbol".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
             if (side != Value::Null) {
@@ -1786,15 +1786,15 @@ impl MudrexCore {
             let mut numCandidates: f64 = ((candidates.len() as i64) as f64);
             if numCandidates > ((0i64) as f64) {
                 let mut found: Value = candidates.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                positionId = self.safe_string_k(found, "id", &[]);
+                positionId = self.safe_string_k_opt(found, "id", &[]);
             }
         }
-        if (positionId == Value::Null) {
+        if (positionId.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", self.id.clone(), Value::Str(" closePosition() could not resolve position_id".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("position_id".to_string(), positionId);
+                m.insert("position_id".to_string(), positionId.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (amount != Value::Null) {
@@ -1839,22 +1839,22 @@ impl MudrexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut positionId: Value = self.safe_string_k(params.clone(), "position_id", &[]);
-        if (positionId == Value::Null) {
+        let mut positionId: Option<String> = self.safe_string_k_opt(params.clone(), "position_id", &[]);
+        if (positionId.is_none()) {
             let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             let mut matches: Value = self.filter_by(positions, Value::Str("symbol".into()), symbol.clone(), &[]);
             let mut numMatches: f64 = ((matches.len() as i64) as f64);
             if numMatches > ((0i64) as f64) {
                 let mut found: Value = matches.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                positionId = self.safe_string_k(found, "id", &[]);
+                positionId = self.safe_string_k_opt(found, "id", &[]);
             }
         }
-        if (positionId == Value::Null) {
+        if (positionId.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", self.id.clone(), Value::Str(" addMargin() could not resolve position_id".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("position_id".to_string(), positionId);
+                m.insert("position_id".to_string(), positionId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("margin".to_string(), self.cost_to_precision(symbol, amount));
             m
         });

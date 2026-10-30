@@ -3484,15 +3484,15 @@ impl DydxCore {
         // { "code": 123 }
         //
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
-        let mut errorCode: Value = self.safe_string_k(result, "code", &[]);
-        if (errorCode == Value::Null) || (errorCode.as_str() == Some("")) {
-            errorCode = self.safe_string_k(response.clone(), "code", &[]);
+        let mut errorCode: Option<String> = self.safe_string_k_opt(result, "code", &[]);
+        if (errorCode.is_none()) || (errorCode.as_deref() == Some("")) {
+            errorCode = self.safe_string_k_opt(response.clone(), "code", &[]);
         }
-        if (errorCode != Value::Null) && (errorCode.as_str() != Some("")) {
-            let mut errorCodeNum: Value = self.parse_to_int(errorCode.clone());
+        if (errorCode.is_some()) && (errorCode.as_deref() != Some("")) {
+            let mut errorCodeNum: Value = self.parse_to_int(errorCode.clone().map(Value::from).unwrap_or(Value::Null));
             if errorCodeNum.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }

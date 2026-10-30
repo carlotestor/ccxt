@@ -1001,9 +1001,9 @@ impl BitoproCore {
                 side = Value::Str("sell".into());
             }
         }
-        let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-        if (amount == Value::Null) {
-            amount = self.safe_string_k(trade.clone(), "baseAmount", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
+        if (amount.is_none()) {
+            amount = self.safe_string_k_opt(trade.clone(), "baseAmount", &[]);
         }
         let mut fee: Value = Value::Null;
         let mut feeAmount: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
@@ -1038,7 +1038,7 @@ impl BitoproCore {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m

@@ -6957,8 +6957,8 @@ impl HtxCore {
                 request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
             }
             // todo replace with fetchAccountIdByType
-            let mut accountId: Value = self.safe_string_k(paramsSubType.clone(), "account-id", &[]);
-            if (accountId == Value::Null) {
+            let mut accountId: Option<String> = self.safe_string_k_opt(paramsSubType.clone(), "account-id", &[]);
+            if (accountId.is_none()) {
                 // pick the first account
                 self.load_accounts(&[]).await;
                 {
@@ -6967,15 +6967,15 @@ impl HtxCore {
                     while { if !__for_first_782 { i += 1; } __for_first_782 = false; i < (self.accounts.len() as i64) } {
                     let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
                     if (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("spot")) {
-                        accountId = self.safe_string_k(account, "id", &[]);
-                        if (accountId != Value::Null) {
+                        accountId = self.safe_string_k_opt(account, "id", &[]);
+                        if (accountId.is_some()) {
                             break;
                         }
                     }
                 }
                 }
             }
-            request.insert("account-id".into(), accountId);
+            request.insert("account-id".into(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
             if (limit != Value::Null) {
                 request.insert("size".into(), limit.clone());
             }

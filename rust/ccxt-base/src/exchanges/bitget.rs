@@ -7414,11 +7414,11 @@ if _try_result.is_err() {
         let mut networkId: Option<String> = self.safe_string_k_opt(transaction.clone(), "chain", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]);
         let mut tag: Option<String> = self.safe_string_k_opt(transaction.clone(), "tag", &[]);
-        let mut txid: Value = self.safe_string_k(transaction.clone(), "tradeId", &[]);
-        if (txid == Value::Null) {
+        let mut txid: Option<String> = self.safe_string_k_opt(transaction.clone(), "tradeId", &[]);
+        if (txid.is_none()) {
             let mut dest: Option<String> = self.safe_string_k(transaction.clone(), "dest", &[]).as_str().map(str::to_owned);
             if (dest.as_deref() == Some("on_chain")) {
-                txid = self.safe_string_k(transaction.clone(), "recordId", &[]); // uta on-chain rows expose the tx hash as recordId
+                txid = self.safe_string_k_opt(transaction.clone(), "recordId", &[]); // uta on-chain rows expose the tx hash as recordId
             }
         }
         let mut feeCostString: Option<String> = self.safe_string_k_opt(transaction.clone(), "fee", &[]);
@@ -7442,7 +7442,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "orderId", &[]));
         m.insert("info".to_string(), transaction.clone());
-        m.insert("txid".to_string(), txid);
+        m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));

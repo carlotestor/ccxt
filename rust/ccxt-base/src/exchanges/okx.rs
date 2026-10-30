@@ -8494,8 +8494,8 @@ impl OkxCore {
         if (network != Value::Null) {
             omitKeys.push(Value::Str("network".into()));
         }
-        let mut fee: Value = self.safe_string_k(paramsWithdrawTag.clone(), "fee", &[]);
-        if (fee == Value::Null) {
+        let mut fee: Option<String> = self.safe_string_k_opt(paramsWithdrawTag.clone(), "fee", &[]);
+        if (fee.is_none()) {
             // the network fee comes from currencies cached by loadMarkets, the endpoint does not require it
             let mut networkCodeResolved: Value = self.network_id_to_code(&[network, self.safe_string_k(currency.clone(), "code", &[])]);
             let mut targetNetwork: Value = (if (networkCodeResolved == Value::Null) { Value::Map({
@@ -8508,10 +8508,10 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
-            fee = self.safe_string_k(targetNetwork, "fee", &[]);
+            fee = self.safe_string_k_opt(targetNetwork, "fee", &[]);
         }
-        if (fee != Value::Null) {
-            request.insert("fee".into(), self.number_to_string(fee));
+        if (fee.is_some()) {
+            request.insert("fee".into(), self.number_to_string(fee.map(Value::from).unwrap_or(Value::Null)));
         }
         let mut query: Value = self.omit(paramsWithdrawTag, Value::from(omitKeys), &[]);
         let __ws_arg_53 = self.extend(Value::Map(request), &[query]);

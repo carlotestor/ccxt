@@ -2373,14 +2373,14 @@ impl FoxbitCore {
         let mut bestAsk: Value = self.safe_dict_k(best.clone(), "ask", &[]);
         let mut bestBid: Value = self.safe_dict_k(best, "bid", &[]);
         let mut lastTrade: Value = self.safe_dict_k(ticker.clone(), "last_trade", &[]);
-        let mut lastPrice: Value = self.safe_string_k(lastTrade.clone(), "price", &[]);
-        let mut change: Value = self.safe_string_k(rolling_24h.clone(), "price_change", &[]);
-        let mut percentage: Value = self.safe_string_k(rolling_24h.clone(), "price_change_percent", &[]);
+        let mut lastPrice: Option<String> = self.safe_string_k_opt(lastTrade.clone(), "price", &[]);
+        let mut change: Option<String> = self.safe_string_k_opt(rolling_24h.clone(), "price_change", &[]);
+        let mut percentage: Option<String> = self.safe_string_k_opt(rolling_24h.clone(), "price_change_percent", &[]);
         // never-traded markets report all-zero placeholders instead of omitting the values
-        if crate::precise::Precise::stringEq(&lastPrice, &Value::Str("0".into())).as_bool() == Some(true) {
-            lastPrice = Value::Null;
-            change = Value::Null;
-            percentage = Value::Null;
+        if crate::precise::Precise::stringEq(&lastPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            lastPrice = None;
+            change = None;
+            percentage = None;
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2395,11 +2395,11 @@ impl FoxbitCore {
         m.insert("askVolume".to_string(), self.safe_number_k(bestAsk, "volume", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_number_k(rolling_24h.clone(), "open", &[]));
-        m.insert("close".to_string(), lastPrice.clone());
-        m.insert("last".to_string(), lastPrice);
+        m.insert("close".to_string(), lastPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), lastPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), change);
-        m.insert("percentage".to_string(), percentage);
+        m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
+        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(rolling_24h.clone(), "volume", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(rolling_24h, "quote_volume", &[]));
@@ -2469,13 +2469,13 @@ impl FoxbitCore {
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut symbol: Value = self.safe_string_k(order.clone(), "market_symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k_opt(order.clone(), "market_symbol", &[]);
         let mut marketResolved: Value = market.clone();
         if (market != Value::Null) {
-            symbol = self.safe_string_k(market.clone(), "symbol", &[]);
-        }  else if (symbol != Value::Null) {
-            marketResolved = self.market(symbol.clone());
-            symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]);
+            symbol = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+        }  else if (symbol.is_some()) {
+            marketResolved = self.market(symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            symbol = self.safe_string_k_opt(marketResolved.clone(), "symbol", &[]);
         }
         let mut timestamp: Value = self.parse_date(self.safe_string_k(order.clone(), "created_at", &[]), &[]);
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
@@ -2493,9 +2493,9 @@ impl FoxbitCore {
             cost = crate::precise::Precise::stringMul(&priceToCalculate, &amount);
         }
         let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
-        let mut feeCurrency: Value = self.safe_string_upper_k(marketResolved.clone(), "quoteId", &[]);
+        let mut feeCurrency: Option<String> = self.safe_string_upper_k_opt(marketResolved.clone(), "quoteId", &[]);
         if (side.as_deref() == Some("buy")) {
-            feeCurrency = self.safe_string_upper_k(marketResolved.clone(), "baseId", &[]);
+            feeCurrency = self.safe_string_upper_k_opt(marketResolved.clone(), "baseId", &[]);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2524,7 +2524,7 @@ impl FoxbitCore {
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), feeCurrency);
+        m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_number_k(order, "fee_paid", &[]));
     m
 }));

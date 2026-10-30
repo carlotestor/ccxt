@@ -1445,19 +1445,19 @@ impl ParadexCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_currency", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base_currency", &[]);
-        let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[]);
+        let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "settlement_currency", &[]);
         if matches!(&isSpot, Value::Bool(true)) {
             // spot is quoted in "USD" but paid and received in the settlement token (USDC),
             // a spot market has no settle, so the token it trades against is the quote
-            quoteId = settleId.clone();
-            settleId = Value::Null;
+            quoteId = settleId.clone().map(Value::from).unwrap_or(Value::Null);
+            settleId = None;
         }
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
+        let mut settle: Value = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         if !(matches!(&isSpot, Value::Bool(true))) && (settle != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
@@ -1490,7 +1490,7 @@ impl ParadexCore {
         m.insert("settle".to_string(), settle);
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId);
-        m.insert("settleId".to_string(), settleId);
+        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::str(type_var));
         m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), Value::Null);
@@ -2645,9 +2645,9 @@ impl ParadexCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "created_at", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(order.clone(), "id", &[]);
         // a client id is free text, omitZero would drop every non-numeric one in php
-        let mut clientOrderId: Value = self.safe_string_k(order.clone(), "client_id", &[]);
-        if (clientOrderId.as_str() == Some("")) {
-            clientOrderId = Value::Null;
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "client_id", &[]);
+        if (clientOrderId.as_deref() == Some("")) {
+            clientOrderId = None;
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
@@ -2677,7 +2677,7 @@ impl ParadexCore {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("clientOrderId".to_string(), clientOrderId);
+        m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);

@@ -4399,10 +4399,10 @@ impl BybitCore {
     m
 })]);
         let mut markets: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
-        let mut paginationCursor: Value = self.safe_string_k(data.clone(), "nextPageCursor", &[]);
-        if (paginationCursor != Value::Null) {
-            while (paginationCursor != Value::Null) {
-                add_element_to_object(&mut paramsExtended, &Value::Str("cursor".into()), paginationCursor.clone());
+        let mut paginationCursor: Option<String> = self.safe_string_k_opt(data.clone(), "nextPageCursor", &[]);
+        if (paginationCursor.is_some()) {
+            while (paginationCursor.is_some()) {
+                add_element_to_object(&mut paramsExtended, &Value::Str("cursor".into()), paginationCursor.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut responseInner: Value = Value::Null;
                 if (match &(usePrivateInstrumentsInfo) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                     responseInner = self.private_get_v5_market_instruments_info(&[paramsExtended.clone()]).await;
@@ -4419,7 +4419,7 @@ impl BybitCore {
                     break;
                 }
                 markets = self.array_concat(rawMarkets, markets.clone());
-                paginationCursor = self.safe_string_k(dataNew, "nextPageCursor", &[]);
+                paginationCursor = self.safe_string_k_opt(dataNew, "nextPageCursor", &[]);
             }
         }
         //
@@ -4473,17 +4473,17 @@ impl BybitCore {
         let mut preLaunchMarketsList: Value = self.safe_list_k(preLaunchData, "list", &[Value::from(vec![])]);
         markets = self.array_concat(markets.clone(), preLaunchMarketsList);
         let mut result: Vec<Value> = Vec::new();
-        let mut category: Value = self.safe_string_k(data, "category", &[]);
+        let mut category: Option<String> = self.safe_string_k_opt(data, "category", &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_502: bool = true;
             while { if !__for_first_502 { i += 1; } __for_first_502 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
-            if (category == Value::Null) {
-                category = self.safe_string_k(market.clone(), "category", &[]);
+            if (category.is_none()) {
+                category = self.safe_string_k_opt(market.clone(), "category", &[]);
             }
-            let mut linear: Value = (Value::Bool(category.as_str() == Some("linear")));
-            let mut inverse: Value = (Value::Bool(category.as_str() == Some("inverse")));
+            let mut linear: Value = (Value::Bool(category.as_deref() == Some("linear")));
+            let mut inverse: Value = (Value::Bool(category.as_deref() == Some("inverse")));
             let mut contractType: Option<String> = self.safe_string_k(market.clone(), "contractType", &[]).as_str().map(str::to_owned);
             let mut inverseFutures: bool = contractType.as_deref() == Some("InverseFutures");
             let mut linearFutures: bool = contractType.as_deref() == Some("LinearFutures");
@@ -4640,10 +4640,10 @@ impl BybitCore {
         let mut loadAllOptions: Value = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("loadAllOptions".into()), &[]);
         if (match &(loadAllOptions) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             request.insert("limit".into(), Value::Int(1000));
-            let mut paginationCursor: Value = self.safe_string_k(data, "nextPageCursor", &[]);
-            if (paginationCursor != Value::Null) {
-                while (paginationCursor != Value::Null) {
-                    request.insert("cursor".into(), paginationCursor.clone());
+            let mut paginationCursor: Option<String> = self.safe_string_k_opt(data, "nextPageCursor", &[]);
+            if (paginationCursor.is_some()) {
+                while (paginationCursor.is_some()) {
+                    request.insert("cursor".into(), paginationCursor.clone().map(Value::from).unwrap_or(Value::Null));
                     let mut responseInner: Value = Value::Null;
                     if (match &(usePrivateInstrumentsInfo) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                         let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -4662,7 +4662,7 @@ impl BybitCore {
                         break;
                     }
                     markets = self.array_concat(rawMarkets, markets.clone());
-                    paginationCursor = self.safe_string_k(dataNew, "nextPageCursor", &[]);
+                    paginationCursor = self.safe_string_k_opt(dataNew, "nextPageCursor", &[]);
                 }
             }
         }
@@ -5809,21 +5809,21 @@ impl BybitCore {
         if (isMaker != Value::Null) {
             takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }  else {
-            let mut lastLiquidityInd: Value = self.safe_string_k(trade.clone(), "lastLiquidityInd", &[]);
-            if (lastLiquidityInd.as_str() == Some("UNKNOWN")) {
-                lastLiquidityInd = Value::Null;
+            let mut lastLiquidityInd: Option<String> = self.safe_string_k_opt(trade.clone(), "lastLiquidityInd", &[]);
+            if (lastLiquidityInd.as_deref() == Some("UNKNOWN")) {
+                lastLiquidityInd = None;
             }
-            if (lastLiquidityInd != Value::Null) {
-                if (lastLiquidityInd.as_str() == Some("TAKER")) || (lastLiquidityInd.as_str() == Some("MAKER")) {
-                    takerOrMaker = lastLiquidityInd.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            if (lastLiquidityInd.is_some()) {
+                if (lastLiquidityInd.as_deref() == Some("TAKER")) || (lastLiquidityInd.as_deref() == Some("MAKER")) {
+                    takerOrMaker = lastLiquidityInd.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
                 }  else {
-                    takerOrMaker = (if (lastLiquidityInd.as_str() == Some("AddedLiquidity")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+                    takerOrMaker = (if (lastLiquidityInd.as_deref() == Some("AddedLiquidity")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
                 }
             }
         }
-        let mut orderType: Value = self.safe_string_lower_k(trade.clone(), "orderType", &[]);
-        if (orderType.as_str() == Some("unknown")) {
-            orderType = Value::Null;
+        let mut orderType: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "orderType", &[]);
+        if (orderType.as_deref() == Some("unknown")) {
+            orderType = None;
         }
         let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "execFee", &[]);
         let mut fee: Value = Value::Null;
@@ -5863,7 +5863,7 @@ impl BybitCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), self.safe_string_k(trade, "orderId", &[]));
-        m.insert("type".to_string(), orderType);
+        m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), priceString);
