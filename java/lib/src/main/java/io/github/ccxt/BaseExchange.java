@@ -3490,7 +3490,7 @@ public class BaseExchange {
         return extendedField(extendedBigIntegerFromUnsignedBytes(digest), EXTENDED_STARKNET_SELECTOR_MASK).toString();
     }
 
-    public Object extendedStarknetComputePoseidonHashOnElements(Object data)
+    public String extendedStarknetComputePoseidonHashOnElements(Object data)
     {
         if (!(data instanceof Iterable<?>)) {
             throw new RuntimeException("extendedStarknetComputePoseidonHashOnElements() requires an array");
@@ -4002,7 +4002,7 @@ public class BaseExchange {
     }
 
 
-    public Object lighterCreateAuthToken(Object signer, Object request)
+    public String lighterCreateAuthToken(Object signer, Object request)
     {
         return null;
     }
