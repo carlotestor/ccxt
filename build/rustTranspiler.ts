@@ -6260,16 +6260,27 @@ export class RustTranspilerBuilder {
     nativeRequestDictInserts(content: string): string {
         const call = 'add_element_to_object(';
         const spans = this.fnItemHeaders(content);
-        const verdict = new Map<number, boolean>();
-        const fnAllowsNativeInsert = (span: { start: number; end: number; header: string }): boolean => {
-            const cached = verdict.get(span.start);
+        const verdict = new Map<string, boolean>();
+        const fnAllowsNativeInsert = (span: { start: number; end: number; header: string }, name: string): boolean => {
+            const key = `${span.start}:${name}`;
+            const cached = verdict.get(key);
             if (cached !== undefined) return cached;
             const body = content.slice(span.start, span.end);
-            const ok = !/\bfn\s+\w+\s*\([^)]*\brequest\b/.test(span.header)
-                && (body.match(/^\s*let\s+mut\s+request\s*:\s*Value\s*=\s*Value::Map\(/gm) ?? []).length === 1
-                && !/(^|[^.\w])request\s*=(?!=)/m.test(body.replace(/"(?:[^"\\]|\\.)*"/g, '""'))
+            const stripped = body.replace(/"(?:[^"\\]|\\.)*"/g, '""');
+            // `extend(<fresh literal>, [<fresh literal local>])` is as untagged as `request`.
+            const freshExtend = name !== 'request'
+                && new RegExp(`^\\s*let\\s+mut\\s+${name}\\s*:\\s*Value\\s*=\\s*self\\.extend\\(Value::Map\\(\\{[^}]*\\}\\),\\s*&\\[Value::Map\\((\\w+)\\)\\]\\);`, 'm').exec(body);
+            const freshSrc = freshExtend
+                && (body.match(new RegExp(`^\\s*let\\s+mut\\s+${freshExtend[1]}\\s*:\\s*indexmap::IndexMap<String,\\s*Value>\\s*=\\s*\\(\\{`, 'gm')) ?? []).length === 1
+                && !new RegExp(`(^|[^.\\w])${freshExtend[1]}\\s*=(?!=)`, 'm').test(stripped);
+            const declared = name === 'request'
+                ? (body.match(/^\s*let\s+mut\s+request\s*:\s*Value\s*=\s*Value::Map\(/gm) ?? []).length === 1
+                : !!freshSrc && (body.match(new RegExp(`^\\s*let\\s+mut\\s+${name}\\s*:`, 'gm')) ?? []).length === 1;
+            const ok = !new RegExp(`\\bfn\\s+\\w+\\s*\\([^)]*\\b${name}\\b`).test(span.header)
+                && declared
+                && !new RegExp(`(^|[^.\\w])${name}\\s*=(?!=)`, 'm').test(stripped)
                 && !body.includes('"__');
-            verdict.set(span.start, ok);
+            verdict.set(key, ok);
             return ok;
         };
 
@@ -6299,17 +6310,18 @@ export class RustTranspilerBuilder {
             }
             if (depth !== 0) { out += content.slice(at); break; }
             const args = this.splitArgs(content.slice(openParen + 1, j));
-            const keyMatch = args && args.length === 3 && args[0].trim() === '&mut request'
-                ? args[1].trim().match(/^&Value::Str\("((?:[^"\\]|\\.)*)"\.to_string\(\)\)$/)
+            const keyMatch = args && args.length === 3 && /^&mut \w+$/.test(args[0].trim())
+                ? args[1].trim().match(/^&Value::Str\("((?:[^"\\]|\\.)*)"\.(?:to_string|into)\(\)\)$/)
                 : null;
             const value = args ? args[2].trim() : '';
-            if (!keyMatch || /\brequest\b/.test(value)) {
+            const recv = args ? args[0].trim().slice(5) : '';
+            if (!keyMatch || new RegExp(`\\b${recv}\\b`).test(value)) {
                 out += content.slice(at, j + 1);
                 i = j + 1;
                 continue;
             }
             const span = spans.find(sp => sp.start <= at && at < sp.end);
-            if (!span || !fnAllowsNativeInsert(span)) {
+            if (!span || !fnAllowsNativeInsert(span, recv)) {
                 out += content.slice(at, j + 1);
                 i = j + 1;
                 continue;
@@ -6318,7 +6330,7 @@ export class RustTranspilerBuilder {
             let k = end;
             while (k < content.length && (content[k] === ' ' || content[k] === '\t')) k++;
             if (content[k] === ';') end = k + 1;
-            out += `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("${keyMatch[1]}".to_string(), ${value}); }`;
+            out += `if let Value::Dict(__d12) = &mut ${recv} { std::sync::Arc::make_mut(__d12).insert("${keyMatch[1]}".to_string(), ${value}); }`;
             i = end;
         }
         return out;
