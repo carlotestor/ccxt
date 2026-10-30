@@ -326,7 +326,7 @@ export default class onetrading extends onetradingRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, subscribeHash, request);
+        let trades = await this.watch (url, messageHash, request, subscribeHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -495,7 +495,7 @@ export default class onetrading extends onetradingRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const orders = await this.watch (url, messageHash, request, subscribeHash, request);
+        let orders = await this.watch (url, messageHash, request, subscribeHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
