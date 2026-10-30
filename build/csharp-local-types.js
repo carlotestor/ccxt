@@ -1370,6 +1370,8 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // `return null`) and `return market`, the local `this.market(...)` fills (the same
     // Dictionary row) — every path boxes that row or null.
     'getMarketFromSymbols': 'Dictionary<string, object>',
+    // base-only marketOrNull: `return undefined` or `return this.market (symbol)` (Dictionary row).
+    'marketOrNull': 'Dictionary<string, object>',
     'opinionOrderRawAmounts': 'Dictionary<string, object>', 'parseAccountPosition': 'Dictionary<string, object>', 'parseAccountSettings': 'Dictionary<string, object>', 'parseBidAskCustom': 'Dictionary<string, object>',
     // U49: ts/src/base/Exchange.ts#safeBalance — ONE declaration in the whole tree, one return
     // path, `return balance as any` where `balance` is the `Dict` parameter, i.e. the box is the
