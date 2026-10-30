@@ -4100,7 +4100,7 @@ func (this *Kucoin) loadPositionSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	r := <-this.FetchPositionAsync(symbol)
+	r := <-this.FetchPositionAsync(ccxt.StringArg(symbol))
 	if r.Err != nil {
 		panic(r.Err)
 	}

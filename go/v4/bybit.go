@@ -8947,17 +8947,17 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Bybit) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Bybit) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Bybit) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " fetchPosition() requires a symbol argument"))
 	}
 	if this.Markets() == nil {
@@ -9499,7 +9499,7 @@ func (this *Bybit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, 
 	}
 	var market map[string]any = this.Market(symbol)
 
-	r1 := <-this.FetchPositionAsync(symbol, params)
+	r1 := <-this.FetchPositionAsync(StringArg(symbol), params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
