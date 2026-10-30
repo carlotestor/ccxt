@@ -165,7 +165,7 @@ public interface PredictionTypedSurface {
     CompletableFuture<TransferEntry> fetchTransfer(String id, String code, Map<String, Object> params);
     CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<PredictionTrade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<PredictionOrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> params);
+    CompletableFuture<PredictionOrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> params);
     CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String symbol, Map<String, Object> params);
     CompletableFuture<PredictionOrder> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
     CompletableFuture<PredictionPosition> fetchPosition(Object symbol, Map<String, Object> params);

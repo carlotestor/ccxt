@@ -236,7 +236,7 @@ export default class nado extends nadoRest {
         const markets: Market[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
+            const symbol: string = symbolsNormalized[i];
             const market = this.market (symbol);
             const messageHash = 'orderbook:' + market['symbol'];
             markets.push (market);

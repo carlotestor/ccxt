@@ -5565,7 +5565,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchOrderBook() is not supported yet")));

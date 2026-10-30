@@ -173,7 +173,7 @@ public interface TypedSurface {
     CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols, Map<String, Object> params);
     CompletableFuture<OrderBookL3> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> params);
     CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> params);
+    CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> params);
     CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> params);
     CompletableFuture<OrderBook> fetchL2OrderBook(String symbol, Long limit, Map<String, Object> params);
     CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Object amount, Object price, Map<String, Object> params);

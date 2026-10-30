@@ -3312,7 +3312,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object outcome, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
