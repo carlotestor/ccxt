@@ -9267,6 +9267,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = narrowStrNullLocals(rustContent); // hx11 W7
                 rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
+                rustContent = this.nativeMapKeysIfLet(rustContent); // closure-free map keys
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10019,6 +10020,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
+        finalFile = this.nativeMapKeysIfLet(finalFile); // closure-free map keys
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13433,6 +13435,22 @@ impl std::ops::DerefMut for ${coreName} {
         content = content.replace(has, (m: string, k: string, d: string, off: number, whole: string) =>
             guard(m, off, whole, `matches!(${k}.as_str(), Some(__k) if ${d}.contains_key(__k))`));
         return content;
+    }
+
+    // Map keys of a place, closure-free (the `|__m|`/`|__k|` closures counted as blobs):
+    //   Value::Array(X.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default())
+    //     -> Value::Array(if let Some(__m) = X.as_map() { __m.keys().map(|__k| Value::Str(__k.clone().into())).collect() } else { Vec::new() })
+    // A non-map X stays an empty array; X is a side-effect-free place path. Skips lines that would cross 400.
+    nativeMapKeysIfLet(content: string): string {
+        if (!content.includes('.as_map().map(|__m| __m.keys()')) return content;
+        const re = /(?<![A-Za-z0-9_.:])Value::Array\(([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.as_map\(\)\.map\(\|__m\| __m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\)\)\.unwrap_or_default\(\)\)/g;
+        return content.replace(re, (m: string, x: string, off: number, whole: string) => {
+            const text = `Value::Array(if let Some(__m) = ${x}.as_map() { __m.keys().map(|__k| Value::Str(__k.clone().into())).collect() } else { Vec::new() })`;
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        });
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
