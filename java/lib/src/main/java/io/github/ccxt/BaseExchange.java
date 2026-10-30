@@ -4002,7 +4002,7 @@ public class BaseExchange {
     }
 
 
-    public Object lighterCreateAuthToken(Object signer, Object request)
+    public String lighterCreateAuthToken(Object signer, Object request)
     {
         return null;
     }
