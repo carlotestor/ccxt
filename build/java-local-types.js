@@ -457,7 +457,7 @@ export function isGuardedStringHelper (name) {
 
 // hx11 M510: base helpers declared `byte[]` in the hand-written Java base (BaseExchange.base64ToBinary
 // returns Encode.base64ToBinary's byte[] on every path). Declaration-only retype of the local.
-export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base64ToBinary', 'base58ToBinary', 'base16ToBinary', 'binaryConcat', 'binaryConcatArray' ]);
+export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base64ToBinary', 'base58ToBinary', 'base16ToBinary', 'binaryConcat', 'binaryConcatArray', 'packb' ]);
 
 // the only consumers a byte[] local may feed: this.<m>(..) whose Java parameters are all Object,
 // so the static type change binds the same overload
@@ -547,6 +547,7 @@ const LOCAL_THIS_RETURN_TYPES = {
     'base16ToBinary': { type: 'byte[]' },
     'binaryConcat': { type: 'byte[]' },
     'binaryConcatArray': { type: 'byte[]' },
+    'packb': { type: 'byte[]' },
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },

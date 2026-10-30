@@ -2526,7 +2526,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object actionHash(Map<String, Object> action, String vaultAddress, Object nonce)
     {
-        Object dataBinary = this.packb(action);
+        byte[] dataBinary = this.packb(action);
         String dataHex = this.binaryToBase16(dataBinary);
         Object data = dataHex;
         data = (data + ("00000" + this.intToBase16(nonce)));

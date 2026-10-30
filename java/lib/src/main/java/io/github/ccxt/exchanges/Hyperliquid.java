@@ -1914,7 +1914,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object actionHash(Object action, String vaultAddress, Object nonce, Long expiresAfter)
     {
-        Object dataBinary = this.packb(action);
+        byte[] dataBinary = this.packb(action);
         String dataHex = this.binaryToBase16(dataBinary);
         String data = ((dataHex + "00000") + this.intToBase16(nonce));
         if (java.util.Objects.equals(vaultAddress, null))

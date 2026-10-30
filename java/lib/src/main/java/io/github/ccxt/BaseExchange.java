@@ -3273,7 +3273,7 @@ public class BaseExchange {
         return k.digest();
     }
 
-    public Object packb(Object data) {
+    public byte[] packb(Object data) {
         try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
              org.msgpack.core.MessagePacker packer = org.msgpack.core.MessagePack.newDefaultPacker(out)) {
             // Java Maps don't preserve insertion order, but msgpack signatures
