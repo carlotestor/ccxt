@@ -17,7 +17,7 @@ const RECEIVER_CALL = /(?<![\w.])(?:ccxt\.)?(?:AddElementToObject|GetValue|InOp|
 // slices. `any` locals are absent on purpose — they may hold a *int64 / *string box.
 const PLAIN_VALUE_TYPES = /^(?:map\[|\[\]|(?:\*)?ccxt\.[A-Z]|(?:\*)?(?:ArrayCache|OrderBook))/;
 
-type Decl = { 'type': string, 'line': number, 'init'?: string };
+export type Decl = { 'type': string, 'line': number, 'init'?: string };
 
 type Span = { s: number, e: number, text: string };
 
@@ -71,7 +71,7 @@ function hx10G10Split (masked: string, open: number, close: number): Span[] {
 
 // every name the function declares, with the line it is declared on; a name declared twice never
 // carries a proven type
-function hx10G10Decls (body: string[], signature: string): Map<string, Decl> {
+export function hx10G10Decls (body: string[], signature: string): Map<string, Decl> {
     const decls = new Map<string, Decl> ();
     const add = (name: string, type: string, line: number, init?: string) => {
         const seen = decls.get (name);
@@ -183,7 +183,7 @@ function hx10G10LiteralDefaultPtr (maskedBody: string[], name: string, decl: Dec
 
 // the key as Go prints it: a string literal, a `string` local, or a `*string` local some earlier
 // deref or enclosing nil guard proves non-nil (a nil key would have panicked or been skipped there)
-function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string, siteLine: number): string | undefined {
+export function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string, siteLine: number): string | undefined {
     if (key.startsWith ('"')) {
         return key;
     }
@@ -350,7 +350,7 @@ function hx10G10InOp (line: string, maskedLine: string, decls: Map<string, Decl>
 
 // a name declared more than once in the func (one `var symbol string` per branch) is typed by the
 // nearest declaration whose block is still open at the site
-function hx10G10DeclsAt (body: string[], maskedBody: string[], decls: Map<string, Decl>, site: number): Map<string, Decl> {
+export function hx10G10DeclsAt (body: string[], maskedBody: string[], decls: Map<string, Decl>, site: number): Map<string, Decl> {
     let view = decls;
     const siteDepth = hx10G10DepthBefore (maskedBody, site);
     for (const [ name, decl ] of decls) {
@@ -375,7 +375,7 @@ function hx10G10DeclsAt (body: string[], maskedBody: string[], decls: Map<string
 }
 
 // every `ok` of the func is the local of an `if x, ok := ...; ...` header, so a new header `ok` shadows nothing
-function hx10G10OkIsIfLocal (maskedBody: string[]): boolean {
+export function hx10G10OkIsIfLocal (maskedBody: string[]): boolean {
     return maskedBody.every (line => !/\bok\b/.test (line) || /^\s*(?:\} else )?if (?:\w+|_), ok := [^;]+; .*\{$/.test (line));
 }
 
@@ -658,7 +658,7 @@ export function hx10G10SelfTest (): string[] {
 // `&&` guard proves k non-nil, so the lookup is a native comma-ok behind one `k != nil` check
 const NIL_SAFE_MAP = /^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)\(\)$/;
 
-function hx11w9Terms (line: string, masked: string): string[] | undefined {
+export function hx11w9Terms (line: string, masked: string): string[] | undefined {
     const terms: string[] = [];
     let depth = 0;
     let from = 0;
