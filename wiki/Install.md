@@ -1,0 +1,255 @@
+## Install
+
+> **Just want an AI agent or your terminal to use CCXT?** You may not need to install the library at all:
+> - **[CCXT MCP Server](MCP.md)** — connect Claude Desktop/Code, Cursor, VS Code, Windsurf or any MCP host to 100+ exchanges and prediction markets. One line: `claude mcp add ccxt -- npx -y ccxt-mcp`.
+> - **[CCXT CLI](CLI.md)** — call any unified method straight from your shell.
+
+The easiest way to install the ccxt library is to use builtin package managers:
+
+- [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v15+)
+- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3)
+
+This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
+
+- [ccxt.js](https://github.com/ccxt/ccxt/blob/master/js/ccxt.js) in JavaScript
+- [./python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
+- [ccxt.php](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
+- [./java/](https://github.com/ccxt/ccxt/blob/master/java/) in Java (generated from TS)
+
+You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt) and copy files
+manually into your working directory with language extension appropriate for your environment.
+
+```shell
+git clone https://github.com/ccxt/ccxt.git
+```
+
+An alternative way of installing this library is to build a custom bundle from source. Choose exchanges you need in `exchanges.cfg`.
+
+### JavaScript (NPM)
+
+JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 18+). When compiling with Rspack (or Webpack) and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) in your `babel-loader` config.
+
+[ccxt crypto trading library in npm](http://npmjs.com/package/ccxt)
+
+```shell
+npm install ccxt
+```
+
+```javascript
+var ccxt = require ('ccxt')
+
+console.log (ccxt.exchanges) // print all available exchanges
+```
+
+### JavaScript (for use with the `<script>` tag):
+
+All-in-one browser bundle (dependencies included), served from a CDN of your choice:
+
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.90/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.90/dist/ccxt.browser.min.js
+* ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
+
+You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
+
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.90/dist/ccxt.browser.min.js"></script>
+```
+
+The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:
+
+```javascript
+console.log (ccxt.exchanges) // print all available exchanges
+```
+
+### Custom JavaScript Builds
+
+It takes time to load all scripts and resources. The problem with in-browser usage is that the entire CCXT library weighs a few megabytes which is a lot for a web application. Sometimes it is also critical for a Node app. Therefore to lower the loading time you might want to make your own custom build of CCXT for your app with just the exchanges you need. CCXT uses rspack to remove dead code paths to make the package smaller.
+
+Follow these steps:
+
+```bash
+# 1. clone the repository
+
+git clone --depth 1 https://github.com/ccxt/ccxt.git
+
+# 2. go to the cloned repository
+
+cd ccxt
+
+# 3. install dependencies
+
+npm install
+
+# 4. edit exchanges.cfg for the exchanges of your interest
+
+echo -e "binance\nokx" > exchanges.cfg
+
+# 5. build the library
+
+npm run export-exchanges
+npm run bundle-browser
+
+# 6a. copy the browser file to your project folder if you are buildig a web application
+
+cp dist/ccxt.browser.js path/to/your/html/project
+
+# 6b. or link against the library if you are building a Node.js application
+npm link
+cd path/to/your/node/project
+npm link ccxt
+
+# 6c. directly import ccxt from the entry point
+touch app.js
+
+# inside of app.js
+
+import ccxt from './js/ccxt.js'
+console.log (ccxt)
+
+# now you can run your app like so
+
+node app.js
+```
+
+### Python
+
+[ccxt algotrading library in PyPI](https://pypi.python.org/pypi/ccxt)
+
+```shell
+pip install ccxt
+```
+
+```python
+import ccxt
+print(ccxt.exchanges) # print a list of all available exchange classes
+```
+
+The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
+
+```python
+import ccxt.async_support as ccxt # link against the asynchronous version of ccxt
+```
+
+### PHP
+
+The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 8.1+).
+
+It can also be installed from the source code: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/php)
+
+It requires common PHP modules:
+
+- cURL
+- mbstring (using UTF-8 is highly recommended)
+- PCRE
+- iconv
+- gmp
+
+```php
+include "ccxt.php";
+var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
+```
+
+The library supports concurrent asynchronous mode using tools from [ReactPHP](https://reactphp.org/) in PHP 8.1+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+
+### .net/C#
+
+[ccxt in C# with **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0 and netstandard 2.1)
+```c#
+using ccxt;
+Console.WriteLine(ccxt.Exchanges) // check this later
+```
+
+### Java
+
+Java version of CCXT requires Java 21+ and uses Gradle as its build system.
+
+Clone and build from source:
+
+```shell
+git clone https://github.com/ccxt/ccxt.git --depth 1
+cd ccxt/java
+./gradlew :lib:build
+```
+
+```Java
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println(ticker.symbol + " " + ticker.last);
+```
+
+Run the examples:
+
+```shell
+cd java
+./gradlew :examples:run -PmainClass=examples.FetchTicker
+./gradlew :examples:run -PmainClass=examples.WatchOrderBook
+```
+
+See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for the full list of examples.
+
+### Rust
+
+[ccxt in Rust with **crates.io**](https://crates.io/crates/ccxt) ([docs.rs](https://docs.rs/ccxt))
+
+```shell
+cargo add ccxt tokio --features tokio/full
+cargo add ccxt-pro
+```
+
+```toml
+[dependencies]
+ccxt = "4.5.75"
+ccxt-pro = "4.5.75"
+tokio = { version = "1", features = ["full"] }
+```
+
+`ccxt` carries the REST exchanges; `ccxt-pro` adds the WebSocket (`watch*`) ones and is only needed if you stream. Both are async and expect a Tokio runtime.
+
+By default every exchange is compiled, which needs about 19 GB of RAM for a fresh debug build (50 GB in release). Each exchange is also a cargo feature named after its id, so disable the defaults and list only the ones you use — the same names on every ccxt crate:
+
+```toml
+[dependencies]
+ccxt = { version = "4.5.75", default-features = false, features = ["binance", "kraken"] }
+ccxt-pro = { version = "4.5.75", default-features = false, features = ["binance"] }
+```
+
+With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](https://github.com/ccxt/ccxt/blob/master/rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `from_id` only knows the exchanges compiled in.
+
+```rust
+use ccxt::{Binance, Params};
+
+let mut exchange = Binance::new(None);
+exchange.load_markets(false).await;
+
+let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+println!("{} {:?}", ticker.symbol, ticker.last);
+```
+
+See [examples/rust/](https://github.com/ccxt/ccxt/tree/master/examples/rust) for the full list of examples.
+
+### Docker
+
+You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document for the details on that).
+
+You don't need the Docker image if you're not going to develop CCXT. If you just want to use CCXT – just install it as a regular package into your project.
+
+Using `docker-compose` (in the cloned CCXT repository):
+
+```shell
+docker-compose run --rm ccxt
+```
+
+Alternatively:
+
+```shell
+docker build . --tag ccxt
+docker run -it ccxt
+```
+
+## Proxy
+If you are unable to obtain data from exchanges due to location restrictions read the [proxy](https://github.com/ccxt/ccxt/wiki/Manual#proxy) section.

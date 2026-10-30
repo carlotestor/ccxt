@@ -1,0 +1,24 @@
+# Initally ignore all files
+*
+
+# Files to include
+!package.json
+!package-lock.json
+!postinstall.js
+!LICENSE.txt
+!README.md
+!index.d.cts
+
+# Folders to include
+!js/**/*
+!dist/**/*
+
+# Ignore tests
+js/src/test/**/*
+js/src/pro/test/**/*
+
+#Ignore browser bundle
+dist/ccxt.browser.js
+!dist/ccxt.browser.min.js
+!dist/ccxt.browser.min.js.LICENSE.txt
+dist/*.map
