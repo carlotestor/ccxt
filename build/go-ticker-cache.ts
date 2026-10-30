@@ -32,6 +32,7 @@ const CALLS: { [name: string]: (r: string, a: string[], q: string) => string | u
     'SafeValue': (r, a) => (a.length === 2) ? r + '.Get(' + a[1] + ')' : undefined,
     'SafeDict': (r, a) => (a.length === 2) ? r + '.Get(' + a[1] + ')' : undefined,
     'SafeMapTyped': (r, a, q) => (a.length === 2) ? q + 'MapTyped(' + r + '.Get(' + a[1] + '))' : undefined,
+    'SafeDictMap': (r, a, q) => (a.length === 2) ? q + 'MapTyped(' + r + '.Get(' + a[1] + '))' : undefined,
     'InOp': (r, a) => (a.length === 2) ? r + '.Has(' + a[1] + ')' : undefined,
     'Remove': (r, a) => (a.length === 2) ? r + '.Delete(' + a[1] + ')' : undefined,
     'ObjectKeys': (r, a) => (a.length === 1) ? r + '.Keys()' : undefined,
@@ -45,7 +46,7 @@ export function goTickerCachePass (content: string): string {
     // innermost-first: repeat until no helper call on the receiver is left
     for (let guard = 0; guard < 8; guard++) {
         const masked = goChanMask (content);
-        const re = /(?<![\w])(?:(?:ccxt\.|this\.)?)(AddElementToObject|GetValue|SafeValue|SafeDict|SafeMapTyped|InOp|Remove|ObjectKeys)\(this\.(?:Tickers|Bidsasks)[,)]/g;
+        const re = /(?<![\w])(?:(?:ccxt\.|this\.)?)(AddElementToObject|GetValue|SafeValue|SafeDict|SafeMapTyped|SafeDictMap|InOp|Remove|ObjectKeys)\(this\.(?:Tickers|Bidsasks)[,)]/g;
         let m: RegExpExecArray | null;
         let out = '';
         let cursor = 0;
