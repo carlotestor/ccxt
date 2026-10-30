@@ -95,6 +95,7 @@ function overwriteFileAndFolder(path: string, content: string) {
         if (path.includes('/java/lib/')) { content = nativeJ05CallReceiverReads(content); } // hx10 wave-7 J05
         content = j12AsyncThrows(content); // hx10 wave-7 J12
         if (path.includes('/java/lib/')) { const typed = hx11w8JavaParseTyped(content); content = typed === content ? content : ensureJavaImports(typed, [ HX11W8_JSPARSE_IMPORT ]); } // hx11w8 parse
+        if (path.includes('/java/lib/')) { content = hx11w8PaginationCursorPuts(content); } // hx11 w8 pagination cursor, after the final element-write passes
     }
     overwriteFile(path, content);
 }
@@ -4949,7 +4950,6 @@ class NewTranspiler {
         javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
         javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
         javaSource = hx10w10JO01(javaSource) // hx10 wave-10 JO01: counter RMW is one owner task
-        javaSource = hx11w8PaginationCursorPuts(javaSource) // hx11 w8 pagination cursor
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
