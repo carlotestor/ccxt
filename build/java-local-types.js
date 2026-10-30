@@ -15855,8 +15855,8 @@ export function installJavaNativeReplace (transpiler) {
 
 // ===== 53. String returns built by String.replace / native concat =====
 // On a TS string, `x.replace (a, b)` prints Helpers.replace (declared String) and toLowerCase /
-// toUpperCase / trim print the String methods; a native concat and a String-declared identifier
-// are String too. These let an annotated `: Str` method print `String`.
+// toUpperCase / trim print the String methods, slice a Helpers.slice or native substring; a native
+// concat and a String-declared identifier are String too. These let an annotated `: Str` method print `String`.
 export function installJavaStringReturnSites (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.javaExpressionPrintsType !== 'function' || printer._javaStringReturnSitesPatched) {
@@ -15886,6 +15886,7 @@ export function installJavaStringReturnSites (transpiler) {
         }
         if (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
             && ((node.expression.name.text === 'replace' && node.arguments.length === 2)
+                || (node.expression.name.text === 'slice' && (node.arguments.length === 1 || node.arguments.length === 2))
                 || ([ 'toLowerCase', 'toUpperCase', 'trim' ].includes (node.expression.name.text) && node.arguments.length === 0))) {
             const receiver = printer.getChecker ().getTypeAtLocation (node.expression.expression);
             return receiver !== undefined && (receiver.flags & ts.TypeFlags.StringLike) !== 0;
