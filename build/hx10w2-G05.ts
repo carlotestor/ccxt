@@ -11,6 +11,7 @@ const G05_PTR_ELEMENT: { [t: string]: string } = { '*string': 'string', '*int64'
 
 // base-method Go return types (go/v4/exchange_*.go); a method the file defines itself is not trusted
 const G05_METHOD_TYPES: { [name: string]: string } = {
+    'SafeListSlice': '[]any',
     'Json': 'string',
     'Ymd': 'string',
     'Ymdhms': 'string',

@@ -10,7 +10,7 @@
 const GB08_PATH = /(?:^|\/)go\/v4\/(?:prediction\/[A-Za-z0-9_]+\.go|exchange_prediction\.go)$/
 
 // producers whose elements come from decoded JSON or from parse* rows: maps or nil, no pointer
-const GB08_DICT_LIST_PRODUCER = /^(?:ccxt\.)?(?:SafeListTyped|SafeList2Typed|SafeListTypedDefault|SafeList|ListTyped|ArrayTyped|MapSliceToList|ObjectValues|ExtractParams)\(|^(?:ccxt\.)?[A-Za-z]+FromList\(|^\[\]any\{\s*\}$/
+const GB08_DICT_LIST_PRODUCER = /^(?:ccxt\.)?(?:this\.SafeListSlice|SafeListTyped|SafeList2Typed|SafeListTypedDefault|SafeList|ListTyped|ArrayTyped|MapSliceToList|ObjectValues|ExtractParams)\(|^(?:ccxt\.)?[A-Za-z]+FromList\(|^\[\]any\{\s*\}$/
 const GB08_DICT_ELEMENT = /^(?:map\[string\]any\{|(?:ccxt\.)?(?:MapTyped|SafeMapTyped|SafeDictMap|SafeDict2Map|SafeDictNMap|MapOrEmpty)\(|(?:ccxt\.)?this\.(?:Parse|SafeDict|SafeMapTyped)|(?:ccxt\.)?[A-Za-z]+FromMap\()/
 
 const GB08_GUARD = /func\(\) any \{\n([ \t]*)if (\w+) >= 0 && \2 < len\((\w+)\) \{\n[ \t]*return (?:ccxt\.)?DerefScalar\(\3\[\2\]\)\n[ \t]*\}\n[ \t]*return nil\n[ \t]*\}\(\)/g
