@@ -1718,7 +1718,7 @@ public class BaseExchange {
         return value;
     }
 
-    public Object arraySlice(Object array, Object first, Object second) {
+    public List<Object> arraySlice(Object array, Object first, Object second) {
         int firstInt = toInt(first);
 
         // ----- byte[] case -----
@@ -1734,15 +1734,15 @@ public class BaseExchange {
                         index = 0;
                     }
                 }
-                // slice [index..end) and return as List<Byte>
-                List<Byte> result = new ArrayList<>(byteArray.length - index);
+                // slice [index..end) and return as List<Object> of Byte
+                List<Object> result = new ArrayList<>(byteArray.length - index);
                 for (int i = index; i < byteArray.length; i++) {
                     result.add(byteArray[i]);
                 }
                 return result;
             } else {
                 int secondInt = toInt(second);
-                // slice [firstInt..secondInt) and return as List<Byte>
+                // slice [firstInt..secondInt) and return as List<Object> of Byte
                 int from = firstInt;
                 int to = secondInt;
                 if (from < 0 || to < from || to > byteArray.length) {
@@ -1750,7 +1750,7 @@ public class BaseExchange {
                             "Invalid slice range: " + from + ".." + to + " for length " + byteArray.length
                     );
                 }
-                List<Byte> result = new ArrayList<>(to - from);
+                List<Object> result = new ArrayList<>(to - from);
                 for (int i = from; i < to; i++) {
                     result.add(byteArray[i]);
                 }
@@ -1802,7 +1802,7 @@ public class BaseExchange {
         return Integer.parseInt(value.toString());
     }
     // overload matching the C# default parameter (second = null)
-    public Object arraySlice(Object array, Object first) {
+    public List<Object> arraySlice(Object array, Object first) {
         return arraySlice(array, first, null);
     }
 

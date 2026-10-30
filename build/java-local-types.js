@@ -368,6 +368,7 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'filterBySymbolsSinceLimit', 'marketCodes', 'getListFromObjectValues', 'parseAccounts',
     'parseBorrowInterests', 'parseMarginModifications', 'parseConversions', 'parseIncomes',
     'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
+    'arraySlice',
 ]);
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
