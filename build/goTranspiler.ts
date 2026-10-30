@@ -893,7 +893,7 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
         return true;
     }
     // Positions is only written with ArrayCache* results, a non-nil map literal or untyped nil
-    if (text === 'this.WsCacheObjGet("Positions")') {
+    if ((text === 'this.Positions') || (text === 'this.WsCacheObjGet("Positions")')) {
         return true;
     }
     const call = /^((?:this\.)?\w+)\(/.exec (text);
