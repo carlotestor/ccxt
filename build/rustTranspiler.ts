@@ -13,7 +13,7 @@ import {
     nativeGetValue, r01TypedLocals, r07StringNatives, hx11RustSignApiStr, hx10w2R08, r05FieldChainInserts, bf03PlainDictChains,
     r02NativeInserts, hx10w2R03, hx10w3R03, r04Scalars, r04Callee, r06Push, r06w3Push, r08DictReads, r10ClientHandle,
     hx10w9Rp02ParamKind, hx10w9Rp02DispatchArg, hx10w9Rp02SplitArgs, hx10w9Rp02RefMapParamNames,
-    narrowStrSinkLocals, narrowStrNullLocals,
+    narrowStrSinkLocals, narrowStrNullLocals, hx11w9RustIntLocalNullSinkOptionI64,
 } from 'ast-transpiler';
 
 ansi.nice;
@@ -9247,6 +9247,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // hx11 W4 P1: `safe_string*` locals whose only sink is a `format!` print a `String`.
                 rustContent = narrowStrSinkLocals(rustContent);
                 rustContent = narrowStrNullLocals(rustContent); // hx11 W7
+                rustContent = hx11w9RustIntLocalNullSinkOptionI64(rustContent);
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
@@ -9999,6 +10000,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = r08DictReads(finalFile); // hx10w3 R08
         finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
+        finalFile = hx11w9RustIntLocalNullSinkOptionI64(finalFile);
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
