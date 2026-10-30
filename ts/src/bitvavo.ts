@@ -635,7 +635,7 @@ export default class bitvavo extends Exchange {
         const minWithdraw = this.safeNumber (rawCurrency, 'withdrawalMinAmount');
         // btw, absolutely all of them have 1 network atm
         for (let j = 0; j < networksArray.length; j++) {
-            const networkId = this.safeString (networksArray, j);
+            const networkId = networksArray[j];
             const networkCode = this.networkIdToCode (networkId, code);
             if (networkCode !== undefined) {
                 networks[networkCode] = {
