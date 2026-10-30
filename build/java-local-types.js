@@ -550,12 +550,14 @@ const STRUCTURE_THIS_RETURN_TYPES = {
     // account() returns a fresh HashMap; getMarketFromSymbols returns null or this.market (...)
     'account': JAVA_STRUCTURE_TYPE,
     'getMarketFromSymbols': JAVA_STRUCTURE_TYPE,
+    // BaseExchange.retrieveStarkAccount is declared Map<String, Object> (a fresh HashMap)
+    'retrieveStarkAccount': JAVA_STRUCTURE_TYPE,
 };
 
 // Structure accessors whose Java return is declared Map<String, Object> on every declaration
 // (base + overrides): each return is a literal/null, a markets/currencies row, super./this. call
 // of the same family or createExpiredOptionMarket (a row) - checkcast at the return site only.
-const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket' ]);
+const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', 'retrieveStarkAccount' ]);
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
