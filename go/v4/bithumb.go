@@ -817,10 +817,10 @@ func (this *Bithumb) ParseBalanceList(response any) map[string]any {
 			var code string = codes[i]
 			var account map[string]any = this.Account()
 			var currency map[string]any = this.Currency(code)
-			var lowerCurrencyId *string = this.SafeStringLower(currency, "id", "")
-			account["total"] = this.SafeString(balances, "total_"+*lowerCurrencyId)
-			account["used"] = this.SafeString(balances, "in_use_"+*lowerCurrencyId)
-			account["free"] = this.SafeString(balances, "available_"+*lowerCurrencyId)
+			var lowerCurrencyId string = *this.SafeStringLower(currency, "id", "")
+			account["total"] = this.SafeString(balances, "total_"+lowerCurrencyId)
+			account["used"] = this.SafeString(balances, "in_use_"+lowerCurrencyId)
+			account["free"] = this.SafeString(balances, "available_"+lowerCurrencyId)
 			result[code] = account
 		}
 	} else {

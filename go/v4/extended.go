@@ -4787,8 +4787,8 @@ func (this *Extended) GetExtendedDecimalToBase16(value any) string {
 	var result string = ""
 	for Precise.StringGt(decimalString, "0") {
 		var remainder int64 = this.ParseToInt(Precise.StringMod(decimalString, "16"))
-		var hexChar *string = this.SafeString(hexChars, remainder, "")
-		result = *hexChar + result
+		var hexChar string = *this.SafeString(hexChars, remainder, "")
+		result = hexChar + result
 		decimalString = Precise.StringDiv(decimalString, "16", 0)
 	}
 	if result == "" {
@@ -4811,8 +4811,8 @@ func (this *Extended) GetExtendedSignatureHex(signature any) any {
 }
 func (this *Extended) GetExtendedDomainHash() any {
 	var domainTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"))
-	var restUrl *string = this.SafeString(this.Urls["api"], "rest", "")
-	var isTestnet bool = (strings.Index(*restUrl, "sepolia") >= 0)
+	var restUrl string = *this.SafeString(this.Urls["api"], "rest", "")
+	var isTestnet bool = (strings.Index(restUrl, "sepolia") >= 0)
 	var defaultChainId string = "SN_MAIN"
 	if isTestnet {
 		defaultChainId = "SN_SEPOLIA"

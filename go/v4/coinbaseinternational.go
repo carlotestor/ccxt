@@ -839,13 +839,13 @@ func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
 	var baseId *string = this.SafeString(market, "base_currency")
 	var quoteId *string = this.SafeString(market, "counter_currency")
 	var settleId *string = this.SafeString(market, "settlement_currency", quoteId)
-	var kind *string = this.SafeString(market, "kind", "")
+	var kind string = *this.SafeString(market, "kind", "")
 	var settlementPeriod *string = this.SafeString(market, "settlement_period")
-	var isSpot bool = (kind != nil && *kind == "spot")
+	var isSpot bool = (kind == "spot")
 	var isPerpetual bool = (settlementPeriod != nil && *settlementPeriod == "perpetual")
-	var isFuture bool = !isPerpetual && (strings.Index(*kind, "future") >= 0)
-	var isOption bool = (strings.Index(*kind, "option") >= 0)
-	var comboPosition int = strings.Index(*kind, "combo")
+	var isFuture bool = !isPerpetual && (strings.Index(kind, "future") >= 0)
+	var isOption bool = (strings.Index(kind, "option") >= 0)
+	var comboPosition int = strings.Index(kind, "combo")
 	var isComboMarket bool = (comboPosition >= 0)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
@@ -4262,11 +4262,11 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) map[st
 	var rpcMethod string = access + "/" + path
 	var requestParams any = this.HandleRouteAndParams("sign", params)
 	var isNativeDeribit bool = this.IsNativeDeribitCredentials()
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest", "")
+	var baseApiUrl string = *this.SafeString(this.Urls["api"], "rest", "")
 	if isNativeDeribit {
-		baseApiUrl = SafeStringPtr("https://www.deribit.com/api/v2")
+		baseApiUrl = "https://www.deribit.com/api/v2"
 	}
-	var url string = *baseApiUrl + "/" + rpcMethod
+	var url string = baseApiUrl + "/" + rpcMethod
 	var requestHeaders map[string]any = nil
 	if isNativeDeribit && ((path == "get_leverage") || (path == "set_leverage")) {
 		panic(NotSupported(this.Id + " " + rpcMethod + " is only documented on the Coinbase gateway"))
