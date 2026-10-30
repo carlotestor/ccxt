@@ -1086,7 +1086,7 @@ public partial class BaseExchange
         {
             return (List<PredictionEvent>)values;
         }
-        var rows = (System.Collections.IList)values;
+        var rows = (IList<object>)values;
         var result = new List<PredictionEvent>(rows.Count);
         foreach (var row in rows)
         {

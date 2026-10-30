@@ -479,7 +479,7 @@ type IDerivedExchange interface {
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]DepositWithdrawFee]
 	CreateExpiredOptionMarket(symbol any) any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
-	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any]
+	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent]
 	FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome]
 	FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[map[string]PredictionOutcome]
 	SignEvmTransaction(tx any, privateKey any) any
