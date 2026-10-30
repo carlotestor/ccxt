@@ -7987,14 +7987,14 @@ impl HtxCore {
             request.insert("direction".into(), side);
         }
         let mut triggerPrice: Value = self.safe_number_n(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("trigger_price".into())]), &[]);
-        let mut stopLossTriggerPrice: Value = self.safe_number2(query.clone(), Value::Str("stopLossPrice".into()), Value::Str("sl_trigger_price".into()), &[]);
-        let mut takeProfitTriggerPrice: Value = self.safe_number2(query.clone(), Value::Str("takeProfitPrice".into()), Value::Str("tp_trigger_price".into()), &[]);
+        let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(query.clone(), Value::Str("stopLossPrice".into()), Value::Str("sl_trigger_price".into()), &[]);
+        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(query.clone(), Value::Str("takeProfitPrice".into()), Value::Str("tp_trigger_price".into()), &[]);
         let mut trailingPercent: Value = self.safe_string2(query.clone(), Value::Str("trailingPercent".into()), Value::Str("callback_rate".into()), &[]);
         let mut trailingTriggerPrice: Value = self.safe_number_k(query.clone(), "trailingTriggerPrice", &[price.clone()]);
         let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
         let mut isTrigger: bool = triggerPrice != Value::Null;
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice != Value::Null;
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice != Value::Null;
+        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
+        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
         let mut clientOrderId: Value = self.safe_integer_n(query.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]);
         if isLinear && (isTrailingPercentOrder || isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             if (clientOrderId != Value::Null) {
@@ -8023,7 +8023,7 @@ impl HtxCore {
                 }  else {
                     request.insert("type".into(), Value::Str("sl".into()));
                 }
-                request.insert("sl_trigger_price".into(), self.price_to_precision(symbol.clone(), stopLossTriggerPrice));
+                request.insert("sl_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
                 if (price != Value::Null) {
                     request.insert("sl_order_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
                 }
@@ -8033,7 +8033,7 @@ impl HtxCore {
                 }  else {
                     request.insert("type".into(), Value::Str("tp".into()));
                 }
-                request.insert("tp_trigger_price".into(), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice));
+                request.insert("tp_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
                 if (price != Value::Null) {
                     request.insert("tp_order_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
                 }
@@ -8140,13 +8140,13 @@ impl HtxCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("trigger_price".into())]), &[]);
-        let mut stopLossTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("stopLossPrice".into()), Value::Str("sl_trigger_price".into()), &[]);
-        let mut takeProfitTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("takeProfitPrice".into()), Value::Str("tp_trigger_price".into()), &[]);
+        let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(params.clone(), Value::Str("stopLossPrice".into()), Value::Str("sl_trigger_price".into()), &[]);
+        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(params.clone(), Value::Str("takeProfitPrice".into()), Value::Str("tp_trigger_price".into()), &[]);
         let mut trailingPercent: Option<f64> = self.safe_number_k(params.clone(), "trailingPercent", &[]).as_f64();
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrigger: bool = triggerPrice != Value::Null;
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice != Value::Null;
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice != Value::Null;
+        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
+        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             if isTrailingPercentOrder {
@@ -11033,7 +11033,7 @@ impl HtxCore {
         let mut contracts: Option<String> = self.safe_string_k_opt(position.clone(), "volume", &[]);
         let mut contractSize: Value = self.safe_number_k(marketResolved.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
-        let mut entryPrice: Value = self.safe_number2(position.clone(), Value::Str("cost_open".into()), Value::Str("open_avg_price".into()), &[]);
+        let mut entryPrice: Option<f64> = self.safe_number2_opt(position.clone(), Value::Str("cost_open".into()), Value::Str("open_avg_price".into()), &[]);
         let mut initialMargin: Value = self.safe_string2(position.clone(), Value::Str("position_margin".into()), Value::Str("initial_margin".into()), &[]);
         let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut directionSide: Value = Value::Str("short".into());
@@ -11089,7 +11089,7 @@ impl HtxCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("contracts".to_string(), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), contractSize);
-        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
         m.insert("side".to_string(), side);
         m.insert("unrealizedPnl".to_string(), unrealizedProfit);

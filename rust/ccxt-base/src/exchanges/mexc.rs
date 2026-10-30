@@ -3923,11 +3923,11 @@ impl MexcCore {
         if (clientOrderId != Value::Null) {
             request.insert("externalOid".into(), clientOrderId);
         }
-        let mut triggerPrice: Value = self.safe_number2(paramsReduceOnly.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut triggerPrice: Option<f64> = self.safe_number2_opt(paramsReduceOnly.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut paramsOmitted: Value = self.omit(paramsReduceOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), Value::Str("postOnly".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("hedged".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (triggerPrice != Value::Null) && (triggerPrice.as_f64() != Some(0.0)) {
-            request.insert("triggerPrice".into(), self.price_to_precision(symbol, triggerPrice));
+        if (triggerPrice.is_some()) && (triggerPrice != Some(0.0)) {
+            request.insert("triggerPrice".into(), self.price_to_precision(symbol, Value::from(triggerPrice)));
             let triggerDirectionparamsTriggerDirectionVariable: Vec<Value> = self.handle_trigger_direction_and_params(paramsOmitted.clone(), &[Value::Str("triggerType".into()), Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut triggerDirection: Value = triggerDirectionparamsTriggerDirectionVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsTriggerDirection: Value = triggerDirectionparamsTriggerDirectionVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -5851,7 +5851,7 @@ impl MexcCore {
         //         "nextSettleTime": 1771084800000
         //     }
         //
-        let mut nextFundingRate: Value = self.safe_number2(contract.clone(), Value::Str("fundingRate".into()), Value::Str("rate".into()), &[]);
+        let mut nextFundingRate: Option<f64> = self.safe_number2_opt(contract.clone(), Value::Str("fundingRate".into()), Value::Str("rate".into()), &[]);
         let mut nextFundingTimestamp: Value = self.safe_integer_k(contract.clone(), "nextSettleTime", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(contract.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, Value::Str("contract".into())]);
@@ -5871,7 +5871,7 @@ impl MexcCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), nextFundingRate);
+        m.insert("fundingRate".to_string(), Value::from(nextFundingRate));
         m.insert("fundingTimestamp".to_string(), nextFundingTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
