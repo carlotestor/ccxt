@@ -318,7 +318,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'signL1AndPrepareTxInfo', 'signOrderbookTypedData', 'symbol', 'toOrderbookWei',
     'tokenIdToSymbol', 'typeToTradeType', 'walletAddressFromKeys', 'walletAddressOrUndefined',
     // hx11 w9: extended stark amount / msg hash / hex producers
-    'getExtendedStarkAmount', 'getExtendedDecimalToBase16',
+    'getExtendedStarkAmount',
     'getExtendedOrderMsgHash', 'getExtendedWithdrawalMsgHash', 'getExtendedTransferMsgHash',
 ]);
 
