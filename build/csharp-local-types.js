@@ -1900,7 +1900,8 @@ function callReturnIsMapped (csharp, expression, mapped) {
     if (expression === undefined || !U49_OWNED_CAST_TYPES.has (mapped)) {
         return false;
     }
-    let node = expression;
+    // `response as Foo` prints the bare operand (unwrapPassthroughExpression), so the proof reads it
+    let node = unwrapPassthroughExpression (expression);
     let awaited = false;
     for (;;) {
         if (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.NonNullExpression) {
