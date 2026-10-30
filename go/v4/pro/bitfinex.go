@@ -1035,7 +1035,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
 			}
 		}
-		var orderbook any
+		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
 			orderbook = this.Orderbooks[*symbol]
 		}
@@ -1090,7 +1090,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
-		var orderbook any
+		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
 			orderbook = this.Orderbooks[*symbol]
 		}

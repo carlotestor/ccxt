@@ -4458,7 +4458,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 		if (outcome == nil) || !(this.Orderbooks.Has(outcome)) {
 			continue
 		}
-		var orderbook any = this.Orderbooks.Get(outcome)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(outcome)
 		var price *float64 = this.SafeNumber(change, "price")
 		var size *float64 = this.SafeNumber(change, "size")
 		var isBuy bool = (this.SafeStringUpper(change, "side", "") != nil && *this.SafeStringUpper(change, "side", "") == "BUY")
@@ -4484,7 +4484,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	}
 	for k := 0; k < len(updatedSymbols); k++ {
 		var outcome string = updatedSymbols[k]
-		var orderbook any = this.Orderbooks[outcome]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[outcome]
 		client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)
 	}

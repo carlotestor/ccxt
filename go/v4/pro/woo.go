@@ -327,13 +327,13 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 		if !(this.Orderbooks.Has(symbol)) {
 			return
 		}
-		var orderbook any
+		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
 			orderbook = this.Orderbooks[*symbol]
 		}
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 		if timestamp == nil {
-			ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
+			ccxt.AppendToArray(orderbook.GetCache(), message)
 		} else {
 
 			{
@@ -379,13 +379,13 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 			}
 		}
-		var orderbook any
+		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
 			orderbook = this.Orderbooks[*symbol]
 		}
 		var timestamp *int64 = this.SafeInteger(message, "ts")
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 	}
 }

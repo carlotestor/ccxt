@@ -962,7 +962,7 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		if _, ok := this.Orderbooks[*symbol]; ok {
