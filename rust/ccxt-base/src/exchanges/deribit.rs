@@ -1347,7 +1347,7 @@ impl DeribitCore {
 
     pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
-        let mut quote: Value = Value::Str("USD".into());
+        let mut quote: String = "USD".to_string();
         let mut settle: Value = Value::Str("".into());
         let mut optionParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
         let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
@@ -1366,13 +1366,13 @@ impl DeribitCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createExpiredOptionMarket() missing base".into()))));
         }
         // the slash form of a usdc instrument carries its settlement currency in the base
-        let mut baseSuffix: Value = Value::Str("".into());
+        let mut baseSuffix: String = "".to_string();
         if hasSlash && hasUsdc {
-            baseSuffix = Value::Str("_USDC".into());
+            baseSuffix = "_USDC".to_string();
         }
         let mut baseResolved: Value = Value::Str(format!("{}{}", base, baseSuffix).into());
         if hasUsdc {
-            quote = Value::Str("USDC".into());
+            quote = "USDC".to_string();
             settle = Value::Str("USDC".into());
         }  else {
             // no usdc suffix on this path, so the resolved base is the settle currency
@@ -1390,10 +1390,10 @@ impl DeribitCore {
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", splitBase, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()),
             Value::Str("-".into())).into()), expiry).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), strike).into()), Value::Str("-".into())).into()), optionType).into()))).into()));
         m.insert("base".to_string(), baseResolved.clone());
-        m.insert("quote".to_string(), quote.clone());
+        m.insert("quote".to_string(), Value::from(quote.clone()));
         m.insert("settle".to_string(), settle.clone());
         m.insert("baseId".to_string(), baseResolved);
-        m.insert("quoteId".to_string(), quote);
+        m.insert("quoteId".to_string(), Value::from(quote));
         m.insert("settleId".to_string(), settle);
         m.insert("active".to_string(), Value::Bool(false));
         m.insert("type".to_string(), Value::Str("option".into()));
@@ -1876,13 +1876,13 @@ impl DeribitCore {
                 let mut strike: Value = Value::Null;
                 let mut optionType: Value = Value::Null;
                 let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
-                let mut type_var: Value = Value::Str("swap".into());
+                let mut type_var: String = "swap".to_string();
                 if matches!(&future, Value::Bool(true)) {
-                    type_var = Value::Str("future".into());
+                    type_var = "future".to_string();
                 }  else if matches!(&option, Value::Bool(true)) {
-                    type_var = Value::Str("option".into());
+                    type_var = "option".to_string();
                 }  else if matches!(&isSpot, Value::Bool(true)) {
-                    type_var = Value::Str("spot".into());
+                    type_var = "spot".to_string();
                 }
                 let mut inverse: Value = Value::Null;
                 let mut linear: Value = Value::Null;
@@ -1921,7 +1921,7 @@ impl DeribitCore {
                         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("type".to_string(), type_var);
+                        m.insert("type".to_string(), Value::from(type_var));
                         m.insert("spot".to_string(), isSpot.clone());
                         m.insert("margin".to_string(), Value::Bool(false));
                         m.insert("swap".to_string(), swap);
@@ -3982,10 +3982,10 @@ impl DeribitCore {
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
-        let mut type_var: Value = Value::Str("deposit".into());
+        let mut type_var: String = "deposit".to_string();
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = "withdrawal".to_string();
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost);
@@ -4006,7 +4006,7 @@ impl DeribitCore {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
@@ -4674,7 +4674,7 @@ impl DeribitCore {
         let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut maxEntriesPerRequest: Value = Value::Int(744); // seems exchange returns max 744 items per request
-        let mut eachItemDuration: Value = Value::Str("1h".into());
+        let mut eachItemDuration: String = "1h".to_string();
         if paginate.as_bool() == Some(true) {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
             let mut paginationParams: Value = self.extend(paramsPaginate.clone(), &[Value::Map({
@@ -4682,9 +4682,9 @@ impl DeribitCore {
                     m.insert("isDeribitPaginationCall".to_string(), Value::Bool(true));
                 m
             })]);
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), eachItemDuration.clone(), paginationParams, maxEntriesPerRequest]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(eachItemDuration.clone()), paginationParams, maxEntriesPerRequest]).await;
         }
-        let mut duration: Value = (match (&(self.parse_timeframe(eachItemDuration)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut duration: Value = (match (&(self.parse_timeframe(Value::from(eachItemDuration.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut now: Value = self.milliseconds();
         let mut month: Value = (match (&((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
             _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x),
@@ -5505,7 +5505,7 @@ impl DeribitCore {
             self.check_required_credentials(&[]);
             let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
             let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-            let mut requestBody: Value = Value::Str("".into());
+            let mut requestBody: String = "".to_string();
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params, &[])).into())).into());
             }

@@ -1197,7 +1197,7 @@ impl BtseCore {
         let mut pricePrecision: Option<String> = self.safe_string_k_opt(market.clone(), "minPriceIncrement", &[]);
         let mut amountPrecision: Option<String> = self.safe_string_k_opt(market.clone(), "minSizeIncrement", &[]);
         let mut active: Value = self.safe_bool_k(market.clone(), "active", &[]);
-        let mut type_var: Value = Value::Str("spot".into());
+        let mut type_var: String = "spot".to_string();
         let mut expiry: Value = Value::Null;
         let mut contractSize: Value = Value::Null;
         if !(isSpot) {
@@ -1206,9 +1206,9 @@ impl BtseCore {
             if isFuture {
                 expiry = self.safe_integer_k(market.clone(), "contractEndTime", &[]);
                 symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".into()), self.yymmdd(expiry.clone(), &[])).into())).into());
-                type_var = Value::Str("future".into());
+                type_var = "future".to_string();
             }  else {
-                type_var = Value::Str("swap".into());
+                type_var = "swap".to_string();
             }
         }
         let mut fees: Value = self.safe_dict_k(self.fees.clone(), "contract", &[Value::Map({
@@ -1231,7 +1231,7 @@ impl BtseCore {
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settleId".to_string(), (if isSpot { Value::Null } else { quoteId }));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), Value::Bool(isSpot.clone()));
         m.insert("margin".to_string(), (if isSpot { Value::Bool(false) } else { Value::Null }));
         m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
@@ -3319,8 +3319,8 @@ impl BtseCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut marketType: Value = Value::Str("spot".into());
-        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone(), params, marketType]).as_array().cloned().unwrap_or_default();
+        let mut marketType: String = "spot".to_string();
+        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone(), params, Value::from(marketType)]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Value = marketTypeOptionparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3374,8 +3374,8 @@ impl BtseCore {
             m
         });
         let mut response: Value = Value::Null;
-        let mut marketType: Value = Value::Str("spot".into());
-        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrdersAfter".into()), &[Value::Null, params, marketType]).as_array().cloned().unwrap_or_default();
+        let mut marketType: String = "spot".to_string();
+        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrdersAfter".into()), &[Value::Null, params, Value::from(marketType)]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Value = marketTypeOptionparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (marketTypeOption.as_str() == Some("spot")) {
@@ -3423,8 +3423,8 @@ impl BtseCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut marketType: Value = Value::Str("spot".into());
-        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone(), params, marketType]).as_array().cloned().unwrap_or_default();
+        let mut marketType: String = "spot".to_string();
+        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone(), params, Value::from(marketType)]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Value = marketTypeOptionparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
@@ -3636,8 +3636,8 @@ impl BtseCore {
 }));
         self.load_markets(&[]).await;
         let mut response: Value = Value::Null;
-        let mut marketType: Value = Value::Str("spot".into());
-        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), &[Value::Null, params, marketType]).as_array().cloned().unwrap_or_default();
+        let mut marketType: String = "spot".to_string();
+        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), &[Value::Null, params, Value::from(marketType.clone())]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Value = marketTypeOptionparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (marketTypeOption.as_str() == Some("spot")) {
@@ -4456,14 +4456,14 @@ impl BtseCore {
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
-        let mut positionMode: Value = Value::Str("ONE_WAY".into());
+        let mut positionMode: String = "ONE_WAY".to_string();
         if hedged.as_bool() == Some(true) {
-            positionMode = Value::Str("HEDGE".into());
+            positionMode = "HEDGE".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.futures_request_id(market));
-                m.insert("positionMode".to_string(), positionMode);
+                m.insert("positionMode".to_string(), Value::from(positionMode));
             m
         });
         let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
@@ -4517,15 +4517,15 @@ impl BtseCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(marginMode.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut positionMode: Option<String> = self.safe_string_lower_k(marginMode.clone(), "marginMode", &[]).as_str().map(str::to_owned);
-        let mut marginModeValue: Value = Value::Str("cross".into());
+        let mut marginModeValue: String = "cross".to_string();
         if (positionMode.as_deref() == Some("isolated")) {
-            marginModeValue = Value::Str("isolated".into());
+            marginModeValue = "isolated".to_string();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("marginMode".to_string(), marginModeValue);
+        m.insert("marginMode".to_string(), Value::from(marginModeValue));
     m
 });
 
@@ -4561,7 +4561,7 @@ impl BtseCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol);
         let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut positionMode: Value = Value::Str("ONE_WAY".into());
+        let mut positionMode: String = "ONE_WAY".to_string();
         if (marginModeValue.as_str() != Some("cross")) && (marginModeValue.as_str() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be either cross or isolated".into()))));
         }
@@ -4570,18 +4570,18 @@ impl BtseCore {
             if !(matches!(&params, Value::Dict(__d) if __d.contains_key("hedged"))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a hedged parameter for cross margin mode".into()))));
             }  else if (hedged.as_bool() == Some(true)) {
-                positionMode = Value::Str("HEDGE".into());
+                positionMode = "HEDGE".to_string();
             }
         }  else if (matches!(&params, Value::Dict(__d) if __d.contains_key("hedged"))) && (hedged.as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() hedged parameter cannot be false for isolated margin mode".into()))));
         }  else {
-            positionMode = Value::Str("ISOLATED".into());
+            positionMode = "ISOLATED".to_string();
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("hedged".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.futures_request_id(market));
-                m.insert("positionMode".to_string(), positionMode);
+                m.insert("positionMode".to_string(), Value::from(positionMode));
             m
         });
         let __ws_arg_36 = self.extend(Value::Map(request), &[paramsOmitted]);

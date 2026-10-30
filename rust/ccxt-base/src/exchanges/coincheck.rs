@@ -646,7 +646,7 @@ impl CoincheckCore {
         //     }
         //
         let mut exchangeStatuses: Value = self.safe_list_k(response.clone(), "exchange_status", &[Value::from(vec![])]);
-        let mut status: Value = Value::Str("ok".into());
+        let mut status: String = "ok".to_string();
         let mut updated: Value = Value::Null;
         {
                         let mut i: i64 = 0;
@@ -658,13 +658,13 @@ impl CoincheckCore {
                 updated = self.safe_timestamp_k(exchangeStatus, "timestamp", &[]);
             }
             if (rawStatus.as_deref() != Some("available")) {
-                status = Value::Str("maintenance".into());
+                status = "maintenance".to_string();
             }
         }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status.clone()));
         m.insert("updated".to_string(), updated);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);

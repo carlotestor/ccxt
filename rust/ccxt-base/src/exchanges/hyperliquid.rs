@@ -3261,15 +3261,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isBuy: Value = (Value::Bool(sideValue.as_str() == Some("BUY")));
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut slippage: Value = self.safe_string_k(params.clone(), "slippage", &[]);
-        let mut defaultTimeInForce: Value = Value::Str("gtc".into());
+        let mut defaultTimeInForce: String = "gtc".to_string();
         if matches!(&isMarket, Value::Bool(true)) {
-            defaultTimeInForce = Value::Str("ioc".into());
+            defaultTimeInForce = "ioc".to_string();
         }
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         if postOnly.as_bool() == Some(true) {
-            defaultTimeInForce = Value::Str("alo".into());
+            defaultTimeInForce = "alo".to_string();
         }
-        let mut timeInForce: Value = self.safe_string_lower_k(params.clone(), "timeInForce", &[defaultTimeInForce]);
+        let mut timeInForce: Value = self.safe_string_lower_k(params.clone(), "timeInForce", &[Value::from(defaultTimeInForce)]);
         timeInForce = self.capitalize(timeInForce.clone());
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]);
@@ -3299,15 +3299,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 triggerPrice = self.price_to_precision(symbol, stopLossPrice);
             }
-            let mut tpSlType: Value = Value::Str("sl".into());
+            let mut tpSlType: String = "sl".to_string();
             if isTp {
-                tpSlType = Value::Str("tp".into());
+                tpSlType = "tp".to_string();
             }
             orderType.insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), isMarket);
         m.insert("triggerPx".to_string(), triggerPrice);
-        m.insert("tpsl".to_string(), tpSlType);
+        m.insert("tpsl".to_string(), Value::from(tpSlType));
     m
 }));
         }  else {
@@ -3432,11 +3432,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" only support grouping normalTpsl and positionTpsl.".into()))));
                 }
                 orderParams = self.omit(orderParams.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("grouping".into())]), &[]);
-                let mut triggerOrderSide: Value = Value::Str("".into());
+                let mut triggerOrderSide: String = "".to_string();
                 if (side.as_deref() == Some("BUY")) {
-                    triggerOrderSide = Value::Str("sell".into());
+                    triggerOrderSide = "sell".to_string();
                 }  else {
-                    triggerOrderSide = Value::Str("buy".into());
+                    triggerOrderSide = "buy".to_string();
                 }
                 if hasTakeProfit {
                     let __ws_arg_19 = self.extend(orderParams.clone(), &[Value::Map({
@@ -3445,7 +3445,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let mut orderObj: Value = self.create_order_request(symbol.clone(), takeProfitOrderType, triggerOrderSide.clone(), amount.clone(), &[takeProfitOrderLimitPrice, __ws_arg_19]);
+                    let mut orderObj: Value = self.create_order_request(symbol.clone(), takeProfitOrderType, Value::from(triggerOrderSide.clone()), amount.clone(), &[takeProfitOrderLimitPrice, __ws_arg_19]);
                     orderReq.push(orderObj.clone());
                 }
                 if hasStopLoss {
@@ -3455,7 +3455,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let mut orderObj: Value = self.create_order_request(symbol, stopLossOrderType, triggerOrderSide, amount, &[stopLossOrderLimitPrice, __ws_arg_20]);
+                    let mut orderObj: Value = self.create_order_request(symbol, stopLossOrderType, Value::from(triggerOrderSide), amount, &[stopLossOrderLimitPrice, __ws_arg_20]);
                     orderReq.push(orderObj);
                 }
             }  else {
@@ -3474,8 +3474,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if matches!(self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]), Value::Bool(true)) {
-            let mut builder: Value = Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".into());
-            let mut wallet: Value = self.safe_string_lower_k(self.options.clone(), "builder", &[builder.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)]);
+            let mut builder: String = "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".to_string();
+            let mut wallet: Value = self.safe_string_lower_k(self.options.clone(), "builder", &[Some(builder.as_str()).map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)]);
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             let mut feeInt: Value = self.safe_integer_k(self.options.clone(), "feeInt", &[Value::Int(10)]);
             if !matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
@@ -3967,15 +3967,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut defaultSlippage: Option<String> = self.safe_string_k_opt(self.options.clone(), "defaultSlippage", &[]);
             let mut slippage: Value = self.safe_string_k(orderParams.clone(), "slippage", &[defaultSlippage.map(Value::from).unwrap_or(Value::Null)]);
-            let mut defaultTimeInForce: Value = Value::Str("gtc".into());
+            let mut defaultTimeInForce: String = "gtc".to_string();
             if matches!(&isMarket, Value::Bool(true)) {
-                defaultTimeInForce = Value::Str("ioc".into());
+                defaultTimeInForce = "ioc".to_string();
             }
             let mut postOnly: Value = self.safe_bool_k(orderParams.clone(), "postOnly", &[Value::Bool(false)]);
             if postOnly.as_bool() == Some(true) {
-                defaultTimeInForce = Value::Str("alo".into());
+                defaultTimeInForce = "alo".to_string();
             }
-            let mut timeInForce: Value = self.safe_string_lower_k(orderParams.clone(), "timeInForce", &[defaultTimeInForce]);
+            let mut timeInForce: Value = self.safe_string_lower_k(orderParams.clone(), "timeInForce", &[Value::from(defaultTimeInForce)]);
             timeInForce = self.capitalize(timeInForce.clone());
             let mut clientOrderId: Value = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
             let mut triggerPrice: Value = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -4004,15 +4004,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }  else {
                     triggerPrice = self.price_to_precision(symbol, stopLossPrice);
                 }
-                let mut tpSlType: Value = Value::Str("sl".into());
+                let mut tpSlType: String = "sl".to_string();
                 if isTp {
-                    tpSlType = Value::Str("tp".into());
+                    tpSlType = "tp".to_string();
                 }
                 orderType.insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), isMarket);
         m.insert("triggerPx".to_string(), triggerPrice.clone());
-        m.insert("tpsl".to_string(), tpSlType);
+        m.insert("tpsl".to_string(), Value::from(tpSlType));
     m
 }));
             }  else {

@@ -1329,7 +1329,7 @@ if _try_result.is_err() {
         let mut isSwap: bool = !(matches!(&isSpot, Value::Bool(true)));
         let mut quoteId: Value = Value::Str("USDC".into());
         let mut settleId: Value = Value::Null;
-        let mut type_var: Value = Value::Str("spot".into());
+        let mut type_var: String = "spot".to_string();
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
         let mut contractSize: Value = Value::Null;
@@ -1347,7 +1347,7 @@ if _try_result.is_err() {
         let mut isolatedOnly: Value = self.safe_bool_k(market.clone(), "isolated_only", &[Value::Bool(false)]);
         if isSwap {
             settleId = quoteId.clone();
-            type_var = Value::Str("swap".into());
+            type_var = "swap".to_string();
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
             contractSize = self.parse_number(Value::Str("1".into()), &[]);
@@ -1366,7 +1366,7 @@ if _try_result.is_err() {
         if isSwap {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into());
         }
-        let mut fees: Value = self.safe_dict(self.fees.clone(), type_var.clone(), &[Value::Map({
+        let mut fees: Value = self.safe_dict(self.fees.clone(), Value::from(type_var.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1385,7 +1385,7 @@ if _try_result.is_err() {
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), isSpot);
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
@@ -1605,15 +1605,15 @@ if _try_result.is_err() {
         // }
         let mut isIsolated: Value = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]);
         let mut leverage: Value = self.safe_integer_k(setting.clone(), "leverage", &[]);
-        let mut marginMode: Value = Value::Str("cross".into());
+        let mut marginMode: String = "cross".to_string();
         if isIsolated.as_bool() == Some(true) {
-            marginMode = Value::Str("isolated".into());
+            marginMode = "isolated".to_string();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), setting);
         m.insert("symbol".to_string(), symbol);
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("longLeverage".to_string(), leverage.clone());
         m.insert("shortLeverage".to_string(), leverage);
     m
@@ -1784,14 +1784,14 @@ if _try_result.is_err() {
         //
         // }
         let mut isIsolated: Value = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]);
-        let mut marginMode: Value = Value::Str("cross".into());
+        let mut marginMode: String = "cross".to_string();
         if isIsolated.as_bool() == Some(true) {
-            marginMode = Value::Str("isolated".into());
+            marginMode = "isolated".to_string();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("info".to_string(), setting);
     m
 });
@@ -2851,7 +2851,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("cancel_all_orders".into());
+        let mut operationType: String = "cancel_all_orders".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2865,7 +2865,7 @@ if _try_result.is_err() {
         }  else {
             sigPayload.insert("all_symbols".into(), Value::Bool(true));
         }
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params);
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params);
         return request;
 
     Value::Null
@@ -2917,14 +2917,14 @@ if _try_result.is_err() {
         // }
         //
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
-        let mut status: Value = Value::Str("closed".into());
+        let mut status: String = "closed".to_string();
         if success.as_bool() == Some(true) {
-            status = Value::Str("canceled".into());
+            status = "canceled".to_string();
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("info".to_string(), response);
         m.insert("symbol".to_string(), symbol);
     m
@@ -2941,9 +2941,9 @@ if _try_result.is_err() {
 }));
         let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
         let mut isStopOrder: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
-        let mut operationType: Value = Value::Str("cancel_order".into());
+        let mut operationType: String = "cancel_order".to_string();
         if isStopOrder.as_bool() == Some(true) {
-            operationType = Value::Str("cancel_stop_order".into());
+            operationType = "cancel_stop_order".to_string();
         }
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
@@ -2956,7 +2956,7 @@ if _try_result.is_err() {
         }  else {
             sigPayload.insert("order_id".into(), self.parse_to_int(id));
         }
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params);
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params);
         return request;
 
     Value::Null
@@ -3033,7 +3033,7 @@ if _try_result.is_err() {
         if (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price".into()))));
         }
-        let mut operationType: Value = Value::Str("edit_order".into());
+        let mut operationType: String = "edit_order".to_string();
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
         let mut priceNormalized: Value = self.price_to_precision(symbol.clone(), price);
         let mut amountNormalized: Value = self.amount_to_precision(symbol, amount);
@@ -3052,7 +3052,7 @@ if _try_result.is_err() {
         }  else {
             sigPayload.insert("order_id".into(), self.parse_to_int(id));
         }
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params);
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params);
         return request;
 
     Value::Null
@@ -3957,7 +3957,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("update_margin_mode".into());
+        let mut operationType: String = "update_margin_mode".to_string();
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
         }
@@ -3972,7 +3972,7 @@ if _try_result.is_err() {
                 m.insert("is_isolated".to_string(), isIsolated);
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params);
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params);
         let mut response: Value = self.private_post_account_margin(&[request]).await;
         return response;
 
@@ -3996,7 +3996,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("update_leverage".into());
+        let mut operationType: String = "update_leverage".to_string();
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
         }
@@ -4010,7 +4010,7 @@ if _try_result.is_err() {
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params);
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params);
         let mut response: Value = self.private_post_account_leverage(&[request]).await;
         return response;
 
@@ -4035,7 +4035,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("withdraw".into());
+        let mut operationType: String = "withdraw".to_string();
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -4045,7 +4045,7 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), self.number_to_string(amount));
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params.clone());
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params.clone());
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into())]), &[]);
         let __ws_arg_24 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_account_withdraw(&[__ws_arg_24]).await;
@@ -4698,14 +4698,14 @@ if _try_result.is_err() {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut operationType: Value = Value::Str("transfer_funds".into());
+        let mut operationType: String = "transfer_funds".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to_account".to_string(), toAccount.clone());
                 m.insert("amount".to_string(), self.number_to_string(amount.clone()));
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params.clone());
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params.clone());
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into())]), &[]);
         let __ws_arg_31 = self.extend(request.clone(), &[paramsOmitted]);
         let mut response: Value = self.private_post_account_subaccount_transfer(&[__ws_arg_31]).await;
@@ -4877,13 +4877,13 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("bind_agent_wallet".into());
+        let mut operationType: String = "bind_agent_wallet".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("agent_wallet".to_string(), agentAddress);
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params.clone());
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params.clone());
         let __ws_arg_35 = self.extend(request, &[params]);
         return self.private_post_agent_bind(&[__ws_arg_35]).await;
 
@@ -4902,12 +4902,12 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("create_api_key".into());
+        let mut operationType: String = "create_api_key".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params.clone());
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params.clone());
         let __ws_arg_36 = self.extend(request, &[params]);
         return self.private_post_account_api_keys_create(&[__ws_arg_36]).await;
 
@@ -4927,13 +4927,13 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("revoke_api_key".into());
+        let mut operationType: String = "revoke_api_key".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api_key".to_string(), apiKey);
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params.clone());
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params.clone());
         let __ws_arg_37 = self.extend(request, &[params]);
         return self.private_post_account_api_keys_revoke(&[__ws_arg_37]).await;
 
@@ -4952,12 +4952,12 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("list_api_keys".into());
+        let mut operationType: String = "list_api_keys".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params.clone());
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params.clone());
         let __ws_arg_38 = self.extend(request, &[params]);
         return self.private_post_account_api_keys(&[__ws_arg_38]).await;
 
@@ -4979,14 +4979,14 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("approve_builder_code".into());
+        let mut operationType: String = "approve_builder_code".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("builder_code".to_string(), builderCode);
                 m.insert("max_fee_rate".to_string(), maxFeeRate);
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params.clone());
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params.clone());
         let __ws_arg_39 = self.extend(request, &[params]);
         return self.private_post_account_builder_codes_approve(&[__ws_arg_39]).await;
 
@@ -5027,13 +5027,13 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut operationType: Value = Value::Str("revoke_builder_code".into());
+        let mut operationType: String = "revoke_builder_code".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("builder_code".to_string(), builderCode);
             m
         });
-        let mut request: Value = self.post_action_request(operationType, &mut sigPayload, params.clone());
+        let mut request: Value = self.post_action_request(Value::from(operationType), &mut sigPayload, params.clone());
         let __ws_arg_41 = self.extend(request, &[params]);
         return self.private_post_account_builder_codes_revoke(&[__ws_arg_41]).await;
 

@@ -411,9 +411,9 @@ impl MudrexCore {
         if (interval.as_str() != Some("1s")) && (interval.as_str() != Some("1m")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() supports 1s and 1m timeframes only".into()))));
         }
-        let mut prefix: Value = Value::Str("kline".into());
+        let mut prefix: String = "kline".to_string();
         if (priceType.as_deref() == Some("mark")) {
-            prefix = Value::Str("markKline".into());
+            prefix = "markKline".to_string();
         }
         let mut streamBaseId: Value = self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]);
         let mut streamQuoteId: Value = self.safe_string_k(market, "quoteId", &[Value::Str("".into())]);

@@ -2633,11 +2633,11 @@ impl LimitlessCore {
         let mut side: Value = self.parse_order_side(rawSide.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "price", &[]);
         // todo check
-        let mut amountKey: Value = Value::Str("makerAmount".into());
+        let mut amountKey: String = "makerAmount".to_string();
         if (side.as_str() == Some("buy")) {
-            amountKey = Value::Str("takerAmount".into());
+            amountKey = "takerAmount".to_string();
         }
-        let mut amount: Option<String> = self.safe_string_opt(rawOrder.clone(), amountKey, &[]);
+        let mut amount: Option<String> = self.safe_string_opt(rawOrder.clone(), Value::from(amountKey), &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "remainingSize", &[]);
         let mut datetime: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "createdAt", &[]);
         let mut ts: Value = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3160,8 +3160,8 @@ if _try_result.is_err() {
             owner = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         }
         let mut gasLimit: Value = (match params.get("gasLimit") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0x186a0".into()) });
-        let mut maxUint: Value = Value::Str("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into());
-        let mut amountHex: Value = maxUint;
+        let mut maxUint: String = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".to_string();
+        let mut amountHex: Value = Value::from(maxUint);
         let mut amount: Value = (match params.get("amount") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (amount != Value::Null) {
             let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
@@ -3575,9 +3575,9 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".into()))));
         }
         let mut sellIndex: i64 = rawSide.as_deref().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1);
-        let mut side: Value = Value::Str("buy".into());
+        let mut side: String = "buy".to_string();
         if (sellIndex as f64) >= ((0i64) as f64) {
-            side = Value::Str("sell".into());
+            side = "sell".to_string();
         }
         let mut type_var: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
@@ -3600,11 +3600,11 @@ if _try_result.is_err() {
 })]);
         let mut slug: Option<String> = self.safe_string_k_opt(rawMarket, "slug", &[]);
         let mut outcomeIndex: Option<i64> = self.safe_integer_k(trade.clone(), "outcomeIndex", &[]).as_i64();
-        let mut label: Value = Value::Str("no".into());
+        let mut label: String = "no".to_string();
         if (outcomeIndex == Some(0)) {
-            label = Value::Str("yes".into());
+            label = "yes".to_string();
         }
-        let mut outcome: Value = self.get_outcome_by_slug_and_label(slug.map(Value::from).unwrap_or(Value::Null), label, &[market]);
+        let mut outcome: Value = self.get_outcome_by_slug_and_label(slug.map(Value::from).unwrap_or(Value::Null), Value::from(label), &[market]);
         let mut tradeOutcome: Option<String> = self.safe_string_k_opt(outcome.clone(), "outcome", &[]);
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3618,7 +3618,7 @@ if _try_result.is_err() {
         m.insert("market".to_string(), self.safe_string_k(outcome, "market", &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
@@ -3802,11 +3802,11 @@ if _try_result.is_err() {
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_prediction_position(position, &[outcomeObj]).as_map().cloned().unwrap_or_default();
         parsed.insert("contracts".into(), self.parse_number(self.apply_scale(contracts, &[]), &[]));
         let mut latestTrade: Value = self.safe_dict_k(entry.clone(), "latestTrade", &[]);
-        let mut key: Value = Value::Str("latestYesPrice".into());
+        let mut key: String = "latestYesPrice".to_string();
         if (label.as_str() == Some("no")) {
-            key = Value::Str("latestNoPrice".into());
+            key = "latestNoPrice".to_string();
         }
-        parsed.insert("markPrice".into(), self.safe_number(latestTrade, key, &[]));
+        parsed.insert("markPrice".into(), self.safe_number(latestTrade, Value::from(key), &[]));
         parsed.insert("info".into(), entry);
         return self.safe_prediction_position(Value::Map(parsed));
 
@@ -4269,7 +4269,7 @@ if _try_result.is_err() {
             }
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.iso8601(self.milliseconds());
-            let mut newline: Value = Value::Str("\n".into()); // eslint-disable-line quotes
+            let mut newline: String = "\n".to_string();
             let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString).into());
             let mut signature: Value = self.hmac(self.encode(payload), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue = self.extend(headersValue.clone(), &[Value::Map({

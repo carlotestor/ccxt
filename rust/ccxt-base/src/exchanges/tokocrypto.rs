@@ -1588,8 +1588,8 @@ impl TokocryptoCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default = 500, maximum = 1000
         }
-        let mut defaultMethod: Value = Value::Str("binanceGetTrades".into());
-        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[defaultMethod]).as_str().map(str::to_owned);
+        let mut defaultMethod: String = "binanceGetTrades".to_string();
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("binanceGetAggTrades")) && (since != Value::Null) {
             request.insert("startTime".into(), since.clone());

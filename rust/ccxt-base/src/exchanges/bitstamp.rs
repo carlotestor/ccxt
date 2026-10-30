@@ -2082,7 +2082,7 @@ impl BitstampCore {
 }
 
     pub fn construct_currency_object(&self, mut id: Value, mut code: Value, mut name: Value, mut precision: Value, mut minCost: Value, mut originalPayload: Value) -> Value {
-        let mut currencyType: Value = Value::Str("crypto".into());
+        let mut currencyType: String = "crypto".to_string();
         let mut description: Value = self.describe();
         let mut fees: Value = self.safe_dict_k(description, "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2094,7 +2094,7 @@ impl BitstampCore {
 })]);
         let mut withdrawFee: Value = self.safe_number_k(fundingFees, "withdraw", &[]);
         if self.is_fiat(code.clone()).as_bool() == Some(true) {
-            currencyType = Value::Str("fiat".into());
+            currencyType = "fiat".to_string();
         }
         let mut tickSize: Value = self.parse_number(self.parse_precision(&[self.number_to_string(precision)]), &[]);
         return Value::Map({
@@ -2102,7 +2102,7 @@ impl BitstampCore {
         m.insert("id".to_string(), id);
         m.insert("code".to_string(), code);
         m.insert("info".to_string(), originalPayload);
-        m.insert("type".to_string(), currencyType);
+        m.insert("type".to_string(), Value::from(currencyType));
         m.insert("name".to_string(), name);
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("deposit".to_string(), Value::Null);
@@ -4430,19 +4430,19 @@ impl BitstampCore {
             let mut xAuth: Value = Value::Str(format!("{}{}", Value::Str("BITSTAMP ".into()), self.apiKey.clone()).into());
             let mut xAuthNonce: Value = self.uuid(&[]);
             let mut xAuthTimestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-            let mut xAuthVersion: Value = Value::Str("v2".into());
-            let mut contentType: Value = Value::Str("".into());
+            let mut xAuthVersion: String = "v2".to_string();
+            let mut contentType: String = "".to_string();
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Auth".to_string(), xAuth.clone());
                     m.insert("X-Auth-Nonce".to_string(), xAuthNonce.clone());
                     m.insert("X-Auth-Timestamp".to_string(), xAuthTimestamp.clone());
-                    m.insert("X-Auth-Version".to_string(), xAuthVersion.clone());
+                    m.insert("X-Auth-Version".to_string(), Value::from(xAuthVersion.clone()));
                 m
             });
             if (method.as_str() == Some("POST")) {
-                contentType = Value::Str("application/x-www-form-urlencoded".into());
-                if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), contentType.clone()); }
+                contentType = "application/x-www-form-urlencoded".to_string();
+                if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::from(contentType.clone())); }
             }
             let mut authBody: Value = Value::Str("".into());
             if isPrivatePost && (postBody.as_str() != Some("")) {

@@ -970,11 +970,11 @@ impl ApexCore {
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut marketId: Option<String> = self.safe_string_opt(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         let mut isSpot: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut marketType: Value = Value::Str("contract".into());
+        let mut marketType: String = "contract".to_string();
         if isSpot {
-            marketType = Value::Str("spot".into());
+            marketType = "spot".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType]);
+        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1192,8 +1192,8 @@ impl ApexCore {
         }
         }
         // non-symbol specific
-        let mut messageHash: Value = Value::Str("myTrades".into());
-        client.resolve(&[trades, messageHash]);
+        let mut messageHash: String = "myTrades".to_string();
+        client.resolve(&[trades, Value::from(messageHash)]);
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut lists: Value) {
@@ -1258,8 +1258,8 @@ impl ApexCore {
             client.resolve(&[orders.clone(), currentMessageHash]);
         }
         }
-        let mut messageHash: Value = Value::Str("orders".into());
-        client.resolve(&[orders, messageHash]);
+        let mut messageHash: String = "orders".to_string();
+        client.resolve(&[orders, Value::from(messageHash)]);
 }
 
     pub fn set_positions_cache(&mut self, mut client: Value, optional_args: &[Value]) {
@@ -1386,23 +1386,23 @@ impl ApexCore {
 }));
         self.check_required_credentials(&[]);
         let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-        let mut request_path: Value = Value::Str("/ws/accounts".into());
-        let mut http_method: Value = Value::Str("GET".into());
+        let mut request_path: String = "/ws/accounts".to_string();
+        let mut http_method: String = "GET".to_string();
         let mut messageString: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, http_method).into()), request_path).into()));
         let mut signature: Value = self.hmac(self.encode(messageString), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut client: Value = self.client(&[url.clone()]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             // auth sign
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("login".into()));
                     m.insert("topics".to_string(), Value::from(vec![Value::Str("ws_zk_accounts_v3".into())]));
-                    m.insert("httpMethod".to_string(), http_method);
-                    m.insert("requestPath".to_string(), request_path);
+                    m.insert("httpMethod".to_string(), Value::from(http_method));
+                    m.insert("requestPath".to_string(), Value::from(request_path));
                     m.insert("apiKey".to_string(), self.apiKey.clone());
                     m.insert("passphrase".to_string(), self.password.clone());
                     m.insert("timestamp".to_string(), timestamp);
@@ -1415,7 +1415,7 @@ impl ApexCore {
                     m.insert("args".to_string(), Value::from(vec![json_stringify(&request)]));
                 m
             });
-            self.watch(url, messageHash.clone(), &[Value::Map(message), messageHash]).await;
+            self.watch(url, Value::from(messageHash.clone()), &[Value::Map(message), Value::from(messageHash)]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

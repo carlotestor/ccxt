@@ -1326,13 +1326,13 @@ impl CoinbaseinternationalCore {
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut type_var: Value = Value::Str("swap".into());
+        let mut type_var: String = "swap".to_string();
         if matches!(&isSpot, Value::Bool(true)) {
-            type_var = Value::Str("spot".into());
+            type_var = "spot".to_string();
         }  else if isFuture {
-            type_var = Value::Str("future".into());
+            type_var = "future".to_string();
         }  else if matches!(&isOption, Value::Bool(true)) {
-            type_var = Value::Str("option".into());
+            type_var = "option".to_string();
         }
         let mut symbol: Value = instrumentName.clone().map(Value::from).unwrap_or(Value::Null);
         if !isComboMarket && (base != Value::Null) && (quote != Value::Null) {
@@ -1357,9 +1357,9 @@ impl CoinbaseinternationalCore {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), expiryString).into());
         }
         if !isComboMarket && matches!(&isOption, Value::Bool(true)) {
-            let mut optionTypeLetter: Value = Value::Str("P".into());
+            let mut optionTypeLetter: String = "P".to_string();
             if (optionType.as_deref() == Some("call")) {
-                optionTypeLetter = Value::Str("C".into());
+                optionTypeLetter = "C".to_string();
             }
             let mut strikeString: Value = self.number_to_string(strike.clone());
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), strikeString).into()), Value::Str("-".into())).into()), optionTypeLetter).into());
@@ -1375,7 +1375,7 @@ impl CoinbaseinternationalCore {
                 m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("settleId".to_string(), marketSettleId);
-                m.insert("type".to_string(), type_var);
+                m.insert("type".to_string(), Value::from(type_var));
                 m.insert("spot".to_string(), isSpot.clone());
                 m.insert("margin".to_string(), Value::Bool(false));
                 m.insert("swap".to_string(), isPerpetual);
@@ -4353,19 +4353,19 @@ impl CoinbaseinternationalCore {
             }
         }
         let mut nonce: Value = self.random_bytes(Value::Int(16));
-        let mut aud: Value = Value::Str("retail_rest_api_proxy".into());
+        let mut aud: String = "retail_rest_api_proxy".to_string();
         if useEddsa {
-            aud = Value::Str("cdp_service".into());
+            aud = "cdp_service".to_string();
         }
-        let mut iss: Value = Value::Str("coinbase-cloud".into());
+        let mut iss: String = "coinbase-cloud".to_string();
         if useEddsa {
-            iss = Value::Str("cdp".into());
+            iss = "cdp".to_string();
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("aud".to_string(), Value::from(vec![aud]));
+                m.insert("aud".to_string(), Value::from(vec![Value::from(aud)]));
                 m.insert("sub".to_string(), self.apiKey.clone());
-                m.insert("iss".to_string(), iss);
+                m.insert("iss".to_string(), Value::from(iss));
                 m.insert("nbf".to_string(), seconds.clone());
                 m.insert("exp".to_string(), (match (&(self.parse_to_int(seconds.clone())), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                 m.insert("iat".to_string(), seconds);

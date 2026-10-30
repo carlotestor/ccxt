@@ -2497,7 +2497,7 @@ impl BitfinexCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(10000)]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut sort: Value = Value::Str("-1".into());
+        let mut sort: String = "-1".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2505,12 +2505,12 @@ impl BitfinexCore {
         });
         if (since != Value::Null) {
             request.insert("start".into(), since);
-            sort = Value::Str("1".into());
+            sort = "1".to_string();
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(10000))); // default 120, max 10000
         }
-        request.insert("sort".into(), sort);
+        request.insert("sort".into(), Value::from(sort.clone()));
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2669,9 +2669,9 @@ impl BitfinexCore {
         let mut remaining: Value = crate::precise::Precise::stringAbs(&self.safe_string(orderList.clone(), Value::Int(6), &[]));
         let mut signedAmount: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(7), &[]);
         let mut amount: Value = crate::precise::Precise::stringAbs(&signedAmount.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut side: Value = Value::Str("buy".into());
+        let mut side: String = "buy".to_string();
         if crate::precise::Precise::stringLt(&signedAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            side = Value::Str("sell".into());
+            side = "sell".to_string();
         }
         let mut orderType: Value = self.safe_string(orderList.clone(), Value::Int(8), &[]);
         let mut type_var: Option<String> = self.safe_string_opt(self.safe_dict_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone(), &[]);
@@ -2717,7 +2717,7 @@ impl BitfinexCore {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side.clone()));
         m.insert("price".to_string(), price);
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("amount".to_string(), amount);
@@ -5145,9 +5145,9 @@ impl BitfinexCore {
         let mut baseValue: Value = crate::precise::Precise::stringMul(&contracts, &contractSize.clone().map(Value::from).unwrap_or(Value::Null));
         let mut price: Option<String> = self.safe_string_opt(entry.clone(), Value::Int(11), &[]);
         let mut sideFlag: Option<i64> = self.safe_integer(entry.clone(), Value::Int(8), &[]).as_i64();
-        let mut side: Value = Value::Str("sell".into());
+        let mut side: String = "sell".to_string();
         if (sideFlag == Some(1)) {
-            side = Value::Str("buy".into());
+            side = "buy".to_string();
         }
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5156,7 +5156,7 @@ impl BitfinexCore {
         m.insert("contracts".to_string(), self.parse_number(contracts, &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("price".to_string(), self.parse_number(price.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("baseValue".to_string(), self.parse_number(baseValue.clone(), &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&baseValue, &price.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -5222,9 +5222,9 @@ impl BitfinexCore {
         //     ]
         //
         let mut marginStatusRaw: Option<i64> = self.safe_integer(data.clone(), Value::Int(0), &[]).as_i64();
-        let mut marginStatus: Value = Value::Str("failed".into());
+        let mut marginStatus: String = "failed".to_string();
         if (marginStatusRaw == Some(1)) {
-            marginStatus = Value::Str("ok".into());
+            marginStatus = "ok".to_string();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5235,7 +5235,7 @@ impl BitfinexCore {
         m.insert("amount".to_string(), Value::Null);
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), Value::Null);
-        m.insert("status".to_string(), marginStatus);
+        m.insert("status".to_string(), Value::from(marginStatus));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m

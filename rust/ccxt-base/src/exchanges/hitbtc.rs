@@ -1442,7 +1442,7 @@ impl HitbtcCore {
             let mut settleId: Value = Value::Null;
             let mut settle: Value = Value::Null;
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-            let mut type_var: Value = Value::Str("spot".into());
+            let mut type_var: String = "spot".to_string();
             let mut contractSize: Value = Value::Null;
             let mut linear: Value = Value::Null;
             let mut inverse: Value = Value::Null;
@@ -1457,9 +1457,9 @@ impl HitbtcCore {
                 if matches!(&future, Value::Bool(true)) {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()),
                         self.safe_string_k(market.clone(), "expiry", &[Value::Str("".into())])).into());
-                    type_var = Value::Str("future".into());
+                    type_var = "future".to_string();
                 }  else {
-                    type_var = Value::Str("swap".into());
+                    type_var = "swap".to_string();
                 }
             }
             let mut lotString: Option<String> = self.safe_string_k_opt(market.clone(), "quantity_increment", &[]);
@@ -1476,7 +1476,7 @@ impl HitbtcCore {
                     m.insert("baseId".to_string(), baseId);
                     m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), settleId);
-                    m.insert("type".to_string(), type_var);
+                    m.insert("type".to_string(), Value::from(type_var));
                     m.insert("spot".to_string(), spot);
                     m.insert("margin".to_string(), margin);
                     m.insert("swap".to_string(), swap);

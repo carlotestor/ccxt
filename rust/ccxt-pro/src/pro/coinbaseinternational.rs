@@ -547,10 +547,10 @@ impl CoinbaseinternationalCore {
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("subscribe".into()), &[params]);
         let mut url: Value = self.get_ws_url(&[Value::Bool(false)]);
-        let mut method: Value = Value::Str("public/subscribe".into());
+        let mut method: String = "public/subscribe".to_string();
         if isPrivate {
             url = self.get_ws_url(&[Value::Bool(true)]);
-            method = Value::Str("private/subscribe".into());
+            method = "private/subscribe".to_string();
             self.authenticate(&[]).await;
         }
         if (url == Value::Null) {
@@ -559,7 +559,7 @@ impl CoinbaseinternationalCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                m.insert("method".to_string(), method);
+                m.insert("method".to_string(), Value::from(method));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), channels.clone());
@@ -601,10 +601,10 @@ impl CoinbaseinternationalCore {
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("unSubscribe".into()), &[params]);
         let mut url: Value = self.get_ws_url(&[Value::Bool(false)]);
-        let mut method: Value = Value::Str("public/unsubscribe".into());
+        let mut method: String = "public/unsubscribe".to_string();
         if isPrivate {
             url = self.get_ws_url(&[Value::Bool(true)]);
-            method = Value::Str("private/unsubscribe".into());
+            method = "private/unsubscribe".to_string();
             self.authenticate(&[]).await;
         }
         let mut unWatchMessageHashes: Value = Value::from(vec![]);
@@ -619,7 +619,7 @@ impl CoinbaseinternationalCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                m.insert("method".to_string(), method);
+                m.insert("method".to_string(), Value::from(method.clone()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), channels.clone());
@@ -2668,7 +2668,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("cancelAllOrdersWs".into()), &[params]);
-        let mut method: Value = Value::Str("private/cancel_all".into());
+        let mut method: String = "private/cancel_all".to_string();
         let mut paramsRequest: Value = paramsResolved.clone();
         if (symbol != Value::Null) {
             if (self.markets.clone() == Value::Null) {
@@ -2680,9 +2680,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("instrument_name".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
                 m
             }), &[paramsResolved]);
-            method = Value::Str("private/cancel_all_by_instrument".into());
+            method = "private/cancel_all_by_instrument".to_string();
         }
-        let mut result: Value = self.request_ws(method, &[paramsRequest, Value::Bool(true)]).await;
+        let mut result: Value = self.request_ws(Value::from(method), &[paramsRequest, Value::Bool(true)]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), result);

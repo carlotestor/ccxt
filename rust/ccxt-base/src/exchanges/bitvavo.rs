@@ -2740,11 +2740,11 @@ impl BitvavoCore {
         let mut type_var: Value = self.parse_ledger_entry_type(rawType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut currencyId: Value = self.safe_string_k(item.clone(), "receivedCurrency", &[]);
         let mut amount: Value = self.safe_string_k(item.clone(), "receivedAmount", &[]);
-        let mut direction: Value = Value::Str("in".into());
+        let mut direction: String = "in".to_string();
         if (amount == Value::Null) {
             currencyId = self.safe_string_k(item.clone(), "sentCurrency", &[]);
             amount = self.safe_string_k(item.clone(), "sentAmount", &[]);
-            direction = Value::Str("out".into());
+            direction = "out".to_string();
         }
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
@@ -2765,7 +2765,7 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(item, "address", &[]));

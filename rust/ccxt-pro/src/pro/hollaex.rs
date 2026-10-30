@@ -741,8 +741,8 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut messageHash: Value = Value::Str("wallet".into());
-        return self.watch_private(messageHash, &[params]).await;
+        let mut messageHash: String = "wallet".to_string();
+        return self.watch_private(Value::from(messageHash), &[params]).await;
 
     Value::Null
 }

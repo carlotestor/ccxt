@@ -767,9 +767,9 @@ impl CoinoneCore {
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut isWithdrawEnabled: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "withdraw_status", &[Value::Str("".into())]).as_str() == Some("normal"));
         let mut isDepositEnabled: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "deposit_status", &[Value::Str("".into())]).as_str() == Some("normal"));
-        let mut type_var: Value = Value::Str("fiat".into());
+        let mut type_var: String = "fiat".to_string();
         if (code.as_str() != Some("KRW")) {
-            type_var = Value::Str("crypto".into());
+            type_var = "crypto".to_string();
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -802,7 +802,7 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
     m
 }));
 

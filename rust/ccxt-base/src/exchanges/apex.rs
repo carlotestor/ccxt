@@ -696,11 +696,11 @@ impl ApexCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut code: Value = Value::Str("USDT".into());
+        let mut code: String = "USDT".to_string();
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("free".into(), self.safe_string_k(response.clone(), "availableBalance", &[]));
         account.insert("total".into(), self.safe_string_k(response, "totalEquityValue", &[]));
-        result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+        result.insert(code.clone(), Value::Map(account));
         return self.safe_balance(Value::Map(result));
 
     Value::Null
@@ -2602,13 +2602,13 @@ impl ApexCore {
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(income.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("contract".into())]);
-        let mut code: Value = Value::Str("USDT".into());
+        let mut code: String = "USDT".to_string();
         let mut timestamp: Value = self.safe_integer_k(income.clone(), "fundingTime", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved]));
-        m.insert("code".to_string(), code);
+        m.insert("code".to_string(), Value::from(code));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "id", &[]));

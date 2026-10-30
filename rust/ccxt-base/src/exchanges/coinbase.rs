@@ -3046,9 +3046,9 @@ if _try_result.is_err() {
             if (code != Value::Null) {
                 if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networksById".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&code), name.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)); } }
             }
-            let mut type_var: Value = Value::Str("fiat".into());
+            let mut type_var: String = "fiat".to_string();
             if (assetId.is_some()) {
-                type_var = Value::Str("crypto".into());
+                type_var = "crypto".to_string();
             }
             if (code != Value::Null) {
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
@@ -3056,7 +3056,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), currency.clone());
         m.insert("id".to_string(), id);
         m.insert("code".to_string(), code.clone());
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("name".to_string(), name.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("deposit".to_string(), Value::Null);
@@ -3200,14 +3200,14 @@ if _try_result.is_err() {
             m
         };
         let mut baseIds: Vec<Value> = Value::Array(rates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
-        let mut delimiter: Value = Value::Str("-".into());
+        let mut delimiter: String = "-".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_543: bool = true;
             while { if !__for_first_543 { i += 1; } __for_first_543 = false; i < (baseIds.len() as i64) } {
             let mut baseId: Value = baseIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, delimiter).into()), quoteId).into());
-            let mut market: Value = self.safe_market(&[marketId, Value::Null, delimiter.clone()]);
+            let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::from(delimiter.clone())]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(rates.get(baseId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[market]));
         }
@@ -6756,13 +6756,13 @@ if _try_result.is_err() {
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isSpot: bool = type_var.as_str() == Some("spot");
-        let mut productType: Value = Value::Str("FUTURE".into());
+        let mut productType: String = "FUTURE".to_string();
         if isSpot {
-            productType = Value::Str("SPOT".into());
+            productType = "SPOT".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("product_type".to_string(), productType);
+                m.insert("product_type".to_string(), Value::from(productType.clone()));
             m
         });
         let __ws_arg_66 = self.extend(Value::Map(request), &[paramsMarketType]);
@@ -6957,18 +6957,18 @@ if _try_result.is_err() {
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         let mut nonce: Value = self.random_bytes(Value::Int(16));
-        let mut aud: Value = Value::Str("retail_rest_api_proxy".into());
+        let mut aud: String = "retail_rest_api_proxy".to_string();
         if useEddsa {
-            aud = Value::Str("cdp_service".into());
+            aud = "cdp_service".to_string();
         }
-        let mut iss: Value = Value::Str("coinbase-cloud".into());
+        let mut iss: String = "coinbase-cloud".to_string();
         if useEddsa {
-            iss = Value::Str("cdp".into());
+            iss = "cdp".to_string();
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("aud".to_string(), Value::from(vec![aud]));
-                m.insert("iss".to_string(), iss);
+                m.insert("aud".to_string(), Value::from(vec![Value::from(aud)]));
+                m.insert("iss".to_string(), Value::from(iss));
                 m.insert("nbf".to_string(), seconds.clone());
                 m.insert("exp".to_string(), (match (&(seconds), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                 m.insert("sub".to_string(), self.apiKey.clone());
@@ -7029,9 +7029,9 @@ if _try_result.is_err() {
         let mut version: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut signed: bool = api.get(1).cloned().unwrap_or(Value::Null).as_str() == Some("private");
         let mut isV3: bool = version.as_deref() == Some("v3");
-        let mut pathPart: Value = Value::Str("v2".into());
+        let mut pathPart: String = "v2".to_string();
         if isV3 {
-            pathPart = Value::Str("api/v3".into());
+            pathPart = "api/v3".to_string();
         }
         let mut fullPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), pathPart).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);

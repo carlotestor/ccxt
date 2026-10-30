@@ -1639,7 +1639,7 @@ impl CoinbaseexchangeCore {
             m
         };
         let mut marketIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut delimiter: Value = Value::Str("-".into());
+        let mut delimiter: String = "-".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_554: bool = true;
@@ -1647,7 +1647,7 @@ impl CoinbaseexchangeCore {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: Value = self.safe_list(response.clone(), marketId.clone(), &[Value::from(vec![])]);
             let mut first: Value = self.safe_list(entry, Value::Int(0), &[Value::from(vec![])]);
-            let mut market: Value = self.safe_market(&[marketId, Value::Null, delimiter.clone()]);
+            let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::from(delimiter.clone())]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(first, &[market]));
         }
@@ -2616,7 +2616,7 @@ impl CoinbaseexchangeCore {
         }  else {
             referenceId = self.safe_string_k(details, "order_id", &[]);
         }
-        let mut status: Value = Value::Str("ok".into());
+        let mut status: String = "ok".to_string();
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item);
@@ -2632,7 +2632,7 @@ impl CoinbaseexchangeCore {
         m.insert("amount".to_string(), amount);
         m.insert("before".to_string(), before);
         m.insert("after".to_string(), after);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[currency]);

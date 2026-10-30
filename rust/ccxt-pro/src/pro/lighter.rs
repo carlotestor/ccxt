@@ -977,9 +977,9 @@ impl LighterCore {
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
         let mut isMakerAsk: Value = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]);
-        let mut side: Value = Value::Str("sell".into());
+        let mut side: String = "sell".to_string();
         if (isMakerAsk.as_bool() == Some(true)) {
-            side = Value::Str("buy".into());
+            side = "buy".to_string();
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -990,7 +990,7 @@ impl LighterCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
@@ -1442,9 +1442,9 @@ impl LighterCore {
         //
         let mut timestamp: Value = self.safe_integer_k(liquidation.clone(), "timestamp", &[]);
         let mut isMakerAsk: Value = self.safe_bool_k(liquidation.clone(), "is_maker_ask", &[]);
-        let mut side: Value = Value::Str("sell".into());
+        let mut side: String = "sell".to_string();
         if (isMakerAsk.as_bool() == Some(true)) {
-            side = Value::Str("buy".into());
+            side = "buy".to_string();
         }
         let mut contracts: Option<String> = self.safe_string_k_opt(liquidation.clone(), "size", &[]);
         let mut contractSize: Option<String> = self.safe_string_k_opt(market.clone(), "contractSize", &[]);
@@ -1461,7 +1461,7 @@ impl LighterCore {
         m.insert("contracts".to_string(), contracts.map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), contractSize.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("baseValue".to_string(), baseValue);
         m.insert("quoteValue".to_string(), quoteValue);
         m.insert("timestamp".to_string(), timestamp.clone());

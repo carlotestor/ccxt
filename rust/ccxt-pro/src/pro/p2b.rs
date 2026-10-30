@@ -564,12 +564,12 @@ impl P2bCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut name: Value = Value::Str("depth.subscribe".into());
+        let mut name: String = "depth.subscribe".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut interval: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("0.001".into())]);
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
         let mut request: Value = Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), limitResolved, interval]);
-        let mut orderbook: Value = self.subscribe(name, messageHash, request, &[params]).await;
+        let mut orderbook: Value = self.subscribe(Value::from(name), messageHash, request, &[params]).await;
         return orderbook.limit();
 
     Value::Null

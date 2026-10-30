@@ -1192,13 +1192,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         })]);
         let mut url: Value = self.safe_string_k(wsUrls, "privateGen2", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str("myAsset".into());
-        let mut request: Value = self.build_gen2_subscription_request(messageHash.clone(), Value::Map({
+        let mut messageHash: String = "myAsset".to_string();
+        let mut request: Value = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), messageHash.clone());
+                m.insert("type".to_string(), Value::from(messageHash.clone()));
             m
         }));
-        let mut balance: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        let mut balance: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash.clone())]).await;
         return balance;
 
     Value::Null
@@ -1222,7 +1222,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //        "stream_type": "REALTIME"
         //    }
         //
-        let mut messageHash: Value = Value::Str("myAsset".into());
+        let mut messageHash: String = "myAsset".to_string();
         let mut assets: Value = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
@@ -1250,7 +1250,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(&[self.balance.clone(), messageHash]);
+        client.resolve(&[self.balance.clone(), Value::from(messageHash.clone())]);
 }
 
 /*
@@ -1428,7 +1428,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //        "stream_type": "REALTIME"
         //    }
         //
-        let mut messageHash: Value = Value::Str("myOrder".into());
+        let mut messageHash: String = "myOrder".to_string();
         let mut parsed: Value = self.parse_ws_order(message.clone(), &[]);
         // const orderId = this.safeString (parsed, 'id');
         if (self.orders.clone() == Value::Null) {
@@ -1437,7 +1437,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut cachedOrders: Value = self.orders.clone();
         cachedOrders.append(parsed.clone());
-        client.resolve(&[cachedOrders.clone(), messageHash.clone()]);
+        client.resolve(&[cachedOrders.clone(), Value::from(messageHash.clone())]);
         client.resolve(&[cachedOrders, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())]);
 }
 

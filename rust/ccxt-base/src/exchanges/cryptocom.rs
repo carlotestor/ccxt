@@ -5035,20 +5035,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut market: Value = self.market(symbol.clone());
             let mut isSwap: Value = self.safe_bool_k(market, "swap", &[]);
-            let mut takerFeeKey: Value = Value::Str("effective_spot_taker_rate_bps".into());
+            let mut takerFeeKey: String = "effective_spot_taker_rate_bps".to_string();
             if (isSwap.as_bool() == Some(true)) {
-                takerFeeKey = Value::Str("effective_deriv_taker_rate_bps".into());
+                takerFeeKey = "effective_deriv_taker_rate_bps".to_string();
             }
-            let mut makerFeeKey: Value = Value::Str("effective_spot_maker_rate_bps".into());
+            let mut makerFeeKey: String = "effective_spot_maker_rate_bps".to_string();
             if (isSwap.as_bool() == Some(true)) {
-                makerFeeKey = Value::Str("effective_deriv_maker_rate_bps".into());
+                makerFeeKey = "effective_deriv_maker_rate_bps".to_string();
             }
             let mut tradingFee: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), response.clone());
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string(response.clone(), makerFeeKey, &[]), &Value::Str("10000".into())), &[]));
-                    m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string(response.clone(), takerFeeKey, &[]), &Value::Str("10000".into())), &[]));
+                    m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string(response.clone(), Value::from(makerFeeKey), &[]), &Value::Str("10000".into())), &[]));
+                    m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string(response.clone(), Value::from(takerFeeKey), &[]), &Value::Str("10000".into())), &[]));
                     m.insert("percentage".to_string(), Value::Null);
                     m.insert("tierBased".to_string(), Value::Null);
                 m
@@ -5137,9 +5137,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // python and js will put it in curly brackets
             // the code below checks and replaces those brackets in empty requests
             if (paramsKeysLength == 0.0) {
-                let mut paramsString: Value = Value::Str("{}".into());
-                let mut arrayString: Value = Value::Str("[]".into());
-                requestBody = match (requestBody.as_str(), arrayString.as_str(), paramsString.as_str()) { (Some(__s), Some(__p), Some(__r)) => Value::Str(__s.replace(__p, __r).into()), _ => requestBody.clone() }
+                let mut paramsString: String = "{}".to_string();
+                let mut arrayString: String = "[]".to_string();
+                requestBody = match (requestBody.as_str(), Some(arrayString.as_str()), Some(paramsString.as_str())) { (Some(__s), Some(__p), Some(__r)) => Value::Str(__s.replace(__p, __r).into()), _ => requestBody.clone() }
             }
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();

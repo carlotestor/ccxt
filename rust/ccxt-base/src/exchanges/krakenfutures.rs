@@ -958,9 +958,9 @@ impl KrakenfuturesCore {
                 Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
                 Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-            let mut quoteId: Value = Value::Str("usd".into()); // always USD
+            let mut quoteId: String = "usd".to_string();
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-            let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            let mut quote: Value = self.safe_currency_code(Value::from(quoteId.clone()), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
@@ -980,7 +980,7 @@ impl KrakenfuturesCore {
                     inverse = Value::Bool(true);
                 }  else {
                     settle = quote.clone();
-                    settleId = quoteId.clone();
+                    settleId = Value::from(quoteId.clone());
                     inverse = Value::Bool(false);
                 }
                 linear = Value::Bool(!(inverse.as_bool() == Some(true)));
@@ -997,7 +997,7 @@ impl KrakenfuturesCore {
                     m.insert("quote".to_string(), quote);
                     m.insert("settle".to_string(), settle);
                     m.insert("baseId".to_string(), baseId);
-                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("quoteId".to_string(), Value::from(quoteId));
                     m.insert("settleId".to_string(), settleId);
                     m.insert("type".to_string(), type_var);
                     m.insert("spot".to_string(), Value::Bool(false));
@@ -3302,9 +3302,9 @@ impl KrakenfuturesCore {
         }
         let mut type_var: Value = self.safe_string_lower2(details.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]);
         let mut parsedType: Value = self.parse_order_type(type_var.clone()).map(Value::from).unwrap_or(Value::Null);
-        let mut timeInForce: Value = Value::Str("gtc".into());
+        let mut timeInForce: String = "gtc".to_string();
         if (type_var.as_str() == Some("ioc")) || (parsedType.as_str() == Some("market")) {
-            timeInForce = Value::Str("ioc".into());
+            timeInForce = "ioc".to_string();
         }
         let mut ts: Value = self.safe_integer_k(details.clone(), "timestamp", &[timestamp]);
         let mut priceTriggerOptions: Value = self.safe_dict_k(details.clone(), "priceTriggerOptions", &[Value::Map({
@@ -3326,7 +3326,7 @@ impl KrakenfuturesCore {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(details.clone(), "lastUpdateTimestamp", &[lastUpdateTimestamp]));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), parsedType);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), Value::Bool(type_var.as_str() == Some("post")));
         m.insert("reduceOnly".to_string(), self.safe_bool2(details.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));
         m.insert("side".to_string(), self.safe_string_lower2(details, Value::Str("side".into()), Value::Str("direction".into()), &[]));
@@ -4381,9 +4381,9 @@ impl KrakenfuturesCore {
         let mut positionChange: Option<String> = self.safe_string_k(position.clone(), "positionChange", &[]).as_str().map(str::to_owned);
         let mut isHistory: bool = positionChange.is_some();
         let mut leverage: Value = self.safe_number_k(position.clone(), "maxFixedLeverage", &[]);
-        let mut marginType: Value = Value::Str("cross".into());
+        let mut marginType: String = "cross".to_string();
         if (leverage != Value::Null) {
-            marginType = Value::Str("isolated".into());
+            marginType = "isolated".to_string();
         }
         let mut timestamp: Value = Value::Null;
         let mut datetime: Value = Value::Null;
@@ -4443,7 +4443,7 @@ impl KrakenfuturesCore {
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), self.safe_number_k(position, "executionPrice", &[]));
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), marginType);
+        m.insert("marginMode".to_string(), Value::from(marginType));
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
     m

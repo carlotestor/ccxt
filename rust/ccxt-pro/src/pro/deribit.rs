@@ -363,7 +363,7 @@ impl DeribitCore {
     m
 }));
         self.authenticate(&[params.clone()]).await;
-        let mut messageHash: Value = Value::Str("balance".into());
+        let mut messageHash: String = "balance".to_string();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut currencies: Value = self.safe_list_k(self.options.clone(), "currencies", &[Value::from(vec![])]);
         let mut channels: Vec<Value> = Vec::new();
@@ -388,7 +388,7 @@ impl DeribitCore {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url, messageHash.clone(), &[request.clone(), messageHash.clone(), request.clone()]).await;
+        return self.watch(url, Value::from(messageHash.clone()), &[request.clone(), Value::from(messageHash.clone()), request.clone()]).await;
 
     Value::Null
 }
@@ -454,8 +454,8 @@ impl DeribitCore {
         if (currencyCode != Value::Null) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&currencyCode), balance.clone()); }
         }
-        let mut messageHash: Value = Value::Str("balance".into());
-        client.resolve(&[self.balance.clone(), messageHash]);
+        let mut messageHash: String = "balance".to_string();
+        client.resolve(&[self.balance.clone(), Value::from(messageHash)]);
 }
 
 /*
@@ -1615,8 +1615,8 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut messageHash: Value = Value::Str("authenticated".into());
-        client.resolve(&[message.clone(), messageHash]);
+        let mut messageHash: String = "authenticated".to_string();
+        client.resolve(&[message.clone(), Value::from(messageHash)]);
         return message;
 
     Value::Null
@@ -1638,7 +1638,7 @@ impl DeribitCore {
         if (future == Value::Null) {
             self.check_required_credentials(&[]);
             let mut requestId: Value = self.request_id();
-            let mut lineBreak: Value = Value::Str("\n".into()); // eslint-disable-line quotes
+            let mut lineBreak: String = "\n".to_string();
             let mut signature: Value = self.hmac(self.encode(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeString, lineBreak).into()), nonce).into()), lineBreak).into())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

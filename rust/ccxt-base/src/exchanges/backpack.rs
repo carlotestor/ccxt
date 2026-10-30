@@ -1808,9 +1808,9 @@ impl BackpackCore {
                 m.insert("quantity".to_string(), self.number_to_string(amount));
             m
         });
-        let mut requestMethod: Value = Value::Str("publicGetApiV1StockIndicativeQuote".into());
+        let mut requestMethod: String = "publicGetApiV1StockIndicativeQuote".to_string();
         let __ws_arg_1 = self.extend(query, &[Value::Map(request)]);
-        return self.call_dynamic_checked(requestMethod, vec![(__ws_arg_1).clone()]).await;
+        return self.call_dynamic_checked(Value::from(requestMethod), vec![(__ws_arg_1).clone()]).await;
 
     Value::Null
 }
@@ -3928,14 +3928,14 @@ impl BackpackCore {
         });
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(query.clone(), "triggerPrice", &[]);
         let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut quantityKey: Value = Value::Str("quantity".into());
+        let mut quantityKey: String = "quantity".to_string();
         if isTriggerOrder {
-            quantityKey = Value::Str("triggerQuantity".into());
+            quantityKey = "triggerQuantity".to_string();
         }
         let mut omitKeys: Vec<Value> = Vec::new();
         if (type_var.as_str() == Some("limit")) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
-            request.insert(crate::runtime::stringify_param(&quantityKey), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert(quantityKey.clone(), self.amount_to_precision(symbol.clone(), amount.clone()));
         }  else if (type_var.as_str() == Some("market")) {
             let mut cost: Value = self.safe_string2(query.clone(), Value::Str("cost".into()), Value::Str("quoteQuantity".into()), &[]);
             if (cost != Value::Null) {
@@ -3943,7 +3943,7 @@ impl BackpackCore {
                 omitKeys.push(Value::Str("cost".into()));
                 omitKeys.push(Value::Str("quoteQuantity".into()));
             }  else {
-                request.insert(crate::runtime::stringify_param(&quantityKey), self.amount_to_precision(symbol.clone(), amount));
+                request.insert(quantityKey.clone(), self.amount_to_precision(symbol.clone(), amount));
             }
         }
         if isTriggerOrder {

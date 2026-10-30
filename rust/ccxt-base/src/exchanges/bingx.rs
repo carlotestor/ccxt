@@ -2484,17 +2484,17 @@ impl BingxCore {
         if (quantityPrecision == Value::Null) {
             quantityPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
         }
-        let mut type_var: Value = Value::Str("spot".into());
+        let mut type_var: String = "spot".to_string();
         if (settle != Value::Null) {
-            type_var = Value::Str("swap".into());
+            type_var = "swap".to_string();
         }
-        let mut spot: Value = Value::Bool(type_var.as_str() == Some("spot"));
-        let mut swap: Value = Value::Bool(type_var.as_str() == Some("swap"));
+        let mut spot: Value = Value::Bool(Some(type_var.as_str()) == Some("spot"));
+        let mut swap: Value = Value::Bool(Some(type_var.as_str()) == Some("swap"));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         if (settle != Value::Null) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), settle).into())).into());
         }
-        let mut fees: Value = self.safe_dict(self.fees.clone(), type_var.clone(), &[Value::Map({
+        let mut fees: Value = self.safe_dict(self.fees.clone(), Value::from(type_var.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2530,7 +2530,7 @@ impl BingxCore {
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), currency);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), spot);
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), swap.clone());
@@ -3289,8 +3289,8 @@ impl BingxCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut subType: Value = Value::Str("linear".into());
-        let subTypeOptionparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".into()), &[firstMarket, params, subType]).as_array().cloned().unwrap_or_default();
+        let mut subType: String = "linear".to_string();
+        let subTypeOptionparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".into()), &[firstMarket, params, Value::from(subType)]).as_array().cloned().unwrap_or_default();
         let mut subTypeOption: Value = subTypeOptionparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeOptionparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
@@ -4774,13 +4774,13 @@ impl BingxCore {
         let mut isTriggerOrder: bool = triggerPrice != Value::Null;
         let mut isStopLossPriceOrder: bool = stopLossPrice.is_some();
         let mut isTakeProfitPriceOrder: bool = takeProfitPrice.is_some();
-        let mut exchangeClientOrderId: Value = Value::Str("clientOrderId".into());
+        let mut exchangeClientOrderId: String = "clientOrderId".to_string();
         if isSpot {
-            exchangeClientOrderId = Value::Str("newClientOrderId".into());
+            exchangeClientOrderId = "newClientOrderId".to_string();
         }
-        let mut clientOrderId: Value = self.safe_string2(paramsMarketType.clone(), exchangeClientOrderId.clone(), Value::Str("clientOrderId".into()), &[]);
+        let mut clientOrderId: Value = self.safe_string2(paramsMarketType.clone(), Value::from(exchangeClientOrderId.clone()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderId != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&exchangeClientOrderId), clientOrderId);
+            request.insert(exchangeClientOrderId.clone(), clientOrderId);
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsMarketType.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(timeInForce.as_deref() == Some("PostOnly")), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
@@ -5616,12 +5616,12 @@ impl BingxCore {
         let mut newOrder: Value = self.safe_dict2(order.clone(), Value::Str("newOrderResponse".into()), Value::Str("orderOpenResponse".into()), &[]);
         let mut orderData: Value = (if (newOrder != Value::Null) { newOrder } else { order });
         let mut positionSide: Option<String> = self.safe_string2(orderData.clone(), Value::Str("positionSide".into()), Value::Str("ps".into()), &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = Value::Str("swap".into());
+        let mut marketType: String = "swap".to_string();
         if (positionSide.is_none()) {
-            marketType = Value::Str("spot".into());
+            marketType = "spot".to_string();
         }
         let mut marketId: Value = self.safe_string2(orderData.clone(), Value::Str("symbol".into()), Value::Str("s".into()), &[]);
-        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { marketId.clone() } else { Value::Null }), market, Value::Null, marketType.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { marketId.clone() } else { Value::Null }), market, Value::Null, Value::from(marketType.clone())]);
         let mut side: Value = self.safe_string_lower2(orderData.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]);
         let mut timestamp: Value = self.safe_integer_n(orderData.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("transactTime".into()), Value::Str("E".into()), Value::Str("createdTime".into())]), &[]);
         let mut transactTime: Value = self.safe_string_k(orderData.clone(), "transactTime", &[Value::Str("".into())]);
@@ -5689,7 +5689,7 @@ impl BingxCore {
         m.insert("info".to_string(), info);
         m.insert("id".to_string(), self.safe_string_n(orderData.clone(), Value::from(vec![Value::Str("orderId".into()), Value::Str("i".into()), Value::Str("mainOrderId".into())]), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_n(orderData.clone(), Value::from(vec![Value::Str("clientOrderID".into()), Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into()), Value::Str("c".into())]), &[]));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[marketResolved.clone(), Value::Str("-".into()), marketType]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[marketResolved.clone(), Value::Str("-".into()), Value::from(marketType)]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
@@ -5792,11 +5792,11 @@ impl BingxCore {
             let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
             if (clientOrderId != Value::Null) {
-                let mut clientOrderIdRequest: Value = Value::Str("clientOrderId".into());
+                let mut clientOrderIdRequest: String = "clientOrderId".to_string();
                 if (type_var.as_str() == Some("spot")) {
-                    clientOrderIdRequest = Value::Str("clientOrderID".into());
+                    clientOrderIdRequest = "clientOrderID".to_string();
                 }
-                request.insert(crate::runtime::stringify_param(&clientOrderIdRequest), clientOrderId);
+                request.insert(clientOrderIdRequest.clone(), clientOrderId);
             }  else {
                 request.insert("orderId".into(), id);
             }
@@ -6035,11 +6035,11 @@ impl BingxCore {
         }
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut spotReqKey: Value = Value::Str("orderIds".into());
+            let mut spotReqKey: String = "orderIds".to_string();
             if areClientOrderIds {
-                spotReqKey = Value::Str("clientOrderIDs".into());
+                spotReqKey = "clientOrderIDs".to_string();
             }
-            request.insert(crate::runtime::stringify_param(&spotReqKey), Value::Str(parsedIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+            request.insert(spotReqKey.clone(), Value::Str(parsedIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.spot_v1_private_post_trade_cancel_orders(&[__ws_arg_32]).await;
         }  else {
@@ -6166,11 +6166,11 @@ impl BingxCore {
             let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
             if (clientOrderId != Value::Null) {
-                let mut clientOrderIdRequest: Value = Value::Str("clientOrderId".into());
+                let mut clientOrderIdRequest: String = "clientOrderId".to_string();
                 if (type_var.as_str() == Some("spot")) {
-                    clientOrderIdRequest = Value::Str("clientOrderID".into());
+                    clientOrderIdRequest = "clientOrderID".to_string();
                 }
-                request.insert(crate::runtime::stringify_param(&clientOrderIdRequest), clientOrderId);
+                request.insert(clientOrderIdRequest.clone(), clientOrderId);
             }  else {
                 request.insert("orderId".into(), id);
             }
@@ -7182,9 +7182,9 @@ impl BingxCore {
         }
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         let mut rawType: Option<String> = self.safe_string_k(transaction.clone(), "transferType", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Str("withdrawal".into());
+        let mut type_var: String = "withdrawal".to_string();
         if (rawType.as_deref() == Some("0")) || (matches!(&transaction, Value::Dict(__d) if __d.contains_key("insertTime"))) {
-            type_var = Value::Str("deposit".into());
+            type_var = "deposit".to_string();
         }
         let mut internal: Value = Value::Null;
         if (rawType.is_some()) {
@@ -7195,11 +7195,11 @@ impl BingxCore {
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id);
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txId", &[]));
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), Value::from(type_var.clone()));
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), code.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var]).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]), &[Value::from(type_var)]).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -7611,11 +7611,11 @@ impl BingxCore {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let mut now: Value = self.milliseconds();
             if (since != Value::Null) {
-                let mut startTimeReq: Value = Value::Str("startTs".into());
+                let mut startTimeReq: String = "startTs".to_string();
                 if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                    startTimeReq = Value::Str("startTime".into());
+                    startTimeReq = "startTime".to_string();
                 }
-                request.insert(crate::runtime::stringify_param(&startTimeReq), since.clone());
+                request.insert(startTimeReq.clone(), since.clone());
             }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 request.insert("startTs".into(), (match (&(now), &((match (&((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
@@ -7626,11 +7626,11 @@ impl BingxCore {
             let mut until: Value = self.safe_integer_k(paramsSubType.clone(), "until", &[]);
             let mut paramsUntil: Value = self.omit(paramsSubType, Value::Str("until".into()), &[]);
             if (until != Value::Null) {
-                let mut endTimeReq: Value = Value::Str("endTs".into());
+                let mut endTimeReq: String = "endTs".to_string();
                 if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                    endTimeReq = Value::Str("endTime".into());
+                    endTimeReq = "endTime".to_string();
                 }
-                request.insert(crate::runtime::stringify_param(&endTimeReq), until);
+                request.insert(endTimeReq.clone(), until);
             }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 request.insert("endTs".into(), now);
             }
@@ -8309,11 +8309,11 @@ impl BingxCore {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("cancelClientOrderId".into()), Value::Str("cancelClientOrderID".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(symbol, type_var, side, amount, &[price, paramsOmitted.clone()]).as_map().cloned().unwrap_or_default();
         if (cancelClientOrderId != Value::Null) {
-            let mut cancelClientOrderIdRequest: Value = Value::Str("cancelClientOrderId".into());
+            let mut cancelClientOrderIdRequest: String = "cancelClientOrderId".to_string();
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                cancelClientOrderIdRequest = Value::Str("cancelClientOrderID".into());
+                cancelClientOrderIdRequest = "cancelClientOrderID".to_string();
             }
-            request.insert(crate::runtime::stringify_param(&cancelClientOrderIdRequest), cancelClientOrderId);
+            request.insert(cancelClientOrderIdRequest.clone(), cancelClientOrderId);
         }  else {
             request.insert("cancelOrderId".into(), id);
         }

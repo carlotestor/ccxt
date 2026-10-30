@@ -1152,21 +1152,21 @@ impl ToobitCore {
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isSpot: bool = marketType.as_str() == Some("spot");
-        let mut type_var: Value = Value::Str("contract".into());
+        let mut type_var: String = "contract".to_string();
         if isSpot {
-            type_var = Value::Str("spot".into());
+            type_var = "spot".to_string();
         }
-        let mut spotSubHash: Value = Value::Str("spot:balance".into());
-        let mut swapSubHash: Value = Value::Str("contract:private".into());
-        let mut spotMessageHash: Value = Value::Str("spot:balance".into());
-        let mut swapMessageHash: Value = Value::Str("contract:balance".into());
-        let mut messageHash: Value = swapMessageHash;
+        let mut spotSubHash: String = "spot:balance".to_string();
+        let mut swapSubHash: String = "contract:private".to_string();
+        let mut spotMessageHash: String = "spot:balance".to_string();
+        let mut swapMessageHash: String = "contract:balance".to_string();
+        let mut messageHash: Value = Value::from(swapMessageHash);
         if isSpot {
-            messageHash = spotMessageHash;
+            messageHash = Value::from(spotMessageHash);
         }
-        let mut subscriptionHash: Value = swapSubHash;
+        let mut subscriptionHash: Value = Value::from(swapSubHash);
         if isSpot {
-            subscriptionHash = spotSubHash;
+            subscriptionHash = Value::from(spotSubHash);
         }
         let mut url: Value = self.get_user_stream_url().map(Value::from).unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
@@ -1187,9 +1187,9 @@ impl ToobitCore {
         if (subscriptionHash == Value::Null) || (__ch.has_subscription(&subscriptionHash)) {
             return;
         }
-        let mut type_var: Value = Value::Str("contract".into());
+        let mut type_var: String = "contract".to_string();
         if (marketType.as_str() == Some("spot")) {
-            type_var = Value::Str("spot".into());
+            type_var = "spot".to_string();
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
         if !(__ch.has_future(&messageHash)) {
@@ -1513,9 +1513,9 @@ impl ToobitCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut ts: Option<String> = self.safe_string_k_opt(trade.clone(), "t", &[]);
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)]);
-        let mut takerOrMaker: Value = Value::Str("taker".into());
+        let mut takerOrMaker: String = "taker".to_string();
         if isMaker.as_bool() == Some(true) {
-            takerOrMaker = Value::Str("maker".into());
+            takerOrMaker = "maker".to_string();
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1527,7 +1527,7 @@ impl ToobitCore {
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "o", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "S", &[]));
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "p", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade, "q", &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -1561,7 +1561,7 @@ impl ToobitCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut type_var: Value = Value::Str("swap".into()); // the only account type that carries positions here
+        let mut type_var: String = "swap".to_string();
         let mut messageHash: Value = Value::Str("".into());
         let mut symbolsNormalized: Value = symbols.clone();
         if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
@@ -1575,8 +1575,8 @@ impl ToobitCore {
         messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into()), messageHash).into());
         let mut url: Value = self.get_user_stream_url().map(Value::from).unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
-        self.set_positions_cache(client.clone(), type_var.clone(), &[symbolsNormalized.clone()]);
-        let mut cache: Value = self.safe_value(self.positions.clone(), type_var.clone(), &[]);
+        self.set_positions_cache(client.clone(), Value::from(type_var.clone()), &[symbolsNormalized.clone()]);
+        let mut cache: Value = self.safe_value(self.positions.clone(), Value::from(type_var.clone()), &[]);
         if (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into())])).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);

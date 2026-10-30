@@ -2613,11 +2613,11 @@ impl AlpacaCore {
                 let mut activityType: Option<String> = self.safe_string_k(entry.clone(), "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Option<String> = self.safe_string_k_opt(entry.clone(), "net_amount", &[]);
                 let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
-                let mut entryDirection: Value = Value::Str("OUTGOING".into());
+                let mut entryDirection: String = "OUTGOING".to_string();
                 if isIncoming {
-                    entryDirection = Value::Str("INCOMING".into());
+                    entryDirection = "INCOMING".to_string();
                 }
-                if (type_var.as_str() == Some("BOTH")) || (entryDirection.as_str() == type_var.as_str()) {
+                if (type_var.as_str() == Some("BOTH")) || (Some(entryDirection.as_str()) == type_var.as_str()) {
                     filtered.push(entry.clone());
                 }
             }

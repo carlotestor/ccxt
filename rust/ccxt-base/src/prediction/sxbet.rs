@@ -1112,11 +1112,11 @@ impl SxbetCore {
  * @returns {string} the token's on-chain name
  */
     pub async fn fetch_erc20_name(&mut self, mut rpcUrl: Value, mut tokenAddress: Value) -> Value {
-        let mut nameCallData: Value = Value::Str("0x06fdde03".into()); // name()
+        let mut nameCallData: String = "0x06fdde03".to_string();
         let mut result: Value = self.eth_rpc(rpcUrl, Value::Str("eth_call".into()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("to".to_string(), tokenAddress);
-        m.insert("data".to_string(), nameCallData);
+        m.insert("data".to_string(), Value::from(nameCallData));
     m
 }), Value::Str("latest".into())])).await;
         let mut hex: Value = self.remove0x_prefix(result);
@@ -1142,7 +1142,7 @@ impl SxbetCore {
  * @returns {int} the parsed integer
  */
     pub fn hex_to_int(&self, mut hex: Value) -> Value {
-        let mut digits: Value = Value::Str("0123456789abcdef".into());
+        let mut digits: String = "0123456789abcdef".to_string();
         let mut lowerHex: Value = hex.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut hexLength: f64 = ((lowerHex.len() as i64) as f64);
         let mut result: Value = self.parse_to_int(Value::Int(0));
@@ -1151,7 +1151,7 @@ impl SxbetCore {
             let mut __for_first_1495: bool = true;
             while { if !__for_first_1495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &i);
-            let mut digitValue: Value = self.parse_to_int(Value::Int(digits.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
+            let mut digitValue: Value = self.parse_to_int(Value::Int(Some(digits.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
             let mut shifted: Value = (match (&(result), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             result = self.parse_to_int(self.sum(&[shifted, digitValue]));
         }
@@ -1419,11 +1419,11 @@ impl SxbetCore {
         let mut saltHex: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), saltHexPadded).into());
         let mut defaultExpirySeconds: Value = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]);
         let mut expiry: Value = self.safe_integer_k(params.clone(), "expiry", &[self.sum(&[self.seconds(), defaultExpirySeconds])]);
-        let mut defaultTif: Value = Value::Str("IOC".into());
+        let mut defaultTif: String = "IOC".to_string();
         if (type_var.as_str() == Some("limit")) {
-            defaultTif = Value::Str("GTC".into());
+            defaultTif = "GTC".to_string();
         }
-        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[defaultTif]).as_array().cloned().unwrap_or_default();
+        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::from(defaultTif)]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
@@ -1903,16 +1903,16 @@ impl SxbetCore {
         let mut remaining: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingSize, &usdcDecimals, &Value::Int(6)), &[]);
         let mut orderStatus: Option<String> = self.safe_string_upper_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut inactiveReason: Option<String> = self.safe_string_upper_k(order.clone(), "inactiveReason", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Str("open".into());
+        let mut status: String = "open".to_string();
         if (orderStatus.as_deref() == Some("INACTIVE")) {
             // documented inactiveReason enum: FILLED, USER_REQUESTED, EXPIRED, NO_LIQUIDITY,
             // INSUFFICIENT_BALANCE, EVENT_LIFECYCLE, MARKET_HALTED, HEARTBEAT_TIMEOUT, SYSTEM
             if (inactiveReason.as_deref() == Some("FILLED")) {
-                status = Value::Str("closed".into());
+                status = "closed".to_string();
             }  else if (inactiveReason.as_deref() == Some("EXPIRED")) {
-                status = Value::Str("expired".into());
+                status = "expired".to_string();
             }  else {
-                status = Value::Str("canceled".into());
+                status = "canceled".to_string();
             }
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "createdAt", &[]));
@@ -1923,7 +1923,7 @@ impl SxbetCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "updatedAt", &[])));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
@@ -2586,11 +2586,11 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut labelKey: Value = Value::Str("outcomeTwoName".into());
+            let mut labelKey: String = "outcomeTwoName".to_string();
             if (winner.as_f64() == Some(1.0)) {
-                labelKey = Value::Str("outcomeOneName".into());
+                labelKey = "outcomeOneName".to_string();
             }
-            resultLabel = self.safe_string(info, labelKey, &[self.number_to_string(winner)]);
+            resultLabel = self.safe_string(info, Value::from(labelKey), &[self.number_to_string(winner)]);
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(settlement, "settleDate", &[]));
         let mut settlePrice: Value = Value::Null;
@@ -3509,7 +3509,7 @@ impl SxbetCore {
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         self.connect_sxbet_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut channel: Value = Value::Str("best_odds_v3:global".into());
+        let mut channel: String = "best_odds_v3:global".to_string();
         let mut hydrated: bool = false;
         if (self.safe_value(self.tickers.clone(), sym.clone(), &[]) == Value::Null) {
             // hydrate from the REST snapshot so the first call does not hang until the
@@ -3522,18 +3522,18 @@ impl SxbetCore {
             hydrated = true;
         }
         let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), channel.clone());
+        self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), Value::from(channel.clone()));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut future: Value = self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(subscribeMsg), channel]).await;
+        let mut future: Value = self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
         if hydrated {
             client.resolve(&[self.safe_value(self.tickers.clone(), sym, &[]), messageHash]);
         }

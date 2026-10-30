@@ -2299,11 +2299,11 @@ impl BlofinCore {
         if isMarketOrder || marketIOC {
             request.insert("orderType".into(), Value::Str("market".into()));
         }  else {
-            let mut key: Value = Value::Str("price".into());
+            let mut key: String = "price".to_string();
             if (triggerPriceAny != Value::Null) {
-                key = Value::Str("orderPrice".into());
+                key = "orderPrice".to_string();
             }
-            request.insert(crate::runtime::stringify_param(&key), self.price_to_precision(symbol.clone(), price));
+            request.insert(key.clone(), self.price_to_precision(symbol.clone(), price));
         }
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -2919,8 +2919,8 @@ impl BlofinCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100, max 100
         }
-        let mut type_var: Value = Value::Str("swap".into());
-        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), paramsUntil, type_var]).as_array().cloned().unwrap_or_default();
+        let mut type_var: String = "swap".to_string();
+        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), paramsUntil, Value::from(type_var)]).as_array().cloned().unwrap_or_default();
         let mut typeMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;

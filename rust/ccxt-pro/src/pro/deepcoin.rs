@@ -406,15 +406,15 @@ impl DeepcoinCore {
         if (self.safe_string_k(market.clone(), "type", &[]).as_str() == Some("swap")) {
             marketId = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market, "quoteId", &[Value::Str("".into())])).into()); // swap markets use symbol without slash
         }
-        let mut action: Value = Value::Str("1".into()); // subscribe
+        let mut action: String = "1".to_string();
         if unWatch {
-            action = Value::Str("0".into()); // unsubscribe
+            action = "0".to_string(); // unsubscribe
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sendTopicAction".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Action".to_string(), action);
+        m.insert("Action".to_string(), Value::from(action));
         m.insert("FilterValue".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("DeepCoin_".into()), marketId).into()), suffix).into()));
         m.insert("LocalNo".to_string(), requestId);
         m.insert("ResumeNo".to_string(), Value::Int(-1));
@@ -1646,7 +1646,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut listenKey: Value = self.authenticate(&[]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut messageHash: Value = Value::Str("positions".into());
+        let mut messageHash: String = "positions".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         if (symbolsNormalized != Value::Null) {
             {
@@ -1659,7 +1659,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }  else {
-            messageHashes.push(messageHash);
+            messageHashes.push(Value::from(messageHash.clone()));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("?listenKey=".into())).into()), listenKey).into());
         let mut positions: Value = self.watch_multiple(url, Value::from(messageHashes), &[params, Value::from(vec![Value::Str("private".into())])]).await;

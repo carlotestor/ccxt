@@ -900,8 +900,8 @@ impl MudrexCore {
         if (ms.is_some()) && (ms.as_deref().unwrap_or("").ends_with("USDT")) {
             base = ms.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 4).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
-        let mut quote: Value = Value::Str("USDT".into());
-        let mut settle: Value = Value::Str("USDT".into());
+        let mut quote: String = "USDT".to_string();
+        let mut settle: String = "USDT".to_string();
         let mut symbol: Value = Value::Null;
         if (base != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
@@ -914,8 +914,8 @@ impl MudrexCore {
         m.insert("lowercaseId".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base.clone());
-        m.insert("quote".to_string(), quote);
-        m.insert("settle".to_string(), settle);
+        m.insert("quote".to_string(), Value::from(quote));
+        m.insert("settle".to_string(), Value::from(settle));
         m.insert("baseId".to_string(), base);
         m.insert("quoteId".to_string(), Value::Str("USDT".into()));
         m.insert("settleId".to_string(), Value::Str("USDT".into()));

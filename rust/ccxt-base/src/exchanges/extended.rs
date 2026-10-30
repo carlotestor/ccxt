@@ -4854,11 +4854,11 @@ impl ExtendedCore {
         let mut domainTypeHash: Value = self.convert_to_big_int(self.extended_starknet_get_selector_from_name(Value::Str("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")".into())));
         let mut restUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[Value::Str("".into())]);
         let mut isTestnet: bool = Value::Int(restUrl.as_str().and_then(|__s| __s.find("sepolia")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut defaultChainId: Value = Value::Str("SN_MAIN".into());
+        let mut defaultChainId: String = "SN_MAIN".to_string();
         if isTestnet {
-            defaultChainId = Value::Str("SN_SEPOLIA".into());
+            defaultChainId = "SN_SEPOLIA".to_string();
         }
-        let mut chainId: Value = self.safe_string_k(self.options.clone(), "chainId", &[defaultChainId]);
+        let mut chainId: Value = self.safe_string_k(self.options.clone(), "chainId", &[Value::from(defaultChainId)]);
         return self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements(Value::from(vec![domainTypeHash, self.get_extended_string_to_felt(Value::Str("Perpetuals".into())), self.get_extended_string_to_felt(Value::Str("v0".into())), self.get_extended_string_to_felt(chainId), self.convert_to_big_int(Value::Str("1".into()))])));
 
     Value::Null

@@ -3776,7 +3776,7 @@ impl OkxCore {
 
     pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
-        let mut quote: Value = Value::Str("USD".into());
+        let mut quote: String = "USD".to_string();
         let mut optionParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
         let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
         let mut base: Value = self.safe_string(optionParts.clone(), Value::Int(0), &[Value::Str("".into())]);
@@ -3795,10 +3795,10 @@ impl OkxCore {
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()),
             quote).into()), Value::Str(":".into())).into()), base).into()), Value::Str("-".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
         m.insert("base".to_string(), base.clone());
-        m.insert("quote".to_string(), quote.clone());
+        m.insert("quote".to_string(), Value::from(quote.clone()));
         m.insert("settle".to_string(), base.clone());
         m.insert("baseId".to_string(), base.clone());
-        m.insert("quoteId".to_string(), quote);
+        m.insert("quoteId".to_string(), Value::from(quote));
         m.insert("settleId".to_string(), base);
         m.insert("active".to_string(), Value::Bool(false));
         m.insert("type".to_string(), Value::Str("option".into()));
@@ -4511,7 +4511,7 @@ impl OkxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut type_var: Value = Value::Str("crypto".into());
+        let mut type_var: String = "crypto".to_string();
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut j: Value = Value::Int(0);
@@ -4522,7 +4522,7 @@ impl OkxCore {
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[Value::Str("".into())]); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId.as_str() == Some("")) {
                 // only happens for fiat 'TRY' currency
-                type_var = Value::Str("fiat".into());
+                type_var = "fiat".to_string();
             }
             let mut idParts: Value = Value::Array(networkId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
             let mut parts: Value = self.array_slice(idParts, Value::Int(1), &[]);
@@ -4575,7 +4575,7 @@ impl OkxCore {
 }));
     m
 }));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.clone()));
         m.insert("networks".to_string(), Value::Map(networks));
     m
 }));
@@ -6726,18 +6726,18 @@ impl OkxCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol for each order".into()))));
             }
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
-            let mut idKey: Value = Value::Str("ordId".into());
+            let mut idKey: String = "ordId".to_string();
             if isStopOrTrailing {
-                idKey = Value::Str("algoId".into());
+                idKey = "algoId".to_string();
             }  else if (clientOrderId != Value::Null) {
-                idKey = Value::Str("clOrdId".into());
+                idKey = "clOrdId".to_string();
             }
             let mut requestItem: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("instId".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
                 m
             };
-            requestItem.insert(crate::runtime::stringify_param(&idKey), (if (clientOrderId != Value::Null) { clientOrderId } else { id }));
+            requestItem.insert(idKey.clone(), (if (clientOrderId != Value::Null) { clientOrderId } else { id }));
             request.push(Value::Map(requestItem));
         }
         }

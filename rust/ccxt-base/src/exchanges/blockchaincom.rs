@@ -1167,8 +1167,8 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut state: Value = Value::Str("CANCELED".into());
-        return self.fetch_orders_by_state(state, &[symbol, since, limit, params]).await;
+        let mut state: String = "CANCELED".to_string();
+        return self.fetch_orders_by_state(Value::from(state), &[symbol, since, limit, params]).await;
 
     Value::Null
 }
@@ -1192,8 +1192,8 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut state: Value = Value::Str("FILLED".into());
-        return self.fetch_orders_by_state(state, &[symbol, since, limit, params]).await;
+        let mut state: String = "FILLED".to_string();
+        return self.fetch_orders_by_state(Value::from(state), &[symbol, since, limit, params]).await;
 
     Value::Null
 }
@@ -1217,8 +1217,8 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut state: Value = Value::Str("OPEN".into());
-        return self.fetch_orders_by_state(state, &[symbol, since, limit, params]).await;
+        let mut state: String = "OPEN".to_string();
+        return self.fetch_orders_by_state(Value::from(state), &[symbol, since, limit, params]).await;
 
     Value::Null
 }

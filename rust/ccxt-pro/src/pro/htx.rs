@@ -526,7 +526,7 @@ impl HtxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut topic: Value = Value::Str("ticker".into());
+        let mut topic: String = "ticker".to_string();
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTicker", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -540,7 +540,7 @@ impl HtxCore {
                 m.insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         }));
-        return self.unsubscribe_public(market, subMessageHash, topic, &[params]).await;
+        return self.unsubscribe_public(market, subMessageHash, Value::from(topic), &[params]).await;
 
     Value::Null
 }
@@ -664,7 +664,7 @@ impl HtxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut topic: Value = Value::Str("trades".into());
+        let mut topic: String = "trades".to_string();
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTrades", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -675,7 +675,7 @@ impl HtxCore {
                 m.insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         }));
-        return self.unsubscribe_public(market, subMessageHash, topic, &[params]).await;
+        return self.unsubscribe_public(market, subMessageHash, Value::from(topic), &[params]).await;
 
     Value::Null
 }
@@ -803,9 +803,9 @@ impl HtxCore {
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".kline.".into())).into()), interval).into());
-        let mut topic: Value = Value::Str("ohlcv".into());
+        let mut topic: String = "ohlcv".to_string();
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), Value::from(vec![Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe])])); }
-        return self.unsubscribe_public(market, subMessageHash, topic, &[params]).await;
+        return self.unsubscribe_public(market, subMessageHash, Value::from(topic), &[params]).await;
 
     Value::Null
 }
@@ -940,7 +940,7 @@ impl HtxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut topic: Value = Value::Str("orderbook".into());
+        let mut topic: String = "orderbook".to_string();
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -956,7 +956,7 @@ impl HtxCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("data_type".into(), Value::Str("incremental".into())); }
         }
-        return self.unsubscribe_public(market, subMessageHash, topic, &[params]).await;
+        return self.unsubscribe_public(market, subMessageHash, Value::from(topic), &[params]).await;
 
     Value::Null
 }
@@ -2330,9 +2330,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
-        let mut defaultMarginMode: Value = Value::Str("isolated".into());
+        let mut defaultMarginMode: String = "isolated".to_string();
         if (topic.as_deref() == Some("positions_cross")) {
-            defaultMarginMode = Value::Str("cross".into());
+            defaultMarginMode = "cross".to_string();
         }
         if (self.positions.clone() == Value::Null) {
             self.positions = Value::Map({
@@ -2380,9 +2380,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut position: Value = self.parse_position(rawPosition, &[]);
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp.clone())); }
-            let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "marginMode", &[defaultMarginMode.clone()]);
+            let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "marginMode", &[Value::from(defaultMarginMode.clone())]);
             if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
-                marginMode = defaultMarginMode.clone();
+                marginMode = Value::from(defaultMarginMode.clone());
             }
             let mut cache: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.positions.as_map(), url.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), marginMode.clone(), &[]);
             if (cache == Value::Null) {
@@ -3764,12 +3764,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" authenticate requires a url, hostname and type argument".into()))));
         }
         self.check_required_credentials(&[]);
-        let mut messageHash: Value = Value::Str("auth".into());
+        let mut messageHash: String = "auth".to_string();
         let mut relativePath: Value = url.as_str().zip((Value::Str(format!("{}{}", Value::Str("wss://".into()), hostname).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| url.clone());
         let mut client: Value = self.client(&[url.clone()]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: Value = self.ymdhms(self.milliseconds(), &[Value::Str("T".into())]);
             let mut signatureParams: Value = Value::Null;
@@ -3833,11 +3833,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId);
-                    m.insert("messageHash".to_string(), messageHash.clone());
+                    m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
                     m.insert("params".to_string(), params);
                 m
             });
-            self.watch(url, messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscription)]).await;
+            self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

@@ -890,11 +890,11 @@ impl OnetradingCore {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into());
             }
         }
-        let mut marketType: Value = Value::Str("spot".into());
+        let mut marketType: String = "spot".to_string();
         if matches!(&isPerp, Value::Bool(true)) {
-            marketType = Value::Str("swap".into());
+            marketType = "swap".to_string();
         }  else if matches!(&isFuture, Value::Bool(true)) {
-            marketType = Value::Str("future".into());
+            marketType = "future".to_string();
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -906,7 +906,7 @@ impl OnetradingCore {
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settleId".to_string(), (if matches!(&isContract, Value::Bool(true)) { quoteId } else { Value::Null }));
-        m.insert("type".to_string(), marketType);
+        m.insert("type".to_string(), Value::from(marketType));
         m.insert("spot".to_string(), Value::Bool(!(matches!(&isContract, Value::Bool(true)))));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), isPerp);
@@ -1946,19 +1946,19 @@ impl OnetradingCore {
         }
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
-        let mut method: Value = Value::Str("privateDeleteAccountOrdersOrderId".into());
+        let mut method: String = "privateDeleteAccountOrdersOrderId".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (clientOrderId != Value::Null) {
-            method = Value::Str("privateDeleteAccountOrdersClientClientId".into());
+            method = "privateDeleteAccountOrdersClientClientId".to_string();
             request.insert("client_id".into(), clientOrderId);
         }  else {
             request.insert("order_id".into(), id);
         }
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("privateDeleteAccountOrdersOrderId")) {
+        if (Some(method.as_str()) == Some("privateDeleteAccountOrdersOrderId")) {
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.private_delete_account_orders_order_id(&[__ws_arg_4]).await;
         }  else {

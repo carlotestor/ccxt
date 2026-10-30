@@ -1548,15 +1548,15 @@ impl WooCore {
     m
 })]);
         let mut statusCode: Option<String> = self.safe_string_k(data, "status", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Str("maintenance".into());
+        let mut status: String = "maintenance".to_string();
         if (statusCode.is_none()) {
-            status = Value::Str("error".into());
+            status = "error".to_string();
         }  else if (statusCode.as_deref() == Some("0")) {
-            status = Value::Str("ok".into());
+            status = "ok".to_string();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2471,9 +2471,9 @@ impl WooCore {
         let mut isMarket: bool = orderType.as_str() == Some("MARKET");
         let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsMarginMode.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[paramsMarginMode.clone()]);
-        let mut clientOrderIdKey: Value = Value::Str("clientOrderId".into());
+        let mut clientOrderIdKey: String = "clientOrderId".to_string();
         if isConditional {
-            clientOrderIdKey = Value::Str("clientAlgoOrderId".into());
+            clientOrderIdKey = "clientAlgoOrderId".to_string();
         }
         request.insert("type".into(), orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if !(isConditional) {
@@ -2519,7 +2519,7 @@ impl WooCore {
         }
         let mut clientOrderId: Value = self.safe_string_n(paramsCost.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&clientOrderIdKey), clientOrderId);
+            request.insert(clientOrderIdKey.clone(), clientOrderId);
         }
         if isTrailing {
             if (trailingTriggerPrice == Value::Null) {
@@ -2541,15 +2541,15 @@ impl WooCore {
         }  else if hasStopLoss || hasTakeProfit {
             request.insert("algoType".into(), Value::Str("BRACKET".into()));
             let mut childOrders: Vec<Value> = Vec::new();
-            let mut closeSide: Value = Value::Str("BUY".into());
+            let mut closeSide: String = "BUY".to_string();
             if (orderSide.as_str() == Some("BUY")) {
-                closeSide = Value::Str("SELL".into());
+                closeSide = "SELL".to_string();
             }
             if hasStopLoss {
                 let mut stopLossPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[stopLoss.clone()]);
                 let mut stopLossOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), closeSide.clone());
+                        m.insert("side".to_string(), Value::from(closeSide.clone()));
                         m.insert("algoType".to_string(), Value::Str("STOP_LOSS".into()));
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
@@ -2562,7 +2562,7 @@ impl WooCore {
                 let mut takeProfitPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[takeProfit.clone()]);
                 let mut takeProfitOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), closeSide);
+                        m.insert("side".to_string(), Value::from(closeSide));
                         m.insert("algoType".to_string(), Value::Str("TAKE_PROFIT".into()));
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol, takeProfitPrice));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
@@ -4206,9 +4206,9 @@ impl WooCore {
         let mut currencyResolved: Value = self.safe_currency(code.clone(), &[currency]);
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
         let mut side: Option<String> = self.safe_string_k(item.clone(), "tokenSide", &[]).as_str().map(str::to_owned);
-        let mut direction: Value = Value::Str("out".into());
+        let mut direction: String = "out".to_string();
         if (side.as_deref() == Some("DEPOSIT")) {
-            direction = Value::Str("in".into());
+            direction = "in".to_string();
         }
         let mut timestamp: Value = self.safe_timestamp_k(item.clone(), "createdTime", &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::from(vec![Value::Str("feeToken".into())]), Value::from(vec![Value::Str("feeAmount".into())]));
@@ -4224,7 +4224,7 @@ impl WooCore {
         m.insert("amount".to_string(), amount);
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), Value::from(direction));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item, "type", &[])).map(Value::from).unwrap_or(Value::Null));
@@ -4833,8 +4833,8 @@ impl WooCore {
             if (method.as_str() == Some("POST")) && ((path.as_str() == Some("trade/algoOrder")) || (path.as_str() == Some("trade/order"))) {
                 let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
                 if !(isSandboxMode.as_bool() == Some(true)) {
-                    let mut applicationId: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".into());
-                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[applicationId]);
+                    let mut applicationId: String = "bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string();
+                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::from(applicationId)]);
                     let mut isTrigger: bool = Value::Int(path.as_str().and_then(|__s| __s.find("algo")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
                     if isTrigger {
                         paramsSorted.insert("brokerId".into(), brokerId.clone());

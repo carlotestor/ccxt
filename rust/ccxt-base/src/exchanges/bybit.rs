@@ -3929,7 +3929,7 @@ impl BybitCore {
     m
 })]);
         let mut list: Value = self.safe_list_k(result, "list", &[Value::from(vec![])]);
-        let mut status: Value = Value::Str("ok".into());
+        let mut status: String = "ok".to_string();
         let mut eta: Value = Value::Null;
         let mut url: Value = Value::Null;
         {
@@ -3939,7 +3939,7 @@ impl BybitCore {
             let mut event: Value = self.safe_dict(list.clone(), Value::Int(i), &[]);
             let mut state: Option<String> = self.safe_string_k(event.clone(), "state", &[]).as_str().map(str::to_owned);
             if (state.as_deref() == Some("ongoing")) {
-                status = Value::Str("maintenance".into());
+                status = "maintenance".to_string();
                 eta = self.safe_integer_k(event.clone(), "end", &[]);
                 url = self.safe_string_k(event.clone(), "href", &[]);
                 break;
@@ -3951,7 +3951,7 @@ impl BybitCore {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status.clone()));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), eta);
         m.insert("url".to_string(), url);
@@ -4895,12 +4895,12 @@ impl BybitCore {
         let mut isSpot: bool = self.safe_string_k(ticker.clone(), "openInterestValue", &[]) == Value::Null;
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "time", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
-        let mut type_var: Value = Value::Str("contract".into());
+        let mut type_var: String = "contract".to_string();
         if isSpot {
-            type_var = Value::Str("spot".into());
+            type_var = "spot".to_string();
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, type_var.clone()]);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone(), Value::Null, type_var]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::from(type_var.clone())]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone(), Value::Null, Value::from(type_var)]);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "lastPrice", &[]);
         let mut open: Option<String> = self.safe_string_k_opt(ticker.clone(), "prevPrice24h", &[]);
         let mut percentage: Value = self.safe_string_k(ticker.clone(), "price24hPcnt", &[]);
@@ -6152,11 +6152,11 @@ impl BybitCore {
         let mut currencyList: Value = self.safe_list_n(responseResult.clone(), Value::from(vec![Value::Str("loanAccountList".into()), Value::Str("list".into()), Value::Str("balance".into())]), &[]);
         if (currencyList == Value::Null) {
             // usdc wallet
-            let mut code: Value = Value::Str("USDC".into());
+            let mut code: String = "USDC".to_string();
             let mut account: Value = self.account();
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(responseResult.clone(), "availableBalance", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(responseResult, "walletBalance", &[])); }
-            result.insert(crate::runtime::stringify_param(&code), account.clone());
+            result.insert(code.clone(), account.clone());
         }  else {
             {
                                 let mut i: i64 = 0;
@@ -6456,9 +6456,9 @@ impl BybitCore {
         if (code.is_some()) {
             if (code.as_deref() != Some("0")) {
                 let mut category: Option<String> = self.safe_string_k(order.clone(), "category", &[]).as_str().map(str::to_owned);
-                let mut inferredMarketType: Value = Value::Str("contract".into());
+                let mut inferredMarketType: String = "contract".to_string();
                 if (category.as_deref() == Some("spot")) {
-                    inferredMarketType = Value::Str("spot".into());
+                    inferredMarketType = "spot".to_string();
                 }
                 return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6466,7 +6466,7 @@ impl BybitCore {
         m.insert("status".to_string(), Value::Str("rejected".into()));
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "orderLinkId", &[]));
-        m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(order.clone(), "symbol", &[]), &[Value::Null, Value::Null, inferredMarketType]));
+        m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(order.clone(), "symbol", &[]), &[Value::Null, Value::Null, Value::from(inferredMarketType)]));
     m
 }), &[]);
             }
@@ -7638,16 +7638,16 @@ impl BybitCore {
             category = currentCategory;
             let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
             let mut clientOrderId: Value = self.safe_string_k(order, "clientOrderId", &[]);
-            let mut idKey: Value = Value::Str("orderId".into());
+            let mut idKey: String = "orderId".to_string();
             if (clientOrderId != Value::Null) {
-                idKey = Value::Str("orderLinkId".into());
+                idKey = "orderLinkId".to_string();
             }
             let mut orderItem: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m
             };
-            orderItem.insert(crate::runtime::stringify_param(&idKey), (if (idKey.as_str() == Some("orderId")) { id } else { clientOrderId }));
+            orderItem.insert(idKey.clone(), (if (Some(idKey.as_str()) == Some("orderId")) { id } else { clientOrderId }));
             ordersRequests.push(Value::Map(orderItem));
         }
         }
@@ -7965,9 +7965,9 @@ impl BybitCore {
         // see https://github.com/ccxt/ccxt/pull/29602
         let mut innerListLength: f64 = ((innerList.len() as i64) as f64);
         if (innerListLength == 0.0) {
-            let mut extra: Value = Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".into());
+            let mut extra: String = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string();
             if (isTrigger.as_bool() == Some(true)) {
-                extra = Value::Str("".into());
+                extra = "".to_string();
             }
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), Value::Str(format!("{}", id).into())).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
@@ -9071,9 +9071,9 @@ impl BybitCore {
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updateTime", &[]);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut feeCost: Value = self.safe_number2(transaction.clone(), Value::Str("depositFee".into()), Value::Str("withdrawFee".into()), &[]);
-        let mut type_var: Value = Value::Str("withdrawal".into());
+        let mut type_var: String = "withdrawal".to_string();
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositFee"))) {
-            type_var = Value::Str("deposit".into());
+            type_var = "deposit".to_string();
         }
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
@@ -9099,7 +9099,7 @@ impl BybitCore {
         m.insert("tag".to_string(), self.safe_string_k(transaction.clone(), "tag", &[]));
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
@@ -9151,9 +9151,9 @@ impl BybitCore {
         let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnified: Value = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]);
         let mut currency: Value = Value::Null;
-        let mut currencyKey: Value = Value::Str("coin".into());
+        let mut currencyKey: String = "coin".to_string();
         if (enableUnified.as_bool() == Some(true)) {
-            currencyKey = Value::Str("currency".into());
+            currencyKey = "currency".to_string();
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
             }
@@ -9164,7 +9164,7 @@ impl BybitCore {
         }
         if (code != Value::Null) {
             currency = self.currency(code);
-            request.insert(crate::runtime::stringify_param(&currencyKey), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            request.insert(currencyKey.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -10268,11 +10268,11 @@ impl BybitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut subType: Value = Value::Str("inverse".into());
+        let mut subType: String = "inverse".to_string();
         if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            subType = Value::Str("linear".into());
+            subType = "linear".to_string();
         }
-        let mut category: Value = self.safe_string_k(params.clone(), "category", &[subType]);
+        let mut category: Value = self.safe_string_k(params.clone(), "category", &[Value::from(subType)]);
         let mut intervals: Value = self.safe_dict_k(self.options.clone(), "intervals", &[]);
         let mut interval: Option<String> = self.safe_string_opt(intervals, timeframe.clone(), &[]); // 5min,15min,30min,1h,4h,1d
         if (interval.is_none()) {
@@ -10372,11 +10372,11 @@ impl BybitCore {
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() cannot use the ".into())).into()), timeframe).into()), Value::Str(" timeframe".into()))));
         }
-        let mut subType: Value = Value::Str("inverse".into());
+        let mut subType: String = "inverse".to_string();
         if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            subType = Value::Str("linear".into());
+            subType = "linear".to_string();
         }
-        let mut category: Value = self.safe_string_k(params.clone(), "category", &[subType]);
+        let mut category: Value = self.safe_string_k(params.clone(), "category", &[Value::from(subType)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -12844,11 +12844,11 @@ impl BybitCore {
         let mut enableUnifiedMargin: Value = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]);
         let mut enableUnifiedAccount: Value = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin.as_bool() == Some(true)) || (enableUnifiedAccount.as_bool() == Some(true));
-        let mut accountTypeDefault: Value = Value::Str("eb_convert_spot".into());
+        let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {
-            accountTypeDefault = Value::Str("eb_convert_uta".into());
+            accountTypeDefault = "eb_convert_uta".to_string();
         }
-        let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertCurrencies".into()), Value::Str("accountType".into()), &[accountTypeDefault]).as_array().cloned().unwrap_or_default();
+        let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertCurrencies".into()), Value::Str("accountType".into()), &[Value::from(accountTypeDefault.clone())]).as_array().cloned().unwrap_or_default();
         let mut accountType: Value = accountTypeparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountType: Value = accountTypeparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -12982,11 +12982,11 @@ impl BybitCore {
         let mut enableUnifiedMargin: Value = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]);
         let mut enableUnifiedAccount: Value = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin.as_bool() == Some(true)) || (enableUnifiedAccount.as_bool() == Some(true));
-        let mut accountTypeDefault: Value = Value::Str("eb_convert_spot".into());
+        let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {
-            accountTypeDefault = Value::Str("eb_convert_uta".into());
+            accountTypeDefault = "eb_convert_uta".to_string();
         }
-        let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertQuote".into()), Value::Str("accountType".into()), &[accountTypeDefault]).as_array().cloned().unwrap_or_default();
+        let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertQuote".into()), Value::Str("accountType".into()), &[Value::from(accountTypeDefault)]).as_array().cloned().unwrap_or_default();
         let mut accountType: Value = accountTypeparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountType: Value = accountTypeparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -13106,11 +13106,11 @@ impl BybitCore {
         let mut enableUnifiedMargin: Value = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]);
         let mut enableUnifiedAccount: Value = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin.as_bool() == Some(true)) || (enableUnifiedAccount.as_bool() == Some(true));
-        let mut accountTypeDefault: Value = Value::Str("eb_convert_spot".into());
+        let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {
-            accountTypeDefault = Value::Str("eb_convert_uta".into());
+            accountTypeDefault = "eb_convert_uta".to_string();
         }
-        let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertTrade".into()), Value::Str("accountType".into()), &[accountTypeDefault]).as_array().cloned().unwrap_or_default();
+        let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertTrade".into()), Value::Str("accountType".into()), &[Value::from(accountTypeDefault)]).as_array().cloned().unwrap_or_default();
         let mut accountType: Value = accountTypeparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountType: Value = accountTypeparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({

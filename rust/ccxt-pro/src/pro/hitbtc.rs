@@ -389,11 +389,11 @@ impl HitbtcCore {
         self.check_required_credentials(&[]);
         let mut wsUrls: Value = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         let mut url: Option<String> = self.safe_string_k_opt(wsUrls, "private", &[]);
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: Value = self.milliseconds();
             let mut timestampString: Value = self.number_to_string(timestamp.clone());
@@ -415,7 +415,7 @@ impl HitbtcCore {
 }));
                 m
             });
-            self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(request), messageHash]).await;
+            self.watch(url.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[Value::Map(request), Value::from(messageHash)]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -859,7 +859,7 @@ impl HitbtcCore {
 }) }).as_map().cloned().unwrap_or_default();
         let mut marketIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = vec![];
-        let mut topic: Value = Value::Str("tickers".into());
+        let mut topic: String = "tickers".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_375: bool = true;
@@ -874,7 +874,7 @@ impl HitbtcCore {
             client.resolve(&[ticker, messageHash]);
         }
         }
-        client.resolve(&[Value::Array(result), topic]);
+        client.resolve(&[Value::Array(result), Value::from(topic.clone())]);
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1021,7 +1021,7 @@ impl HitbtcCore {
 }) }).as_map().cloned().unwrap_or_default();
         let mut marketIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = vec![];
-        let mut topic: Value = Value::Str("bidask".into());
+        let mut topic: String = "bidask".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_376: bool = true;
@@ -1036,7 +1036,7 @@ impl HitbtcCore {
             client.resolve(&[ticker, messageHash]);
         }
         }
-        client.resolve(&[Value::Array(result), topic]);
+        client.resolve(&[Value::Array(result), Value::from(topic.clone())]);
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1096,8 +1096,8 @@ impl HitbtcCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut name: Value = Value::Str("trades".into());
-        let mut trades: Value = self.subscribe_public(name, Value::Str("trades".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
+        let mut name: String = "trades".to_string();
+        let mut trades: Value = self.subscribe_public(Value::from(name), Value::Str("trades".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);

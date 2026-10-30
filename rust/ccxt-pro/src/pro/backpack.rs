@@ -594,13 +594,13 @@ impl BackpackCore {
             m
         })]);
         let mut url: Value = self.safe_string_k(wsUrls, "public", &[Value::Str("".into())]);
-        let mut method: Value = Value::Str("SUBSCRIBE".into());
+        let mut method: String = "SUBSCRIBE".to_string();
         if unwatch {
-            method = Value::Str("UNSUBSCRIBE".into());
+            method = "UNSUBSCRIBE".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), method);
+                m.insert("method".to_string(), Value::from(method));
                 m.insert("params".to_string(), topics);
             m
         });
@@ -630,11 +630,11 @@ impl BackpackCore {
             m
         })]);
         let mut url: Value = self.safe_string_k(wsUrls, "private", &[Value::Str("".into())]);
-        let mut instruction: Value = Value::Str("subscribe".into());
+        let mut instruction: String = "subscribe".to_string();
         let mut ts: Value = self.number_to_string(self.nonce());
-        let mut method: Value = Value::Str("SUBSCRIBE".into());
+        let mut method: String = "SUBSCRIBE".to_string();
         if unwatch {
-            method = Value::Str("UNSUBSCRIBE".into());
+            method = "UNSUBSCRIBE".to_string();
         }
         let mut recvWindow: Value = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]);
         let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instruction=".into()), instruction).into()), Value::Str("&".into())).into()), Value::Str("timestamp=".into())).into()), ts).into()), Value::Str("&window=".into())).into()), recvWindow).into());
@@ -643,7 +643,7 @@ impl BackpackCore {
         let mut signature: Value = eddsa(self.encode(payload), seed, Value::Str("ed25519".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), method);
+                m.insert("method".to_string(), Value::from(method));
                 m.insert("params".to_string(), topics);
                 m.insert("signature".to_string(), Value::from(vec![self.apiKey.clone(), signature, ts, recvWindow]));
             m
@@ -2013,7 +2013,7 @@ impl BackpackCore {
         //         stream: 'account.orderUpdate.ETH_USDC'
         //     }
         //
-        let mut messageHash: Value = Value::Str("orders".into());
+        let mut messageHash: String = "orders".to_string();
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2035,7 +2035,7 @@ impl BackpackCore {
             self.orders = orders.clone();
         }
         orders.append(parsed);
-        client.resolve(&[orders.clone(), messageHash.clone()]);
+        client.resolve(&[orders.clone(), Value::from(messageHash.clone())]);
         let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         client.resolve(&[orders, symbolSpecificMessageHash]);
 }
@@ -2444,7 +2444,7 @@ impl BackpackCore {
         //         stream: 'account.positionUpdate'
         //     }
         //
-        let mut messageHash: Value = Value::Str("positions".into());
+        let mut messageHash: String = "positions".to_string();
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2460,7 +2460,7 @@ impl BackpackCore {
         if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
         cache.append(parsedPosition.clone());
         let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsedPosition.clone(), "symbol", &[Value::Str("".into())])).into());
-        client.resolve(&[Value::from(vec![parsedPosition.clone()]), messageHash]);
+        client.resolve(&[Value::from(vec![parsedPosition.clone()]), Value::from(messageHash)]);
         client.resolve(&[Value::from(vec![parsedPosition]), symbolSpecificMessageHash]);
 }
 

@@ -856,9 +856,9 @@ impl NadoCore {
         if isStopOrder {
             // the final omit drops triggerDirection from the request
             let mut triggerDirection: Option<String> = self.safe_string(self.handle_trigger_direction_and_params(paramsRecvWindow.clone(), &[]), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut directionSuffix: Value = Value::Str("below".into());
+            let mut directionSuffix: String = "below".to_string();
             if (triggerDirection.as_deref() == Some("ascending")) {
-                directionSuffix = Value::Str("above".into());
+                directionSuffix = "above".to_string();
             }
             let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone()).map(Value::from).unwrap_or(Value::Null);
             let mut priceRequirement: Value = Value::Map({
@@ -4020,7 +4020,7 @@ impl NadoCore {
 
     pub fn pad_hex(&self, mut value: Value, mut length: Value, optional_args: &[Value]) -> Option<String> {
         let left: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
-        let mut zeros: Value = Value::Str("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".into());
+        let mut zeros: String = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_string();
         if left {
             let mut paddedLeft: Value = Value::Str(format!("{}{}", zeros, value).into());
             let mut start: Value = (match (&(Value::Int(paddedLeft.len() as i64)), &(self.parse_to_int(length.clone()))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });

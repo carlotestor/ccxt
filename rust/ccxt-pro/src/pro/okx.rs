@@ -445,9 +445,9 @@ impl OkxCore {
         let mut access = get_arg(optional_args, 0, Value::Str("public".into()));
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         let mut isSandbox: Value = self.options.as_map().and_then(|__m| __m.get("sandboxMode")).cloned().unwrap_or(Value::Null);
-        let mut sandboxSuffix: Value = Value::Str("".into());
+        let mut sandboxSuffix: String = "".to_string();
         if (isSandbox.as_bool() == Some(true)) {
-            sandboxSuffix = Value::Str("?brokerId=9999".into());
+            sandboxSuffix = "?brokerId=9999".to_string();
         }
         let mut isBusiness: bool = access.as_str() == Some("business");
         let mut isPublic: bool = access.as_str() == Some("public");
@@ -620,16 +620,16 @@ impl OkxCore {
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
-        let mut access: Value = Value::Str("public".into());
+        let mut access: String = "public".to_string();
         if (channel.as_str() == Some("trades-all")) {
-            access = Value::Str("business".into());
+            access = "business".to_string();
             self.authenticate(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("access".to_string(), access.clone());
+        m.insert("access".to_string(), Value::from(access.clone()));
     m
 })]).await;
         }
-        let mut url: Value = self.get_url(channel, &[access]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url(channel, &[Value::from(access)]).map(Value::from).unwrap_or(Value::Null);
         let mut trades: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
@@ -685,16 +685,16 @@ impl OkxCore {
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
-        let mut access: Value = Value::Str("public".into());
+        let mut access: String = "public".to_string();
         if (channel.as_str() == Some("trades-all")) {
-            access = Value::Str("business".into());
+            access = "business".to_string();
             self.authenticate(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("access".to_string(), access.clone());
+        m.insert("access".to_string(), Value::from(access.clone()));
     m
 })]).await;
         }
-        let mut url: Value = self.get_url(channel, &[access]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url(channel, &[Value::from(access)]).map(Value::from).unwrap_or(Value::Null);
         return self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
 
     Value::Null
@@ -827,7 +827,7 @@ impl OkxCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut channel: Value = Value::Str("funding-rate".into());
+        let mut channel: String = "funding-rate".to_string();
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Value = Value::from(vec![]);
         {
@@ -839,7 +839,7 @@ impl OkxCore {
             let mut marketId: Value = self.market_id(symbol.clone());
             let mut topic: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("channel".to_string(), channel.clone());
+                    m.insert("channel".to_string(), Value::from(channel.clone()));
                     m.insert("instId".to_string(), marketId);
                 m
             });
@@ -852,7 +852,7 @@ impl OkxCore {
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
-        let mut url: Value = self.get_url(channel, &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url(Value::from(channel.clone()), &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
         let mut fundingRate: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut symbol: Option<String> = self.safe_string_k_opt(fundingRate.clone(), "symbol", &[]);
@@ -1352,7 +1352,7 @@ impl OkxCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
-        let mut messageHash: Value = Value::Str("liquidations".into());
+        let mut messageHash: String = "liquidations".to_string();
         let mut messageHashes: Value = Value::from(vec![]);
         if (symbolsNormalized != Value::Null) {
             {
@@ -1364,11 +1364,11 @@ impl OkxCore {
             }
             }
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(messageHash.clone())); }
         }
         let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut marketType: Value = self.handle_market_type_and_params(Value::Str("watchLiquidationsForSymbols".into()), &[market, params]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut channel: Value = Value::Str("liquidation-orders".into());
+        let mut channel: String = "liquidation-orders".to_string();
         let mut type_var: Value = marketType.clone();
         if (marketType.as_str() == Some("spot")) {
             type_var = Value::Str("SWAP".into());
@@ -1384,13 +1384,13 @@ impl OkxCore {
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("channel".to_string(), Value::from(channel.clone()));
         m.insert("instType".to_string(), uppercaseType);
     m
 })]));
             m
         });
-        let mut url: Value = self.get_url(channel, &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url(Value::from(channel), &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
         let mut newLiquidations: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
@@ -1473,17 +1473,17 @@ impl OkxCore {
         }
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        let mut accessType: Value = Value::Str("private".into());
+        let mut accessType: String = "private".to_string();
         if isTrigger.as_bool() == Some(true) {
-            accessType = Value::Str("business".into());
+            accessType = "business".to_string();
         }
         self.authenticate(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("access".to_string(), accessType);
+        m.insert("access".to_string(), Value::from(accessType.clone()));
     m
 })]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
-        let mut messageHash: Value = Value::Str("myLiquidations".into());
+        let mut messageHash: String = "myLiquidations".to_string();
         let mut messageHashes: Value = Value::from(vec![]);
         if (symbolsNormalized != Value::Null) {
             {
@@ -1495,20 +1495,20 @@ impl OkxCore {
             }
             }
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(messageHash.clone())); }
         }
-        let mut channel: Value = Value::Str("balance_and_position".into());
+        let mut channel: String = "balance_and_position".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
                 m.insert("args".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 })]));
             m
         });
-        let mut url: Value = self.get_url(channel, &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url(Value::from(channel), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[paramsOmitted]);
         let mut newLiquidations: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -2416,21 +2416,21 @@ impl OkxCore {
         let mut access: Value = self.safe_string_k(params.clone(), "access", &[Value::Str("private".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("access".into())]), &[]);
         let mut url: Value = self.get_url(Value::Str("users".into()), &[access]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut client: Value = self.client(&[url.clone()]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: Value = Value::Str(format!("{}", self.seconds()).into());
-            let mut method: Value = Value::Str("GET".into());
-            let mut path: Value = Value::Str("/users/self/verify".into());
+            let mut method: String = "GET".to_string();
+            let mut path: String = "/users/self/verify".to_string();
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), path).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
-            let mut operation: Value = Value::Str("login".into());
+            let mut operation: String = "login".to_string();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("op".to_string(), operation);
+                    m.insert("op".to_string(), Value::from(operation));
                     m.insert("args".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), self.apiKey.clone());
@@ -2445,7 +2445,7 @@ impl OkxCore {
             if (matches!(&paramsOmitted, Value::Dict(__d) if __d.contains_key("access"))) {
                 request.insert("access".into(), paramsOmitted.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null));
             }
-            self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash]).await;
+            self.watch(url, Value::from(messageHash.clone()), &[Value::Map(request), Value::from(messageHash)]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -2672,18 +2672,18 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut access: Value = Value::Str("private".into());
+        let mut access: String = "private".to_string();
         if isTrigger.as_bool() == Some(true) {
-            access = Value::Str("business".into());
+            access = "business".to_string();
         }
         self.authenticate(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("access".to_string(), access);
+        m.insert("access".to_string(), Value::from(access));
     m
 })]).await;
-        let mut channel: Value = Value::Str("orders".into());
+        let mut channel: String = "orders".to_string();
         if isTrigger.as_bool() == Some(true) {
-            channel = Value::Str("orders-algo".into());
+            channel = "orders-algo".to_string();
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", channel, Value::Str("::myTrades".into())).into());
         let mut market: Value = Value::Null;
@@ -2716,7 +2716,7 @@ impl OkxCore {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[paramsMarginMode]);
-        let mut orders: Value = self.subscribe(Value::Str("private".into()), messageHash, channel, Value::Null, &[__ws_arg_1]).await;
+        let mut orders: Value = self.subscribe(Value::Str("private".into()), messageHash, Value::from(channel), Value::Null, &[__ws_arg_1]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -2755,7 +2755,7 @@ impl OkxCore {
                 m.insert("instType".to_string(), Value::Str("ANY".into()));
             m
         });
-        let mut channel: Value = Value::Str("positions".into());
+        let mut channel: String = "positions".to_string();
         let mut newPositions: Value = Value::Null;
         if (symbolsNormalized == Value::Null) {
             let mut arg: indexmap::IndexMap<String, Value> = ({
@@ -2771,11 +2771,11 @@ impl OkxCore {
                     m.insert("args".to_string(), args);
                 m
             });
-            let mut url: Value = self.get_url(channel.clone(), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
-            newPositions = self.watch(url, channel.clone(), &[Value::Map(nonSymbolRequest), channel.clone()]).await;
+            let mut url: Value = self.get_url(Value::from(channel.clone()), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
+            newPositions = self.watch(url, Value::from(channel.clone()), &[Value::Map(nonSymbolRequest), Value::from(channel.clone())]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            newPositions = self.subscribe_multiple(Value::Str("private".into()), channel, &[symbolsNormalized.clone(), __ws_arg_2]).await;
+            newPositions = self.subscribe_multiple(Value::Str("private".into()), Value::from(channel), &[symbolsNormalized.clone(), __ws_arg_2]).await;
         }
         if self.newUpdates.as_bool() == Some(true) {
             return (if (newPositions == Value::Null) { Value::from(vec![]) } else { newPositions });
@@ -2923,13 +2923,13 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut accessType: Value = Value::Str("private".into());
+        let mut accessType: String = "private".to_string();
         if isTrigger.as_bool() == Some(true) {
-            accessType = Value::Str("business".into());
+            accessType = "business".to_string();
         }
         self.authenticate(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("access".to_string(), accessType);
+        m.insert("access".to_string(), Value::from(accessType));
     m
 })]).await;
         let mut market: Value = Value::Null;
@@ -2960,12 +2960,12 @@ impl OkxCore {
                 m.insert("instType".to_string(), uppercaseType);
             m
         });
-        let mut channel: Value = Value::Str("orders".into());
+        let mut channel: String = "orders".to_string();
         if isTrigger.as_bool() == Some(true) {
-            channel = Value::Str("orders-algo".into());
+            channel = "orders-algo".to_string();
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[paramsMarginMode]);
-        let mut orders: Value = self.subscribe(Value::Str("private".into()), channel.clone(), channel.clone(), symbolResolved.clone(), &[__ws_arg_3]).await;
+        let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(channel.clone()), Value::from(channel.clone()), symbolResolved.clone(), &[__ws_arg_3]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);

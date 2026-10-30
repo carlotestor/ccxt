@@ -7680,14 +7680,14 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut bidsKey: Value = Value::Str("bids".into());
-        let mut asksKey: Value = Value::Str("asks".into());
+        let mut bidsKey: String = "bids".to_string();
+        let mut asksKey: String = "asks".to_string();
         if isStockOrUta {
-            bidsKey = Value::Str("b".into());
-            asksKey = Value::Str("a".into());
+            bidsKey = "b".to_string();
+            asksKey = "a".to_string();
         }
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "ts", &[]);
-        return self.parse_order_book(data, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, bidsKey, asksKey]);
+        return self.parse_order_book(data, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::from(bidsKey), Value::from(asksKey)]);
 
     Value::Null
 }
@@ -9037,11 +9037,11 @@ if _try_result.is_err() {
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        let mut key: Value = Value::Str("swap".into());
+        let mut key: String = "swap".to_string();
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            key = Value::Str("spot".into());
+            key = "spot".to_string();
         }
-        let mut ohlcOptions: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("fetchOHLCV")).cloned().unwrap_or(Value::Null), key, &[Value::Map({
+        let mut ohlcOptions: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("fetchOHLCV")).cloned().unwrap_or(Value::Null), Value::from(key), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -10136,21 +10136,21 @@ if _try_result.is_err() {
         { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsProductType.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if reduceOnly.as_bool() == Some(true) {
             if (hedged.as_bool() == Some(true)) || isStopLossOrTakeProfitTrigger {
-                let mut reduceOnlyPosSide: Value = Value::Str("short".into());
+                let mut reduceOnlyPosSide: String = "short".to_string();
                 if (side.as_str() == Some("sell")) {
-                    reduceOnlyPosSide = Value::Str("long".into());
+                    reduceOnlyPosSide = "long".to_string();
                 }
-                request.insert("posSide".into(), reduceOnlyPosSide);
+                request.insert("posSide".into(), Value::from(reduceOnlyPosSide));
             }  else if !isStopLossOrTakeProfitTrigger {
                 request.insert("reduceOnly".into(), Value::Str("yes".into()));
             }
         }  else {
             if (hedged.as_bool() == Some(true)) {
-                let mut posSide: Value = Value::Str("short".into());
+                let mut posSide: String = "short".to_string();
                 if (side.as_str() == Some("buy")) {
-                    posSide = Value::Str("long".into());
+                    posSide = "long".to_string();
                 }
-                request.insert("posSide".into(), posSide);
+                request.insert("posSide".into(), Value::from(posSide));
             }
         }
         paramsProductType = self.omit(paramsProductType.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("hedged".into())]), &[]);
@@ -10332,11 +10332,11 @@ if _try_result.is_err() {
                 }
             }
             if !isStopLossOrTakeProfitTrigger {
-                let mut marginModeRequest: Value = Value::Str("isolated".into());
+                let mut marginModeRequest: String = "isolated".to_string();
                 if (marginMode == Value::Null) || (marginMode.as_str() == Some("cross")) {
-                    marginModeRequest = Value::Str("crossed".into());
+                    marginModeRequest = "crossed".to_string();
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), marginModeRequest); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), Value::from(marginModeRequest)); }
                 let mut requestSide: Value = side.clone();
                 if reduceOnly.as_bool() == Some(true) {
                     if (hedged.as_bool() != Some(true)) {
@@ -10563,11 +10563,11 @@ if _try_result.is_err() {
         });
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut marginModeRequest: Value = Value::Str("isolated".into());
+            let mut marginModeRequest: String = "isolated".to_string();
             if (marginMode == Value::Null) || (marginMode.as_str() == Some("cross")) {
-                marginModeRequest = Value::Str("crossed".into());
+                marginModeRequest = "crossed".to_string();
             }
-            request.insert("marginMode".into(), marginModeRequest);
+            request.insert("marginMode".into(), Value::from(marginModeRequest));
             request.insert("marginCoin".into(), market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null));
             let mut productType: Value = Value::Null;
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(&[market.clone(), paramsUTA.clone()]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -12828,9 +12828,9 @@ if _try_result.is_err() {
         if (balanceString.is_some()) && (amountRaw.as_str() != Some("")) {
             before = self.parse_number(crate::precise::Precise::stringSub(&balanceString.clone().map(Value::from).unwrap_or(Value::Null), &amountRaw), &[]); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
         }
-        let mut direction: Value = Value::Str("in".into());
+        let mut direction: String = "in".to_string();
         if Value::Int(amountRaw.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            direction = Value::Str("out".into());
+            direction = "out".to_string();
         }
         let mut businessType: Value = self.safe_string_n(item.clone(), Value::from(vec![Value::Str("businessType".into()), Value::Str("groupType".into()), Value::Str("type".into())]), &[]);
         return self.safe_ledger_entry(Value::Map({
@@ -12839,7 +12839,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), self.safe_string2(item, Value::Str("billId".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
@@ -14104,8 +14104,8 @@ if _try_result.is_err() {
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(paramsProductType, Value::Str("fetchFundingRates".into()), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: Value = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut method: Value = Value::Str("publicMixGetV2MixMarketTickers".into());
-        let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsUTA, Value::Str("fetchFundingRates".into()), Value::Str("method".into()), &[method]).as_array().cloned().unwrap_or_default();
+        let mut method: String = "publicMixGetV2MixMarketTickers".to_string();
+        let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsUTA, Value::Str("fetchFundingRates".into()), Value::Str("method".into()), &[Value::from(method)]).as_array().cloned().unwrap_or_default();
         let mut methodOption: Value = methodOptionparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
@@ -14526,9 +14526,9 @@ if _try_result.is_err() {
         //     }
         //
         let mut errorCode: Option<String> = self.safe_string_k(data.clone(), "code", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Str("failed".into());
+        let mut status: String = "failed".to_string();
         if (errorCode.as_deref() == Some("00000")) {
-            status = Value::Str("ok".into());
+            status = "ok".to_string();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -14539,7 +14539,7 @@ if _try_result.is_err() {
         m.insert("amount".to_string(), Value::Null);
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), self.safe_string_k(market, "settle", &[]));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
@@ -14670,21 +14670,21 @@ if _try_result.is_err() {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marginMode: Option<String> = self.safe_string_k(leverage.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut isCrossMarginMode: bool = marginMode.as_deref() == Some("crossed");
-        let mut longLevKey: Value = Value::Str("isolatedLongLever".into());
+        let mut longLevKey: String = "isolatedLongLever".to_string();
         if isCrossMarginMode {
-            longLevKey = Value::Str("crossedMarginLeverage".into());
+            longLevKey = "crossedMarginLeverage".to_string();
         }
-        let mut shortLevKey: Value = Value::Str("isolatedShortLever".into());
+        let mut shortLevKey: String = "isolatedShortLever".to_string();
         if isCrossMarginMode {
-            shortLevKey = Value::Str("crossedMarginLeverage".into());
+            shortLevKey = "crossedMarginLeverage".to_string();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
         m.insert("marginMode".to_string(), (if isCrossMarginMode { Value::Str("cross".into()) } else { Value::Str("isolated".into()) }));
-        m.insert("longLeverage".to_string(), self.safe_integer(leverage.clone(), longLevKey, &[]));
-        m.insert("shortLeverage".to_string(), self.safe_integer(leverage, shortLevKey, &[]));
+        m.insert("longLeverage".to_string(), self.safe_integer(leverage.clone(), Value::from(longLevKey), &[]));
+        m.insert("shortLeverage".to_string(), self.safe_integer(leverage, Value::from(shortLevKey), &[]));
     m
 });
 
@@ -14826,9 +14826,9 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut posMode: Value = Value::Str("one_way_mode".into());
+        let mut posMode: String = "one_way_mode".to_string();
         if (hedged.as_bool() == Some(true)) {
-            posMode = Value::Str("hedge_mode".into());
+            posMode = "hedge_mode".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -14849,11 +14849,11 @@ if _try_result.is_err() {
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: Value = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null);
         if (uta.as_bool() == Some(true)) {
-            request.insert("holdMode".into(), posMode.clone());
+            request.insert("holdMode".into(), Value::from(posMode.clone()));
             let __ws_arg_128 = self.extend(Value::Map(request.clone()), &[paramsUTA.clone()]);
             response = self.private_uta_post_v3_account_set_hold_mode(&[__ws_arg_128]).await;
         }  else {
-            request.insert("posMode".into(), posMode);
+            request.insert("posMode".into(), Value::from(posMode));
             request.insert("productType".into(), productType);
             let __ws_arg_129 = self.extend(Value::Map(request), &[paramsUTA]);
             response = self.private_mix_post_v2_mix_account_set_position_mode(&[__ws_arg_129]).await;
@@ -16212,9 +16212,9 @@ if _try_result.is_err() {
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut marginMode: Value = Value::Str("cross".into());
+        let mut marginMode: String = "cross".to_string();
         if (marketId.is_some()) {
-            marginMode = Value::Str("isolated".into());
+            marginMode = "isolated".to_string();
         }
         let mut timestamp: Value = self.safe_integer_k(info.clone(), "cTime", &[]);
         let mut interestCoin: Option<String> = self.safe_string_k_opt(info.clone(), "interestCoin", &[]);
@@ -16226,7 +16226,7 @@ if _try_result.is_err() {
         m.insert("interest".to_string(), self.safe_number_k(info.clone(), "interestAmount", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(info, "dailyInterestRate", &[]));
         m.insert("amountBorrowed".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
@@ -17042,7 +17042,7 @@ if _try_result.is_err() {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut signed: bool = api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private");
         let mut endpoint: Value = api.get(1).cloned().unwrap_or(Value::Null);
-        let mut pathPart: Value = Value::Str("/api".into());
+        let mut pathPart: String = "/api".to_string();
         let mut request: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut payload: Value = Value::Str(format!("{}{}", pathPart, request).into());
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), endpoint, &[]);

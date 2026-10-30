@@ -2580,9 +2580,9 @@ impl FoxbitCore {
         let mut cryptoDetails: Value = self.safe_dict_k(transaction.clone(), "details_crypto", &[]);
         let mut address: Value = self.safe_string2(cryptoDetails.clone(), Value::Str("receiving_address".into()), Value::Str("destination_address".into()), &[]);
         let mut sn: Option<String> = self.safe_string_k_opt(transaction.clone(), "sn", &[]);
-        let mut type_var: Value = Value::Str("withdrawal".into());
+        let mut type_var: String = "withdrawal".to_string();
         if (sn.is_some()) && (sn.as_deref().unwrap_or("").starts_with("D")) {
-            type_var = Value::Str("deposit".into());
+            type_var = "deposit".to_string();
         }
         let mut fee: Value = self.safe_string_k(transaction.clone(), "fee", &[Value::Str("0".into())]);
         let mut amount: Option<String> = self.safe_string_k_opt(transaction.clone(), "amount", &[]);
@@ -2619,7 +2619,7 @@ impl FoxbitCore {
         m.insert("tag".to_string(), self.safe_string_k(transaction.clone(), "destination_tag", &[]));
         m.insert("tagTo".to_string(), self.safe_string_k(transaction, "destination_tag", &[]));
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), currencyCode);
         m.insert("status".to_string(), status);
@@ -2666,7 +2666,7 @@ impl FoxbitCore {
         let mut type_var: Value = self.parse_ledger_entry_type(reasonType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut exchangeSymbol: Option<String> = self.safe_string_k_opt(item.clone(), "currency_symbol", &[]);
         let mut currencySymbol: Value = self.safe_currency_code(exchangeSymbol.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut direction: Value = Value::Str("in".into());
+        let mut direction: String = "in".to_string();
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
         let mut realAmount: Value = amount.clone();
         let mut balance: Value = self.safe_number_k(item.clone(), "balance", &[]);
@@ -2686,7 +2686,7 @@ impl FoxbitCore {
         if (amount != Value::Null) && (balance != Value::Null) {
             before = (match (&(balance), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if ((0i64) as f64) > amount.as_f64().unwrap_or(f64::NAN) {
-                direction = Value::Str("out".into());
+                direction = "out".to_string();
                 realAmount = (match &(amount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null });
             }
         }
@@ -2696,7 +2696,7 @@ impl FoxbitCore {
         m.insert("info".to_string(), item);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);

@@ -285,7 +285,7 @@ impl NdaxCore {
         }
         let mut market: Value = self.market(symbol);
         let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
-        let mut name: Value = Value::Str("SubscribeLevel1".into());
+        let mut name: String = "SubscribeLevel1".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
         let mut url: Option<String> = self.safe_string_opt(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -302,7 +302,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
-                m.insert("n".to_string(), name);
+                m.insert("n".to_string(), Value::from(name));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
@@ -351,7 +351,7 @@ impl NdaxCore {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
         }
         let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
-        let mut name: Value = Value::Str("SubscribeLevel1".into());
+        let mut name: String = "SubscribeLevel1".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
         client.resolve(&[ticker, messageHash]);
 }
@@ -381,7 +381,7 @@ impl NdaxCore {
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
-        let mut name: Value = Value::Str("SubscribeTrades".into());
+        let mut name: String = "SubscribeTrades".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
         let mut url: Option<String> = self.safe_string_opt(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -399,7 +399,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
-                m.insert("n".to_string(), name);
+                m.insert("n".to_string(), Value::from(name));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
@@ -437,7 +437,7 @@ impl NdaxCore {
         //         ]
         //     ]
         //
-        let mut name: Value = Value::Str("SubscribeTrades".into());
+        let mut name: String = "SubscribeTrades".to_string();
         let mut updates: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -504,7 +504,7 @@ impl NdaxCore {
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
-        let mut name: Value = Value::Str("SubscribeTicker".into());
+        let mut name: String = "SubscribeTicker".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId).into());
         let mut url: Option<String> = self.safe_string_opt(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -523,7 +523,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
-                m.insert("n".to_string(), name);
+                m.insert("n".to_string(), Value::from(name));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
@@ -652,7 +652,7 @@ impl NdaxCore {
             }
         }
         }
-        let mut name: Value = Value::Str("SubscribeTicker".into());
+        let mut name: String = "SubscribeTicker".to_string();
         let mut marketIds: Vec<Value> = Value::Array(updates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -699,7 +699,7 @@ impl NdaxCore {
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
-        let mut name: Value = Value::Str("SubscribeLevel2".into());
+        let mut name: String = "SubscribeLevel2".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
         let mut url: Option<String> = self.safe_string_opt(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -718,7 +718,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId.clone());
-                m.insert("n".to_string(), name.clone());
+                m.insert("n".to_string(), Value::from(name.clone()));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
@@ -726,7 +726,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("messageHash".to_string(), messageHash.clone());
-                m.insert("name".to_string(), name);
+                m.insert("name".to_string(), Value::from(name));
                 m.insert("symbol".to_string(), symbolValue);
                 m.insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("method".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
@@ -822,7 +822,7 @@ impl NdaxCore {
         orderbook.set_book_meta("nonce", nonce);
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
-        let mut name: Value = Value::Str("SubscribeLevel2".into());
+        let mut name: String = "SubscribeLevel2".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);

@@ -1995,17 +1995,17 @@ impl ToobitCore {
         let mut endpoint: Value = endpointparamsPriceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPrice: Value = endpointparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isPriceKlines: bool = (endpoint.as_str() == Some("index")) || (endpoint.as_str() == Some("mark"));
-        let mut startKey: Value = Value::Str("startTime".into());
-        let mut endKey: Value = Value::Str("endTime".into());
+        let mut startKey: String = "startTime".to_string();
+        let mut endKey: String = "endTime".to_string();
         if isPriceKlines {
-            startKey = Value::Str("from".into());
-            endKey = Value::Str("to".into());
+            startKey = "from".to_string();
+            endKey = "to".to_string();
         }
         if (since != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&startKey), since.clone());
+            request.insert(startKey.clone(), since.clone());
         }
         if (until != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&endKey), until);
+            request.insert(endKey.clone(), until);
         }  else if isPriceKlines && (since != Value::Null) {
             // mark and index klines walk backwards from `to` and ignore a lone `from`
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
@@ -3389,9 +3389,9 @@ impl ToobitCore {
         let mut after: Value = self.safe_number_k(item.clone(), "total", &[]);
         let mut amountRaw: Value = self.safe_string_k(item.clone(), "change", &[Value::Str("".into())]);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]);
-        let mut direction: Value = Value::Str("in".into());
+        let mut direction: String = "in".to_string();
         if (amountRaw.as_str().unwrap_or("").starts_with("-")) {
-            direction = Value::Str("out".into());
+            direction = "out".to_string();
         }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3399,7 +3399,7 @@ impl ToobitCore {
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);

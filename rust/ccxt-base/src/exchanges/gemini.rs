@@ -1172,9 +1172,9 @@ impl GeminiCore {
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut fiatFlag: Option<String> = self.safe_string(rawCurrency.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
         let mut isFiat: bool = (fiatFlag.is_some()) && (fiatFlag.as_deref() != Some(""));
-        let mut type_var: Value = Value::Str("crypto".into());
+        let mut type_var: String = "crypto".to_string();
         if isFiat {
-            type_var = Value::Str("fiat".into());
+            type_var = "fiat".to_string();
         }
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string(rawCurrency.clone(), Value::Int(5), &[])]), &[]);
         let mut networks: indexmap::IndexMap<String, Value> = ({
@@ -1226,7 +1226,7 @@ impl GeminiCore {
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("precision".to_string(), precision);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1681,9 +1681,9 @@ impl GeminiCore {
             linear = Value::Bool(true); // always linear
             inverse = Value::Bool(false);
         }
-        let mut type_var: Value = Value::Str("spot".into());
+        let mut type_var: String = "spot".to_string();
         if swap {
-            type_var = Value::Str("swap".into());
+            type_var = "swap".to_string();
         }
         let mut isSpot: Value = Value::Bool(!(swap));
         return self.safe_market_structure(&[Value::Map({
@@ -1696,7 +1696,7 @@ impl GeminiCore {
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), isSpot);
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(swap.clone()));
@@ -2369,12 +2369,12 @@ impl GeminiCore {
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "original_amount", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "remaining_amount", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "executed_amount", &[]);
-        let mut status: Value = Value::Str("closed".into());
+        let mut status: String = "closed".to_string();
         if matches!(self.safe_bool_k(order.clone(), "is_live", &[Value::Bool(false)]), Value::Bool(true)) {
-            status = Value::Str("open".into());
+            status = "open".to_string();
         }
         if matches!(self.safe_bool_k(order.clone(), "is_cancelled", &[Value::Bool(false)]), Value::Bool(true)) {
-            status = Value::Str("canceled".into());
+            status = "canceled".to_string();
         }
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut average: Option<String> = self.safe_string_k_opt(order.clone(), "avg_execution_price", &[]);
@@ -2394,15 +2394,15 @@ impl GeminiCore {
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "client_order_id", &[]);
         let mut optionsArray: Value = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]);
         let mut option: Option<String> = self.safe_string(optionsArray, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut timeInForce: Value = Value::Str("GTC".into());
+        let mut timeInForce: String = "GTC".to_string();
         let mut postOnly: Value = Value::Bool(false);
         if (option.is_some()) {
             if (option.as_deref() == Some("immediate-or-cancel")) {
-                timeInForce = Value::Str("IOC".into());
+                timeInForce = "IOC".to_string();
             }  else if (option.as_deref() == Some("fill-or-kill")) {
-                timeInForce = Value::Str("FOK".into());
+                timeInForce = "FOK".to_string();
             }  else if (option.as_deref() == Some("maker-or-cancel")) {
-                timeInForce = Value::Str("PO".into());
+                timeInForce = "PO".to_string();
                 postOnly = Value::Bool(true);
             }
         }
@@ -2414,10 +2414,10 @@ impl GeminiCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));

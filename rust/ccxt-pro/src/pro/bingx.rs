@@ -523,9 +523,9 @@ impl BingxCore {
         let mut dataType: Value = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@ticker".into())).into());
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[self.safe_string_k(market.clone(), "symbol", &[])]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash).into());
-        let mut topic: Value = Value::Str("ticker".into());
-        let mut methodName: Value = Value::Str("unWatchTicker".into());
-        return self.un_watch(messageHash.clone(), subMessageHash, messageHash.clone(), dataType, topic, market, methodName, &[params]).await;
+        let mut topic: String = "ticker".to_string();
+        let mut methodName: String = "unWatchTicker".to_string();
+        return self.un_watch(messageHash.clone(), subMessageHash, messageHash.clone(), dataType, Value::from(topic), market, Value::from(methodName), &[params]).await;
 
     Value::Null
 }
@@ -595,11 +595,11 @@ impl BingxCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
         // const marketId = messageHash.split('@')[0];
         let mut isSwap: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut marketType: Value = Value::Str("spot".into());
+        let mut marketType: String = "spot".to_string();
         if isSwap {
-            marketType = Value::Str("swap".into());
+            marketType = "swap".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType]);
+        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
@@ -800,10 +800,10 @@ impl BingxCore {
         let mut market: Value = self.market(symbol);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[self.safe_string_k(market.clone(), "symbol", &[])]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash).into());
-        let mut topic: Value = Value::Str("trades".into());
-        let mut methodName: Value = Value::Str("unWatchTrades".into());
+        let mut topic: String = "trades".to_string();
+        let mut methodName: String = "unWatchTrades".to_string();
         let __ws_arg_3 = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
-        return self.un_watch(messageHash.clone(), subMessageHash, messageHash.clone(), Value::Str(format!("{}{}", __ws_arg_3, Value::Str("@trade".into())).into()), topic, market, methodName, &[params]).await;
+        return self.un_watch(messageHash.clone(), subMessageHash, messageHash.clone(), Value::Str(format!("{}{}", __ws_arg_3, Value::Str("@trade".into())).into()), Value::from(topic), market, Value::from(methodName), &[params]).await;
 
     Value::Null
 }
@@ -898,11 +898,11 @@ impl BingxCore {
         let mut hashParts: Value = Value::Array(rawHash.as_str().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
         let mut marketId: Option<String> = self.safe_string_opt(hashParts, Value::Int(0), &[]);
         let mut isSwap: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut marketType: Value = Value::Str("spot".into());
+        let mut marketType: String = "spot".to_string();
         if isSwap {
-            marketType = Value::Str("swap".into());
+            marketType = "swap".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType]);
+        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into());
         let mut trades: Value = Value::Null;
@@ -1035,9 +1035,9 @@ impl BingxCore {
         let depth: String = self.safe_string_k_opt(options, "depth", &[Value::Str("100".into())]).unwrap_or_default();
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@depth".into())).into()), depth).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash).into());
-        let mut topic: Value = Value::Str("orderbook".into());
-        let mut methodName: Value = Value::Str("unWatchOrderBook".into());
-        return self.un_watch(messageHash.clone(), subMessageHash.clone(), messageHash.clone(), subMessageHash.clone(), topic, market, methodName, &[params]).await;
+        let mut topic: String = "orderbook".to_string();
+        let mut methodName: String = "unWatchOrderBook".to_string();
+        return self.un_watch(messageHash.clone(), subMessageHash.clone(), messageHash.clone(), subMessageHash.clone(), Value::from(topic), market, Value::from(methodName), &[params]).await;
 
     Value::Null
 }
@@ -1129,11 +1129,11 @@ impl BingxCore {
         let mut isAllEndpoint: bool = firstPart.as_deref() == Some("all");
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
         let mut isSwap: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut marketType: Value = Value::Str("spot".into());
+        let mut marketType: String = "spot".to_string();
         if isSwap {
-            marketType = Value::Str("swap".into());
+            marketType = "swap".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
+        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::from(marketType)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
@@ -1274,11 +1274,11 @@ impl BingxCore {
         let mut firstPart: Value = self.safe_string(parts, Value::Int(0), &[]);
         let mut isAllEndpoint: bool = firstPart.as_str() == Some("all");
         let mut marketId: Value = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => firstPart });
-        let mut marketType: Value = Value::Str("spot".into());
+        let mut marketType: String = "spot".to_string();
         if isSwap {
-            marketType = Value::Str("swap".into());
+            marketType = "swap".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
+        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::from(marketType.clone())]);
         let mut candles: Value = Value::Null;
         if isSwap {
             if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -1306,7 +1306,7 @@ impl BingxCore {
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         let mut timeframeParts: Value = Value::Array(dataType.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
         let mut rawTimeframe: Option<String> = self.safe_string_opt(timeframeParts, Value::Int(1), &[]);
-        let mut marketOptions: Value = self.safe_dict(self.options.clone(), marketType, &[]);
+        let mut marketOptions: Value = self.safe_dict(self.options.clone(), Value::from(marketType.clone()), &[]);
         let mut timeframes: Value = self.safe_dict_k(marketOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1456,11 +1456,11 @@ impl BingxCore {
         let mut rawTimeframe: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), rawTimeframe).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash).into());
-        let mut topic: Value = Value::Str("ohlcv".into());
-        let mut methodName: Value = Value::Str("unWatchOHLCV".into());
+        let mut topic: String = "ohlcv".to_string();
+        let mut methodName: String = "unWatchOHLCV".to_string();
         let mut symbolsAndTimeframes: Value = Value::from(vec![Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe])]);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), symbolsAndTimeframes); }
-        return self.un_watch(messageHash.clone(), subMessageHash.clone(), messageHash.clone(), subMessageHash.clone(), topic, market, methodName, &[params]).await;
+        return self.un_watch(messageHash.clone(), subMessageHash.clone(), messageHash.clone(), subMessageHash.clone(), Value::from(topic), market, Value::from(methodName), &[params]).await;
 
     Value::Null
 }
@@ -1501,17 +1501,17 @@ impl BingxCore {
         let subTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), &[market.clone(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut isSpot: bool = type_var.as_str() == Some("spot");
-        let mut spotHash: Value = Value::Str("spot:private".into());
-        let mut swapHash: Value = Value::Str("swap:private".into());
-        let mut subscriptionHash: Value = swapHash;
+        let mut spotHash: String = "spot:private".to_string();
+        let mut swapHash: String = "swap:private".to_string();
+        let mut subscriptionHash: Value = Value::from(swapHash);
         if isSpot {
-            subscriptionHash = spotHash;
+            subscriptionHash = Value::from(spotHash);
         }
-        let mut spotMessageHash: Value = Value::Str("spot:order".into());
-        let mut swapMessageHash: Value = Value::Str("swap:order".into());
-        let mut messageHash: Value = swapMessageHash.clone();
+        let mut spotMessageHash: String = "spot:order".to_string();
+        let mut swapMessageHash: String = "swap:order".to_string();
+        let mut messageHash: Value = Value::from(swapMessageHash.clone());
         if isSpot {
-            messageHash = spotMessageHash.clone();
+            messageHash = Value::from(spotMessageHash.clone());
         }
         if (market != Value::Null) {
             if isSpot {
@@ -1595,17 +1595,17 @@ impl BingxCore {
         let subTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut isSpot: bool = type_var.as_str() == Some("spot");
-        let mut spotHash: Value = Value::Str("spot:private".into());
-        let mut swapHash: Value = Value::Str("swap:private".into());
-        let mut subscriptionHash: Value = swapHash;
+        let mut spotHash: String = "spot:private".to_string();
+        let mut swapHash: String = "swap:private".to_string();
+        let mut subscriptionHash: Value = Value::from(swapHash);
         if isSpot {
-            subscriptionHash = spotHash;
+            subscriptionHash = Value::from(spotHash);
         }
-        let mut spotMessageHash: Value = Value::Str("spot:mytrades".into());
-        let mut swapMessageHash: Value = Value::Str("swap:mytrades".into());
-        let mut messageHash: Value = swapMessageHash.clone();
+        let mut spotMessageHash: String = "spot:mytrades".to_string();
+        let mut swapMessageHash: String = "swap:mytrades".to_string();
+        let mut messageHash: Value = Value::from(swapMessageHash.clone());
         if isSpot {
-            messageHash = spotMessageHash.clone();
+            messageHash = Value::from(spotMessageHash.clone());
         }
         if (market != Value::Null) {
             if isSpot {
@@ -1679,17 +1679,17 @@ impl BingxCore {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isSpot: bool = type_var.as_str() == Some("spot");
-        let mut spotSubHash: Value = Value::Str("spot:balance".into());
-        let mut swapSubHash: Value = Value::Str("swap:private".into());
-        let mut spotMessageHash: Value = Value::Str("spot:balance".into());
-        let mut swapMessageHash: Value = Value::Str("swap:balance".into());
-        let mut messageHash: Value = swapMessageHash;
+        let mut spotSubHash: String = "spot:balance".to_string();
+        let mut swapSubHash: String = "swap:private".to_string();
+        let mut spotMessageHash: String = "spot:balance".to_string();
+        let mut swapMessageHash: String = "swap:balance".to_string();
+        let mut messageHash: Value = Value::from(swapMessageHash);
         if isSpot {
-            messageHash = spotMessageHash;
+            messageHash = Value::from(spotMessageHash);
         }
-        let mut subscriptionHash: Value = swapSubHash;
+        let mut subscriptionHash: Value = Value::from(swapSubHash);
         if isSpot {
-            subscriptionHash = spotSubHash;
+            subscriptionHash = Value::from(spotSubHash);
         }
         let mut request: Value = Value::Null;
         let mut baseUrl: Value = Value::Null;
@@ -1822,7 +1822,7 @@ impl BingxCore {
         if (subType.as_str() == Some("inverse")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchPositions is not supported for inverse swap markets yet".into()))));
         }
-        let mut subscriptionHash: Value = Value::Str("swap:private".into());
+        let mut subscriptionHash: String = "swap:private".to_string();
         messageHash = Value::Str(format!("{}{}", Value::Str("swap:positions".into()), messageHash).into());
         let mut baseUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]);
         let mut userStreamKey: Option<String> = self.safe_string_k_opt(self.options.clone(), "listenKey", &[]);
@@ -1848,7 +1848,7 @@ impl BingxCore {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into())])).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.watch(url, messageHash, &[Value::Null, subscriptionHash, Value::Map(subscription)]).await;
+        let mut newPositions: Value = self.watch(url, messageHash, &[Value::Null, Value::from(subscriptionHash), Value::Map(subscription)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2320,11 +2320,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         stored.append(parsedOrder.clone());
         let symbol: String = self.safe_string_k_opt(parsedOrder, "symbol", &[Value::Str("".into())]).unwrap_or_default();
-        let mut spotHash: Value = Value::Str("spot:order".into());
-        let mut swapHash: Value = Value::Str("swap:order".into());
-        let mut messageHash: Value = swapHash;
+        let mut spotHash: String = "spot:order".to_string();
+        let mut swapHash: String = "swap:order".to_string();
+        let mut messageHash: Value = Value::from(swapHash);
         if isSpot {
-            messageHash = spotHash;
+            messageHash = Value::from(spotHash);
         }
         client.resolve(&[stored.clone(), messageHash.clone()]);
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())]);
@@ -2398,19 +2398,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             cachedTrades = ArrayCacheBySymbolById::new(limit);
             self.myTrades = cachedTrades.clone();
         }
-        let mut type_var: Value = Value::Str("swap".into());
+        let mut type_var: String = "swap".to_string();
         if isSpot {
-            type_var = Value::Str("spot".into());
+            type_var = "spot".to_string();
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(result.clone(), "s", &[]);
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), type_var]);
+        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), Value::from(type_var)]);
         let mut parsed: Value = self.parse_trade(result, &[market]);
         let symbol: String = self.safe_string_k_opt(parsed.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
-        let mut spotHash: Value = Value::Str("spot:mytrades".into());
-        let mut swapHash: Value = Value::Str("swap:mytrades".into());
-        let mut messageHash: Value = swapHash;
+        let mut spotHash: String = "spot:mytrades".to_string();
+        let mut swapHash: String = "swap:mytrades".to_string();
+        let mut messageHash: Value = Value::from(swapHash);
         if isSpot {
-            messageHash = spotHash;
+            messageHash = Value::from(spotHash);
         }
         cachedTrades.append(parsed);
         client.resolve(&[cachedTrades.clone(), messageHash.clone()]);

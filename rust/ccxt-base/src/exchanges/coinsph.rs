@@ -1464,12 +1464,12 @@ impl CoinsphCore {
             }
             request.insert("symbols".into(), Value::Array(ids));
         }
-        let mut defaultMethod: Value = Value::Str("publicGetOpenapiQuoteV1Ticker24hr".into());
+        let mut defaultMethod: String = "publicGetOpenapiQuoteV1Ticker24hr".to_string();
         let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTickers", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut method: Option<String> = self.safe_string_k(options, "method", &[defaultMethod]).as_str().map(str::to_owned);
+        let mut method: Option<String> = self.safe_string_k(options, "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut tickers: Value = Value::from(vec![]);
         if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -1511,12 +1511,12 @@ impl CoinsphCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut defaultMethod: Value = Value::Str("publicGetOpenapiQuoteV1Ticker24hr".into());
+        let mut defaultMethod: String = "publicGetOpenapiQuoteV1Ticker24hr".to_string();
         let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTicker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut method: Option<String> = self.safe_string_k(options, "method", &[defaultMethod]).as_str().map(str::to_owned);
+        let mut method: Option<String> = self.safe_string_k(options, "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut ticker: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

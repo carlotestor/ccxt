@@ -790,9 +790,9 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut channel: Value = Value::Str("myOrder".into());
-        let mut messageHash: Value = Value::Str("myOrder".into());
-        let mut orders: Value = self.watch_private(symbol.clone(), channel, messageHash, &[]).await;
+        let mut channel: String = "myOrder".to_string();
+        let mut messageHash: String = "myOrder".to_string();
+        let mut orders: Value = self.watch_private(symbol.clone(), Value::from(channel), Value::from(messageHash), &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.clone(), limit);
@@ -824,9 +824,9 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut channel: Value = Value::Str("myOrder".into());
-        let mut messageHash: Value = Value::Str("myTrades".into());
-        let mut trades: Value = self.watch_private(symbol.clone(), channel, messageHash, &[]).await;
+        let mut channel: String = "myOrder".to_string();
+        let mut messageHash: String = "myTrades".to_string();
+        let mut trades: Value = self.watch_private(symbol.clone(), Value::from(channel), Value::from(messageHash), &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.clone(), limit);
@@ -1020,8 +1020,8 @@ impl UpbitCore {
         let mut myTrades: Value = self.myTrades.clone();
         let mut trade: Value = self.parse_ws_trade(message, &[]);
         myTrades.append(trade.clone());
-        let mut messageHash: Value = Value::Str("myTrades".into());
-        client.resolve(&[myTrades.clone(), messageHash]);
+        let mut messageHash: String = "myTrades".to_string();
+        client.resolve(&[myTrades.clone(), Value::from(messageHash)]);
         client.resolve(&[myTrades, Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())]);
 }
 
@@ -1081,8 +1081,8 @@ impl UpbitCore {
             }
         }
         cachedOrders.append(parsed.clone());
-        let mut messageHash: Value = Value::Str("myOrder".into());
-        client.resolve(&[self.orders.clone(), messageHash.clone()]);
+        let mut messageHash: String = "myOrder".to_string();
+        client.resolve(&[self.orders.clone(), Value::from(messageHash.clone())]);
         client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())]);
 }
 
@@ -1102,9 +1102,9 @@ impl UpbitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut channel: Value = Value::Str("myAsset".into());
-        let mut messageHash: Value = Value::Str("myAsset".into());
-        return self.watch_private(Value::Null, channel, messageHash, &[]).await;
+        let mut channel: String = "myAsset".to_string();
+        let mut messageHash: String = "myAsset".to_string();
+        return self.watch_private(Value::Null, Value::from(channel), Value::from(messageHash), &[]).await;
 
     Value::Null
 }

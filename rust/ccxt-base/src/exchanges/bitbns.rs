@@ -1272,9 +1272,9 @@ impl BitbnsCore {
         let mut market: Value = self.market(symbol);
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        let mut quoteSide: Value = Value::Str("listOpen".into());
+        let mut quoteSide: String = "listOpen".to_string();
         if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) {
-            quoteSide = Value::Str("usdtListOpen".into());
+            quoteSide = "usdtListOpen".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

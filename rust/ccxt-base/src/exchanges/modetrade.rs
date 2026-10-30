@@ -1405,7 +1405,7 @@ impl ModetradeCore {
             active = (Value::Bool(status.as_deref() == Some("ACTIVE")));
         }
         let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
-        let mut marketType: Value = Value::Str("swap".into());
+        let mut marketType: String = "swap".to_string();
         let mut baseId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(1), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(2), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1426,7 +1426,7 @@ impl ModetradeCore {
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), marketType);
+        m.insert("type".to_string(), Value::from(marketType));
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(true));
@@ -2932,19 +2932,19 @@ impl ModetradeCore {
         let mut isMarket: bool = orderType.as_str() == Some("MARKET");
         let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]);
-        let mut orderQtyKey: Value = Value::Str("order_quantity".into());
+        let mut orderQtyKey: String = "order_quantity".to_string();
         if isConditional {
-            orderQtyKey = Value::Str("quantity".into());
+            orderQtyKey = "quantity".to_string();
         }
-        let mut priceKey: Value = Value::Str("order_price".into());
+        let mut priceKey: String = "order_price".to_string();
         if isConditional {
-            priceKey = Value::Str("price".into());
+            priceKey = "price".to_string();
         }
-        let mut typeKey: Value = Value::Str("order_type".into());
+        let mut typeKey: String = "order_type".to_string();
         if isConditional {
-            typeKey = Value::Str("type".into());
+            typeKey = "type".to_string();
         }
-        request.insert(crate::runtime::stringify_param(&typeKey), orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        request.insert(typeKey.clone(), orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if !isConditional {
             if postOnly.as_bool() == Some(true) {
                 request.insert("order_type".into(), Value::Str("POST_ONLY".into()));
@@ -2958,12 +2958,12 @@ impl ModetradeCore {
             request.insert("reduce_only".into(), reduceOnly);
         }
         if (price != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&priceKey), self.price_to_precision(symbol.clone(), price));
+            request.insert(priceKey.clone(), self.price_to_precision(symbol.clone(), price));
         }
         if isMarket && !isConditional {
-            request.insert(crate::runtime::stringify_param(&orderQtyKey), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert(orderQtyKey.clone(), self.amount_to_precision(symbol.clone(), amount.clone()));
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
-            request.insert(crate::runtime::stringify_param(&orderQtyKey), self.amount_to_precision(symbol.clone(), amount));
+            request.insert(orderQtyKey.clone(), self.amount_to_precision(symbol.clone(), amount));
         }
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId != Value::Null) {
@@ -2983,15 +2983,15 @@ impl ModetradeCore {
                 m
             };
             let mut childOrders: Value = Value::from(vec![]);
-            let mut closeSide: Value = Value::Str("BUY".into());
+            let mut closeSide: String = "BUY".to_string();
             if (orderSide.as_str() == Some("BUY")) {
-                closeSide = Value::Str("SELL".into());
+                closeSide = "SELL".to_string();
             }
             if hasStopLoss {
                 let mut stopLossPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("price".into()), &[stopLoss]);
                 let mut stopLossOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), closeSide.clone());
+                        m.insert("side".to_string(), Value::from(closeSide.clone()));
                         m.insert("algo_type".to_string(), Value::Str("TP_SL".into()));
                         m.insert("trigger_price".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice));
                         m.insert("type".to_string(), Value::Str("LIMIT".into()));
@@ -3004,7 +3004,7 @@ impl ModetradeCore {
                 let mut takeProfitPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("price".into()), &[takeProfit]);
                 let mut takeProfitOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), closeSide);
+                        m.insert("side".to_string(), Value::from(closeSide));
                         m.insert("algo_type".to_string(), Value::Str("TP_SL".into()));
                         m.insert("trigger_price".to_string(), self.price_to_precision(symbol, takeProfitPrice));
                         m.insert("type".to_string(), Value::Str("LIMIT".into()));
@@ -3203,19 +3203,19 @@ impl ModetradeCore {
         }
         let mut childOrders: Value = self.safe_value_k(params.clone(), "childOrders", &[]);
         let mut isConditional: bool = (triggerPrice != Value::Null) || (childOrders != Value::Null);
-        let mut orderQtyKey: Value = Value::Str("order_quantity".into());
+        let mut orderQtyKey: String = "order_quantity".to_string();
         if isConditional {
-            orderQtyKey = Value::Str("quantity".into());
+            orderQtyKey = "quantity".to_string();
         }
-        let mut priceKey: Value = Value::Str("order_price".into());
+        let mut priceKey: String = "order_price".to_string();
         if isConditional {
-            priceKey = Value::Str("price".into());
+            priceKey = "price".to_string();
         }
         if (price != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&priceKey), self.price_to_precision(symbol.clone(), price));
+            request.insert(priceKey.clone(), self.price_to_precision(symbol.clone(), price));
         }
         if (amount != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&orderQtyKey), self.amount_to_precision(symbol, amount));
+            request.insert(orderQtyKey.clone(), self.amount_to_precision(symbol, amount));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into())]), &[]);
         let mut response: Value = Value::Null;

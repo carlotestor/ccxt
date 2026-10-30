@@ -3576,22 +3576,22 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut heartbeatKey: Value = Value::Str("heartbeat".into());
-            let mut etaKey: Value = Value::Str("estimated_recovery_time".into());
+            let mut heartbeatKey: String = "heartbeat".to_string();
+            let mut etaKey: String = "estimated_recovery_time".to_string();
             if (subType.as_str() == Some("linear")) {
-                heartbeatKey = Value::Str("linear_swap_heartbeat".into());
-                etaKey = Value::Str("linear_swap_estimated_recovery_time".into());
+                heartbeatKey = "linear_swap_heartbeat".to_string();
+                etaKey = "linear_swap_estimated_recovery_time".to_string();
             }  else if (marketType.as_str() == Some("swap")) {
-                heartbeatKey = Value::Str("swap_heartbeat".into());
-                etaKey = Value::Str("swap_estimated_recovery_time".into());
+                heartbeatKey = "swap_heartbeat".to_string();
+                etaKey = "swap_estimated_recovery_time".to_string();
             }
-            let mut heartbeat: Option<i64> = self.safe_integer(data.clone(), heartbeatKey, &[]).as_i64();
+            let mut heartbeat: Option<i64> = self.safe_integer(data.clone(), Value::from(heartbeatKey), &[]).as_i64();
             if (heartbeat == Some(1)) {
                 status = Value::Str("ok".into());
             }  else {
                 status = Value::Str("maintenance".into());
             }
-            eta = self.safe_integer(data, etaKey, &[]);
+            eta = self.safe_integer(data, Value::from(etaKey), &[]);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5762,9 +5762,9 @@ impl HtxCore {
         let mut currencyId: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut assetType: Option<String> = self.safe_string_k(rawCurrency.clone(), "assetType", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Str("fiat".into());
+        let mut type_var: String = "fiat".to_string();
         if (assetType.as_deref() == Some("1")) {
-            type_var = Value::Str("crypto".into());
+            type_var = "crypto".to_string();
         }
         if (code != Value::Null) {
             if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } {
@@ -5837,7 +5837,7 @@ impl HtxCore {
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("name".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.clone()));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -7783,11 +7783,11 @@ impl HtxCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice for a trigger order".into()))));
             }
         }  else {
-            let mut defaultOperator: Value = Value::Str("gte".into());
+            let mut defaultOperator: String = "gte".to_string();
             if (sideStr.as_str() == Some("sell")) {
-                defaultOperator = Value::Str("lte".into());
+                defaultOperator = "lte".to_string();
             }
-            let mut stopOperator: Value = self.safe_string_k(paramsMarginMode.clone(), "operator", &[defaultOperator]);
+            let mut stopOperator: Value = self.safe_string_k(paramsMarginMode.clone(), "operator", &[Value::from(defaultOperator)]);
             request.insert("stop-price".into(), self.price_to_precision(symbol.clone(), triggerPrice));
             request.insert("operator".into(), stopOperator);
             if (orderType.as_str() == Some("limit")) || (orderType.as_str() == Some("limit-fok")) {
@@ -10308,8 +10308,8 @@ impl HtxCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut defaultSubType: Value = Value::Str("linear".into());
-        let subTypeOptionparamsSubTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchFundingRates".into()), Value::Str("subType".into()), &[defaultSubType]).as_array().cloned().unwrap_or_default();
+        let mut defaultSubType: String = "linear".to_string();
+        let subTypeOptionparamsSubTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchFundingRates".into()), Value::Str("subType".into()), &[Value::from(defaultSubType)]).as_array().cloned().unwrap_or_default();
         let mut subTypeOption: Value = subTypeOptionparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeOptionparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subType: Value = subTypeOption;
@@ -10484,9 +10484,9 @@ impl HtxCore {
         //   }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "symbol", &[]);
-        let mut marginMode: Value = Value::Str("isolated".into());
+        let mut marginMode: String = "isolated".to_string();
         if (marketId.is_none()) {
-            marginMode = Value::Str("cross".into());
+            marginMode = "cross".to_string();
         }
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Option<String> = self.safe_string_k_opt(marketResolved, "symbol", &[]);
@@ -10499,7 +10499,7 @@ impl HtxCore {
         m.insert("interest".to_string(), self.safe_number_k(info.clone(), "interest-amount", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "interest-rate", &[]));
         m.insert("amountBorrowed".to_string(), self.safe_number_k(info, "loan-amount", &[]));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
@@ -11036,13 +11036,13 @@ impl HtxCore {
         let mut entryPrice: Value = self.safe_number2(position.clone(), Value::Str("cost_open".into()), Value::Str("open_avg_price".into()), &[]);
         let mut initialMargin: Value = self.safe_string2(position.clone(), Value::Str("position_margin".into()), Value::Str("initial_margin".into()), &[]);
         let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
-        let mut directionSide: Value = Value::Str("short".into());
+        let mut directionSide: String = "short".to_string();
         if (rawSide.as_deref() == Some("buy")) {
-            directionSide = Value::Str("long".into());
+            directionSide = "long".to_string();
         }
         let mut rawPositionSide: Option<String> = self.safe_string_k_opt(position.clone(), "position_side", &[]);
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
-        let mut side: Value = directionSide;
+        let mut side: Value = Value::from(directionSide);
         let mut isHedgedPositionSide: bool = (rawPositionSide.as_deref() == Some("long")) || (rawPositionSide.as_deref() == Some("short"));
         if isHedgedPositionSide {
             side = rawPositionSide.map(Value::from).unwrap_or(Value::Null);
@@ -12835,9 +12835,9 @@ impl HtxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut posMode: Value = Value::Str("single_side".into());
+        let mut posMode: String = "single_side".to_string();
         if hedged.as_bool() == Some(true) {
-            posMode = Value::Str("dual_side".into());
+            posMode = "dual_side".to_string();
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -12845,7 +12845,7 @@ impl HtxCore {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("position_mode".to_string(), posMode);
+                m.insert("position_mode".to_string(), Value::from(posMode));
             m
         });
         if (market != Value::Null) && (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
