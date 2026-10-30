@@ -210,14 +210,14 @@ func (this *Lighter) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook any) any {
+func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook ccxt.OrderBookInterface) any {
 	var data map[string]any = ccxt.SafeMapTyped(message, "order_book")
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(data, "asks", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(data, "bids", []any{}))
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "offset"))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
+	orderbook.SetNonce(this.SafeInteger(data, "offset"))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	return orderbook
 }
 func (this *Lighter) HandleOrderBook(client any, message map[string]any) {

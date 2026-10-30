@@ -583,7 +583,7 @@ func (this *Bittrade) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook any) any {
+func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.mbp.150",
@@ -614,12 +614,12 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 	if (nonce != nil) && (prevSeqNum == nil || *prevSeqNum <= *nonce) && (seqNum != nil && *seqNum > *nonce) {
 		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
-		ccxt.AddElementToObject(orderbook, "nonce", seqNum)
+		this.HandleDeltas(orderbook.GetAsks(), asks)
+		this.HandleDeltas(orderbook.GetBids(), bids)
+		orderbook.SetNonce(seqNum)
 		var timestamp *int64 = this.SafeInteger(message, "ts")
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	return orderbook
 }

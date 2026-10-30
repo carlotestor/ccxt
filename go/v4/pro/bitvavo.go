@@ -1134,7 +1134,7 @@ func (this *Bitvavo) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Bitvavo) HandleOrderBookMessage(client any, message any, orderbook any) any {
+func (this *Bitvavo) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
 	//
 	//     {
 	//         "event": "book",
@@ -1151,9 +1151,9 @@ func (this *Bitvavo) HandleOrderBookMessage(client any, message any, orderbook a
 	var nonce *int64 = this.SafeInteger(message, "nonce")
 	var currentNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (nonce != nil) && (currentNonce != nil) && (*nonce > *currentNonce) {
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(message, "asks", []any{}))
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(message, "bids", []any{}))
-		ccxt.AddElementToObject(orderbook, "nonce", nonce)
+		this.HandleDeltas(orderbook.GetAsks(), this.SafeList(message, "asks", []any{}))
+		this.HandleDeltas(orderbook.GetBids(), this.SafeList(message, "bids", []any{}))
+		orderbook.SetNonce(nonce)
 	}
 	return orderbook
 }
