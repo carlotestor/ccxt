@@ -122,7 +122,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new ArgumentsRequired (this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search');
     }
 
-    applyEventFetchParams (events: any[], params: Dict = {}, queries: Strings = undefined): any[] {
+    applyEventFetchParams (events: Dict[], params: Dict = {}, queries: Strings = undefined): Dict[] {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently.
         // every fetched event lands in the cache before filtering, so loadEvents()/event()
@@ -188,7 +188,7 @@ export default class PredictionExchange extends BaseExchange {
         return result;
     }
 
-    filterEventsByStatus (events: any[], status: Str = undefined): any[] {
+    filterEventsByStatus (events: Dict[], status: Str = undefined): Dict[] {
         // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
         if ((status === undefined) || (status === 'all')) {
             return events;
@@ -206,7 +206,7 @@ export default class PredictionExchange extends BaseExchange {
         return result;
     }
 
-    filterEventsBySearchIn (events: any[], queries: Strings, searchIn: Str = undefined): any[] {
+    filterEventsBySearchIn (events: Dict[], queries: Strings, searchIn: Str = undefined): Dict[] {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
         let queriesLength = 0;
@@ -274,7 +274,7 @@ export default class PredictionExchange extends BaseExchange {
         return s;
     }
 
-    filterEventsByTags (events: any[], tags: Strings = undefined): any[] {
+    filterEventsByTags (events: Dict[], tags: Strings = undefined): Dict[] {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
         let tagsLength = 0;
@@ -325,7 +325,7 @@ export default class PredictionExchange extends BaseExchange {
         return result;
     }
 
-    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         throw new NotSupported (this.id + ' fetchEvents() is not supported yet');
     }
 
@@ -333,7 +333,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchEvent() is not supported yet');
     }
 
-    setEvents (events: any[]): Dictionary<any> {
+    setEvents (events: Dict[]): Dict {
         // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
         // index by the unified `event` handle too (that's the identifier every outcome's `event`
         // field carries), so getEvent (handle) resolves without each exchange hand-writing it
@@ -361,7 +361,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.events;
     }
 
-    eventsList (): any[] {
+    eventsList (): Dict[] {
         // the cached events as a list; empty on a cold instance (this.events is keyed by both
         // id and handle, so de-duplicate by identity before returning)
         if (this.events === undefined) {
@@ -381,7 +381,7 @@ export default class PredictionExchange extends BaseExchange {
         return result;
     }
 
-    async loadEventsHelper (reload = false, params: Dict = {}) {
+    async loadEventsHelper (reload = false, params: Dict = {}): Promise<Dict> {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
@@ -392,14 +392,14 @@ export default class PredictionExchange extends BaseExchange {
         return this.setEvents (events);
     }
 
-    async loadEvents (reload = false, params: Dict = {}): Promise<Dictionary<any>> {
+    async loadEvents (reload = false, params: Dict = {}): Promise<Dict> {
         // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
         // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
         // base, so two truly concurrent first calls may fetch twice (both land in the cache)
         return await this.loadEventsHelper (reload, params);
     }
 
-    getEvent (eventIdOrSlug: string): any {
+    getEvent (eventIdOrSlug: string): Dict {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {

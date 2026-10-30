@@ -322,7 +322,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.marketVariant] predictfun enum value ('SPORTS_MATCH', 'CRYPTO_UP_DOWN' etc.)
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
         if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
@@ -546,7 +546,7 @@ export default class predictfun extends Exchange {
             }
         }
         const rawTopicsLength = rawTopics.length;
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < rawTopicsLength; i++) {
             const parsedEvent = this.parseEvent (rawTopics[i]);
             result.push (parsedEvent);

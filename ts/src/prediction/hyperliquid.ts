@@ -1915,7 +1915,7 @@ export default class hyperliquid extends Exchange {
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         // hyperliquid has no dedicated events endpoint - events are grouped from the outcome

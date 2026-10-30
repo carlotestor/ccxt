@@ -2952,7 +2952,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         if (queries === undefined) {
@@ -3040,7 +3040,7 @@ export default class limitless extends Exchange {
                 eventGroup['markets'] = groupMarkets;
             }
         }
-        const result: any[] = [];
+        const result: Dict[] = [];
         const eventKeys = Object.keys (eventGroups);
         const eventKeysLength = eventKeys.length;
         for (let i = 0; i < eventKeysLength; i++) {

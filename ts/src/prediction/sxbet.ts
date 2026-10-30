@@ -431,7 +431,7 @@ export default class sxbet extends Exchange {
      * @param {int} [params.limit] max number of events to return
      * @returns {object[]} an array of event structures
      */
-    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         this.requireEventQuery (params);
         const eventId = this.safeString2 (params, 'eventId', 'slug');
         const leagueId = this.safeString (params, 'leagueId');
@@ -487,7 +487,7 @@ export default class sxbet extends Exchange {
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        const result: any[] = [];
+        const result: Dict[] = [];
         const orderLength = order.length;
         for (let i = 0; i < orderLength; i++) {
             const fixtureId = order[i];

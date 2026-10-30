@@ -178,7 +178,7 @@ export default class opinion extends Exchange {
         // seen-guard keyed by the event handle; the events themselves go through setEvents below
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         const seenEvents: Dict = {};
-        const eventsList: any[] = [];
+        const eventsList: Dict[] = [];
         // every raw (unflattened) row fetched so far, so its length is the raw fetched count
         const fetchedRawRows: Dict[] = [];
         for (let page = 1; page <= maxPages; page++) {
@@ -200,7 +200,7 @@ export default class opinion extends Exchange {
                 fetchedRawRows.push (raw);
                 const marketType = this.safeInteger (raw, 'marketType');
                 if (marketType === 1) {
-                    const event: any = this.parseEvent (raw);
+                    const event: Dict = this.parseEvent (raw);
                     const childMarkets = this.safeList (event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
@@ -399,7 +399,7 @@ export default class opinion extends Exchange {
      * @param {int} [params.limit] max number of events to fetch (paginated server-side; defaults to options.maxFetchEventsResults, 100)
      * @returns {object[]} an array of event structures
      */
-    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         const eventId = this.safeString (params, 'eventId');
@@ -453,12 +453,12 @@ export default class opinion extends Exchange {
             }
         }
         const rawEventsLength = rawEvents.length;
-        const parsedEvents: any[] = [];
+        const parsedEvents: Dict[] = [];
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
         for (let i = 0; i < rawEventsLength; i++) {
-            const event: any = this.parseEvent (rawEvents[i]);
+            const event: Dict = this.parseEvent (rawEvents[i]);
             parsedEvents.push (event);
             // register the parsed markets so populateOutcomes can index their outcomes
             const eventMarkets = this.safeList (event, 'markets', []);

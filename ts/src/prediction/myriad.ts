@@ -3003,7 +3003,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
      */
-    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
         if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
@@ -3068,7 +3068,7 @@ export default class myriad extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         const seenMarketHandles: Dict = {};
-        const result: any[] = [];
+        const result: Dict[] = [];
         const rawQuestionsLength = rawQuestions.length;
         for (let i = 0; i < rawQuestionsLength; i++) {
             const rawQuestion = rawQuestions[i];

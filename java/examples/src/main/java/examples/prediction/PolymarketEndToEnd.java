@@ -9,6 +9,7 @@ import io.github.ccxt.types.PredictionOutcome;
 import io.github.ccxt.types.PredictionTicker;
 import io.github.ccxt.types.PredictionTrade;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,10 @@ public class PolymarketEndToEnd {
         eventsParams.put("query", "fed");
         eventsParams.put("sort", "volume");
         eventsParams.put("limit", 15);
-        List<PredictionEvent> events = exchange.fetchEvents(eventsParams).join();
+        List<PredictionEvent> events = new ArrayList<>();
+        for (Object row : (List<?>) exchange.fetchEvents(eventsParams).join()) {
+            events.add(new PredictionEvent(row));
+        }
         String symbol = null;
         PredictionOrderBook book = null;
         double tick = 0.01;

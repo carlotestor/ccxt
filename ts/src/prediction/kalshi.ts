@@ -2183,7 +2183,7 @@ export default class kalshi extends Exchange {
      * @param {int} [params.limit] max number of events to return
      * @returns {object[]} an array of event structures
      */
-    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         const queries = this.parseSearchQueries (params);
         if (queries === undefined) {
             throw new ExchangeError (this.id + ' fetchEvents() missing queries');
@@ -2233,7 +2233,7 @@ export default class kalshi extends Exchange {
             rawEvents = await this.fetchSeriesEvents (seriesTickers, status, fetchCap, rest);
         }
         const rawEventsLength = rawEvents.length;
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let di = 0; di < rawEventsLength; di++) {
             const parsedEvent = this.parseEvent (rawEvents[di]);
             result.push (parsedEvent);

@@ -340,7 +340,7 @@ export default class binance extends Exchange {
      * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<Dict[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
         if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
@@ -407,7 +407,7 @@ export default class binance extends Exchange {
             rawTopics = await this.completeRawTopics (listed);
         }
         const rawTopicsLength = rawTopics.length;
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < rawTopicsLength; i++) {
             const parsedEvent = this.parseEvent (rawTopics[i]);
             result.push (parsedEvent);

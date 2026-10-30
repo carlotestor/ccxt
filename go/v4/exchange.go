@@ -2427,8 +2427,8 @@ func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
-func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent] {
-	ch := make(chan AsyncResult[[]PredictionEvent])
+func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+	ch := make(chan AsyncResult[[]map[string]any])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
