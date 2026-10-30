@@ -3298,7 +3298,7 @@ const GO_GUARDED_READ_GUARD = /^([ \t]*)if (.+?) >= 0 && \2 < len\(([A-Za-z_]\w*
 const GO_GUARDED_READ_ROOF = /func\(\) any \{$/;
 // a `[]any` unboxed from a SafeList accessor: `listValueToTypedSlice` hands back the JSON
 // array as-is, so no element is a *string/*int64/... box
-const GO_GUARDED_READ_SAFE_LIST = /^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = (?:ccxt\.)?SafeList\d*(?:Typed|TypedDefault)?\(/;
+const GO_GUARDED_READ_SAFE_LIST = /^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = (?:(?:ccxt\.)?SafeList\d*(?:Typed|TypedDefault)?|this\.SafeListSlice)\(/;
 
 // the braces of a single parenthesised clause around its own expression
 function goGuardedReadStripParens (text: string): string {
@@ -3576,6 +3576,7 @@ function nativeGuardedListElementReadsSelfTest (): string[] {
         ok (g (lists + '\tfor i := 0; i < len(markets); i++ {\n' + read ('i', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[i]') >= 0, 'a counting loop over len() counts');
         ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'DerefScalar(') + '\t}\n').indexOf ('var m any = DerefScalar(values[0])') >= 0, 'a non-SafeList slice keeps derefScalar');
         ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'ccxt.DerefScalar(') + '\t}\n').indexOf ('var m any = ccxt.DerefScalar(values[0])') >= 0, 'the ccxt. prefix survives');
+        ok (g (lists.replace ('SafeListTyped(', 'this.SafeListSlice(') + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[0]') >= 0, 'the SafeListSlice method form counts as a SafeList unbox');
         const unguarded = g (lists + read ('0', 'markets', 'DerefScalar('));
         ok ((unguarded.indexOf ('\t\t\t\treturn markets[0]') >= 0) && (unguarded.indexOf ('DerefScalar(') < 0), 'without a proof a SafeList read drops only the wrap');
         ok (g ('\tvar parts []string = strings.Split(x, "/")\n' + read ('1', 'parts', '')).indexOf ('func() any {') >= 0, 'an unproven []string read keeps the literal');
