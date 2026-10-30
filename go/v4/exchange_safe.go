@@ -1099,6 +1099,11 @@ func (this *BaseExchange) SafeDictMap(dictionaryOrList any, key any, optionalArg
 	return MapTyped(this.SafeDict(dictionaryOrList, key, optionalArgs...))
 }
 
+// SafeListSlice is SafeList read as []any (absent or non-array is a nil slice).
+func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, optionalArgs ...any) []any {
+	return ArrayTyped(this.SafeList(dictionaryOrList, key, optionalArgs...))
+}
+
 func (this *BaseExchange) SafeDict2Map(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) map[string]any {
 	return MapTyped(this.SafeDict2(dictionaryOrList, key1, key2, optionalArgs...))
 }

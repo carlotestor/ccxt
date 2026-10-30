@@ -14791,8 +14791,8 @@ function hx4G14MapWriteSelfTest (): string[] {
         installCcxtGoIndexableTypes (t.goTranspiler);
         const go = t.transpileGoByPath (file).content;
         const body = (name: string) => (go.split (/\nfunc /).find ((f) => f.startsWith ('(this *Test) ' + name + '(')) ?? '');
-        ok (/var data \[\]any = SafeListTyped\(r, "data"\)/.test (body ('F')), 'safeList [] default read through `as List` unboxes');
-        ok (/var data \[\]any = SafeListTypedDefault\(r, "data", \[\]any\{\}\)/.test (body ('G')), 'an `as` wrapper that hands the list out keeps its default');
+        ok (/var data \[\]any = this\.SafeListSlice\(r, "data"\)/.test (body ('F')), 'safeList [] default read through `as List` unboxes');
+        ok (/var data \[\]any = this\.SafeListSlice\(r, "data", \[\]any\{\}\)/.test (body ('G')), 'an `as` wrapper that hands the list out keeps its default');
     } catch (e: any) {
         problems.push ('hx4 G14 threw: ' + e.message);
     } finally {
