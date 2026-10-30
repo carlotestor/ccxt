@@ -13386,7 +13386,7 @@ function longLimitInitializer (lines, from, to, type, value) {
     return { text: `${t.cond} ? ${fix (t.whenTrue)} : ${fix (t.whenFalse)}`, boxChanges: false };
 }
 
-const LONG_LIMIT_BOX_NEUTRAL_CALLEES = /^(?:Helpers\.(?:multiply|subtract|add|divide|mod|isEqual|isGreaterThan|isLessThan|isGreaterThanOrEqual|isLessThanOrEqual)|(?:\w+\.)?this\.sum)$/;
+const LONG_LIMIT_BOX_NEUTRAL_CALLEES = /^(?:Helpers\.(?:multiply|subtract|add|divide|mod|isEqual|isGreaterThan|isLessThan|isGreaterThanOrEqual|isLessThanOrEqual)|(?:\w+\.)?this\.(?:sum|iso8601))$/;
 
 function longLimitCodeOnly (line) {
     return line.replace (/\/\/.*$/, '').replace (/"(?:[^"\\]|\\.)*"/g, '""');
@@ -13437,6 +13437,13 @@ function longLimitUseOk (line, name, boxChanges) {
     return true;
 }
 
+// `Object x = <own Long parameter>;`: the copy already holds that Long box, so retyping it to Long
+// is an any-local drop even when no toLongOrNull call reads it.
+function longLimitIsParamCopy (lines, from, to, value) {
+    const decls = /^[A-Za-z_]\w*$/.test (value) ? longLimitDeclarations (lines, from, to, value) : [];
+    return decls.length === 1 && decls[0].index === from && decls[0].type === 'Long';
+}
+
 function longLimitRetypeMember (lines, from, to) {
     let changed = false;
     const decl = /^(\s*)(Integer|Object) ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
@@ -13479,7 +13486,7 @@ function longLimitRetypeMember (lines, from, to) {
         if (process.env.JAVA_LONG_LIMIT_DEBUG && !(ok && fed) && lines.slice (from, to).some ((l) => longLimitFeeds (longLimitCodeOnly (l), name))) {
             console.log (`long-limit reject ${name}: ${lines[i].trim ()} || ${why}`);
         }
-        if (!ok || !fed) continue;
+        if (!ok || !(fed || (type === 'Object' && longLimitIsParamCopy (lines, from, to, value.trim ())))) continue;
         lines[i] = `${iden}Long ${name} = ${init.text};${comment ?? ''}`;
         for (const [ j, text ] of plan) lines[j] = text;
         changed = true;
@@ -13617,7 +13624,7 @@ function longLimitPromotes (a, b) {
 }
 
 function longLimitRetypeGroups (lines, from, to) {
-    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull(') || l.includes ('Helpers.multiply('))) return false;
+    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull(') || l.includes ('Helpers.multiply(') || /^\s*Object \w+ = \w+;/.test (l))) return false;
     const declRe = /^(\s*)(Integer|Object) ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
     const typeCache = new Map ();
     const ctx = {
@@ -13746,7 +13753,8 @@ function longLimitRetypeGroups (lines, from, to) {
     const parent = new Map ([ ...group ].map ((n) => [ n, n ]));
     const find = (n) => (parent.get (n) === n ? n : find (parent.get (n)));
     for (const [ name, ws ] of typed) for (const [ , , n ] of ws) for (const a of n.atoms) parent.set (find (a), find (name));
-    const fed = new Set ([ ...group ].filter ((n) => lines.slice (from, to).some ((l) => longLimitFeeds (longLimitCodeOnly (l), n))).map (find));
+    const copied = (n) => longLimitIsParamCopy (lines, from, to, longLimitStrip (info.get (n).writes[0][2]));
+    const fed = new Set ([ ...group ].filter ((n) => copied (n) || lines.slice (from, to).some ((l) => longLimitFeeds (longLimitCodeOnly (l), n))).map (find));
     let changed = false;
     for (const [ name, ws ] of typed) {
         if (!fed.has (find (name))) continue;
@@ -13774,7 +13782,7 @@ function longLimitFeeds (code, name) {
 }
 
 export function nativeJavaLongLimitLocals (content) {
-    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Helpers.multiply(') && !content.includes ('Helpers.mathMin(')) {
+    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Helpers.multiply(') && !content.includes ('Helpers.mathMin(') && !/^\s*Object \w+ = \w+;/m.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
