@@ -290,7 +290,7 @@ public class Hyperliquid extends HyperliquidApi
             expiryDate = (expiryParts == null || 0 >= expiryParts.size() ? null : expiryParts.get(0));
         }
         String label = "NO";
-        if (Helpers.isEqual(side, 0))
+        if ((side != null && ((Number) side).doubleValue() == 0))
         {
             label = "YES";
         }
