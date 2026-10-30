@@ -15277,6 +15277,8 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'fetchSxbetRealtimeToken': 'string?',
     'fetchErc20Name': 'string?',
     'walletEventsTopic': [ 'string', 'string?' ],
+    // apex: return this.safeString (this.options, 'accountId') — one string? box
+    'getAccountId': 'string?',
 };
 
 const awaitedCoreProofs = new WeakMap ();
