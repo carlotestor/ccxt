@@ -3217,6 +3217,18 @@ function isStaticallyStringExpression (printer, node, selfName) {
                 && isPlainSafeStringBaseCall (printer, node)) {
                 return true; // declared String in BaseExchange
             }
+            // hx11 M532: `x.toUpperCase()` prints `((String)x).toUpperCase()` and a `this.m()`
+            // the printer retyped to String prints a String call: both are String writes
+            const callee = node.expression;
+            if (ts.isPropertyAccessExpression (callee) && node.arguments.length === 0
+                && (callee.name.text === 'toUpperCase' || callee.name.text === 'toLowerCase')
+                && handleIsStringishReceiver (printer, callee.expression)
+                && !(ts.isIdentifier (callee.expression) && callee.expression.text === selfName)) {
+                return true; // a self-receiver write re-prints blobs (not declaration-only)
+            }
+            if (isThisCall (node) && internalReturnLocalType (printer, node)?.type === 'String') {
+                return true;
+            }
             const helper = classifyStringHelperCall (printer, node);
             return helper !== undefined && helper.cast === undefined;
         }
