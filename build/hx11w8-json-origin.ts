@@ -84,7 +84,7 @@ function rewriteFunc (text: string): string {
         const d = declsOf (text, list);
         const src = (d.length === 1) ? /^(?:SafeListTyped|this\.SafeListSlice)\((\w+),[^()]*\)$/.exec (d[0].trim ()) : null;
         if ((src === null) || reassigned (masked, list) || !listIsReadOnly (masked, list) || !jsonOrigin (masked, src[1])) { continue; }
-        out = out.replace (new RegExp ('DerefScalar\\(' + ESC (list) + '\\[(\\w+)\\]\\)', 'g'), list + '[$1]');
+        out = out.replace (new RegExp ('(?:ccxt\\.)?DerefScalar\\(' + ESC (list) + '\\[(\\w+)\\]\\)', 'g'), list + '[$1]');
     }
     return out;
 }
@@ -115,6 +115,8 @@ export function hx11w8JsonOriginCheck (): string[] {
     want (base.replace ('SafeListTyped(response, "data")', 'ToArray(response)') + use, '', 'ToArray list', false);
     want (base.replace ('var response map[string]any = r1.Value', 'var raw map[string]any = r1.Value\n\tvar response map[string]any = SafeMapTyped(raw, "result")') + use, '', 'chained SafeMapTyped', true);
     want (base.replace ('SafeListTyped(response, "data")', 'this.SafeListSlice(response, "data")') + use, '', 'SafeListSlice method form', true);
+    const prefixed = hx11w8JsonOrigin ('// IT IS GENERATED AND WILL BE OVERWRITTEN\n' + fn ((base + use).replace ('DerefScalar(data[i])', 'ccxt.DerefScalar(data[i])')));
+    if (prefixed.includes ('ccxt.data[i]')) { problems.push ('hx11w8-json-origin: ccxt. prefix left on the native element'); }
     want (base.replace ('var response map[string]any = r1.Value', 'var raw map[string]any = r1.Value\n\tvar response map[string]any = this.SafeDictMap(raw, "result")') + use, '', 'chained SafeDictMap', true);
     return problems;
 }
