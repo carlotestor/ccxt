@@ -451,7 +451,7 @@ if (JAVA_STRING_HELPER_PLAIN.has ('hash') || JAVA_STRING_HELPER_CAST.has ('hash'
 // hx11 W9 M533: byte[]-returning base helpers. The hand-written Java declares them `byte[]`
 // (every path returns a byte[] or throws); patchJavaBytesHelperLocals retypes the declaration
 // of a local initialised from one of them. Never part of the String PLAIN/CAST sets.
-export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'ethEncodeStructuredData' ]);
+export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'ethEncodeStructuredData', 'packb', 'ethAbiEncode' ]);
 
 // helpers whose locals additionally run the guarded-string scan (the add-left rule and
 // the += rule below); the safeString family and the parse*/accessor families keep the
@@ -504,6 +504,8 @@ const LOCAL_THIS_RETURN_TYPES = {
     'uuid22': { type: 'String' },
     'uuid5': { type: 'String' },
     'ethEncodeStructuredData': { type: 'byte[]', bytes: true },
+    'packb': { type: 'byte[]', bytes: true },
+    'ethAbiEncode': { type: 'byte[]', bytes: true },
     'capitalize': { type: 'String' },
     'numberToString': { type: 'String' },
     'decimalToPrecision': { type: 'String' },
