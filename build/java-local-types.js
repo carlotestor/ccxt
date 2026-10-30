@@ -8256,6 +8256,7 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
     'seconds': 'Long',
     'parse8601': 'Long',
     'parseTimeframe': 'int',
+    'randNumber': 'int',  // hx11 w9: BaseExchange.randNumber (int) never null
     // SafeMethods.safeTimestampN converts the default through toLongQuiet as well
     'safeTimestamp': 'Long',
     'safeTimestamp2': 'Long',
