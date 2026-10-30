@@ -48,7 +48,7 @@ function mapIsReadOnly (code: string, name: string): boolean {
     for (const at of occurrences (code, name)) {
         if (decl.has (at)) { continue; }
         const pre = code.slice (Math.max (0, at - 16), at);
-        if (/(?:SafeListTyped|SafeMapTyped)\($/.test (pre)) { continue; }
+        if (/(?:SafeListTyped|SafeMapTyped|this\.SafeListSlice|this\.SafeDictMap)\($/.test (pre)) { continue; }
         if (/IsEqual\($/.test (pre) && code.slice (at + name.length).startsWith (', nil)')) { continue; }
         return false;
     }
@@ -71,7 +71,7 @@ function jsonOrigin (code: string, name: string, depth = 0): boolean {
         }
         return ([ ...code.matchAll (new RegExp ('(?<![\\w."])' + ESC (r) + '\\.(?:Value|Raw)\\b', 'g')) ].length === 1);
     }
-    const via = /^SafeMapTyped\((\w+),[ \t]*"[^"]*"\)$/.exec (d[0].trim ());
+    const via = /^(?:SafeMapTyped|this\.SafeDictMap)\((\w+),[ \t]*"[^"]*"\)$/.exec (d[0].trim ());
     return (via !== null) && jsonOrigin (code, via[1], depth + 1);
 }
 
@@ -82,7 +82,7 @@ function rewriteFunc (text: string): string {
     let out = text;
     for (const list of lists) {
         const d = declsOf (text, list);
-        const src = (d.length === 1) ? /^SafeListTyped\((\w+),[^()]*\)$/.exec (d[0].trim ()) : null;
+        const src = (d.length === 1) ? /^(?:SafeListTyped|this\.SafeListSlice)\((\w+),[^()]*\)$/.exec (d[0].trim ()) : null;
         if ((src === null) || reassigned (masked, list) || !listIsReadOnly (masked, list) || !jsonOrigin (masked, src[1])) { continue; }
         out = out.replace (new RegExp ('DerefScalar\\(' + ESC (list) + '\\[(\\w+)\\]\\)', 'g'), list + '[$1]');
     }

@@ -15,6 +15,7 @@ const table: entry[] = [
     { callee: 'GetValue', method: 'SubscriptionGet', args: 2 },
     { callee: 'AddElementToObject', method: 'SubscriptionSet', args: 3 },
     { callee: 'SafeMapTyped', method: 'SubscriptionDict', args: 2 },
+    { callee: 'this.SafeDictMap', method: 'SubscriptionDict', args: 2 },
     { callee: 'ObjectKeys', method: 'SubscriptionKeys', args: 1 },
     { callee: 'ObjectValues', method: 'SubscriptionValues', args: 1 },
 ];
