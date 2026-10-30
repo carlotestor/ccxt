@@ -4945,7 +4945,7 @@ class NewTranspiler {
         javaSource = nativeJavaJ38(javaSource) // hx4 J38
         javaSource = nativeJavaJ39Containers(javaSource) // hx4 J39
         javaSource = hx10J01ElementWrites(javaSource) // hx10 J01
-        javaSource = wsMapReads(j01wsNativeOps(javaSource)) // hx10 wave-3 J01 + hx10w7 OJ06
+        javaSource = hx11w8CacheFieldCasts(wsMapReads(j01wsNativeOps(javaSource))) // hx10 wave-3 J01 + hx10w7 OJ06
         javaSource = hx10w3J02BalancePuts(javaSource) // hx10w3 J02
         javaSource = j01w7FieldPuts(javaSource) // hx10w7 J01
         javaSource = nativeJavaJ04OptionsOps(javaSource) // hx10 w3 J04
@@ -7638,7 +7638,7 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = hx10w4OJ01OptionsOwner(content); // hx10 w4 OJ01
     content = nativeJavaJ05(content); // hx10w2 J05
     content = nativeJavaJ06FieldOps(content); // hx10w2 J06
-    content = wsMapReads(j01wsNativeOps(content)); // hx10 wave-3 J01 + hx10w7 OJ06
+    content = hx11w8CacheFieldCasts(wsMapReads(j01wsNativeOps(content))); // hx10 wave-3 J01 + hx10w7 OJ06
     content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
     return content;
 }
@@ -9626,6 +9626,13 @@ function j38SelfTest (): string[] {
 // hx4 J39
 // getArrayLength / inOp / objectKeys / newMap -> inline Java with the exact dispatch of Helpers.java; addElementToObject /
 // GetValue -> native Map/List operations on receivers declared Map<String, Object> / List<Object> (fields, locals, casts).
+// hx11w8 ws-cache-fields: BaseExchange declares these caches as Map<String, Object>, so a Map cast on `this.<field>` is a no-op
+function hx11w8CacheFieldCasts (content: string): string {
+    if (!/\(\((?:java\.util\.)?Map\s*<[^()]*>\)\s*this\./.test (content)) return content;
+    return content.replace (/\(\((?:java\.util\.)?Map\s*<(?:\?\s*,\s*\?|String\s*,\s*Object)>\)\s*this\.(tickers|bidsasks|fundingRates|orderbooks|trades|ohlcvs)\)(?=\.(?:get|containsKey|remove|put|keySet|size|isEmpty)\()/g, (whole, f) =>
+        new RegExp (`^    (?:public |protected |private )?(?!Map<String, Object> )[\\w.<>, ?]+ ${f}\\s*(?:=|;)`, 'm').test (content) ? whole : `this.${f}`);
+}
+
 function j39MapFields (): Set<string> {
     return new Set ([ 'options', 'urls', 'has', 'features', 'api', 'exceptions', 'headers', 'commonCurrencies', 'markets_by_id', 'baseCurrencies', 'quoteCurrencies', 'transformedApi', 'userAgents' ]);
 }
