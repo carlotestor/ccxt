@@ -5784,11 +5784,13 @@ function booleanCallLocalDeclaration (printer, declaration) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+    // Precise.stringGt/Ge/Lt/Le/Eq are `public static boolean`: javaPreciseBooleanCall proves the resolution
+    const precise = printer.javaPreciseBooleanCall?.(initializer) === true;
+    if (!precise && (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword)) {
         return undefined;
     }
     const callName = callee.name?.text;
-    if (!JAVA_BOOLEAN_CALL_LOCAL_CALLEES.has (callName)) {
+    if (!precise && !JAVA_BOOLEAN_CALL_LOCAL_CALLEES.has (callName)) {
         return undefined;
     }
     // TS models `boolean` as the true|false union and sets the Boolean bit on it; a
@@ -5806,7 +5808,7 @@ function booleanCallLocalDeclaration (printer, declaration) {
         return undefined;
     }
     // a callee the printer proves never-null Boolean unboxes into the primitive directly
-    const wrap = !JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES.has (callName)
+    const wrap = !precise && !JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES.has (callName)
         && printer.javaCallPrintsNonNullBoolean?.(initializer, 0) !== true;
     if (wrap && scan.conditionReads === 0) {
         return undefined; // no read would lose its Helpers.isTrue
@@ -5951,7 +5953,7 @@ export function patchJavaBooleanLocalTypes (transpiler) {
             return printed; // another slice's patcher already retyped it
         }
         const value = printed.slice (at + marker.length);
-        if (!value.startsWith ('this.')) {
+        if (!value.startsWith ('this.') && !/^\(?Precise\./.test (value)) {
             return printed; // unexpected shape — leave it as the printer emitted it
         }
         narrowed.set (declaration, 'boolean');
