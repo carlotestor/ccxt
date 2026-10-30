@@ -3273,7 +3273,7 @@ public class BaseExchange {
         return k.digest();
     }
 
-    public Object packb(Object data) {
+    public byte[] packb(Object data) {
         try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
              org.msgpack.core.MessagePacker packer = org.msgpack.core.MessagePack.newDefaultPacker(out)) {
             // Java Maps don't preserve insertion order, but msgpack signatures
@@ -3460,7 +3460,7 @@ public class BaseExchange {
     }
 
     @SuppressWarnings("unchecked")
-    public Object ethAbiEncode(Object types2, Object args2)
+    public byte[] ethAbiEncode(Object types2, Object args2)
     {
         // static abi.encode: each argument becomes a 32-byte word, concatenated. Reuses the
         // EIP-712 word encoder (encodeValue) which already left-pads uint/address and right-pads
