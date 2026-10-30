@@ -3485,13 +3485,13 @@ public class BaseExchange {
         return out;
     }
 
-    public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
+    public String starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
     {
         // throw new RuntimeException("Not implemented");
         return ""; // to do later
     }
 
-    public Object starknetSign(Object msgHash, Object privateKey)
+    public String starknetSign(Object msgHash, Object privateKey)
     {
         // throw new RuntimeException("Not implemented");
         return ""; // to do later
@@ -3505,7 +3505,7 @@ public class BaseExchange {
         return this.json(new ArrayList<Object>(Arrays.asList(signature[0].toString(), signature[1].toString())));
     }
 
-    public Object extendedStarknetGetSelectorFromName(Object name)
+    public String extendedStarknetGetSelectorFromName(Object name)
     {
         String functionName = name.toString();
         if (functionName.equals("__default__") || functionName.equals("__l1_default__")) {
@@ -7490,7 +7490,7 @@ public Map<String, Object> describe()
         return reversed;
     }
 
-    public Object stringToBase16(Object str)
+    public String stringToBase16(Object str)
     {
         return ("0x" + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
     }
