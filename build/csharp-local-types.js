@@ -2641,6 +2641,7 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // `string?` local), so the pro tree's `object token = await this.authenticateRest ()` takes
     // the string? box; the name is declared in the REST file only, hence this table
     'authenticateRest': 'string?',
+    'loadProxyCredentials': 'IDictionary<string, object>',
     // nado's queryContracts (CSHARP_AWAITED_CORE_RETURNS), awaited from the pro subclass too
     'queryContracts': 'IDictionary<string, object>',
     // cs/ccxt/base/PredictionExchange.cs, retyped from Task<object> by
@@ -15268,6 +15269,9 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'fetchSxbetBookSnapshot': 'IDictionary<string, object>',
     'fetchSxbetProxy': 'IDictionary<string, object>',
     'loadQuoteToken': 'IDictionary<string, object>',
+    // polymarket: the cached safeDict() local or the freshly built credentials literal local
+    'createProxyCredentials': 'Dictionary<string, object>',
+    'loadProxyCredentials': 'IDictionary<string, object>',
     // a List<object> local or safeList() on every path (grvt, prediction sxbet/kalshi)
     'internalFetchTransfers': 'List<object>',
     'fetchRawMarketsPaged': 'List<object>',
@@ -15278,6 +15282,9 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'fetchErc20Name': 'string?',
     'walletEventsTopic': [ 'string', 'string?' ],
 };
+
+// cores whose Dictionary and IDictionary return arms join to the interface (collectionArmWidening)
+const AWAITED_CORE_ARM_WIDENING = new Set ([ 'loadProxyCredentials' ]);
 
 const awaitedCoreProofs = new WeakMap ();
 const awaitedCoreInProgress = new WeakSet ();
@@ -15291,7 +15298,8 @@ function awaitedCoreReturnIsAlreadyTyped (value, mapped) {
         return value.startsWith ('new List<object>');
     }
     if (mapped === 'Dictionary<string, object>' || mapped === 'IDictionary<string, object>') {
-        return value.startsWith ('new Dictionary<string, object>') || /^this\.safeDict2?N?\s*\(/.test (value);
+        // an awaited Dictionary core converts to the interface without a cast
+        return value.startsWith ('new Dictionary<string, object>') || /^this\.safeDict2?N?\s*\(/.test (value) || (mapped === 'IDictionary<string, object>' && /^await this\.createProxyCredentials\s*\(/.test (value));
     }
     if (mapped === 'double?') {
         return /^this\.safeNumber(N|2)?\s*\(/.test (value);
@@ -15319,7 +15327,7 @@ function awaitedCoreBoxType (csharp, declaration) {
         if (node.kind === ts.SyntaxKind.ReturnStatement) {
             found = true;
             const value = (node.expression === undefined) ? 'null' : csharpTypeOfValue (csharp, node.expression, context);
-            const joined = (proven === undefined) ? value : unifyArms (proven, value);
+            const joined = (proven === undefined) ? value : unifyArms (proven, value, AWAITED_CORE_ARM_WIDENING.has (declaration.name?.text));
             if (joined === undefined) {
                 failed = true;
             } else {
