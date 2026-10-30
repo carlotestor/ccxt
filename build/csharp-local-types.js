@@ -2618,6 +2618,10 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // kucoin override; build/csharp-worker.ts prints `Task<bool>` for the annotation
     // (the stub returns a literal false), so the awaited value is a plain C# bool.
     'isUTAEnabled': 'bool',
+    // extended's fetchExtendedAccount / createExtendedOrderRequest (`Task<Dictionary<string, object>>`,
+    // declared in extended.ts only): the awaited rows feed safe* reads and object params only
+    'fetchExtendedAccount': 'Dictionary<string, object>',
+    'createExtendedOrderRequest': 'Dictionary<string, object>',
     // cs/ccxt/base/Exchange.cs, retyped from Task<object> by installCsharpAsyncCoreReturns()
     // (see the async-core-returns section below): every declaration of these names —
     // base, venue override, ws override — now prints `Task<IDictionary<string, object>>` in
