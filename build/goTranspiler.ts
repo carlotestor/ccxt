@@ -3605,7 +3605,7 @@ function nativeGuardedListElementReadsSelfTest (): string[] {
 // is gofmt-clean except where an emitter splices operand text into a call it prints.
 // Balance is a Go map[string]any, so an entry read prints `any` and compares natively against nil
 function goBalanceEntryNilCompares (content: string): string {
-    return content.replace (/(!?)(?<![\w])(?:ccxt\.)?IsEqual\(this\.Balance\[(\w+)\], nil\)/g, ((_m: string, not: string, key: string) => '(this.Balance[' + key + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+    return content.replace (/(!?)(?<![\w])(?:ccxt\.)?IsEqual\(this\.Balance\[(\w+)\], nil\)/g, ((_m: string, not: string, key: string) => '(this.Balance[' + key + ']' + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
 }
 
 export function formatGoSource (filePath: string, content: string): string {
