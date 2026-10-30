@@ -16697,6 +16697,12 @@ function hx11w9ParamPrintedType (csharp, identifier) {
         || csharpParameterIsWritten (csharp, declaration.parent, declaration)) {
         return undefined;
     }
+    // typeCoreArgs shadows a narrowed param whose printed body matches `name =` (comments
+    // included) into `object nameVar`; the copy would then read an object, so keep it out
+    const bodyText = declaration.parent?.body?.getText?.() ?? '';
+    if (new RegExp ('(?<![\\w.])' + declaration.name.getText () + '\\s*(?:\\?\\?)?=(?!=)').test (bodyText)) {
+        return undefined;
+    }
     return parameterArithmeticType (csharp, identifier);
 }
 
