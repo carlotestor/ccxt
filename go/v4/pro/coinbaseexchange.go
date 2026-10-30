@@ -1246,15 +1246,15 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 			}
 		}
-		var orderbook any
+		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
 			orderbook = this.Orderbooks[*symbol]
 		}
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol)
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else if typeVar != nil && *typeVar == "l2update" {
-		var orderbook any
+		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
 			orderbook = this.Orderbooks[*symbol]
 		}

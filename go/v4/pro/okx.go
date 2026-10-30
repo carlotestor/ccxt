@@ -2240,7 +2240,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 				}
 			}
-			var orderbook any
+			var orderbook ccxt.OrderBookInterface
 			if symbol != nil {
 				orderbook = this.Orderbooks[*symbol]
 			}
@@ -2250,7 +2250,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 			// points past the row on purpose
 			var snapshot map[string]any = this.ParseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4)
 			snapshot["nonce"] = this.SafeInteger(update, "seqId")
-			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+			orderbook.Reset(snapshot)
 			if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 				break
 			}
@@ -2258,7 +2258,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 		}
 	} else if action != nil && *action == "update" {
 		if this.Orderbooks.Has(symbol) {
-			var orderbook any
+			var orderbook ccxt.OrderBookInterface
 			if symbol != nil {
 				orderbook = this.Orderbooks[*symbol]
 			}
@@ -2283,7 +2283,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 				}
 			}
-			var orderbook any
+			var orderbook ccxt.OrderBookInterface
 			if symbol != nil {
 				orderbook = this.Orderbooks[*symbol]
 			}
@@ -2291,7 +2291,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 				var update any = ccxt.DerefScalar(data[i])
 				var timestamp *int64 = this.SafeInteger(update, "ts")
 				var snapshot map[string]any = this.ParseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1)
-				orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+				orderbook.Reset(snapshot)
 				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 			}
 		}
