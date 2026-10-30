@@ -3036,7 +3036,7 @@ public class BaseExchange {
     // as invalid Solidity identifiers — the EIP-712 spec itself doesn't
     // require that restriction.
     @SuppressWarnings("unchecked")
-    public Object ethEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2) {
+    public byte[] ethEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2) {
         try {
             Map<String, Object> domain = (Map<String, Object>) domain2;
             Map<String, Object> messageTypes = (Map<String, Object>) messageTypes2;
