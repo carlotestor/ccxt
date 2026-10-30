@@ -3,7 +3,7 @@
 import { goChanMask } from './go-chan.js';
 import { hx10G10Decls, hx10G10DeclsAt, hx10G10Key, hx10G10OkIsIfLocal, hx11w9Terms } from './hx10w2-G10.js';
 
-const RECEIVER = /^(?:this\.WsClientsSnapshot\(\)|this\.Ohlcvs\[(\w+)\])$/;
+const RECEIVER = /^(?:this\.WsClientsSnapshot\(\)|this\.Ohlcvs\[\*?(\w+)\])$/;
 
 export function hx11w9A9fFieldIndexInOpPass (content: string): string {
     if (!/\bInOp\(/.test (content)) {
@@ -45,8 +45,12 @@ export function hx11w9A9fFieldIndexInOpPass (content: string): string {
             const [ , receiver, key ] = inops[0];
             const recv = RECEIVER.exec (receiver);
             const view = hx10G10DeclsAt (body, maskedBody, decls, i);
+            const indexOk = (r: RegExpExecArray, v: typeof view, at: number): boolean => {
+                const type = v.get (r[1])?.type;
+                return r[0].includes ('[*') ? ((type === '*string') && (hx10G10Key (maskedBody, v, r[1], at) === '*' + r[1])) : (type === 'string');
+            };
             const keyType = view.get (key)?.type;
-            if ((recv === null) || ((keyType !== '*string') && (keyType !== 'string')) || ((recv[1] !== undefined) && (view.get (recv[1])?.type !== 'string'))) {
+            if ((recv === null) || ((keyType !== '*string') && (keyType !== 'string')) || ((recv[1] !== undefined) && !indexOk (recv, view, i))) {
                 continue;
             }
             const isGuard = (t: string) => (t === key + ' != nil') || new RegExp ('^!(?:ccxt\\.)?IsEqual\\(' + key + ', nil\\)$').test (t);
@@ -109,6 +113,8 @@ export function hx11w9A9fSelfTest (): string[] {
     ok (g ('symbol string, timeframe *string', book.replace ('\t\tdelete', '\t\tsymbol = "x"\n\t\tdelete')).indexOf ('InOp(') >= 0, 'a rebound index keeps InOp');
     ok (g ('accountType string, code *string', '\tif (code != nil) && (ccxt.InOp(this.Balance[accountType], code)) {\n\t}\n').indexOf ('InOp(') >= 0, 'an any-valued Balance entry keeps InOp');
     ok (g ('symbol string, timeframe *string', '\tif (ccxt.InOp(this.Ohlcvs[symbol], timeframe)) && (timeframe != nil) {\n\t}\n').indexOf ('InOp(') >= 0, 'a lookup ahead of its guard keeps InOp');
+    ok (g ('timeframe *string', '\tvar symbol *string = this.SafeString(m, \"s\", \"\")\n\tif (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {\n\t}\n').indexOf ('if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {') >= 0, 'a literal-default *string index goes native');
+    ok (g ('timeframe *string', '\tvar symbol *string = this.SafeString(m, \"s\")\n\tif (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {\n\t}\n').indexOf ('InOp(') >= 0, 'an unproven *string index keeps InOp');
     const snap = (guard: string) => g ('', '\tvar url *string = this.SafeString(params, \"url\")\n' + guard + '\tif (this.WsClientsSnapshot() != nil) && (ccxt.InOp(this.WsClientsSnapshot(), url)) {\n\t\treturn nil\n\t}\n');
     ok (snap ('\tif url == nil {\n\n\t\treturn nil\n\t}\n').indexOf ('\tif _, ok := this.WsClientsSnapshot()[*url]; ok {') >= 0, 'an exit-guarded key reads the snapshot natively');
     ok (snap ('').indexOf ('InOp(this.WsClientsSnapshot(), url)') >= 0, 'no guard keeps InOp');

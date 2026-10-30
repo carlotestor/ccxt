@@ -3724,7 +3724,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
     content = hx11w8WT01Pass (content);  // hx11 w8 WT01: watchTickerBody indexes the typed ticker map
     content = hx11w9NilGuardInOpPass (content);  // hx11 w9: nil-guarded *string key into a base map, on the settled output
-    content = hx11w9A9fFieldIndexInOpPass (content);  // hx11 w9 a9f: indexed ohlcv book / ws snapshot with a proven *string key
     return goGofmtSplicedText (content);
 }
 
@@ -5387,6 +5386,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = hx4G36Inline (content, hx4G36Aligner ());  // hx4 G36
         content = hx5X26CaseAffix (content);  // hx5 X26
         content = hx11w9SafeStringDefaultLocals (content);  // hx11 w9: defaulted SafeString locals are `string`, before the native Add/compare passes
+        content = hx11w9A9fFieldIndexInOpPass (content);  // hx11 w9 a9f: indexed ohlcv book / ws snapshot, after the defaulted locals are typed
         content = hx5X27StringHelpers (hx11w8JoinStringLocals (content));  // hx5 X27, hx11 w8 r18: string-only []any locals are []string first
         content = goNativeStringAdds (hx11w8StringAnyLocals (content));  // hx11 w8: string-only `any` locals are strings, their Add chains native
         content = g10kStrNativeStringHelpers (path, content);  // the Add chains are `+` sums only from here: StartsWith/EndsWith of one go native
