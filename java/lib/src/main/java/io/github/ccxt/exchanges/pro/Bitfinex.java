@@ -968,7 +968,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
         }
         String payload = String.join(":", (List<String>)stringArray);
-        Object localChecksum = this.crc32(payload, true);
+        Long localChecksum = this.crc32(payload, true);
         Long responseChecksum = this.safeInteger(message, 2);
         if (!java.util.Objects.equals(responseChecksum, localChecksum))
         {

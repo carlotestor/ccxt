@@ -1235,7 +1235,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     }
                 }
                 String payload = String.join(":", (List<String>)payloadArray);
-                Object calculatedChecksum = this.crc32(payload, true);
+                Long calculatedChecksum = this.crc32(payload, true);
                 if (!java.util.Objects.equals(calculatedChecksum, responseChecksum))
                 {
                     this.spawn(() -> { try { this.handleCheckSumError(client, (String) (symbol), messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
