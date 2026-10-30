@@ -11399,6 +11399,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // the prediction tier's scalar annotations reach the same join (see the guard above)
         csharpType = 'null';
     }
+    // hx11 w9: `let x: string = <required string param>`: the explicit annotation plus a proven
+    // non-null string param start the join at `string`; the retype scan checks every write
+    if (csharpType === undefined && declaration.type?.kind === ts.SyntaxKind.StringKeyword
+            && declaration.initializer?.kind === ts.SyntaxKind.Identifier && hx11w9PrintedStringParam (csharp, declaration.initializer)) {
+        csharpType = 'string';
+    }
     // a safeString* call with a proven non-null string default is a proven non-null string
     // (nonNullStringDefaultCall), but it is NOT promoted to `string` here: the nullable
     // spelling stays, and the non-null one is only retried when the scan rejects it (below)
@@ -16615,6 +16621,14 @@ function hx11w8TsStringArgument (csharp, argument) {
     } catch (e) {
         return false;
     }
+}
+
+// a required, never-written `string` parameter whose printed signature type is `string`
+function hx11w9PrintedStringParam (csharp, identifier) {
+    const declaration = csharpIdentifierDeclaration (csharp, identifier);
+    return (declaration?.kind === ts.SyntaxKind.Parameter) && (declaration.type?.kind === ts.SyntaxKind.StringKeyword)
+        && (declaration.initializer === undefined) && (declaration.questionToken === undefined) && (declaration.dotDotDotToken === undefined)
+        && (parameterArithmeticType (csharp, identifier) === 'string') && !csharpParameterIsWritten (csharp, declaration.parent, declaration);
 }
 
 // the parameter is a proven non-null `string` (the caller rules above)
