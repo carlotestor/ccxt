@@ -650,7 +650,7 @@ export default class phemex extends Exchange {
 
     parseSafeNumber (value: Str = undefined): Num {
         if (value === undefined) {
-            return value;
+            return undefined;
         }
         let parts = (value as string).split (',');
         const valueOption: Str = parts.join ('');
