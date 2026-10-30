@@ -9267,6 +9267,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = narrowStrNullLocals(rustContent); // hx11 W7
                 rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
+                rustContent = this.nativeArrayJoin(rustContent); // closure-free array join, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10019,6 +10020,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
+        finalFile = this.nativeArrayJoin(finalFile); // closure-free array join, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13433,6 +13435,23 @@ impl std::ops::DerefMut for ${coreName} {
         content = content.replace(has, (m: string, k: string, d: string, off: number, whole: string) =>
             guard(m, off, whole, `matches!(${k}.as_str(), Some(__k) if ${d}.contains_key(__k))`));
         return content;
+    }
+
+    // Array join of a place, closure-free (the `|__a|` closure counted as a blob):
+    //   X.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("L")).unwrap_or_default()
+    //     -> (if let Some(__a) = X.as_array() { __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("L") } else { String::new() })
+    // A non-array X stays the empty String like the `None` arm; X is a side-effect-free place path. Skips lines that would cross 400.
+    nativeArrayJoin(content: string): string {
+        if (!content.includes('|__a| __a.iter().map(|__v| __v.to_string())')) return content;
+        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
+        const re = new RegExp(`(?<![A-Za-z0-9_.:])(${P})\\.as_array\\(\\)\\.map\\(\\|__a\\| __a\\.iter\\(\\)\\.map\\(\\|__v\\| __v\\.to_string\\(\\)\\)\\.collect::<Vec<String>>\\(\\)\\.join\\(("(?:[^"\\\\]|\\\\.)*")\\)\\)\\.unwrap_or_default\\(\\)`, 'g');
+        return content.replace(re, (m: string, x: string, lit: string, off: number, whole: string) => {
+            const text = `(if let Some(__a) = ${x}.as_array() { __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(${lit}) } else { String::new() })`;
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        });
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
