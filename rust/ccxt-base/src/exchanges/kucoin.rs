@@ -6224,11 +6224,11 @@ impl KucoinCore {
         let mut useSync: Value = useSyncparamsSyncVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSync: Value = useSyncparamsSyncVariable.get(1).cloned().unwrap_or(Value::Null);
         self.check_trigger_prices(paramsSync.clone());
-        let mut triggerPrice: Value = self.safe_number2(paramsSync.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut triggerPrice: Option<f64> = self.safe_number2_opt(paramsSync.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Value = self.safe_number_k(paramsSync.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(paramsSync.clone(), "takeProfitPrice", &[]).as_f64();
         let mut tradeType: Option<String> = self.safe_string_k(paramsSync.clone(), "tradeType", &[]).as_str().map(str::to_owned); // keep it for backward compatibility
-        let mut isTriggerOrder: bool = (triggerPrice != Value::Null) || (stopLossPrice != Value::Null) || (takeProfitPrice.is_some());
+        let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (stopLossPrice != Value::Null) || (takeProfitPrice.is_some());
         let mut marginMode: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsSync.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
         // don't omit anything before calling createOrderRequest
@@ -6321,15 +6321,15 @@ impl KucoinCore {
         }
         let mut tradeType: Option<String> = self.safe_string_k(paramsOmitted.clone(), "tradeType", &[]).as_str().map(str::to_owned); // keep it for backward compatibility
         self.check_trigger_prices(paramsOmitted.clone());
-        let mut triggerPrice: Value = self.safe_number2(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut triggerPrice: Option<f64> = self.safe_number2_opt(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Value = self.safe_number_k(paramsOmitted.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(paramsOmitted.clone(), "takeProfitPrice", &[]);
-        let mut isTriggerOrder: bool = (triggerPrice != Value::Null) || (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
+        let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
         let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
         paramsOmitted = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
         if isTriggerOrder {
-            if (triggerPrice != Value::Null) {
-                request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice));
+            if (triggerPrice.is_some()) {
+                request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
             }  else if (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null) {
                 if (stopLossPrice != Value::Null) {
                     request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("entry".into()) } else { Value::Str("loss".into()) }));
@@ -6506,7 +6506,7 @@ impl KucoinCore {
             }
         }
         self.check_trigger_prices(paramsOmitted.clone());
-        let mut triggerPrice: Value = self.safe_number2(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut triggerPrice: Option<f64> = self.safe_number2_opt(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Value = self.safe_number_k(paramsOmitted.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(paramsOmitted.clone(), "takeProfitPrice", &[]);
         let mut stopLoss: Value = self.safe_dict_k(paramsOmitted.clone(), "stopLoss", &[]);
@@ -6524,9 +6524,9 @@ impl KucoinCore {
         let mut triggerPriceType: Value = self.safe_string_k(paramsOmitted.clone(), "triggerPriceType", &[Value::Str("mark".into())]);
         let mut triggerPriceTypeValue: Value = self.safe_string(Value::Map(triggerPriceTypes.clone()), triggerPriceType.clone(), &[triggerPriceType.clone()]);
         paramsOmitted = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]);
-        if (triggerPrice != Value::Null) {
+        if (triggerPrice.is_some()) {
             request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("up".into()) } else { Value::Str("down".into()) }));
-            request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice));
+            request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
             request.insert("stopPriceType".into(), triggerPriceTypeValue.clone());
         }  else if hasStopLoss || hasTakeProfit {
             let mut priceType: Value = triggerPriceTypeValue.clone();
@@ -6775,7 +6775,7 @@ impl KucoinCore {
         }
         // handling with conditional orders
         self.check_trigger_prices(paramsOmitted.clone());
-        let mut triggerPrice: Value = self.safe_number2(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut triggerPrice: Option<f64> = self.safe_number2_opt(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Value = self.safe_number_k(paramsOmitted.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(paramsOmitted.clone(), "takeProfitPrice", &[]);
         let mut stopLoss: Value = self.safe_dict_k(paramsOmitted.clone(), "stopLoss", &[]);
@@ -6789,13 +6789,13 @@ impl KucoinCore {
                 m.insert("index".to_string(), Value::Str("IP".into()));
             m
         });
-        if (triggerPrice != Value::Null) {
+        if (triggerPrice.is_some()) {
             let mut triggerDirection: Option<String> = self.safe_string_k(paramsOmitted.clone(), "triggerDirection", &[]).as_str().map(str::to_owned);
             if (triggerDirection.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice".into()))));
             }
             request.insert("triggerDirection".into(), (if (triggerDirection.as_deref() == Some("ascending")) { Value::Str("UP".into()) } else { Value::Str("DOWN".into()) }));
-            request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice));
+            request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
         }  else if hasStopLoss || hasTakeProfit {
             if (isContract.as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() stopLoss and takeProfit parameters are only supported for contract orders".into()))));

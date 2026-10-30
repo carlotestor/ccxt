@@ -2739,11 +2739,11 @@ impl BitrueCore {
                 request.insert("newClientOrderId".into(), clientOrderId.clone());
             }
             let mut paramsNoClientOrderId: Value = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]) } else { params });
-            let mut triggerPrice: Value = self.safe_number2(paramsNoClientOrderId.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-            if (triggerPrice != Value::Null) {
-                request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.clone()));
+            let mut triggerPrice: Option<f64> = self.safe_number2_opt(paramsNoClientOrderId.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+            if (triggerPrice.is_some()) {
+                request.insert("stopPrice".into(), self.price_to_precision(symbol, Value::from(triggerPrice)));
             }
-            let mut paramsSpot: Value = (if (triggerPrice != Value::Null) { self.omit(paramsNoClientOrderId.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { paramsNoClientOrderId });
+            let mut paramsSpot: Value = (if (triggerPrice.is_some()) { self.omit(paramsNoClientOrderId.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { paramsNoClientOrderId });
             let __ws_arg_17 = self.extend(Value::Map(request), &[paramsSpot]);
             response = self.spot_v1_private_post_order(&[__ws_arg_17]).await;
             data = response;

@@ -6239,13 +6239,13 @@ impl OkxCore {
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         if isAlgoOrder.as_bool() == Some(true) {
-            let mut triggerPrice: Value = self.safe_number2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("newTriggerPx".into()), &[]);
-            if (triggerPrice != Value::Null) {
-                request.insert("newTriggerPx".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            let mut triggerPrice: Option<f64> = self.safe_number2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("newTriggerPx".into()), &[]);
+            if (triggerPrice.is_some()) {
+                request.insert("newTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
                 request.insert("newOrdPx".into(), (if (price == Value::Null) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), price.clone()) }));
                 request.insert("newTriggerPxType".into(), self.safe_string_k(params.clone(), "newTriggerPxType", &[Value::Str("last".into())]));
             }
-            if (stopLossTriggerPrice == Value::Null) && (takeProfitTriggerPrice == Value::Null) && (triggerPrice == Value::Null) && (amount == Value::Null) {
+            if (stopLossTriggerPrice == Value::Null) && (takeProfitTriggerPrice == Value::Null) && (triggerPrice.is_none()) && (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a triggerPrice, stopLossPrice, takeProfitPrice or amount for editing an algo order".into()))));
             }
             if (stopLossTriggerPrice != Value::Null) {

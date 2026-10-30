@@ -4776,7 +4776,7 @@ impl DeribitCore {
         //
         let mut timestamp: Value = self.safe_integer_k(contract.clone(), "timestamp", &[]);
         let mut datetime: Value = self.iso8601(timestamp.clone());
-        let mut result: Value = self.safe_number2(contract.clone(), Value::Str("result".into()), Value::Str("interest_8h".into()), &[]);
+        let mut result: Option<f64> = self.safe_number2_opt(contract.clone(), Value::Str("result".into()), Value::Str("interest_8h".into()), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -4787,7 +4787,7 @@ impl DeribitCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
-        m.insert("fundingRate".to_string(), result);
+        m.insert("fundingRate".to_string(), Value::from(result));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
