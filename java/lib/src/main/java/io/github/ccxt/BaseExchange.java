@@ -1579,11 +1579,11 @@ public class BaseExchange {
         return Time.ymdhms(ts, infix);
     }
 
-    public Object ymd(Object ts) {
+    public String ymd(Object ts) {
         return Time.ymd(ts);
     }
 
-    public Object ymd(Object ts, Object infix) {
+    public String ymd(Object ts, Object infix) {
         return Time.ymd(ts, infix);
     }
 
@@ -4047,7 +4047,7 @@ public class BaseExchange {
         return (String)str;
     }
 
-    public Object binaryToBase58(Object buff2) {
+    public String binaryToBase58(Object buff2) {
         // bitcoin-alphabet base58, mirrors TS `binaryToBase58 = base58.encode` (@scure/base);
         // used by pacifica request signing — must NOT be hex
         return Encode.binaryToBase58(buff2);
