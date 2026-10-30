@@ -7241,11 +7241,11 @@ export default class htx extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
         }
-        const data = this.safeValue (response, 'data');
         const rates: List = [];
         if (market['linear'] === true) {
-            for (let i = 0; i < data.length; i++) {
-                const entry = data[i];
+            const dataLinear: Dict[] = this.safeList (response, 'data', []);
+            for (let i = 0; i < dataLinear.length; i++) {
+                const entry = dataLinear[i];
                 const marketId = this.safeString (entry, 'contract_code');
                 const symbolInner = this.safeSymbol (marketId, market);
                 const timestamp = this.safeInteger (entry, 'funding_time');
@@ -7258,6 +7258,7 @@ export default class htx extends Exchange {
                 });
             }
         } else {
+            const data = this.safeValue (response, 'data');
             const cursor = this.safeValue (data, 'current_page');
             const result: Dict[] = this.safeList (data, 'data', []);
             for (let i = 0; i < result.length; i++) {
