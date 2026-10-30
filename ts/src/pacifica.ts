@@ -1052,7 +1052,7 @@ export default class pacifica extends Exchange {
         }
     }
 
-    parseMarginModeFromSetting (symbol: Str, setting: Dict): MarginMode {
+    parseMarginModeFromSetting (symbol: string, setting: Dict): MarginMode {
         // {
         //       "symbol": "WLFI",
         //       "isolated": false,
