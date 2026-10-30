@@ -315,7 +315,7 @@ type ICoreExchange interface {
 	PrecisionFromString(str2 any) int
 	OmitZero(v any) any
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers]
-	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode]
+	FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode]
 	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier]
 	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
 	Parse8601(datetime2 any) *int64
