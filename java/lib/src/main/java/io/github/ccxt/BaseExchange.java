@@ -1054,12 +1054,12 @@ public class BaseExchange {
         System.out.println(s);
     }
 
-    public Object encode (Object s) {
+    public byte[] encode (Object s) {
         // encode() turns a string into its UTF-8 byte representation (matches the JS Uint8Array
         // contract). hash()/hmac() accept either bytes or a string, but binaryToBase16() and the
         // EIP-712 encoders require real bytes, so returning the string unchanged was wrong.
         if (s instanceof byte[]) {
-            return s;
+            return (byte[]) s;
         }
         return s.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }
