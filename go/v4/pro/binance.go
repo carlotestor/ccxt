@@ -1305,11 +1305,11 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 
 				return nil
 			}
-			var orderbook any = this.WsCacheGet("Orderbooks", symbol)
-			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.WsCacheGet("Orderbooks", symbol))
+			orderbook.Reset(snapshot)
 			// unroll the accumulated deltas
-			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
-			orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+			var messages any = orderbook.GetCache()
+			orderbook.SetCache([]any{})
 			for i := 0; i < ccxt.GetArrayLength(messages); i++ {
 				var messageItem any = this.SafeValue(messages, i)
 				var U *int64 = this.SafeInteger(messageItem, "U")

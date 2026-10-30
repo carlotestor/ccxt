@@ -6,6 +6,9 @@ import { goChanMask, goChanClose } from './go-chan.js';
 const HELPER = /(?<![\w])(?:(?:ccxt\.|this\.)?)(AddElementToObject|GetValue|SafeValue|SafeDict|SafeMapTyped|InOp|Remove)\(this\.Orderbooks[,)]/g;
 // values a book local may hold: a cache read, a constructor, nil
 const BOOK_VALUE = /^(?:this\.Orderbooks\[[^\]]+\]|this\.Orderbooks\.Get(?:Or)?\(.*\)|this\.(?:Indexed|Counted)?OrderBook\(.*\)|nil)$/;
+// a user-path owner read of the cache: the typed accessor unboxes it at the declaration
+const OWNER_READ = /^this\.WsCacheGet\("Orderbooks", [^()]+\)$/;
+const BOOKS = /this\.Orderbooks|this\.WsCacheGet\("Orderbooks"/;
 const BOOK_CTOR = /^this\.(?:Indexed|Counted)?OrderBook\([^()]*(?:\([^()]*\)[^()]*)*\)$/;
 
 function splitArgs (masked: string, open: number, close: number): Array<[number, number]> {
@@ -89,7 +92,7 @@ const esc = (name: string): string => name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&
 function retypeBookLocals (lines: string[], masked: string[], q: string) {
     for (const [ start, end ] of funcRanges (lines)) {
         const body = masked.slice (start, end);
-        if (!body.some ((l) => l.indexOf ('this.Orderbooks') >= 0)) {
+        if (!body.some ((l) => l.indexOf ('this.Orderbooks') >= 0) && !lines.slice (start, end).some ((l) => l.indexOf ('this.WsCacheGet("Orderbooks"') >= 0)) {
             continue;
         }
         const text = body.join ('\n');
@@ -108,8 +111,10 @@ function retypeBookLocals (lines: string[], masked: string[], q: string) {
             }
             const write = new RegExp ('^\\s*' + n + ' = (.*)$');
             const anyWrite = new RegExp ('(?<![\\w.&*])' + n + '\\s*(?:,\\s*\\w+\\s*)*=(?!=)');
-            let ok = (decl[3] === undefined) || BOOK_VALUE.test (decl[3].trim ());
-            let cached = (decl[3] !== undefined) && /this\.Orderbooks/.test (decl[3]);
+            const init0 = (decl[3] === undefined) ? undefined : lines[k].substring (lines[k].indexOf (' = ') + 3).trim ();
+            const owner = (init0 !== undefined) && OWNER_READ.test (init0);
+            let ok = (decl[3] === undefined) || owner || BOOK_VALUE.test (decl[3].trim ());
+            let cached = owner || ((decl[3] !== undefined) && /this\.Orderbooks/.test (decl[3]));
             for (let j = start + 1; ok && (j < end); j++) {
                 if ((j === k) || !anyWrite.test (masked[j])) {
                     continue;
@@ -124,7 +129,7 @@ function retypeBookLocals (lines: string[], masked: string[], q: string) {
             if (!ok || !cached) {
                 continue;
             }
-            const init = (decl[3] === undefined) || (decl[3].trim () === 'nil') ? '' : ' = ' + lines[k].substring (lines[k].indexOf (' = ') + 3);
+            const init = (decl[3] === undefined) || (decl[3].trim () === 'nil') ? '' : ' = ' + (owner ? q + 'OrderBookTyped(' + init0 + ')' : lines[k].substring (lines[k].indexOf (' = ') + 3));
             lines[k] = decl[1] + 'var ' + name + ' ' + q + 'OrderBookInterface' + init;
         }
     }
@@ -149,7 +154,7 @@ function anyStores (lines: string[], masked: string[]) {
 }
 
 export function hx11w9OrderBookCachePass (content: string): string {
-    if (content.indexOf ('this.Orderbooks') < 0) {
+    if (!BOOKS.test (content)) {
         return content;
     }
     const q = /^package ccxt\s*$/m.test (content) ? '' : 'ccxt.';
@@ -166,7 +171,7 @@ export function hx11w9OrderBookCachePass (content: string): string {
 
 // after the setter pass used the assertion as its non-nil proof: a typed book is called directly
 export function hx11w9OrderBookAssertPass (content: string): string {
-    if (content.indexOf ('this.Orderbooks') < 0) {
+    if (!BOOKS.test (content)) {
         return content;
     }
     // the cache already answers a book: the unboxing wrapper around a read goes
@@ -228,9 +233,15 @@ export function hx11w9OrderBookCacheCheck (): string[] {
     // a local asserted to another type keeps its box
     const other = hx11w9OrderBookCachePass (wrap ('\tvar ob any = this.Orderbooks[*symbol]\n\tvar m map[string]any = ob.(map[string]any)\n'));
     ok (other.indexOf ('var ob any = ') >= 0, 'a local asserted to a map stays any: ' + other);
-    // a local from a user-path read is not a cache read
-    const owner = hx11w9OrderBookCachePass (wrap ('\tvar ob any = this.WsCacheGet("Orderbooks", symbol)\n\tvar b any = this.Orderbooks[*symbol]\n'));
-    ok (owner.indexOf ('var ob any = ') >= 0, 'an owner read keeps its box: ' + owner);
+    // a local from a user-path owner read is typed through the accessor and loses its assertions
+    const owner = hx11w9OrderBookAssertPass (hx11w9OrderBookCachePass (wrap ('\tvar ob any = this.WsCacheGet("Orderbooks", symbol)\n\tob.(ccxt.OrderBookInterface).Reset(snapshot)\n\tthis.WsCacheSet("Orderbooks", *symbol, ob)\n')));
+    ok (owner.indexOf ('var ob ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.WsCacheGet("Orderbooks", symbol))') >= 0 && owner.indexOf ('\tob.Reset(snapshot)') >= 0, 'an owner read is typed: ' + owner);
+    // an owner-read local that also holds a foreign value keeps its box
+    const ownerMixed = hx11w9OrderBookCachePass (wrap ('\tvar ob any = this.WsCacheGet("Orderbooks", symbol)\n\tob = message\n'));
+    ok (ownerMixed.indexOf ('var ob any = this.WsCacheGet') >= 0, 'a mixed owner read stays any: ' + ownerMixed);
+    // an owner-read local asserted to another type keeps its box
+    const ownerOther = hx11w9OrderBookCachePass (wrap ('\tvar ob any = this.WsCacheGet("Orderbooks", symbol)\n\tvar m map[string]any = ob.(map[string]any)\n'));
+    ok (ownerOther.indexOf ('var ob any = this.WsCacheGet') >= 0, 'an owner read asserted to a map stays any: ' + ownerOther);
     // the base package prints the unqualified type
     const base = hx11w9OrderBookCachePass ('package ccxt\n\nfunc (this *BaseExchange) F() {\n\tvar ob any = this.Orderbooks[*symbol]\n\tob.(OrderBookInterface).Reset()\n}\n');
     ok (base.indexOf ('var ob OrderBookInterface = this.Orderbooks[*symbol]') >= 0, 'base package is unqualified: ' + base);

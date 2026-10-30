@@ -451,9 +451,9 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 
 				return nil
 			}
-			var orderbook any = this.WsCacheGet("Orderbooks", symbol)
-			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
+			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.WsCacheGet("Orderbooks", symbol))
+			orderbook.Reset(snapshot)
+			var messages any = orderbook.GetCache()
 			for i := 0; i < ccxt.GetArrayLength(messages); i++ {
 				var messageItem any = ccxt.GetValue(messages, i)
 				var ts *int64 = this.SafeInteger(messageItem, "ts")
