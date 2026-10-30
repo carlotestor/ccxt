@@ -13595,7 +13595,8 @@ function element1ParamsRead (csharp, node) {
     } catch (e) {
         return false;
     }
-    return element1TypedBindings.has (declaration);
+    // the signature is printed before the body, so the retype set may not be filled yet
+    return element1TypedBindings.has (declaration) || element1ParamsBinding (csharp, declaration);
 }
 
 // binding elements whose declaration line was printed typed: the one proof omit receivers read
