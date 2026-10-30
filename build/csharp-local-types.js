@@ -2695,6 +2695,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'handleToken': 'string?',
     'authenticateRest': 'string?',
     'loadMultiSignAddress': 'string?',
+    // htx fetchAccountIdByType: sole declaration is Task<string> (every path safeString)
+    'fetchAccountIdByType': 'string?',
 };
 
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
