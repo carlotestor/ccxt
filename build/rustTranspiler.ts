@@ -13,7 +13,7 @@ import {
     nativeGetValue, r01TypedLocals, r07StringNatives, hx11RustSignApiStr, hx10w2R08, r05FieldChainInserts, bf03PlainDictChains,
     r02NativeInserts, hx10w2R03, hx10w3R03, r04Scalars, r04Callee, r06Push, r06w3Push, r08DictReads, r10ClientHandle,
     hx10w9Rp02ParamKind, hx10w9Rp02DispatchArg, hx10w9Rp02SplitArgs, hx10w9Rp02RefMapParamNames,
-    narrowStrSinkLocals, narrowStrNullLocals, hx11w9RustDictLitKeyReadIfLetClosureFree,
+    narrowStrSinkLocals, narrowStrNullLocals, hx11w9RustDictLitKeyReadIfLetClosureFree, hx11w9RustArrayLitIndexReadIfLet, hx11w9RustObjectKeysValuesIfLetClosureFree,
 } from 'ast-transpiler';
 
 ansi.nice;
@@ -9268,6 +9268,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
                 rustContent = hx11w9RustDictLitKeyReadIfLetClosureFree(rustContent); // hx11 w9 literal-key if-let, last
+                rustContent = hx11w9RustArrayLitIndexReadIfLet(rustContent); // closure-free literal-index array reads
+                rustContent = hx11w9RustObjectKeysValuesIfLetClosureFree(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10021,6 +10023,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
         finalFile = hx11w9RustDictLitKeyReadIfLetClosureFree(finalFile); // hx11 w9 literal-key if-let, last
+        finalFile = hx11w9RustArrayLitIndexReadIfLet(finalFile); // closure-free literal-index array reads
+        finalFile = hx11w9RustObjectKeysValuesIfLetClosureFree(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
