@@ -241,12 +241,7 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
-        if (symbol === undefined) {
-            market = undefined;
-        } else {
-            market = this.market (symbol);
-        }
+        const market = this.market (symbol);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_cancel_cp';
@@ -2077,7 +2072,7 @@ export default class gate extends gateRest {
                             marketType = parsedChannel[0];
                         }
                         const symbol = this.safeSymbol (payload[i], undefined, '_', marketType);
-                        const messageHashSymbol = parsedChannel[1] + ':' + symbol;
+                        const messageHashSymbol = this.safeString (parsedChannel, 1, '') + ':' + symbol;
                         if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {
                             delete client.subscriptions[messageHashSymbol];
                         }
