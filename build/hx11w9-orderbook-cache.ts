@@ -8,7 +8,7 @@ const HELPER = /(?<![\w])(?:(?:ccxt\.|this\.)?)(AddElementToObject|GetValue|Safe
 const BOOK_VALUE = /^(?:this\.Orderbooks\[[^\]]+\]|this\.Orderbooks\.Get(?:Or)?\(.*\)|this\.(?:Indexed|Counted)?OrderBook\(.*\)|nil)$/;
 // a user-path owner read of the cache: the typed accessor unboxes it at the declaration
 const OWNER_READ = /^this\.WsCacheGet\("Orderbooks", [^()]+\)$/;
-const BOOKS = /this\.Orderbooks|this\.WsCacheGet\("Orderbooks"/;
+const BOOKS = /this\.Orderbooks|this\.WsCacheGet(?:OrderBook)?\("Orderbooks"|this\.WsCacheGetOrderBook\(/;
 const BOOK_CTOR = /^this\.(?:Indexed|Counted)?OrderBook\([^()]*(?:\([^()]*\)[^()]*)*\)$/;
 
 function splitArgs (masked: string, open: number, close: number): Array<[number, number]> {
@@ -129,7 +129,7 @@ function retypeBookLocals (lines: string[], masked: string[], q: string) {
             if (!ok || !cached) {
                 continue;
             }
-            const init = (decl[3] === undefined) || (decl[3].trim () === 'nil') ? '' : ' = ' + (owner ? q + 'OrderBookTyped(' + init0 + ')' : lines[k].substring (lines[k].indexOf (' = ') + 3));
+            const init = (decl[3] === undefined) || (decl[3].trim () === 'nil') ? '' : ' = ' + (owner ? init0.replace ('this.WsCacheGet(', 'this.WsCacheGetOrderBook(').replace ('"Orderbooks", ', '') : lines[k].substring (lines[k].indexOf (' = ') + 3));
             lines[k] = decl[1] + 'var ' + name + ' ' + q + 'OrderBookInterface' + init;
         }
     }
@@ -159,6 +159,8 @@ export function hx11w9OrderBookCachePass (content: string): string {
     }
     const q = /^package ccxt\s*$/m.test (content) ? '' : 'ccxt.';
     content = cacheMethods (content, q);
+    // a nil guard on the owner read compares the typed accessor
+    content = content.replace (/(?<![\w.])(?:ccxt\.)?IsEqual\(this\.WsCacheGet\("Orderbooks", ([^()]+)\), nil\)/g, 'this.WsCacheGetOrderBook($1) == nil');
     const lines = content.split ('\n');
     const masked = goChanMask (content).split ('\n');
     if (lines.length !== masked.length) {
@@ -235,7 +237,7 @@ export function hx11w9OrderBookCacheCheck (): string[] {
     ok (other.indexOf ('var ob any = ') >= 0, 'a local asserted to a map stays any: ' + other);
     // a local from a user-path owner read is typed through the accessor and loses its assertions
     const owner = hx11w9OrderBookAssertPass (hx11w9OrderBookCachePass (wrap ('\tvar ob any = this.WsCacheGet("Orderbooks", symbol)\n\tob.(ccxt.OrderBookInterface).Reset(snapshot)\n\tthis.WsCacheSet("Orderbooks", *symbol, ob)\n')));
-    ok (owner.indexOf ('var ob ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.WsCacheGet("Orderbooks", symbol))') >= 0 && owner.indexOf ('\tob.Reset(snapshot)') >= 0, 'an owner read is typed: ' + owner);
+    ok (owner.indexOf ('var ob ccxt.OrderBookInterface = this.WsCacheGetOrderBook(symbol)') >= 0 && owner.indexOf ('\tob.Reset(snapshot)') >= 0, 'an owner read is typed: ' + owner);
     // an owner-read local that also holds a foreign value keeps its box
     const ownerMixed = hx11w9OrderBookCachePass (wrap ('\tvar ob any = this.WsCacheGet("Orderbooks", symbol)\n\tob = message\n'));
     ok (ownerMixed.indexOf ('var ob any = this.WsCacheGet') >= 0, 'a mixed owner read stays any: ' + ownerMixed);

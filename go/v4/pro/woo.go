@@ -447,11 +447,11 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 			if !ccxt.StructAbsent(r.Value) {
 				snapshot = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 			}
-			if ccxt.IsEqual(this.WsCacheGet("Orderbooks", symbol), nil) {
+			if this.WsCacheGetOrderBook(symbol) == nil {
 
 				return nil
 			}
-			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.WsCacheGet("Orderbooks", symbol))
+			var orderbook ccxt.OrderBookInterface = this.WsCacheGetOrderBook(symbol)
 			orderbook.Reset(snapshot)
 			var messages any = orderbook.GetCache()
 			for i := 0; i < ccxt.GetArrayLength(messages); i++ {

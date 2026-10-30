@@ -544,6 +544,11 @@ func (this *BaseExchange) WsCacheGet(field string, key any) any {
 	return read.value
 }
 
+// WsCacheGetOrderBook is the owner read of a stored order book, nil when absent.
+func (this *BaseExchange) WsCacheGetOrderBook(key any) OrderBookInterface {
+	return OrderBookTyped(this.WsCacheGet("Orderbooks", key))
+}
+
 // WsCacheGetOk is WsCacheGet with the map's comma-ok: loadOrderBook must tell an absent book from
 // a stored one, exactly as `stored, exists := this.Orderbooks[key]` did.
 func (this *BaseExchange) WsCacheGetOk(field string, key any) (any, bool) {

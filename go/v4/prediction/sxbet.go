@@ -3338,7 +3338,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	}
 	var client any = this.Client(url)
 	var isNewSubscription bool = ccxt.IsEqual(client.(ccxt.ClientInterface).SubscriptionSafe(channel), nil)
-	if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
+	if this.WsCacheGetOrderBook(sym) == nil {
 		// seed from the REST snapshot so the book is served before the first publication
 		this.SetWsOption("wsWatchedBooks", sym, marketHash)
 
@@ -3351,7 +3351,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 			snapshot = r2.Value
 		}
 		this.ApplySxbetWsSnapshot(snapshot)
-		if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
+		if this.WsCacheGetOrderBook(sym) == nil {
 			var emptyBook any = this.OrderBook(map[string]any{})
 			this.WsCacheSet("Orderbooks", *sym, emptyBook)
 		}

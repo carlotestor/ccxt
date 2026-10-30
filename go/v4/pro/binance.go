@@ -1301,11 +1301,11 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 			if !ccxt.StructAbsent(r.Value) {
 				snapshot = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 			}
-			if ccxt.IsEqual(this.WsCacheGet("Orderbooks", symbol), nil) {
+			if this.WsCacheGetOrderBook(symbol) == nil {
 
 				return nil
 			}
-			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.WsCacheGet("Orderbooks", symbol))
+			var orderbook ccxt.OrderBookInterface = this.WsCacheGetOrderBook(symbol)
 			orderbook.Reset(snapshot)
 			// unroll the accumulated deltas
 			var messages any = orderbook.GetCache()
