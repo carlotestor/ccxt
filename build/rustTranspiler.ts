@@ -9252,8 +9252,8 @@ impl std::ops::DerefMut for ${coreName} {
                 // handle the drive loop owns (field reads, no `get_value` lookup).
                 rustContent = r10ClientHandle(rustContent);
                 // hx11 W4 P1: `safe_string*` locals whose only sink is a `format!` print a `String`.
-                rustContent = this.narrowStrSinkLocals(rustContent);
-                rustContent = this.narrowStrNullLocals(rustContent); // hx11 W7
+                rustContent = narrowStrSinkLocals(rustContent);
+                rustContent = narrowStrNullLocals(rustContent); // hx11 W7
                 rustContent = this.splitLongIntegerRead(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
