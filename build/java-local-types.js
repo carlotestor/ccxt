@@ -461,11 +461,16 @@ export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base64ToBinary', 'base58ToBin
 
 // the only consumers a byte[] local may feed: this.<m>(..) whose Java parameters are all Object,
 // so the static type change binds the same overload
+// hx11 M523: BaseExchange.binaryLength is declared `int`; its local is only ever fed to numberToString(Object)
+// (Integer boxes identically to the old Object local).
+export const JAVA_INT_HELPER_PLAIN = new Set ([ 'binaryLength' ]);
+const JAVA_INT_CONSUMERS = new Set ([ 'numberToString' ]);
+
 const JAVA_BYTES_CONSUMERS = new Set ([
     'hmac', 'hash', 'eddsa', 'arraySlice', 'binaryToBase16', 'binaryToBase64', 'binaryToBase58', 'binaryConcat',
 ]);
 
-function javaBytesLocalIsSafe (declaration) {
+function javaBytesLocalIsSafe (declaration, consumers = JAVA_BYTES_CONSUMERS) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -477,7 +482,7 @@ function javaBytesLocalIsSafe (declaration) {
             continue; // declaration, sibling-scope declaration or `obj.<name>` member read
         }
         if (!(ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)
-            && JAVA_BYTES_CONSUMERS.has (String (parent.expression.name.text)))) {
+            && consumers.has (String (parent.expression.name.text)))) {
             return false;
         }
     }
@@ -489,7 +494,8 @@ function javaBytesHelperCall (printer, node) {
         return false;
     }
     const name = String (node.expression.name.text);
-    if (!JAVA_BYTES_HELPER_PLAIN.has (name) || LOCAL_THIS_RETURN_TYPES[name]?.type !== 'byte[]') {
+    const wanted = JAVA_BYTES_HELPER_PLAIN.has (name) ? 'byte[]' : JAVA_INT_HELPER_PLAIN.has (name) ? 'int' : undefined;
+    if (wanted === undefined || LOCAL_THIS_RETURN_TYPES[name]?.type !== wanted) {
         return false;
     }
     // the helper is a field alias (`base64ToBinary = base64ToBinary`), so its call signature resolves into
@@ -516,7 +522,10 @@ export function patchJavaBytesHelperLocals (transpiler) {
         }
         let ok = false;
         try {
-            ok = javaBytesHelperCall (printer, declaration.initializer) && javaBytesLocalIsSafe (declaration);
+            const isInt = ts.isCallExpression (declaration.initializer) && ts.isPropertyAccessExpression (declaration.initializer.expression)
+                && JAVA_INT_HELPER_PLAIN.has (String (declaration.initializer.expression.name.text));
+            ok = javaBytesHelperCall (printer, declaration.initializer)
+                && javaBytesLocalIsSafe (declaration, isInt ? JAVA_INT_CONSUMERS : JAVA_BYTES_CONSUMERS);
         } catch (e) {
             ok = false;
         }
@@ -530,7 +539,7 @@ export function patchJavaBytesHelperLocals (transpiler) {
         if (at === -1) {
             return printed;
         }
-        return printed.slice (0, at) + marker.replace (printer.VAR_TOKEN, 'byte[]') + printed.slice (at + marker.length);
+        return printed.slice (0, at) + marker.replace (printer.VAR_TOKEN, LOCAL_THIS_RETURN_TYPES[String (declaration.initializer.expression.name.text)].type) + printed.slice (at + marker.length);
     };
 }
 
@@ -547,6 +556,7 @@ const LOCAL_THIS_RETURN_TYPES = {
     'base16ToBinary': { type: 'byte[]' },
     'binaryConcat': { type: 'byte[]' },
     'binaryConcatArray': { type: 'byte[]' },
+    'binaryLength': { type: 'int' },
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
