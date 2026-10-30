@@ -4142,7 +4142,7 @@ export class BaseExchange {
         if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
             throw new ExchangeError (this.id + '.rateLimit property is not configured');
         }
-        let refillRate = this.MAX_VALUE;
+        let refillRate: number = this.MAX_VALUE;
         if (this.rateLimit > 0) {
             refillRate = 1 / this.rateLimit;
         }
@@ -4157,7 +4157,10 @@ export class BaseExchange {
             'windowSize': this.rollingWindowSize,
             'rateLimit': this.rateLimit,
         };
-        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        let existingBucket: Dict = {};
+        if (this.tokenBucket !== undefined) {
+            existingBucket = this.tokenBucket;
+        }
         this.tokenBucket = this.extend (defaultBucket, existingBucket);
         this.initThrottler ();
     }
