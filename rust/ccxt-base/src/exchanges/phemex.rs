@@ -3637,8 +3637,8 @@ impl PhemexCore {
         if (price == Value::Null) {
             price = self.from_ep(self.safe_string_k(order.clone(), "priceEp", &[]), &[marketResolved.clone()]);
         }
-        let mut amount: Option<f64> = self.safe_number2_opt(order.clone(), Value::Str("orderQty".into()), Value::Str("orderQtyRq".into()), &[]);
-        let mut filled: Option<f64> = self.safe_number2_opt(order.clone(), Value::Str("cumQty".into()), Value::Str("cumQtyRq".into()), &[]);
+        let mut amount: Value = self.safe_number2(order.clone(), Value::Str("orderQty".into()), Value::Str("orderQtyRq".into()), &[]);
+        let mut filled: Value = self.safe_number2(order.clone(), Value::Str("cumQty".into()), Value::Str("cumQtyRq".into()), &[]);
         let mut remaining: Value = self.safe_number2(order.clone(), Value::Str("leavesQty".into()), Value::Str("leavesQtyRq".into()), &[]);
         if (self.safe_string_k(order.clone(), "ordStatus", &[]).as_str() == Some("Untriggered")) {
             // an untriggered order cannot fill, so leaves reads zero while the whole amount is outstanding
@@ -3648,7 +3648,7 @@ impl PhemexCore {
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer_k(order.clone(), "createdAt", &[]);
         }
-        let mut cost: Option<f64> = self.safe_number2_opt(order.clone(), Value::Str("cumValue".into()), Value::Str("cumValueRv".into()), &[]);
+        let mut cost: Value = self.safe_number2(order.clone(), Value::Str("cumValue".into()), Value::Str("cumValueRv".into()), &[]);
         let mut lastTradeTimestamp: Value = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]);
         if (lastTradeTimestamp.as_f64() == Some(0.0)) {
             lastTradeTimestamp = Value::Null;
@@ -3699,10 +3699,10 @@ impl PhemexCore {
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("takeProfitPrice".to_string(), takeProfit.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopLossPrice".to_string(), stopLoss.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), Value::from(amount));
-        m.insert("filled".to_string(), Value::from(filled));
+        m.insert("amount".to_string(), amount);
+        m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), remaining);
-        m.insert("cost".to_string(), Value::from(cost));
+        m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), fee);
@@ -5417,7 +5417,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut maintenanceMarginString: Value = crate::precise::Precise::stringMul(&notionalString, &maintenanceMarginPercentageString);
         let mut initialMarginString: Value = self.safe_string2(position.clone(), Value::Str("assignedPosBalance".into()), Value::Str("assignedPosBalanceRv".into()), &[]);
         let mut initialMarginPercentageString: Value = crate::precise::Precise::stringDiv(&initialMarginString, &notionalString);
-        let mut liquidationPrice: Option<f64> = self.safe_number2_opt(position.clone(), Value::Str("liquidationPrice".into()), Value::Str("liquidationPriceRp".into()), &[]);
+        let mut liquidationPrice: Value = self.safe_number2(position.clone(), Value::Str("liquidationPrice".into()), Value::Str("liquidationPriceRp".into()), &[]);
         let mut markPriceString: Value = self.safe_string2(position.clone(), Value::Str("markPrice".into()), Value::Str("markPriceRp".into()), &[]);
         let mut contracts: Value = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("size".into()), Value::Str("sizeRq".into()), Value::Str("closedSizeRq".into())]), &[]);
         let mut contractSize: Value = self.safe_number_k(marketResolved.clone(), "contractSize", &[]);
@@ -5466,7 +5466,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("realizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("curTermRealisedPnlRv".into()), Value::Str("realizedPnlRv".into()), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(apiUnrealizedPnl, &[]));
         m.insert("leverage".to_string(), leverage);
-        m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
+        m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
         m.insert("notional".to_string(), self.parse_number(notionalString, &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPriceString, &[]));

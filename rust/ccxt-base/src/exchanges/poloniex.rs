@@ -2889,7 +2889,7 @@ impl PoloniexCore {
                 m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
             m
         });
-        let mut triggerPrice: Option<f64> = self.safe_number2_opt(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
+        let mut triggerPrice: Value = self.safe_number2(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
         let requestValueparamsValueVariable: Vec<Value> = self.order_request(symbol, type_var, side, amount, Value::Map(request), &[price, params]).as_array().cloned().unwrap_or_default();
         let mut requestValue: Value = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2907,7 +2907,7 @@ impl PoloniexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        }  else if (triggerPrice.is_some()) {
+        }  else if (triggerPrice != Value::Null) {
             let __ws_arg_13 = self.extend(requestValue.clone(), &[paramsValue.clone()]);
             response = self.private_post_smartorders(&[__ws_arg_13]).await;
         }  else {
@@ -3181,7 +3181,7 @@ impl PoloniexCore {
                 m.insert("id".to_string(), id);
             m
         });
-        let mut triggerPrice: Option<f64> = self.safe_number2_opt(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
+        let mut triggerPrice: Value = self.safe_number2(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
         let requestValueparamsValueVariable: Vec<Value> = self.order_request(symbol, type_var.clone(), side.clone(), amount, Value::Map(request), &[price, params]).as_array().cloned().unwrap_or_default();
         let mut requestValue: Value = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -3189,7 +3189,7 @@ impl PoloniexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (triggerPrice.is_some()) {
+        if (triggerPrice != Value::Null) {
             let __ws_arg_15 = self.extend(requestValue.clone(), &[paramsValue.clone()]);
             response = self.private_put_smartorders_id(&[__ws_arg_15]).await;
         }  else {

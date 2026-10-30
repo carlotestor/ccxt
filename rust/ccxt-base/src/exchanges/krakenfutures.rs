@@ -4575,13 +4575,13 @@ impl KrakenfuturesCore {
             while { if !__for_first_885 { i += 1; } __for_first_885 = false; i < (marginLevels.len() as i64) } {
             let mut tier: Value = marginLevels.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             let mut initialMargin: Option<String> = self.safe_string_k_opt(tier.clone(), "initialMargin", &[]);
-            let mut minNotional: Option<f64> = self.safe_number2_opt(tier.clone(), Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]);
+            let mut minNotional: Value = self.safe_number2(tier.clone(), Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
                     m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-                    m.insert("minNotional".to_string(), Value::from(minNotional));
+                    m.insert("minNotional".to_string(), minNotional);
                     m.insert("maxNotional".to_string(), self.safe_number2(self.safe_value(marginLevels.clone(), self.sum(&[Value::Int(i), Value::Int(1)]), &[]), Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "maintenanceMargin", &[]));
                     m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMargin.clone().map(Value::from).unwrap_or(Value::Null)), &[]));

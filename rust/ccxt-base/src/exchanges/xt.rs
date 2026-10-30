@@ -4145,15 +4145,15 @@ impl XtCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut triggerPrice: Option<f64> = self.safe_number2_opt(paramsOmitted4.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-        let mut stopLoss: Option<f64> = self.safe_number2_opt(paramsOmitted4.clone(), Value::Str("stopLoss".into()), Value::Str("triggerStopPrice".into()), &[]);
-        let mut takeProfit: Option<f64> = self.safe_number2_opt(paramsOmitted4.clone(), Value::Str("takeProfit".into()), Value::Str("triggerProfitPrice".into()), &[]);
+        let mut triggerPrice: Value = self.safe_number2(paramsOmitted4.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut stopLoss: Value = self.safe_number2(paramsOmitted4.clone(), Value::Str("stopLoss".into()), Value::Str("triggerStopPrice".into()), &[]);
+        let mut takeProfit: Value = self.safe_number2(paramsOmitted4.clone(), Value::Str("takeProfit".into()), Value::Str("triggerProfitPrice".into()), &[]);
         let mut trailingPercent: Option<String> = self.safe_string_k_opt(paramsOmitted4.clone(), "trailingPercent", &[]);
         let mut trailingAmount: Option<String> = self.safe_string_k_opt(paramsOmitted4.clone(), "trailingAmount", &[]);
         let mut trailingTriggerPrice: Value = self.safe_number_k(paramsOmitted4.clone(), "trailingTriggerPrice", &[]);
-        let mut isTrigger: bool = triggerPrice.is_some();
-        let mut isStopLoss: bool = stopLoss.is_some();
-        let mut isTakeProfit: bool = takeProfit.is_some();
+        let mut isTrigger: bool = triggerPrice != Value::Null;
+        let mut isStopLoss: bool = stopLoss != Value::Null;
+        let mut isTakeProfit: bool = takeProfit != Value::Null;
         let mut isTrailing: bool = (trailingPercent.is_some()) || (trailingAmount.is_some());
         if isTrailing && (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() trailing orders are only supported on swap markets".into()))));
@@ -4195,7 +4195,7 @@ impl XtCore {
             request.insert("timeInForce".into(), (if (timeInForce == Value::Null) { Value::Str("GTC".into()) } else { timeInForce }));
             request.insert("triggerPriceType".into(), self.safe_string_k(paramsOmitted4.clone(), "triggerPriceType", &[Value::Str("LATEST_PRICE".into())]));
             request.insert("orderSide".into(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
-            request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice));
             let mut entrustType: Value = Value::Str("STOP".into());
             if (type_var.as_str() == Some("market")) {
                 entrustType = Value::Str("STOP_MARKET".into());
@@ -4211,9 +4211,9 @@ impl XtCore {
             }
         }  else if isStopLoss || isTakeProfit {
             if isStopLoss {
-                request.insert("triggerStopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLoss)));
+                request.insert("triggerStopPrice".into(), self.price_to_precision(symbol.clone(), stopLoss));
             }  else {
-                request.insert("triggerProfitPrice".into(), self.price_to_precision(symbol, Value::from(takeProfit)));
+                request.insert("triggerProfitPrice".into(), self.price_to_precision(symbol, takeProfit));
             }
             let mut paramsOmitted: Value = self.omit(paramsOmitted4.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
             if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -7680,11 +7680,11 @@ impl XtCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut stopLoss: Option<f64> = self.safe_number2_opt(params.clone(), Value::Str("stopLoss".into()), Value::Str("triggerStopPrice".into()), &[]);
-        let mut takeProfit: Option<f64> = self.safe_number2_opt(params.clone(), Value::Str("takeProfit".into()), Value::Str("triggerProfitPrice".into()), &[]);
+        let mut stopLoss: Value = self.safe_number2(params.clone(), Value::Str("stopLoss".into()), Value::Str("triggerStopPrice".into()), &[]);
+        let mut takeProfit: Value = self.safe_number2(params.clone(), Value::Str("takeProfit".into()), Value::Str("triggerProfitPrice".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
-        let mut isStopLoss: bool = stopLoss.is_some();
-        let mut isTakeProfit: bool = takeProfit.is_some();
+        let mut isStopLoss: bool = stopLoss != Value::Null;
+        let mut isTakeProfit: bool = takeProfit != Value::Null;
         if isStopLoss || isTakeProfit {
             request.insert("profitId".into(), id.clone());
         }  else {
@@ -7694,9 +7694,9 @@ impl XtCore {
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             if isStopLoss {
-                request.insert("triggerStopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLoss)));
-            }  else if (takeProfit.is_some()) {
-                request.insert("triggerProfitPrice".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfit)));
+                request.insert("triggerStopPrice".into(), self.price_to_precision(symbol.clone(), stopLoss));
+            }  else if (takeProfit != Value::Null) {
+                request.insert("triggerProfitPrice".into(), self.price_to_precision(symbol.clone(), takeProfit));
             }  else {
                 request.insert("origQty".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }

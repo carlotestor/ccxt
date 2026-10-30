@@ -3917,7 +3917,7 @@ impl DigifinexCore {
         let mut currencyId: Value = self.safe_string2(item.clone(), Value::Str("currency_mark".into()), Value::Str("currency".into()), &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
-        let mut amount: Option<f64> = self.safe_number2_opt(item.clone(), Value::Str("num".into()), Value::Str("change".into()), &[]);
+        let mut amount: Value = self.safe_number2(item.clone(), Value::Str("num".into()), Value::Str("change".into()), &[]);
         let mut after: Value = self.safe_number_k(item.clone(), "balance", &[]);
         let mut timestamp: Value = self.safe_timestamp_k(item.clone(), "time", &[]);
         if (timestamp == Value::Null) {
@@ -3933,7 +3933,7 @@ impl DigifinexCore {
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code);
-        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("amount".to_string(), amount);
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), after);
         m.insert("status".to_string(), Value::Null);

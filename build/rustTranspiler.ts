@@ -16,7 +16,6 @@ import {
     narrowStrSinkLocals, narrowStrNullLocals,
     hx11w9RustIntLocalNullSinkOptionI64, hx11w9RustStrLiteralLocalNativeString, hx11w9StrLocalReassign, hx11w9RustBoolKLocalOptionBool,
     hx11w9RustBool2LocalOptionBool, hx11w9RustBoolNLocalOptionBool, hx11w9RustStr2LocalOptionString, hx11w9RustNumber2LocalOptionF64,
-    hx11w9RustNumber2SinkLocalOptionF64R2,
 } from 'ast-transpiler';
 
 ansi.nice;
@@ -9277,7 +9276,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = hx11w9RustBoolNLocalOptionBool(rustContent); // hx11 W9
                 rustContent = hx11w9RustStr2LocalOptionString(rustContent); // hx11 W9
                 rustContent = hx11w9RustNumber2LocalOptionF64(rustContent); // hx11 W9
-                rustContent = hx11w9RustNumber2SinkLocalOptionF64R2(rustContent); // hx11 W9
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
@@ -10038,7 +10036,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = hx11w9RustBoolNLocalOptionBool(finalFile); // hx11 W9
         finalFile = hx11w9RustStr2LocalOptionString(finalFile); // hx11 W9
         finalFile = hx11w9RustNumber2LocalOptionF64(finalFile); // hx11 W9
-        finalFile = hx11w9RustNumber2SinkLocalOptionF64R2(finalFile); // hx11 W9
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:

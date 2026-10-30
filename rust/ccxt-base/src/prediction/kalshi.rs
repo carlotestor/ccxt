@@ -1127,9 +1127,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Option<String> = self.safe_string_lower_k_opt(raw.clone(), "result", &[]);
         let mut resolved: bool = (status.as_deref() == Some("settled")) || ((result.is_some()) && (result.as_deref() != Some("")));
         let mut endDate: Option<String> = self.safe_string_k_opt(raw.clone(), "expiration_time", &[]);
-        let mut volume: Option<f64> = self.safe_number2_opt(raw.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[]);
-        let mut liquidity: Option<f64> = self.safe_number2_opt(raw.clone(), Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[]);
-        let mut openInt: Option<f64> = self.safe_number2_opt(raw.clone(), Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]);
+        let mut volume: Value = self.safe_number2(raw.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[]);
+        let mut liquidity: Value = self.safe_number2(raw.clone(), Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[]);
+        let mut openInt: Value = self.safe_number2(raw.clone(), Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]);
         // Derive series ticker: drop last hyphen-segment from event_ticker
         let mut seriesTicker: Value = eventTicker.clone().map(Value::from).unwrap_or(Value::Null);
         if (eventTicker.is_some()) && (eventTicker.as_deref() != Some("")) {
@@ -1208,9 +1208,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("seriesTicker".to_string(), seriesTicker.clone());
         m.insert("subtitle".to_string(), subtitle.clone());
         m.insert("outcomeLabel".to_string(), label);
-        m.insert("volume".to_string(), Value::from(volume));
-        m.insert("liquidity".to_string(), Value::from(liquidity));
-        m.insert("openInterest".to_string(), Value::from(openInt));
+        m.insert("volume".to_string(), volume.clone());
+        m.insert("liquidity".to_string(), liquidity.clone());
+        m.insert("openInterest".to_string(), openInt.clone());
     m
 }));
                 m
@@ -1290,9 +1290,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("eventTicker".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("seriesTicker".to_string(), seriesTicker);
         m.insert("subtitle".to_string(), subtitle);
-        m.insert("volume".to_string(), Value::from(volume));
-        m.insert("liquidity".to_string(), Value::from(liquidity));
-        m.insert("openInterest".to_string(), Value::from(openInt));
+        m.insert("volume".to_string(), volume);
+        m.insert("liquidity".to_string(), liquidity);
+        m.insert("openInterest".to_string(), openInt);
     m
 })]));
         m.insert("created".to_string(), Value::Null);

@@ -1566,17 +1566,17 @@ if _try_result.is_err() {
             }  else {
                 triggerOrderSide = Value::Str("buy".into());
             }
-            let mut stopLossOrderTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+            let mut stopLossOrderTriggerPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
             let mut stopLossOrderType: Value = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("limit".into())]);
-            let mut stopLossOrderLimitPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[Value::from(stopLossOrderTriggerPrice)]);
-            let mut takeProfitOrderTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+            let mut stopLossOrderLimitPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[stopLossOrderTriggerPrice.clone()]);
+            let mut takeProfitOrderTriggerPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
             let mut takeProfitOrderType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("limit".into())]);
-            let mut takeProfitOrderLimitPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[Value::from(takeProfitOrderTriggerPrice)]);
+            let mut takeProfitOrderLimitPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[takeProfitOrderTriggerPrice.clone()]);
             // amount should be 0 for child orders
             if (stopLoss != Value::Null) {
                 let __ws_arg_9 = self.create_order_request(symbol.clone(), stopLossOrderType, triggerOrderSide.clone(), Value::Int(0), &[stopLossOrderLimitPrice, self.extend(paramsRequest.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("stopLossPrice".to_string(), Value::from(stopLossOrderTriggerPrice));
+        m.insert("stopLossPrice".to_string(), stopLossOrderTriggerPrice);
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })])]);
@@ -1590,7 +1590,7 @@ if _try_result.is_err() {
             if (takeProfit != Value::Null) {
                 let __ws_arg_10 = self.create_order_request(symbol, takeProfitOrderType, triggerOrderSide, Value::Int(0), &[takeProfitOrderLimitPrice, self.extend(paramsRequest, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("takeProfitPrice".to_string(), Value::from(takeProfitOrderTriggerPrice));
+        m.insert("takeProfitPrice".to_string(), takeProfitOrderTriggerPrice);
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })])]);

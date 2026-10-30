@@ -9070,16 +9070,16 @@ impl BybitCore {
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("createTime".into()), Value::Str("successAt".into()), &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updateTime", &[]);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut feeCost: Option<f64> = self.safe_number2_opt(transaction.clone(), Value::Str("depositFee".into()), Value::Str("withdrawFee".into()), &[]);
+        let mut feeCost: Value = self.safe_number2(transaction.clone(), Value::Str("depositFee".into()), Value::Str("withdrawFee".into()), &[]);
         let mut type_var: Value = Value::Str("withdrawal".into());
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositFee"))) {
             type_var = Value::Str("deposit".into());
         }
         let mut fee: Value = Value::Null;
-        if (feeCost.is_some()) {
+        if (feeCost != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), Value::from(feeCost));
+                    m.insert("cost".to_string(), feeCost);
                     m.insert("currency".to_string(), code.clone());
                 m
             });

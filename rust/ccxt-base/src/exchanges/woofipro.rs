@@ -2307,11 +2307,11 @@ impl WoofiproCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(interest.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = self.safe_integer_k(interest.clone(), "timestamp", &[]);
-        let mut amount: Option<f64> = self.safe_number2_opt(interest.clone(), Value::Str("open_interest".into()), Value::Str("openInterest".into()), &[]);
+        let mut amount: Value = self.safe_number2(interest.clone(), Value::Str("open_interest".into()), Value::Str("openInterest".into()), &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("openInterestAmount".to_string(), Value::from(amount));
+        m.insert("openInterestAmount".to_string(), amount);
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

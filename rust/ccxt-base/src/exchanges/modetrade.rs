@@ -2775,7 +2775,7 @@ impl ModetradeCore {
         let mut filled: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("executed".into()), Value::Str("totalExecutedQuantity".into()), &[]));
         let mut average: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("average_executed_price".into()), Value::Str("averageExecutedPrice".into()), &[]));
         let mut remaining: Value = crate::precise::Precise::stringSub(&cost, &filled);
-        let mut fee: Option<f64> = self.safe_number2_opt(order.clone(), Value::Str("total_fee".into()), Value::Str("totalFee".into()), &[]);
+        let mut fee: Value = self.safe_number2(order.clone(), Value::Str("total_fee".into()), Value::Str("totalFee".into()), &[]);
         let mut feeCurrency: Value = self.safe_string2(order.clone(), Value::Str("fee_asset".into()), Value::Str("feeAsset".into()), &[]);
         let mut transactions: Value = self.safe_list_k(order.clone(), "Transactions", &[]);
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "triggerPrice", &[]);
@@ -2821,7 +2821,7 @@ impl ModetradeCore {
         m.insert("trades".to_string(), transactions);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::from(fee));
+        m.insert("cost".to_string(), fee);
         m.insert("currency".to_string(), feeCurrency);
     m
 }));

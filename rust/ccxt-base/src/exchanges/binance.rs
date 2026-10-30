@@ -9776,8 +9776,8 @@ impl BinanceCore {
         if postOnly.as_bool() == Some(true) {
             uppercaseType = Value::Str("LIMIT_MAKER".into());
         }
-        let mut triggerPrice: Option<f64> = self.safe_number2_opt(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
-        if (triggerPrice.is_some()) {
+        let mut triggerPrice: Value = self.safe_number2(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
+        if (triggerPrice != Value::Null) {
             if (uppercaseType.as_str() == Some("MARKET")) {
                 uppercaseType = Value::Str("STOP_LOSS".into());
             }  else if (uppercaseType.as_str() == Some("LIMIT")) {
@@ -9852,10 +9852,10 @@ impl BinanceCore {
             request.insert("timeInForce".into(), self.handle_option(Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[])); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if triggerPriceIsRequired {
-            if (triggerPrice.is_none()) {
+            if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a triggerPrice extra param for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
             }  else {
-                request.insert("stopPrice".into(), self.price_to_precision(symbol, Value::from(triggerPrice)));
+                request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice));
             }
         }
         request.insert("cancelReplaceMode".into(), Value::Str("STOP_ON_FAILURE".into())); // If the cancel request fails, the new order placement will not be attempted.
@@ -14065,13 +14065,13 @@ impl BinanceCore {
         }
         let mut status: Value = self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var.clone()]).map(Value::from).unwrap_or(Value::Null);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
-        let mut feeCost: Option<f64> = self.safe_number2_opt(transaction.clone(), Value::Str("transactionFee".into()), Value::Str("totalFee".into()), &[]);
+        let mut feeCost: Value = self.safe_number2(transaction.clone(), Value::Str("transactionFee".into()), Value::Str("totalFee".into()), &[]);
         let mut fee: Value = Value::Null;
-        if (feeCost.is_some()) {
+        if (feeCost != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone());
-                    m.insert("cost".to_string(), Value::from(feeCost));
+                    m.insert("cost".to_string(), feeCost);
                 m
             });
         }
@@ -18996,19 +18996,19 @@ if _try_result.is_err() {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer2(interest.clone(), Value::Str("timestamp".into()), Value::Str("time".into()), &[]);
         let mut id: Option<String> = self.safe_string_k_opt(interest.clone(), "symbol", &[]);
-        let mut amount: Option<f64> = self.safe_number2_opt(interest.clone(), Value::Str("sumOpenInterest".into()), Value::Str("openInterest".into()), &[]);
-        let mut value: Option<f64> = self.safe_number2_opt(interest.clone(), Value::Str("sumOpenInterestValue".into()), Value::Str("sumOpenInterestUsd".into()), &[]);
+        let mut amount: Value = self.safe_number2(interest.clone(), Value::Str("sumOpenInterest".into()), Value::Str("openInterest".into()), &[]);
+        let mut value: Value = self.safe_number2(interest.clone(), Value::Str("sumOpenInterestValue".into()), Value::Str("sumOpenInterestUsd".into()), &[]);
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         let mut isInverse: Value = self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]);
-        let mut baseVolume: Value = (if isInverse.as_bool() == Some(true) { Value::Null } else { Value::from(amount) });
+        let mut baseVolume: Value = (if isInverse.as_bool() == Some(true) { Value::Null } else { amount.clone() });
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(id.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Null, Value::Str("contract".into())]));
         m.insert("baseVolume".to_string(), baseVolume);
-        m.insert("quoteVolume".to_string(), Value::from(value));
-        m.insert("openInterestAmount".to_string(), Value::from(amount));
-        m.insert("openInterestValue".to_string(), Value::from(value));
+        m.insert("quoteVolume".to_string(), value.clone());
+        m.insert("openInterestAmount".to_string(), amount);
+        m.insert("openInterestValue".to_string(), value);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
