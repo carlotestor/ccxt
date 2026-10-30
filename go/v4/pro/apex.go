@@ -500,9 +500,9 @@ func (this *Apex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url any = this.GetWsPublicUrl()
-	var messageHash string = "ticker:" + *symbolValue
+	var messageHash string = "ticker:" + symbolValue
 	var marketId *string = this.SafeString(market, "id2", "")
 	var topics []any = []any{"instrumentInfo" + ".H." + *marketId}
 

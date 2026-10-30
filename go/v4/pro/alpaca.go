@@ -223,12 +223,12 @@ func (this *Alpaca) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"bars":   []any{market["id"]},
 	}
-	var messageHash string = "ohlcv:" + *symbolValue
+	var messageHash string = "ohlcv:" + symbolValue
 
 	r2 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	if r2.Err != nil {
@@ -316,8 +316,8 @@ func (this *Alpaca) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "orderbook" + ":" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook" + ":" + symbolValue
 	var request map[string]any = map[string]any{
 		"action":     "subscribe",
 		"orderbooks": []any{market["id"]},
@@ -427,8 +427,8 @@ func (this *Alpaca) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trade:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trade:" + symbolValue
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"trades": []any{market["id"]},

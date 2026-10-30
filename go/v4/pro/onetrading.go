@@ -213,9 +213,9 @@ func (this *Onetrading) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var subscriptionHash string = "MARKET_TICKER"
-	var messageHash string = "ticker." + *symbolValue
+	var messageHash string = "ticker." + symbolValue
 	var request map[string]any = map[string]any{
 		"type": "SUBSCRIBE",
 		"channels": []any{map[string]any{
@@ -481,8 +481,8 @@ func (this *Onetrading) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "book:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "book:" + symbolValue
 	var subscriptionHash string = "ORDER_BOOK"
 	var depth any = 0
 	if limit != nil {
@@ -1292,15 +1292,15 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var marketId *string = this.SafeString(market, "id", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId map[string]any = ccxt.SafeMapTyped(timeframes, timeframe)
 	if timeframeId == nil {
 		panic(ccxt.NotSupported(this.Id + " this interval is not supported, please provide one of the supported timeframes"))
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbolValue+".", timeframe))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+symbolValue+".", timeframe))
 	var subscriptionHash string = "CANDLESTICKS"
 	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
 	var typeVar string = "SUBSCRIBE"
@@ -1320,11 +1320,11 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	}
 	var subscriptionMarketId map[string]any = ccxt.SafeMapTyped(subscription, marketId)
 	if subscriptionMarketId == nil {
-		if marketId != nil {
+		if !ccxt.IsEqual(marketId, nil) {
 			ccxt.AddElementToObject(subscription, marketId, map[string]any{})
 		}
 	}
-	if (marketId != nil) && (timeframe != nil) {
+	if (!ccxt.IsEqual(marketId, nil)) && (timeframe != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(subscription, marketId), timeframe, true)
 	}
 	var properties []any = []any{}

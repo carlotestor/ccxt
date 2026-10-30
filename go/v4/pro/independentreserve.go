@@ -81,7 +81,7 @@ func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
@@ -89,7 +89,7 @@ func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 	var baseId *string = this.SafeString(market, "base", "")
 	var quoteId *string = this.SafeString(market, "quote", "")
 	var url string = *wsUrl + "?subscribe=ticker-" + *baseId + "-" + *quoteId
-	var messageHash string = "trades:" + *symbolValue
+	var messageHash string = "trades:" + symbolValue
 
 	r1 := <-this.Watch(url, messageHash, nil, messageHash)
 	if r1.Err != nil {
@@ -201,7 +201,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 100
@@ -216,7 +216,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	var baseId *string = this.SafeString(market, "base", "")
 	var quoteId *string = this.SafeString(market, "quote", "")
 	var url string = *wsUrl + "/orderbook/" + *limitString + "?subscribe=" + *baseId + "-" + *quoteId
-	var messageHash string = "orderbook:" + *symbolValue + ":" + *limitString
+	var messageHash string = "orderbook:" + symbolValue + ":" + *limitString
 	var subscription map[string]any = map[string]any{
 		"receivedSnapshot": false,
 	}

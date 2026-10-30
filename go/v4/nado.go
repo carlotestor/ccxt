@@ -2566,7 +2566,7 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 
 	r1 := <-this.FetchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -2575,7 +2575,7 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
 	var ticker map[string]any = SafeMapTyped(tickers, symbolValue)
 	if ticker == nil {
-		panic(BadSymbol(this.Id + " fetchTicker() ticker not found for " + *symbolValue))
+		panic(BadSymbol(this.Id + " fetchTicker() ticker not found for " + symbolValue))
 	}
 
 	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}

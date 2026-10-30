@@ -7064,7 +7064,7 @@ func (this *Hyperliquid) ParseCreateEditOrderArgs(id any, symbol any, typeVar an
 	var market map[string]any = this.Market(symbol)
 	vaultAddressOption, params2 := this.HandleOptionStringAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var order map[string]any = map[string]any{
 		"symbol": symbolValue,
 		"type":   typeVar,

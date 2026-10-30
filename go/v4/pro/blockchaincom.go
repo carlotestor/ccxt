@@ -192,9 +192,9 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV]
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var messageHash string = "ohlcv:" + *symbolValue
+	var messageHash string = "ohlcv:" + symbolValue
 	var request map[string]any = map[string]any{
 		"action":      "subscribe",
 		"channel":     "prices",
@@ -296,9 +296,9 @@ func (this *Blockchaincom) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = "ticker:" + *symbolValue
+	var messageHash string = "ticker:" + symbolValue
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "ticker",
@@ -433,9 +433,9 @@ func (this *Blockchaincom) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = "trades:" + *symbolValue
+	var messageHash string = "trades:" + symbolValue
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "trades",

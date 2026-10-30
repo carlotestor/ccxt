@@ -4482,11 +4482,11 @@ func (this *Krakenfutures) ParseKrakenAccountName(account string) any {
 		var market map[string]any = this.Market(account)
 		var marketId *string = this.SafeString(market, "id", "")
 		var splitId []string = strings.Split(*marketId, "_")
-		var splitMarketId *string = this.SafeString(splitId, 1, "")
+		var splitMarketId string = *this.SafeString(splitId, 1, "")
 		if market["inverse"] == true {
-			return "fi_" + *splitMarketId
+			return "fi_" + splitMarketId
 		} else {
-			return "fv_" + *splitMarketId
+			return "fv_" + splitMarketId
 		}
 	} else {
 		return account

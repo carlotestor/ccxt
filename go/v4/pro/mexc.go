@@ -2464,16 +2464,13 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			}
 		} else if strings.Index(*messageHash, "candles") >= 0 {
 			var splitHashes []string = strings.Split(*messageHash, ":")
-			var candlesSymbol any
-			if derefPtr := this.SafeString(splitHashes, 2, ""); derefPtr != nil {
-				candlesSymbol = *derefPtr
-			}
+			var candlesSymbol string = *this.SafeString(splitHashes, 2, "")
 			var splitHashesLength int = len(splitHashes) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 			if splitHashesLength > 4 {
-				candlesSymbol = ccxt.Add(candlesSymbol, ":"+*this.SafeString(splitHashes, 3, ""))
+				candlesSymbol += ":" + *this.SafeString(splitHashes, 3, "")
 			}
-			if ccxt.InOp(this.Ohlcvs, candlesSymbol) {
-				ccxt.Remove(this.Ohlcvs, candlesSymbol)
+			if _, ok := this.Ohlcvs[candlesSymbol]; ok {
+				delete(this.Ohlcvs, candlesSymbol)
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:orderbook:", "", 1)
