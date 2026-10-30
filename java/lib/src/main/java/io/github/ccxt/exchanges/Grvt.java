@@ -787,8 +787,8 @@ public class Grvt extends GrvtApi
             {
                 throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
             }
-            (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
-            (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+            (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+            (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
             (this.loadAccountInfos()).join();
             return true;
         });
@@ -2194,7 +2194,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public List<Object> filterTransfersByType(Object transfers, String transferType, Boolean onlyMainAccount)
+    public Object filterTransfersByType(Object transfers, String transferType, Boolean onlyMainAccount)
     {
         List<Object> matchedResults = new ArrayList<Object>(Arrays.asList());
         List<Object> nonMatchedResults = new ArrayList<Object>(Arrays.asList());
@@ -2715,7 +2715,7 @@ public class Grvt extends GrvtApi
         return Helpers.parseInt(x);
     }
 
-    public Map<String, Object> eipMessageForOrder(Map<String, Object> order, String structureType)
+    public Object eipMessageForOrder(Map<String, Object> order, String structureType)
     {
         Integer priceMultiplier = 1000000000;
         List<Object> orderLegs = (List<Object>) this.safeList(order, "legs", new ArrayList<Object>(Arrays.asList()));
@@ -2724,8 +2724,8 @@ public class Grvt extends GrvtApi
         {
             Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
             Map<String, Object> market = this.market(((Map<String, Object>)leg).get("instrument"));
-            Object precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
-            Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(precisionValue, null)));
+            int precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
+            Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(String.valueOf(precisionValue)));
             String size = this.safeString(leg, "size");
             if (java.util.Objects.equals(size, null))
             {
@@ -3824,7 +3824,7 @@ public class Grvt extends GrvtApi
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public Map<String, Object> createSignedRequest(Map<String, Object> request, String structureType, Object currencyObj, String signerAddress)
+    public Map<String, Object> createSignedRequest(Map<String, Object> request, Object structureType, Object currencyObj, String signerAddress)
     {
         Map<String, Object> messageData = null;
         Map<String, Object> requestSignature = (Map<String, Object>) this.safeDict(request, "signature", new HashMap<String, Object>() {{}});
@@ -3867,7 +3867,7 @@ public class Grvt extends GrvtApi
             }
         } else if (java.util.Objects.equals(structureType, "EIP712_ORDER_TYPE") || java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE"))
         {
-            messageData = this.eipMessageForOrder(request, (String) (structureType));
+            messageData = (Map<String, Object>) this.eipMessageForOrder(request, (String) (structureType));
         } else if (java.util.Objects.equals(structureType, "EIP712_BUILDER_APPROVAL_TYPE"))
         {
             Object amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
@@ -3896,8 +3896,8 @@ public class Grvt extends GrvtApi
         Map<String,Object> signature = ecdsa(this.hash(ethEncodedMessage, keccak(), "hex"), privateKeyWithoutZero, secp256k1(), null);
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
-        mapLiteral6.put("r", this.formatSignatureRS((String) (signature.get("r"))));
-        mapLiteral6.put("s", this.formatSignatureRS((String) (signature.get("s"))));
+        mapLiteral6.put("r", this.formatSignatureRS(signature.get("r")));
+        mapLiteral6.put("s", this.formatSignatureRS(signature.get("s")));
         mapLiteral6.put("v", this.sum(27, signature.get("v")));
         mapLiteral6.put("expiration", requestSignature.get("expiration"));
         mapLiteral6.put("nonce", requestSignature.get("nonce"));
@@ -3906,7 +3906,7 @@ public class Grvt extends GrvtApi
         return request;
     }
 
-    public String formatSignatureRS(String value)
+    public String formatSignatureRS(Object value)
     {
         String padded = (((String)value).length() >= 64 ? ((String)value).substring(((String)value).length() - 64) : String.format("%" + (64 - ((String)value).length()) + "s", "").replace(' ', '0') + ((String)value));
         if ((padded.startsWith(((String)"0x"))))

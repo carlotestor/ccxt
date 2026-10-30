@@ -8292,6 +8292,7 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
     'seconds': 'Long',
     'parse8601': 'Long',
     'parseTimeframe': 'int',
+    'precisionFromString': 'int', // hx11 w9 m532: BaseExchange `int precisionFromString(Object)`, never null
     // SafeMethods.safeTimestampN converts the default through toLongQuiet as well
     'safeTimestamp': 'Long',
     'safeTimestamp2': 'Long',
@@ -8327,7 +8328,7 @@ const JAVA_NUMERIC_METHOD_RETURN_TYPES = {
 // printed from an overload-stripped temp copy (`Exchange.nooverloads.<pid>.ts`, see
 // build/stripOverloads.ts), so both spellings are accepted. A call resolving anywhere
 // else (a venue override, a same-named venue helper) is left `Object`.
-const NUMERIC_BASE_TIER_DECLARATION_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|PredictionExchange(\.nooverloads\.\d+)?\.ts|functions[\\/](type|time|misc)\.ts)$/;
+const NUMERIC_BASE_TIER_DECLARATION_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|PredictionExchange(\.nooverloads\.\d+)?\.ts|functions[\\/](type|time|misc|number)\.ts)$/;
 // `milliseconds = now` where `now = Date.now` (ts/src/base/functions/time.ts), so a
 // `this.milliseconds()` call resolves to the Date.now signature in whichever
 // typescript package the resolution cache nests it under.

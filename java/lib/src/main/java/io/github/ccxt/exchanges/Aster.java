@@ -1154,7 +1154,7 @@ public class Aster extends AsterApi
         }});
     }
 
-    public Boolean isInverse(String type, String subType)
+    public Boolean isInverse(Object type, String subType)
     {
         if (java.util.Objects.equals(subType, null))
         {
@@ -1165,7 +1165,7 @@ public class Aster extends AsterApi
         }
     }
 
-    public Boolean isLinear(String type, String subType)
+    public Boolean isLinear(Object type, String subType)
     {
         if (java.util.Objects.equals(subType, null))
         {
@@ -3966,7 +3966,7 @@ public class Aster extends AsterApi
             //     ]
             //
             List<Object> modifications = this.parseMarginModifications(this.toArray(response), (List<String>) null, (String) null, (Object) null);
-            return this.filterBySymbolSinceLimit(modifications, symbol, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v3 -> hx4J40v3; case Number hx4J40v3 -> Long.valueOf(hx4J40v3.longValue()); case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v3.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v2 -> hx4J40v2; case Number hx4J40v2 -> Long.valueOf(hx4J40v2.longValue()); case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v2.getClass().getName()); })), false);
+            return this.filterBySymbolSinceLimit(modifications, symbol, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v2 -> hx4J40v2; case Number hx4J40v2 -> Long.valueOf(hx4J40v2.longValue()); case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v2.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v1 -> hx4J40v1; case Number hx4J40v1 -> Long.valueOf(hx4J40v1.longValue()); case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v1.getClass().getName()); })), false);
         }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
 
     }
@@ -4058,7 +4058,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper((String) (symbol), amount, 2, parameters)).join();
+            return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4078,7 +4078,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper((String) (symbol), amount, 1, parameters)).join();
+            return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4365,7 +4365,7 @@ public class Aster extends AsterApi
                     }
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     String leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    int quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
                 } else
                 {
@@ -4382,7 +4382,7 @@ public class Aster extends AsterApi
                     }
                     String leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    int basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
                 }
             }
@@ -4578,7 +4578,7 @@ public class Aster extends AsterApi
 
     }
 
-    public List<Object> parseAccountPositions(Map<String, Object> account, Object filterClosed)
+    public Object parseAccountPositions(Map<String, Object> account, Object filterClosed)
     {
         List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
@@ -4766,8 +4766,8 @@ public class Aster extends AsterApi
                 String rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
-            Object pricePrecisionPlusOne = ((Object) (switch ((Object) (pricePrecision)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; }));
+            int pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
+            Object pricePrecisionPlusOne = (((long) pricePrecision) + 1L);
             // round half up
             String pricePrecisionPlusOneString = this.numberToString(pricePrecisionPlusOne);
             String rounderString = ("5e-" + pricePrecisionPlusOneString);
@@ -4848,7 +4848,7 @@ public class Aster extends AsterApi
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> response = (this.fapiPrivateGetV4Account(parameters)).join();
             Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchAccountPositions", "filterClosed", false)).get(0);
-            List<Object> result = this.parseAccountPositions(response, filterClosed);
+            List<Object> result = (List<Object>) this.parseAccountPositions(response, filterClosed);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         });
@@ -4919,9 +4919,9 @@ public class Aster extends AsterApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public String signMessage(Object message, String privateKey)
+    public String signMessage(Object message, Object privateKey)
     {
-        return this.signHash((String) (this.keccakMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
+        return this.signHash(this.keccakMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
     public String signWithdrawPayload(Object withdrawPayload, Object network)
@@ -4971,7 +4971,7 @@ public class Aster extends AsterApi
             put( "aster chain", "Mainnet" );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, request);
-        String signature = this.signMessage(msg, (String) (this.privateKey));
+        String signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -5154,7 +5154,7 @@ public class Aster extends AsterApi
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
-    public String signHash(String hash, String privateKey)
+    public String signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials(true);
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
@@ -5218,7 +5218,7 @@ public class Aster extends AsterApi
             mapLiteral10.put("nonce", String.valueOf(nonce));
             mapLiteral10.put("user", walletAddress);
             mapLiteral10.put("signer", signerAddress);
-            Map<String, Object> finalParams = this.extend(mapLiteral10, parameters);
+            Object finalParams = this.extend(mapLiteral10, parameters);
             String paramString = null;
             Object paramsToEncode = null;
             Boolean isApproveBuilder = (((String)path).indexOf("/approveBuilder") >= 0);
@@ -5247,11 +5247,11 @@ public class Aster extends AsterApi
 }})) );
                 }};
                 ((Map<String,Object>)finalParams).remove("signer"); // signer is not needed for approveBuilder endpoint
-                paramString = this.encodeValuesWithJson(finalParams);
-                paramsToEncode = this.capitalizeKeys(finalParams);
+                paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
+                paramsToEncode = this.capitalizeKeys((Map<String, Object>) (finalParams));
             } else
             {
-                paramString = this.encodeValuesWithJson(finalParams);
+                paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
                 {
                     HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                     hx4NewMap0.put("msg", paramString);
@@ -5259,7 +5259,7 @@ public class Aster extends AsterApi
                 }
             }
             Object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
-            String signature = this.signMessage(encodedMessage, (String) (this.privateKey));
+            String signature = this.signMessage(encodedMessage, this.privateKey);
             String queryString = (((paramString + "&") + "signature=") + signature);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
@@ -5305,7 +5305,7 @@ public class Aster extends AsterApi
         return (encodedString == null ? null : ((String)encodedString).substring(0, Math.max(((String)encodedString).length() - 1, 0)));
     }
 
-    public Map<String, Object> capitalizeKeys(Map<String, Object> dict)
+    public Object capitalizeKeys(Map<String, Object> dict)
     {
         Map<String, Object> capitalized = new HashMap<String, Object>() {{}};
         List<String> keys = new ArrayList<String>(dict.keySet());
