@@ -3687,7 +3687,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10G10Pass (content);  // hx10 G10: plain ws cache maps on BaseExchange
     content = hx10G02Pass (content);  // hx10 W3 G02: ws caches owned by the exchange dispatch loop
     content = hx11w9OrderBookCachePass (content);  // hx11 w9: the order book cache's own methods, book locals typed
-    content = g04BookSides (content);  // hx11 w9: callers typed by the cache pass now prove a book param
+    content = g04BookSides (content, /^HandleOrderBookMessage$/);  // hx11 w9: a book param whose callers the cache pass typed
     content = hx10w4OG01Pass (content);  // hx10 W4 OG01: balance cache owned by the same loop
     content = hx10w6G01BalanceOwner (content);  // hx10 wave6 G01: typed balance field and account views
     content = hx10w9GB10BalanceWrites (content);  // hx10 wave9 GB10: native Balance stores after the owner passes
