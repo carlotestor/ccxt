@@ -426,12 +426,12 @@ export const JAVA_STRING_HELPER_PLAIN = new Set ([
     'json', 'urlencode', 'urlencodeNested', 'urlencodeWithArrayRepeat', 'urlencodeBase64',
     'rawencode', 'stringToBase64', 'binaryToBase64', 'binaryToBase16', 'intToBase16',
     'jwt', 'rsa', 'totp', 'decode', 'uuid', 'uuidv1', 'uuid16', 'uuid22', 'uuid5',
-    'capitalize', 'numberToString', 'decimalToPrecision',
+    'capitalize', 'numberToString', 'decimalToPrecision', 'hmac', 'eddsa',
 ]);
 
 // declared `Object` in Java, String-or-null on every audited path — (String) checkcast
 export const JAVA_STRING_HELPER_CAST = new Set ([
-    'implodeParams', 'implodeHostname', 'hmac', 'eddsa',
+    'implodeParams', 'implodeHostname',
 ]);
 
 // bare-callable names (see the paragraph above): the generated tree calls exactly these
@@ -503,8 +503,8 @@ const LOCAL_THIS_RETURN_TYPES = {
     'decimalToPrecision': { type: 'String' },
     'implodeParams': { type: 'String', cast: '(String)' },
     'implodeHostname': { type: 'String', cast: '(String)' },
-    'hmac': { type: 'String', cast: '(String)' },
-    'eddsa': { type: 'String', cast: '(String)' },
+    'hmac': { type: 'String' },
+    'eddsa': { type: 'String' },
 };
 
 // ===== market/currency structure locals =====
