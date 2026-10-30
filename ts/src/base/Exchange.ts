@@ -8069,7 +8069,7 @@ export class BaseExchange {
         return result as any;
     }
 
-    parseFundingRateHistories (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
+    parseFundingRateHistories (response: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -8105,7 +8105,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLongShortRatio() is not supported yet');
     }
 
-    parseLongShortRatioHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
+    parseLongShortRatioHistory (response: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
         const rates: LongShortRatio[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
