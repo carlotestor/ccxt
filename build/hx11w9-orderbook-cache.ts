@@ -130,6 +130,57 @@ function retypeBookLocals (lines: string[], masked: string[], q: string) {
     }
 }
 
+// per declaration block: sibling `var name any` decls that only hold cache reads / nil are typed apart
+function bookScope (masked: string[], k: number, end: number): number {
+    const tabs = (l: string) => l.length - l.replace (/^\t+/, '').length;
+    const depth = tabs (masked[k]);
+    for (let j = k + 1; j < end; j++) {
+        if ((tabs (masked[j]) < depth) && /^\t*\}/.test (masked[j])) {
+            return j;
+        }
+    }
+    return end;
+}
+
+function retypeScopedBookLocals (lines: string[], masked: string[], q: string) {
+    for (const [ start, end ] of funcRanges (lines)) {
+        if (!masked.slice (start, end).some ((l) => l.indexOf ('this.Orderbooks') >= 0)) {
+            continue;
+        }
+        for (let k = start + 1; k < end; k++) {
+            const decl = /^(\s*)var (\w+) any$/.exec (masked[k]);
+            if (decl === null) {
+                continue;
+            }
+            const n = esc (decl[2]);
+            const text = masked.slice (k + 1, bookScope (masked, k, end)).join ('\n');
+            const rebinding = new RegExp ('(?<![\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*:?=(?!=)|&\\s*' + n + '\\b|func\\([^)]*\\b' + n + '\\b|(?<![\\w.])var ' + n + '\\b');
+            const otherType = new RegExp ('(?<![\\w.])' + n + '\\.\\((?!(?:ccxt\\.)?OrderBookInterface\\))');
+            const anyWrite = new RegExp ('(?<![\\w.&*])' + n + '\\s*(?:,\\s*\\w+\\s*)*=(?!=)');
+            const write = new RegExp ('^\\s*' + n + ' = (.*)$');
+            if (rebinding.test (text) || otherType.test (text)) {
+                continue;
+            }
+            let ok = true;
+            let cached = false;
+            for (const l of text.split ('\n')) {
+                if (!anyWrite.test (l)) {
+                    continue;
+                }
+                const w = write.exec (l);
+                if ((w === null) || !BOOK_VALUE.test (w[1].trim ())) {
+                    ok = false;
+                    break;
+                }
+                cached = cached || /this\.Orderbooks/.test (w[1]);
+            }
+            if (ok && cached) {
+                lines[k] = decl[1] + 'var ' + decl[2] + ' ' + q + 'OrderBookInterface';
+            }
+        }
+    }
+}
+
 // `this.Orderbooks[k] = v` where v is not provably a book stores through the cache
 function anyStores (lines: string[], masked: string[]) {
     for (const [ start, end ] of funcRanges (lines)) {
@@ -160,6 +211,7 @@ export function hx11w9OrderBookCachePass (content: string): string {
         return content;
     }
     retypeBookLocals (lines, masked, q);
+    retypeScopedBookLocals (lines, masked, q);
     anyStores (lines, goChanMask (lines.join ('\n')).split ('\n'));
     return lines.join ('\n');
 }
@@ -191,6 +243,32 @@ export function hx11w9OrderBookAssertPass (content: string): string {
             for (const f of found) {
                 const at = f.index as number;
                 lines[k] = lines[k].substring (0, at) + f[1] + lines[k].substring (at + f[0].length);
+            }
+        }
+    }
+    return lines.join ('\n');
+}
+
+// a typed book declared in a block loses the assertion inside that block
+export function hx11w9OrderBookScopedAssertPass (content: string): string {
+    if (content.indexOf ('this.Orderbooks') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goChanMask (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    for (const [ start, end ] of funcRanges (lines)) {
+        for (let k = start + 1; k < end; k++) {
+            const decl = /^\s*var (\w+) (?:ccxt\.)?OrderBookInterface$/.exec (masked[k]);
+            if (decl === null) {
+                continue;
+            }
+            const stop = bookScope (masked, k, end);
+            const call = new RegExp ('(?<![\\w.])(' + esc (decl[1]) + ')\\.\\((?:ccxt\\.)?OrderBookInterface\\)', 'g');
+            for (let j = k + 1; j < stop; j++) {
+                lines[j] = lines[j].replace (call, (m: string, name: string, at: number) => (masked[j].substring (at, at + m.length) === m) ? name : m);
             }
         }
     }
@@ -234,5 +312,11 @@ export function hx11w9OrderBookCacheCheck (): string[] {
     // the base package prints the unqualified type
     const base = hx11w9OrderBookCachePass ('package ccxt\n\nfunc (this *BaseExchange) F() {\n\tvar ob any = this.Orderbooks[*symbol]\n\tob.(OrderBookInterface).Reset()\n}\n');
     ok (base.indexOf ('var ob OrderBookInterface = this.Orderbooks[*symbol]') >= 0, 'base package is unqualified: ' + base);
+    // sibling blocks: a nil-guarded cache read is typed per block, a foreign write keeps its block any
+    const sib = hx11w9OrderBookScopedAssertPass (hx11w9OrderBookCachePass (wrap ([
+        '\tif a {', '\t\tvar ob any', '\t\tif symbol != nil {', '\t\t\tob = this.Orderbooks[*symbol]', '\t\t}', '\t\tob.(ccxt.OrderBookInterface).Reset(snapshot)', '\t} else {',
+        '\t\tvar ob any', '\t\tob = message', '\t\tob.(ccxt.OrderBookInterface).Reset(snapshot)', '\t}', '' ].join ('\n'))));
+    ok (sib.indexOf ('\t\tvar ob ccxt.OrderBookInterface\n') >= 0 && sib.indexOf ('\t\tob.Reset(snapshot)') >= 0, 'nil-guard block is typed: ' + sib);
+    ok (sib.indexOf ('\t\tvar ob any\n') >= 0 && sib.indexOf ('ob.(ccxt.OrderBookInterface).Reset') >= 0, 'foreign block keeps any: ' + sib);
     return problems;
 }

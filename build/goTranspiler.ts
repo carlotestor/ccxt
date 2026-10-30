@@ -18,7 +18,7 @@ import { goErrValuePass, goErrSelfTest } from './go-err.js';
 import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { hx11w9BookDeltaParams, hx11w9BookDeltaCheck } from './hx11w9-bookdelta-param.js';  // hx11 w9: book param of handleBookDelta(s)
-import { hx11w9OrderBookCachePass, hx11w9OrderBookAssertPass, hx11w9OrderBookCacheCheck } from './hx11w9-orderbook-cache.js';  // hx11 w9: typed ws order book cache
+import { hx11w9OrderBookCachePass, hx11w9OrderBookAssertPass, hx11w9OrderBookScopedAssertPass, hx11w9OrderBookCacheCheck } from './hx11w9-orderbook-cache.js';  // hx11 w9: typed ws order book cache
 import { g06MapReads, g06MapReadsSelfTest } from './hx10w2-G06.js';
 import { g09Pass, g09Check } from './hx10w2-G09.js';
 import { g09w3Pass, g09w3Check } from './hx10w3-G09.js';
@@ -3721,6 +3721,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = g04NativeBookReads (content);  // hx11 w8: the guarded cache read unboxes with a native assertion
     content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
     content = hx11w9OrderBookAssertPass (content);  // hx11 w9: after the setters used it as proof, a typed book needs no assertion
+    content = hx11w9OrderBookScopedAssertPass (content);  // hx11 w9: same, per declaration block
     content = hx11w8TickerReadPass (content);  // hx11 w8: TickerMapFromMap(snapshot) sends read the typed cache
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
     content = hx11w8WT01Pass (content);  // hx11 w8 WT01: watchTickerBody indexes the typed ticker map
