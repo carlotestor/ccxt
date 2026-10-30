@@ -3382,11 +3382,11 @@ impl HashkeyCore {
          * @returns {object} request to be sent to the exchange
          */
         let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-        let mut typeValue: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut typeValue: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("type".to_string(), typeValue.clone());
             m
         });
@@ -3470,7 +3470,7 @@ impl HashkeyCore {
         if (reduceOnly.as_bool() == Some(true)) {
             suffix = Value::Str("_CLOSE".into());
         }
-        request.insert("side".into(), Value::Str(format!("{}{}", side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), suffix).into()));
+        request.insert("side".into(), Value::Str(format!("{}{}", (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), suffix).into()));
         let timeInForceParamparamsTimeInForceVariable: Vec<Value> = self.handle_param_string(paramsReduceOnly, Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut timeInForceParam: Value = timeInForceParamparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = timeInForceParamparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -4820,7 +4820,7 @@ impl HashkeyCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut marginModeUpper: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut marginModeUpper: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut marginModeValue: Value = (if (marginModeUpper.as_str() == Some("CROSSED")) { Value::Str("CROSS".into()) } else { marginModeUpper });
         if (marginModeValue.as_str() != Some("CROSS")) && (marginModeValue.as_str() != Some("ISOLATED")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".into()))));

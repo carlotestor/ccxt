@@ -3037,8 +3037,8 @@ impl DeriveCore {
         let mut reduceOnly: Value = self.safe_bool2(paramsDeriveSubaccountId.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut timeInForce: Value = self.safe_string_lower2(paramsDeriveSubaccountId.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut postOnly: Value = self.safe_bool_k(paramsDeriveSubaccountId.clone(), "postOnly", &[]);
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
         // Order signature expiry must be between 2592000 and 7776000 sec from now
@@ -3220,8 +3220,8 @@ impl DeriveCore {
         let mut reduceOnly: Value = self.safe_bool2(paramsDeriveSubaccountId.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut timeInForce: Value = self.safe_string_lower2(paramsDeriveSubaccountId.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut postOnly: Value = self.safe_bool_k(paramsDeriveSubaccountId.clone(), "postOnly", &[]);
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
         let mut signatureExpiry: Value = self.safe_number_k(paramsDeriveSubaccountId.clone(), "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),

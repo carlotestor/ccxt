@@ -5815,7 +5815,7 @@ impl BybitCore {
             }
             if (lastLiquidityInd != Value::Null) {
                 if (lastLiquidityInd.as_str() == Some("TAKER")) || (lastLiquidityInd.as_str() == Some("MAKER")) {
-                    takerOrMaker = lastLiquidityInd.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                    takerOrMaker = (if let Some(__s) = lastLiquidityInd.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 }  else {
                     takerOrMaker = (if (lastLiquidityInd.as_str() == Some("AddedLiquidity")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
                 }
@@ -6259,7 +6259,7 @@ impl BybitCore {
         if (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
             type_var = subType;
         }
-        let mut lowercaseRawType: Value = (if (type_var != Value::Null) { type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) } else { Value::Null });
+        let mut lowercaseRawType: Value = (if (type_var != Value::Null) { (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) } else { Value::Null });
         let mut isSpot: bool = type_var.as_str() == Some("spot");
         let mut isLinear: bool = type_var.as_str() == Some("linear");
         let mut isInverse: bool = type_var.as_str() == Some("inverse");
@@ -6761,7 +6761,7 @@ impl BybitCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut lowerCaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut lowerCaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -9465,7 +9465,7 @@ impl BybitCore {
         let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut networkId: Value = self.network_code_to_id(networkCode, &[code]);
         if (networkId != Value::Null) {
-            request.insert("chain".into(), networkId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            request.insert("chain".into(), (if let Some(__s) = networkId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         }
         let __ws_arg_46 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.private_post_v5_asset_withdraw_create(&[__ws_arg_46]).await;

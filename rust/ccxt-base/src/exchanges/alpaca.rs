@@ -1927,7 +1927,7 @@ impl AlpacaCore {
         let mut defaultTIF: Value = defaultTIFparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request.insert("time_in_force".into(), (if (defaultTIF != Value::Null) { defaultTIF.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) } else { defaultTIF }));
+        request.insert("time_in_force".into(), (if (defaultTIF != Value::Null) { (if let Some(__s) = defaultTIF.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) } else { defaultTIF }));
         let mut paramsOmitted: Value = self.omit(paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
         request.insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
@@ -2203,7 +2203,7 @@ impl AlpacaCore {
         let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         if (timeInForce != Value::Null) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            request.insert("time_in_force".into(), timeInForce.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+            request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         }
         request.insert("client_order_id".into(), self.generate_client_order_id(paramsTimeInForce.clone()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);

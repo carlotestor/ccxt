@@ -1432,7 +1432,7 @@ impl BitoproCore {
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned no side".into()))));
         }
-        side = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        side = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("amount".into()), Value::Str("originalAmount".into()), &[]);
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "pair", &[]);
@@ -1522,7 +1522,7 @@ impl BitoproCore {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (orderType.as_str() == Some("LIMIT")) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }

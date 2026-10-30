@@ -5855,7 +5855,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut code: Value = currencyId.clone();
         if (currencyId != Value::Null) {
-            code = self.common_currency_code(currencyId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            code = self.common_currency_code((if let Some(__s) = currencyId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8268,7 +8268,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut lowercaseAccount: Value = (match &(account) { Value::Str(__s) => Value::Str(__s.to_lowercase().into()), _ => Value::Null });
+        let mut lowercaseAccount: Value = (if let Some(__s) = (account).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         if (matches!((&accountsByType, &lowercaseAccount), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return (if let (Some(__m), Some(__k)) = (accountsByType.as_map(), lowercaseAccount.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }

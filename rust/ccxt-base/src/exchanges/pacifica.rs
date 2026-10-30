@@ -2435,7 +2435,7 @@ if _try_result.is_err() {
         });
         let mut operationType: String = "create_order".to_string();
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]);
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(params.clone(), "triggerPrice", &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]);
@@ -3626,7 +3626,7 @@ if _try_result.is_err() {
         });
         let mut tif: Value = Value::Null;
         if (tifRaw != Value::Null) {
-            tif = tifRaw.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            tif = (if let Some(__s) = tifRaw.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         }
         return self.safe_string(Value::Map(tifMap), tif, &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
 }

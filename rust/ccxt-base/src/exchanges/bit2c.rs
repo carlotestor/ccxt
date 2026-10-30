@@ -597,7 +597,7 @@ impl Bit2cCore {
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currency: Value = self.currency(code.clone());
             let mut currencyId: Value = self.safe_string_k(currency, "id", &[Value::Str("".into())]);
-            let mut uppercase: Value = currencyId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut uppercase: Value = (if let Some(__s) = currencyId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             if (self.safe_string(response.clone(), uppercase.clone(), &[]) != Value::Null) {
                 account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[]));
                 account.insert("total".into(), self.safe_string(response.clone(), uppercase, &[]));

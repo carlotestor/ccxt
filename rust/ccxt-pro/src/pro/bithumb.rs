@@ -1544,7 +1544,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if matches!(&message, Value::Str(_)) {
-            let mut content: Value = message.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut content: Value = (if let Some(__s) = message.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             if (content.as_str() == Some("pong")) {
                 self.handle_pong(client.clone(), message.clone());
                 return;

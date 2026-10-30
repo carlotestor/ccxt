@@ -2557,7 +2557,7 @@ impl HollaexCore {
                 if (networkCode == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".into()))));
                 }
-                let mut networkCodeUpper: Value = networkCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null); // default to the upper case network code
+                let mut networkCodeUpper: Value = (if let Some(__s) = networkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // default to the upper case network code
                 let mut withdrawalFee: Value = self.safe_number_k(value, "value", &[]);
                 networks.insert(crate::runtime::stringify_param(&networkCodeUpper), Value::Map({
     let mut m = indexmap::IndexMap::new();

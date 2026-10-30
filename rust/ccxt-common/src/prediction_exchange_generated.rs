@@ -313,7 +313,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // of the same tag compare equal — venues surface tags in different forms and callers
         // pass any of them. keeping the word boundary avoids cross-word false positives that
         // plain concatenation would create ("us open" vs "household")
-        let mut lower: Value = tag.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut lower: Value = (if let Some(__s) = tag.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".into());
         let mut chars: Vec<Value> = self.string_to_chars_array(lower).as_array().cloned().unwrap_or_default();
         let mut s: Value = Value::Str("".into());
@@ -663,7 +663,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut stopWords: Value = Value::from(vec![Value::Str("will".into()), Value::Str("the".into()), Value::Str("a".into()), Value::Str("an".into()), Value::Str("after".into()), Value::Str("before".into()), Value::Str("in".into()), Value::Str("at".into()), Value::Str("by".into()), Value::Str("of".into()), Value::Str("there".into()),
             Value::Str("be".into()), Value::Str("to".into()), Value::Str("or".into()), Value::Str("and".into()), Value::Str("for".into()), Value::Str("on".into()), Value::Str("its".into()), Value::Str("that".into()), Value::Str("this".into()), Value::Str("from".into()), Value::Str("with".into()), Value::Str("as".into()), Value::Str("is".into()),
             Value::Str("are".into()), Value::Str("was".into()), Value::Str("were".into()), Value::Str("?".into()), Value::Str("how".into()), Value::Str("many".into()), Value::Str("who".into()), Value::Str("what".into()), Value::Str("when".into()), Value::Str("where".into()), Value::Str("which".into()), Value::Str("much".into())]);
-        let mut lower: Value = (if (slug == Value::Null) { Value::Str("".into()) } else { slug.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) });
+        let mut lower: Value = (if (slug == Value::Null) { Value::Str("".into()) } else { (if let Some(__s) = slug.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
         let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".into());
         let mut chars: Vec<Value> = self.string_to_chars_array(lower).as_array().cloned().unwrap_or_default();
         let mut s: Value = Value::Str("".into());
@@ -707,7 +707,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         }
         let mut joined: Value = Value::Str(parts.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("_").into());
-        return joined.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        return (if let Some(__s) = joined.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
 
     Value::Null
 }
@@ -739,7 +739,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        let mut upper: Value = (if (outcome == Value::Null) { Value::Str("".into()) } else { outcome.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) });
+        let mut upper: Value = (if (outcome == Value::Null) { Value::Str("".into()) } else { (if let Some(__s) = outcome.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) });
         let mut allowed: Value = Value::Str("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".into());
         let mut chars: Vec<Value> = self.string_to_chars_array(upper.clone()).as_array().cloned().unwrap_or_default();
         let mut label: Value = Value::Str("".into());
@@ -861,7 +861,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
                         }
-                        ocSymbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", ocSymbol, Value::Str("_".into())).into()), suffix.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)).into());
+                        ocSymbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", ocSymbol, Value::Str("_".into())).into()), (if let Some(__s) = suffix.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into());
                     }
                 }
                 add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol.clone());
@@ -1077,7 +1077,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             return Value::Null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        let mut normalized: Value = (marketPart.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.replace("-", "_").into())).unwrap_or_else(|| (marketPart.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).clone());
+        let mut normalized: Value = ((if let Some(__s) = marketPart.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).as_str().map(|__s| Value::Str(__s.replace("-", "_").into())).unwrap_or_else(|| ((if let Some(__s) = marketPart.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).clone());
         let mut rawWords: Vec<Value> = Value::Array(normalized.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut words: Vec<Value> = Vec::new();
         let mut hasLetters: bool = false;

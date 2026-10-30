@@ -4181,7 +4181,7 @@ impl BitstampCore {
 }
 
     pub fn get_currency_name(&self, mut code: Value) -> Option<String> {
-        return code.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return (if let Some(__s) = code.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
 }
 
     pub fn is_fiat(&self, mut code: Value) -> Value {

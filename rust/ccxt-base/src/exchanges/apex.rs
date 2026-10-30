@@ -1820,7 +1820,7 @@ impl ApexCore {
 }
 
     pub fn add_hyphen_before_usdt(&self, mut symbol: Value) -> Option<String> {
-        let mut uppercaseSymbol: Value = symbol.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut uppercaseSymbol: Value = (if let Some(__s) = symbol.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut index: Value = Value::Int(uppercaseSymbol.as_str().and_then(|__s| __s.find("USDT")).map(|__i| __i as i64).unwrap_or(-1));
         let mut symbolChar: Option<String> = self.safe_string(symbol.clone(), (match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null }), &[]).as_str().map(str::to_owned);
@@ -1886,9 +1886,9 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
-        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut orderSize: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut orderPrice: Value = Value::Str("0".into());
         if (price != Value::Null) {
@@ -2050,7 +2050,7 @@ impl ApexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut isContract: bool = fromAccount.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == Some("contract");
+        let mut isContract: bool = (if let Some(__s) = fromAccount.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == Some("contract");
         let mut assets: Value = self.safe_list_k(spotConfig, "assets", &[Value::from(vec![])]);
         if isContract {
             assets = self.safe_list_k(contractConfig, "assets", &[Value::from(vec![])]);
@@ -2774,7 +2774,7 @@ impl ApexCore {
         });
         let mut signPath: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), path).into());
         let mut signBody: Value = Value::Null;
-        if (method.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null).as_str() != Some("POST")) {
+        if ((if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() != Some("POST")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 signPath = Value::Str(format!("{}{}", signPath, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());
@@ -2786,7 +2786,7 @@ impl ApexCore {
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-            let mut messageString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)).into()), signPath).into());
+            let mut messageString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), signPath).into());
             if (signBody != Value::Null) {
                 messageString = Value::Str(format!("{}{}", messageString, signBody).into());
             }

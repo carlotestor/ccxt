@@ -776,7 +776,7 @@ impl BinanceCore {
     pub fn get_stock_ticker_from_symbol(&self, mut symbol: Value) -> Option<String> {
         let mut market: Value = self.market(symbol);
         let mut base: Value = self.safe_string2(market, Value::Str("base".into()), Value::Str("id".into()), &[]);
-        return (if (base == Value::Null) { Value::Null } else { base.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) }).as_str().map(str::to_owned);
+        return (if (base == Value::Null) { Value::Null } else { (if let Some(__s) = base.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) }).as_str().map(str::to_owned);
 }
 
     pub fn get_stock_unified_symbol(&self, mut stockSymbol: Value, optional_args: &[Value]) -> Option<String> {
@@ -2488,7 +2488,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut stockSymbolString: Value = self.symbol(self.safe_string(stockSymAndTf.clone(), Value::Int(0), &[Value::Str("".into())]));
                 let mut stockMarket: Value = self.market(stockSymbolString);
                 let mut stockTicker: Value = self.safe_string2(stockMarket.clone(), Value::Str("base".into()), Value::Str("id".into()), &[]);
-                let mut stockTickerString: Value = (if (stockTicker == Value::Null) { Value::Str("".into()) } else { stockTicker.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) });
+                let mut stockTickerString: Value = (if (stockTicker == Value::Null) { Value::Str("".into()) } else { (if let Some(__s) = stockTicker.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
                 let mut stockTimeframeString: Value = self.safe_string(stockSymAndTf, Value::Int(1), &[Value::Str("".into())]);
                 let mut stockInterval: Value = self.safe_string(self.timeframes.clone(), stockTimeframeString.clone(), &[stockTimeframeString.clone()]);
                 if (stockInterval.as_str() != Some("5m")) && (stockInterval.as_str() != Some("1h")) && (stockInterval.as_str() != Some("1d")) && (stockInterval.as_str() != Some("1w")) && (stockInterval.as_str() != Some("1M")) {

@@ -439,7 +439,7 @@ impl BitgetCore {
         let mut paramsInstType: Value = instTypeOptionparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut instType: Value = instTypeOption.clone();
         if uta && (instTypeOption != Value::Null) {
-            instType = instTypeOption.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            instType = (if let Some(__s) = instTypeOption.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         }
         return Value::from(vec![instType, paramsInstType]);
 

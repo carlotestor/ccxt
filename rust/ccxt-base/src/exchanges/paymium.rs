@@ -588,7 +588,7 @@ impl PaymiumCore {
         let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut baseId: Value = self.safe_string_k(marketResolved.clone(), "base", &[Value::Str("".into())]);
-        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), baseId.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).into());
+        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), (if let Some(__s) = baseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
         let mut amount: Option<String> = self.safe_string_opt(trade.clone(), amountField, &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();

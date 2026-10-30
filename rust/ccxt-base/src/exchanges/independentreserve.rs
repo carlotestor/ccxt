@@ -1727,7 +1727,7 @@ impl IndependentreserveCore {
             });
             query.insert("apiKey".into(), self.apiKey.clone());
             query.insert("nonce".into(), nonce);
-            query.insert("signature".into(), signature.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            query.insert("signature".into(), (if let Some(__s) = signature.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_837: bool = true;

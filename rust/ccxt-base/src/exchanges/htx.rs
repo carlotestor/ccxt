@@ -4072,7 +4072,7 @@ impl HtxCore {
                 quoteId = spotQuoteId.clone().map(Value::from).unwrap_or(Value::Null);
                 let mut spotId: Value = Value::Str(format!("{}{}", spotBaseId.map(Value::from).unwrap_or(Value::Null), spotQuoteId.map(Value::from).unwrap_or(Value::Null)).into());
                 id = spotId.clone();
-                lowercaseId = spotId.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                lowercaseId = (if let Some(__s) = spotId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             }
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -7936,7 +7936,7 @@ impl HtxCore {
             request.insert("margin_mode".into(), marginMode);
             request.insert("side".into(), side.clone());
             if (timeInForce != Value::Null) {
-                request.insert("time_in_force".into(), timeInForce.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+                request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
             }
             let mut stopLoss: Value = self.safe_dict_k(query.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_dict_k(query.clone(), "takeProfit", &[]);

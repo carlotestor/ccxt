@@ -2293,7 +2293,7 @@ impl TokocryptoCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]);
-        let mut requestedType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut requestedType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut requestedTimeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
         let mut isMarketOrder: Value = (Value::Bool(requestedType.as_str() == Some("MARKET")));
         // GTX is the venue spelling of post only, on top of the two unified spellings
@@ -2311,7 +2311,7 @@ impl TokocryptoCore {
         if postOnly.as_bool() == Some(true) {
             timeInForceResolved = Value::Null;
         }
-        let mut initialUppercaseType: Value = typeResolved.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut initialUppercaseType: Value = (if let Some(__s) = typeResolved.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut uppercaseType: Value = initialUppercaseType.clone();
         let mut triggerPrice: Value = self.safe_value2(params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut paramsRequest: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into())]), &[]);
@@ -3293,7 +3293,7 @@ impl TokocryptoCore {
         let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut networkId: Value = self.network_code_to_id(networkCode, &[code]);
         if (networkId != Value::Null) {
-            request.insert("network".into(), networkId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            request.insert("network".into(), (if let Some(__s) = networkId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.private_post_open_v1_withdraws(&[__ws_arg_19]).await;

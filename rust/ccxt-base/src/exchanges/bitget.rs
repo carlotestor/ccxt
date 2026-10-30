@@ -6630,7 +6630,7 @@ if _try_result.is_err() {
             if (network == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a network argument".into()))));
             }
-            network = network.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            network = (if let Some(__s) = network.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut withdrawableString: Option<String> = self.safe_string_k(chain.clone(), "withdrawable", &[]).as_str().map(str::to_owned);
             let mut rechargeableString: Option<String> = self.safe_string_k(chain.clone(), "rechargeable", &[]).as_str().map(str::to_owned);
             let mut withdrawable: Value = (Value::Bool(withdrawableString.as_deref() == Some("true")));
@@ -10119,7 +10119,7 @@ if _try_result.is_err() {
             let mut timeInForce: Value = Value::Null;
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsProductType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if (timeInForce != Value::Null) {
-                timeInForce = timeInForce.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+                timeInForce = (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             }
             if postOnly.as_bool() == Some(true) {
                 request.insert("timeInForce".into(), Value::Str("post_only".into()));
@@ -10229,7 +10229,7 @@ if _try_result.is_err() {
         let mut timeInForce: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsMarketType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (timeInForce != Value::Null) {
-            timeInForce = timeInForce.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            timeInForce = (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         }
         if postOnly.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("post_only".into())); }
@@ -14775,7 +14775,7 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
         }
-        let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         if (marginModeValue.as_str() == Some("cross")) {
             marginModeValue = Value::Str("crossed".into());
         }

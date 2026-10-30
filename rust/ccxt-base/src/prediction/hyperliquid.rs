@@ -462,7 +462,7 @@ impl HyperliquidCore {
         if (side.as_f64() == Some(0.0)) {
             label = Value::Str("YES".into());
         }
-        let mut base: Value = underlying.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut base: Value = (if let Some(__s) = underlying.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (targetPrice.as_str() != Some("")) {
             base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_ABOVE_".into())).into()), targetPrice).into());
         }
@@ -508,7 +508,7 @@ impl HyperliquidCore {
             if (expiryDate.as_str() != Some("")) {
                 expiryPart = Value::Str(format!("{}{}", Value::Str("_".into()), expiryDate).into());
             }
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", underlying.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), targetPart).into()), expiryPart).into()).as_str().map(str::to_owned);
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", (if let Some(__s) = underlying.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), targetPart).into()), expiryPart).into()).as_str().map(str::to_owned);
         }
         let mut questionDescription: Value = (match question.get("description") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (questionDescription != Value::Null) && (questionDescription.as_str() != Some("")) {
@@ -529,7 +529,7 @@ impl HyperliquidCore {
                 let mut thresholdsRaw: Value = self.safe_string_k(questionDesc, "priceThresholds", &[Value::Str("".into())]);
                 let mut indexStr: Option<String> = self.safe_string_k_opt(desc.clone(), "index", &[]);
                 let mut rawDescription: Option<String> = self.safe_string_lower_k(desc, "description", &[Value::Str("".into())]).as_str().map(str::to_owned);
-                let mut nameLower: Value = name.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                let mut nameLower: Value = (if let Some(__s) = name.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 if ((questionUnderlying.is_some()) && (questionUnderlying.as_deref() != Some(""))) && (thresholdsRaw.as_str() != Some("")) && (indexStr.is_some()) {
                     let mut thresholdParts: Vec<Value> = Value::Array(thresholdsRaw.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     let mut thresholds: Value = Value::from(vec![]);
@@ -1622,7 +1622,7 @@ impl HyperliquidCore {
         let __market_empty = indexmap::IndexMap::new();
         let market = market.as_map().unwrap_or(&__market_empty);
         let mut outcomesList: Value = (match market.get("outcomes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut normalizedHint: Value = (if ((sideHint != Value::Null) && (sideHint.as_str() != Some(""))) { sideHint.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) } else { Value::Null });
+        let mut normalizedHint: Value = (if ((sideHint != Value::Null) && (sideHint.as_str() != Some(""))) { (if let Some(__s) = sideHint.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) } else { Value::Null });
         if (normalizedHint != Value::Null) {
             {
                                 let mut i: i64 = 0;
@@ -1682,7 +1682,7 @@ impl HyperliquidCore {
                 return side.as_str().map(str::to_owned);
             }
         }
-        let mut lower: Value = outcomeInput.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut lower: Value = (if let Some(__s) = outcomeInput.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         if (lower.as_str().unwrap_or("").ends_with("-yes")) {
             return Value::Str("YES".into()).as_str().map(str::to_owned);
         }
@@ -1799,8 +1799,8 @@ impl HyperliquidCore {
     m
 })]);
         let mut nonce: Value = self.incrementing_nonce();
-        let mut isBuy: Value = (Value::Bool(side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null).as_str() == Some("BUY")));
-        let mut isMarket: bool = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null).as_str() == Some("MARKET");
+        let mut isBuy: Value = (Value::Bool((if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("BUY")));
+        let mut isMarket: bool = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET");
         let mut assetId: Value = self.safe_integer_k(outcomeInfo, "assetId", &[]);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
@@ -2431,7 +2431,7 @@ impl HyperliquidCore {
                 m.insert("stop market".to_string(), Value::Str("market".into()));
             m
         });
-        let mut statusLower: Value = (if ((status != Value::Null) && (status.as_str() != Some(""))) { status.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) } else { Value::Null });
+        let mut statusLower: Value = (if ((status != Value::Null) && (status.as_str() != Some(""))) { (if let Some(__s) = status.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) } else { Value::Null });
         return self.safe_string(Value::Map(statuses), statusLower.clone(), &[statusLower.clone()]).as_str().map(str::to_owned);
 }
 
@@ -2444,7 +2444,7 @@ impl HyperliquidCore {
                 m.insert("alo".to_string(), Value::Str("PO".into()));
             m
         });
-        let mut tifLower: Value = (if ((timeInForce != Value::Null) && (timeInForce.as_str() != Some(""))) { timeInForce.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) } else { Value::Null });
+        let mut tifLower: Value = (if ((timeInForce != Value::Null) && (timeInForce.as_str() != Some(""))) { (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) } else { Value::Null });
         return self.safe_string(Value::Map(statuses), tifLower, &[timeInForce]).as_str().map(str::to_owned);
 }
 
@@ -2683,7 +2683,7 @@ impl HyperliquidCore {
             let mut __for_first_1245: bool = true;
             while { if !__for_first_1245 { i += 1; } __for_first_1245 = false; i < (queries.len() as i64) } {
             let mut queryString: Value = queries.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut lowerQueries { std::sync::Arc::make_mut(__a).push(queryString.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)); }
+            if let Value::Arr(__a) = &mut lowerQueries { std::sync::Arc::make_mut(__a).push((if let Some(__s) = queryString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })); }
         }
         }
         let mut lowerQueriesLength: f64 = ((lowerQueries.len() as i64) as f64);
@@ -2704,7 +2704,7 @@ impl HyperliquidCore {
             if lowerQueriesLength > ((0i64) as f64) {
                 let mut description: Value = (self.safe_string_k(info, "description", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
                 let mut parentSymbolOrEmpty: Value = (if (parentSymbol != Value::Null) { parentSymbol.clone() } else { Value::Str("".into()) });
-                let mut symLower: Value = parentSymbolOrEmpty.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                let mut symLower: Value = (if let Some(__s) = parentSymbolOrEmpty.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                 let mut haystack: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", description, Value::Str(" ".into())).into()), symLower).into());
@@ -3147,7 +3147,7 @@ if _try_result.is_err() {
         if (normalized.as_str().unwrap_or("").starts_with("0x")) || (normalized.as_str().unwrap_or("").starts_with("0X")) {
             normalized = normalized.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
-        return normalized.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return (if let Some(__s) = normalized.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

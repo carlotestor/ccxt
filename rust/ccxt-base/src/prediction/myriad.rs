@@ -822,7 +822,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_4]).await;
             let mut questions: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
             let mut questionsLength: f64 = ((questions.len() as i64) as f64);
-            let mut idLower: Value = id.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut idLower: Value = (if let Some(__s) = id.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1336: bool = true;
@@ -835,8 +835,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut qSlug: Value = self.safe_string_k(q.clone(), "slug", &[Value::Str("".into())]);
                 let mut qTitle: Value = self.safe_string_k(q.clone(), "title", &[Value::Str("".into())]);
                 let mut qHandle: Value = self.shorten_slug(qSlug.clone());
-                if (qId.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == idLower.as_str()) || (qSlug.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == idLower.as_str()) || (qTitle.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() ==
-                    idLower.as_str()) || ((qHandle != Value::Null) && (qHandle.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == idLower.as_str())) {
+                if ((if let Some(__s) = qId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == idLower.as_str()) || ((if let Some(__s) = qSlug.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == idLower.as_str()) || ((if let Some(__s) = qTitle.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() ==
+                    idLower.as_str()) || ((qHandle != Value::Null) && ((if let Some(__s) = qHandle.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == idLower.as_str())) {
                     return q;
                 }
             }
@@ -1138,7 +1138,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Option<String> = self.safe_string_k_opt(info.clone(), "networkId", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "marketId", &[]);
         let mut outcomeId: Value = self.safe_integer_k(info, "outcomeId", &[]);
-        let mut sideStr: Value = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut sideStr: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_id".to_string(), self.parse_to_int(marketId.map(Value::from).unwrap_or(Value::Null)));
@@ -1393,8 +1393,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parsed: Value = self.parse_prediction_order(wrapper, &[outcomeObj]);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
         // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-        let mut sideStr: Value = (if (side == Value::Null) { Value::Null } else { side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) });
-        let mut typeStr: Value = (if (type_var == Value::Null) { Value::Str("limit".into()) } else { type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) });
+        let mut sideStr: Value = (if (side == Value::Null) { Value::Null } else { (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
+        let mut typeStr: Value = (if (type_var == Value::Null) { Value::Str("limit".into()) } else { (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
         if (self.safe_string_k(parsed.clone(), "side", &[]) == Value::Null) {
             if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("side".to_string(), sideStr); }
         }
@@ -1443,8 +1443,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "marketId", &[]);
         let mut outcomeId: Value = self.safe_integer_k(info, "outcomeId", &[Value::Int(0)]);
         let mut trader: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
-        let mut typeStr: Value = (if (type_var == Value::Null) { Value::Str("limit".into()) } else { type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) });
-        let mut sideStr: Value = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut typeStr: Value = (if (type_var == Value::Null) { Value::Str("limit".into()) } else { (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
+        let mut sideStr: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut sideInt: Value = (if (sideStr.as_str() == Some("buy")) { Value::Int(0) } else { Value::Int(1) });
         let mut isMarket: bool = typeStr.as_str() == Some("market");
         let mut defaultTif: Value = Value::Str("GTC".into());
@@ -1611,7 +1611,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        let mut sideLower: Value = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut sideLower: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut isCostDenominated: Value = self.safe_bool_k(params.clone(), "costDenominated", &[Value::Bool(false)]);
         if (sideLower.as_str() == Some("buy")) && (!(isCostDenominated.as_bool() == Some(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order".into()))));
@@ -1740,7 +1740,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut s: Value = sRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut v: Value = self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]);
         let mut sigHex: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r).into()), s).into()), self.int_to_base16(v, &[])).into());
-        return sigHex.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return (if let Some(__s) = sigHex.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
 }
 
 /*
@@ -2868,7 +2868,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (stripped.as_str() == Some("")) {
             return None;
         }
-        let mut chars: Vec<Value> = self.string_to_chars_array(stripped.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+        let mut chars: Vec<Value> = self.string_to_chars_array((if let Some(__s) = stripped.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).as_array().cloned().unwrap_or_default();
         let mut n: f64 = ((chars.len() as i64) as f64);
         let mut digits: Value = Value::Str("0123456789abcdef".into());
         let mut result: Value = Value::Str("0".into());
@@ -4628,7 +4628,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn wallet_address_or_undefined(&self) -> Option<String> {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
-            return self.walletAddress.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+            return (if let Some(__s) = self.walletAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
         }
         if (self.privateKey.clone() != Value::Null) {
             return (self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -5197,7 +5197,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
-            return self.walletAddress.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+            return (if let Some(__s) = self.walletAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
         }
         if (self.privateKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a walletAddress or privateKey to watch private channels".into()))));

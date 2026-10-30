@@ -1402,7 +1402,7 @@ impl BtcmarketsCore {
                 m.insert("side".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("Bid".into()) } else { Value::Str("Ask".into()) }));
             m
         });
-        let mut lowercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut lowercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut orderTypes: Value = self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Str("Limit".into()));

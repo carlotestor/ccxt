@@ -1533,7 +1533,7 @@ impl GeminiCore {
                     let mut __for_first_717: bool = true;
                     while { if !__for_first_717 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_717 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
                     let mut marketId: Value = marketIds.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
-                    let mut pairInfo: Value = self.safe_list(indexedTradingPairs.clone(), marketId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), &[]);
+                    let mut pairInfo: Value = self.safe_list(indexedTradingPairs.clone(), (if let Some(__s) = marketId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
                     if (pairInfo != Value::Null) && !(self.in_array(marketId, brokenPairs.clone()).as_bool() == Some(true)) {
                         let mut parsed: Value = self.parse_market(pairInfo);
                         if (parsed != Value::Null) {
@@ -1628,14 +1628,14 @@ impl GeminiCore {
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string(response.clone(), Value::Int(2), &[])]), &[]); // quantityTickDecimalPlaces
                 minSize = self.safe_number(response.clone(), Value::Int(3), &[]); // quantityMinimum
             }
-            let mut marketIdUpper: Value = marketId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut marketIdUpper: Value = (if let Some(__s) = marketId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut isPerp: bool = Value::Int(marketIdUpper.as_str().and_then(|__s| __s.find("PERP")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
             let mut marketIdWithoutPerp: Value = marketIdUpper.as_str().map(|__s| Value::Str(__s.replace("PERP", "").into())).unwrap_or_else(|| marketIdUpper.clone());
             let mut conflictingMarkets: Value = self.safe_dict_k(self.options.clone(), "conflictingMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut lowerCaseId: Value = marketIdWithoutPerp.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut lowerCaseId: Value = (if let Some(__s) = marketIdWithoutPerp.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             if (matches!((&conflictingMarkets, &lowerCaseId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut conflictingMarket: Value = (if let (Some(__m), Some(__k)) = (conflictingMarkets.as_map(), lowerCaseId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 baseId = self.safe_string_k(conflictingMarket.clone(), "base", &[]);

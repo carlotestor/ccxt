@@ -9820,7 +9820,7 @@ if _try_result.is_err() {
             let mut timestamp: Value = self.parse_to_int((match ((nonce).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             let mut timestampString: Value = Value::Str(format!("{}", timestamp).into());
             let mut signaturePath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), self.version.clone()).into()), entirePath).into());
-            let mut payloadArray: Value = Value::from(vec![method.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), signaturePath, rawQueryString, bodySignature, timestampString.clone()]);
+            let mut payloadArray: Value = Value::from(vec![(if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), signaturePath, rawQueryString, bodySignature, timestampString.clone()]);
             // eslint-disable-next-line quotes
             let mut payload: Value = Value::Str(payloadArray.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into());
             let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);

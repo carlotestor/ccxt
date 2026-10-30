@@ -929,7 +929,7 @@ impl SxbetCore {
                 if (field == Value::Null) {
                     continue;
                 }
-                let mut fieldLower: Value = field.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                let mut fieldLower: Value = (if let Some(__s) = field.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 if (Value::Int(query.as_str().zip(fieldLower.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(fieldLower.as_str().zip(query.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
                     return Value::Bool(true);
                 }
@@ -1143,7 +1143,7 @@ impl SxbetCore {
  */
     pub fn hex_to_int(&self, mut hex: Value) -> Value {
         let mut digits: Value = Value::Str("0123456789abcdef".into());
-        let mut lowerHex: Value = hex.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut lowerHex: Value = (if let Some(__s) = hex.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut hexLength: f64 = ((lowerHex.len() as i64) as f64);
         let mut result: Value = self.parse_to_int(Value::Int(0));
         {

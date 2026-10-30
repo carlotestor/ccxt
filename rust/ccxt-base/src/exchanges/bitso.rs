@@ -894,8 +894,8 @@ impl BitsoCore {
             let mut parts: Value = Value::Array(id.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
             let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
             let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
-            let mut base: Value = self.safe_currency_code(baseId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), &[]);
-            let mut quote: Value = self.safe_currency_code(quoteId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), &[]);
+            let mut base: Value = self.safe_currency_code((if let Some(__s) = baseId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
+            let mut quote: Value = self.safe_currency_code((if let Some(__s) = quoteId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
@@ -2634,7 +2634,7 @@ impl BitsoCore {
         let mut status: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]);
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "wid", &[]).as_str().map(str::to_owned);
         let mut networkCode: Value = self.network_id_to_code(&[networkId, self.safe_string_k(currencyResolved.clone(), "code", &[])]);
-        let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { networkCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) } else { Value::Null });
+        let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { (if let Some(__s) = networkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("wid".into()), Value::Str("fid".into()), &[]));

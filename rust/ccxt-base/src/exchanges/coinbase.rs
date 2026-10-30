@@ -4354,7 +4354,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", id, Value::Str("-".into())).into()), self.uuid(&[])).into()));
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
@@ -6034,7 +6034,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("account_id".to_string(), accountId.clone());
                 m.insert("amount".to_string(), self.number_to_string(amount));
-                m.insert("currency".to_string(), code.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("currency".to_string(), (if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("payment_method".to_string(), id.clone());
                 m.insert("commit".to_string(), Value::Bool(true));
             m

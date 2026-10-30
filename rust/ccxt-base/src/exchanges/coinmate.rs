@@ -1981,7 +1981,7 @@ impl CoinmateCore {
                     m.insert("clientId".to_string(), self.uid.clone());
                     m.insert("nonce".to_string(), nonce);
                     m.insert("publicKey".to_string(), self.apiKey.clone());
-                    m.insert("signature".to_string(), signature.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                    m.insert("signature".to_string(), (if let Some(__s) = signature.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m
             }), &[params]);
             bodySigned = self.urlencode(__ws_arg_10, &[]);

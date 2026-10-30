@@ -317,7 +317,7 @@ impl GeminiCore {
                 m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("l2".into()));
-        m.insert("symbols".to_string(), Value::from(vec![marketId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![(if let Some(__s) = marketId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]));
     m
 })]));
             m
@@ -716,7 +716,7 @@ impl GeminiCore {
                 m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("l2".into()));
-        m.insert("symbols".to_string(), Value::from(vec![marketId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![(if let Some(__s) = marketId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]));
     m
 })]));
             m

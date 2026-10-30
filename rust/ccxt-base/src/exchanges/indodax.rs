@@ -1998,14 +1998,14 @@ impl IndodaxCore {
                             while { if !__for_first_844 { j += 1; } __for_first_844 = false; j < (networkIds.len() as i64) } {
                             let mut _netIdTmp: Value = self.network_id_to_code(&[networkIds.get(j as usize).cloned().unwrap_or(Value::Null), code.clone()]);
                             if (_netIdTmp != Value::Null) {
-                                if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push(_netIdTmp.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)); };
+                                if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };
                             }
                         }
                         }
                     }  else {
                         let mut _netIdTmp: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
                         if (_netIdTmp != Value::Null) {
-                            network = _netIdTmp.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+                            network = (if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
                         }
                     }
                 }

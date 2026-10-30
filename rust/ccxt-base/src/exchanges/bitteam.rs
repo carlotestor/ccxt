@@ -2773,7 +2773,7 @@ impl BitteamCore {
             let mut free: Option<String> = self.safe_string_k_opt(currencyBalance.clone(), "free", &[]);
             let mut used: Option<String> = self.safe_string_k_opt(currencyBalance.clone(), "used", &[]);
             let mut total: Option<String> = self.safe_string_k_opt(currencyBalance, "total", &[]);
-            let mut currencyCode: Value = self.safe_currency_code(rawCurrencyId.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null), &[]);
+            let mut currencyCode: Value = self.safe_currency_code((if let Some(__s) = rawCurrencyId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }), &[]);
             if (currencyCode != Value::Null) {
                 balance.insert(crate::runtime::stringify_param(&currencyCode), Value::Map({
     let mut m = indexmap::IndexMap::new();

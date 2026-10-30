@@ -485,7 +485,7 @@ impl MudrexCore {
         if (brokerId.is_some()) {
             requestHeaders.insert("Partner-Id".into(), brokerId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut methodUpper: Value = method.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut methodUpper: Value = (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             requestHeaders.insert("X-Authentication".into(), self.secret.clone());
@@ -554,7 +554,7 @@ impl MudrexCore {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errCode.map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             let mut msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into());
-            let mut low: Value = text.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut low: Value = (if let Some(__s) = text.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             if (code.as_f64() == Some(401.0)) || Value::Int(low.as_str().and_then(|__s| __s.find("auth")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::authentication_error(msg));
             }
@@ -659,7 +659,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ohlcvs: Value = self.safe_list(assetTicks, assetPair.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null), &[Value::from(vec![])]);
+        let mut ohlcvs: Value = self.safe_list(assetTicks, (if let Some(__s) = assetPair.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }), &[Value::from(vec![])]);
         return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limit]);
 
     Value::Null
@@ -2118,8 +2118,8 @@ impl MudrexCore {
                 m.insert("FUTURES".to_string(), Value::Str("FUTURES".into()));
             m
         });
-        let mut fw: Value = self.safe_string(mp.clone(), fromAccount.clone(), &[fromAccount.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
-        let mut tw: Value = self.safe_string(mp, toAccount.clone(), &[toAccount.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
+        let mut fw: Value = self.safe_string(mp.clone(), fromAccount.clone(), &[(if let Some(__s) = fromAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
+        let mut tw: Value = self.safe_string(mp, toAccount.clone(), &[(if let Some(__s) = toAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
         let mut body: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("from_wallet_type".to_string(), fw.clone());

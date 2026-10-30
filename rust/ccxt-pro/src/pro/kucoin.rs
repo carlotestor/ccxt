@@ -583,7 +583,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             urlType = Value::Str("futures".into());
         }
-        let mut tradeType: Value = urlType.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut tradeType: Value = (if let Some(__s) = urlType.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut action: Value = Value::Str("subscribe".into());
         if (subscription != Value::Null) {
             let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
@@ -987,7 +987,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isContract.as_bool() == Some(true) {
             urlType = Value::Str("futures".into());
         }
-        let mut tradeType: Value = urlType.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut tradeType: Value = (if let Some(__s) = urlType.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut action: Value = Value::Str("subscribe".into());
         if (subscription != Value::Null) {
             let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);

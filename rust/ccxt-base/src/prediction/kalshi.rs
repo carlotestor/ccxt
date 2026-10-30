@@ -1180,7 +1180,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
-                winnerRaw = (Value::Bool(label.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == result.as_deref()));
+                winnerRaw = (Value::Bool((if let Some(__s) = label.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == result.as_deref()));
                 settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();

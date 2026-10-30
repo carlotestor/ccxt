@@ -1070,7 +1070,7 @@ impl KrakenfuturesCore {
             let mut code: Value = self.safe_string(settlementCurrencies.clone(), Value::Int(i), &[Value::Str("".into())]);
             if let Value::Arr(__a) = &mut currencies { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), code.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), (if let Some(__s) = code.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
                     m.insert("numericId".to_string(), Value::Null);
                     m.insert("code".to_string(), code);
                     m.insert("precision".to_string(), Value::Null);

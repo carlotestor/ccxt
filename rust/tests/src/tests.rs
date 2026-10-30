@@ -230,7 +230,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if (is_equal(&isRequired, &Value::Bool(true))) && (getExchangeProp(exchange.clone(), credential.clone(), &[]) == Value::Null) {
                 let mut fullKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".into())).into()), credential).into());
-                let mut credentialEnvName: Value = fullKey.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null); // example: KRAKEN_APIKEY
+                let mut credentialEnvName: Value = (if let Some(__s) = fullKey.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // example: KRAKEN_APIKEY
                 let mut envVars: Value = getEnvVars();
                 let mut credentialValue: Value = (if (in_op(&envVars, &credentialEnvName)) { envVars.as_map().and_then(|__m| credentialEnvName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 if (credentialValue != Value::Null) && (credentialValue.as_str() != Some("")) {
@@ -1148,7 +1148,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // separators as spaces) so the scoped contract holds even without a pin
                     let mut handleParts: Value = split(&outcomeSymbol, &Value::Str(":".into()));
                     let mut marketPart: Value = get_value(&handleParts, &Value::Int(0));
-                    let mut lowerPart: Value = (match &(marketPart) { Value::Str(__s) => Value::Str(__s.to_lowercase().into()), _ => Value::Null });
+                    let mut lowerPart: Value = (if let Some(__s) = (marketPart).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                     let mut dedashed: Value = replace_all_str(&lowerPart, &Value::Str("-".into()), &Value::Str(" ".into()));
                     eventQuery = replace_all_str(&dedashed, &Value::Str("_".into()), &Value::Str(" ".into()));
                 }

@@ -9767,10 +9767,10 @@ impl BinanceCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
-        let mut initialUppercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut initialUppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut uppercaseType: Value = initialUppercaseType.clone();
         let mut postOnly: Value = self.is_post_only(Value::Bool(initialUppercaseType.as_str() == Some("MARKET")), Value::Bool(initialUppercaseType.as_str() == Some("LIMIT_MAKER")), &[params.clone()]);
         if postOnly.as_bool() == Some(true) {
@@ -9899,7 +9899,7 @@ impl BinanceCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("orderId".to_string(), id);
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
@@ -11288,10 +11288,10 @@ impl BinanceCore {
         let mut isAlgoOrder: Value = self.safe_bool_k(params.clone(), "isAlgoOrder", &[Value::Bool(false)]);
         let mut paramsAlgo: Value = self.omit(params, Value::Str("isAlgoOrder".into()), &[]);
         let mut clientOrderId: Value = self.safe_string_n(paramsAlgo.clone(), Value::from(vec![Value::Str("clientAlgoId".into()), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]);
-        let mut initialUppercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut initialUppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut isMarketOrder: Value = Value::Bool(initialUppercaseType.as_str() == Some("MARKET"));
         let mut isLimitOrder: bool = initialUppercaseType.as_str() == Some("LIMIT");
-        let mut upperCaseSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut upperCaseSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -11329,7 +11329,7 @@ impl BinanceCore {
         let mut isPortfolioMarginConditional: bool = isPortfolioMargin.as_bool() == Some(true) && isConditional;
         let mut isPriceMatch: bool = priceMatch.is_some();
         let mut priceRequiredForTrailing: bool = true;
-        let mut uppercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut stopPrice: Value = Value::Null;
         if isTrailingPercentOrder {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -11646,7 +11646,7 @@ impl BinanceCore {
                 Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options[\"createOrder\"][\"warnOnSTPForInverse\"] to false.".into()))));
             }
-            request.insert("selfTradePreventionMode".into(), selfTradePrevention.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            request.insert("selfTradePreventionMode".into(), (if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         let mut icebergAmount: Value = self.safe_number_k(paramsPapi, "icebergAmount", &[]);
@@ -14308,8 +14308,8 @@ impl BinanceCore {
                 market = self.market(symbol.clone().map(Value::from).unwrap_or(Value::Null));
                 paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("symbol".into()), &[]);
             }
-            let mut fromId: Value = (match &(self.convert_type_to_account(fromAccount.clone())) { Value::Str(__s) => Value::Str(__s.to_uppercase().into()), _ => Value::Null });
-            let mut toId: Value = (match &(self.convert_type_to_account(toAccount.clone())) { Value::Str(__s) => Value::Str(__s.to_uppercase().into()), _ => Value::Null });
+            let mut fromId: Value = (if let Some(__s) = (self.convert_type_to_account(fromAccount.clone())).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+            let mut toId: Value = (if let Some(__s) = (self.convert_type_to_account(toAccount.clone())).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut isolatedSymbol: Value = Value::Null;
             if (market != Value::Null) {
                 isolatedSymbol = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
@@ -16915,7 +16915,7 @@ impl BinanceCore {
         //
         // { "code": 200, "msg": "success" }
         //
-        let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (marginModeValue.as_str() == Some("CROSS")) {
             marginModeValue = Value::Str("CROSSED".into());
         }

@@ -2780,7 +2780,7 @@ impl BitfinexCore {
         let mut postOnlyParam: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("cid".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (trailingAmount.is_some()) {
             orderType = Value::Str("TRAILING STOP".into());
             request.insert("price_trailing".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));

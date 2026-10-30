@@ -5253,7 +5253,7 @@ impl OkxCore {
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut bar: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if (timezone.as_str() == Some("UTC")) && (duration.as_f64().unwrap_or(f64::NAN) >= ((21600i64) as f64)) {
-            bar = Value::Str(format!("{}{}", bar, timezone.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).into());
+            bar = Value::Str(format!("{}{}", bar, (if let Some(__s) = timezone.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -6016,11 +6016,11 @@ impl OkxCore {
                     m.insert("EXPIRE_BOTH".to_string(), Value::Str("cancel_both".into()));
                 m
             });
-            let mut selfTradePreventionUpper: Value = selfTradePrevention.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut selfTradePreventionUpper: Value = (if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             if (selfTradePreventionUpper.as_str() == Some("NONE")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order".into()))));
             }
-            let mut stpMode: Value = self.safe_string(Value::Map(stpModes), selfTradePreventionUpper, &[selfTradePrevention.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)]);
+            let mut stpMode: Value = self.safe_string(Value::Map(stpModes), selfTradePreventionUpper, &[(if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })]);
             let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8485,7 +8485,7 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut networkUpper: Value = network.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut networkUpper: Value = (if let Some(__s) = network.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut networkKey: Value = self.safe_string(self.networkAliases.clone(), networkUpper.clone(), &[networkUpper.clone()]);
             network = self.safe_string(networks, networkKey, &[network.clone()]); // resolve aliases to the unified key
             request.insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-".into())).into()), network).into()));
@@ -10393,7 +10393,7 @@ impl OkxCore {
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         if (marginModeValue.as_str() != Some("cross")) && (marginModeValue.as_str() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".into()))));
         }
@@ -11551,7 +11551,7 @@ impl OkxCore {
                     Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), maxLimit); }
             }  else {
-                windowDuration = (match (&((match (&(effectiveLimit), &(self.parse_timeframe(unitPeriod.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                windowDuration = (match (&((match (&(effectiveLimit), &(self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
                     (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
@@ -12602,9 +12602,9 @@ impl OkxCore {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("baseCcy".to_string(), fromCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
-                m.insert("quoteCcy".to_string(), toCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
-                m.insert("rfqSzCcy".to_string(), fromCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("baseCcy".to_string(), (if let Some(__s) = fromCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                m.insert("quoteCcy".to_string(), (if let Some(__s) = toCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                m.insert("rfqSzCcy".to_string(), (if let Some(__s) = fromCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("rfqSz".to_string(), self.number_to_string(amount));
                 m.insert("side".to_string(), Value::Str("sell".into()));
             m
