@@ -2493,7 +2493,7 @@ public class BaseExchange {
     }
 
     /** Decode a protobuf message. Override in exchange-specific classes if needed. */
-    public Object decodeProtoMsg(Object data) {
+    public Map<String, Object> decodeProtoMsg(Object data) {
         throw new RuntimeException(this.id + " decodeProtoMsg is not supported in Java yet");
     }
 
