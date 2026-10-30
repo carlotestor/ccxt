@@ -2832,11 +2832,11 @@ export default class bitget extends Exchange {
         for (let j = 0; j < chainsLength; j++) {
             const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'chain');
-            let network = this.networkIdToCode (networkId, code);
+            const network = this.networkIdToCode (networkId, code);
             if (network === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires a network argument');
             }
-            network = network.toUpperCase ();
+            const networkUpper: string = network.toUpperCase ();
             const withdrawableString = this.safeString (chain, 'withdrawable');
             const rechargeableString = this.safeString (chain, 'rechargeable');
             const withdrawable = (withdrawableString === 'true');
@@ -2845,10 +2845,10 @@ export default class bitget extends Exchange {
             deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
             const withdrawMinScale = this.safeString (chain, 'withdrawMinScale');
             const precision = this.parsePrecision (withdrawMinScale);
-            networks[network] = {
+            networks[networkUpper] = {
                 'info': chain,
                 'id': networkId,
-                'network': network,
+                'network': networkUpper,
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber (chain, 'minWithdrawAmount'),
