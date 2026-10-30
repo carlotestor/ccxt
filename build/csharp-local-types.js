@@ -1678,6 +1678,7 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS, {
     'retrieveDydxCredentials': 'Dictionary<string, object>',
     'retrieveCredentials': 'IDictionary<string, object>',
+    'handlePaginationParams': 'Dictionary<string, object>', // bullish only: both returns are this.extend / paramsExtended
 });
 
 // the mapped collection type for a method declaration, or undefined to leave the printer's
