@@ -2695,6 +2695,14 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'loadMultiSignAddress': 'string?',
 };
 
+// Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
+// hitbtc: List<Transaction>, dydx: List<Dictionary>): consulted before the name-keyed table.
+// poloniex fetchTransactionsHelper is a VENUE_TYPED_CORES Dictionary<string, object> core; its FromDict
+// funnel is the identity, so the await stays bare and the Dictionary local is the box already held.
+const CSHARP_LOCAL_AWAIT_RETURN_TYPES_BY_VENUE = {
+    'poloniex': { 'fetchTransactionsHelper': 'Dictionary<string, object>' },
+};
+
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
 // (baseTranspiler printPromiseAllCall) calls the hand-written helper
 // cs/ccxt/base/Exchange.TranspileHelpers.cs `public async Task<List<object>> promiseAll
@@ -3252,6 +3260,10 @@ function thisCallResultType (csharp, call) {
     const methodName = callee.name?.text;
     if (methodName === undefined) {
         return undefined;
+    }
+    const venueRegistered = CSHARP_LOCAL_AWAIT_RETURN_TYPES_BY_VENUE[sourceExchangeId (call)]?.[methodName];
+    if (venueRegistered !== undefined) {
+        return venueRegistered;
     }
     const registered = CSHARP_LOCAL_AWAIT_RETURN_TYPES[methodName];
     if (registered !== undefined) {
