@@ -13066,7 +13066,8 @@ function g10kLenFunc (fn: string): string {
         }) as any);
     }
     // ClientInterface.GetUrl() is declared `string`; the assertion panics the same either way
-    return lines.join ('\n').replace (/(?<![\w.])(?:ccxt\.)?GetLength\((\w+\.\(ccxt\.ClientInterface\)\.GetUrl\(\))\)/g, 'len($1)');
+    // Exchange credential fields are declared plain `string` (go/v4/exchange.go)
+    return lines.join ('\n').replace (/(?<![\w.])(?:ccxt\.)?GetLength\((\w+\.\(ccxt\.ClientInterface\)\.GetUrl\(\)|this\.(?:Secret|PrivateKey|ApiKey|Uid|Password))\)/g, 'len($1)');
 }
 
 function g10kLenNative (content: string): string {
@@ -13089,6 +13090,8 @@ function g10kLenSelfTest (): string[] {
     ok (f ('s []string', '\tfor _, s := range t {\n\t\tn := GetArrayLength(s)\n\t}\n').includes ('GetArrayLength(s)'), 'range rebind keeps helper');
     ok (f ('', '\tvar u int = ccxt.GetLength(client.(ccxt.ClientInterface).GetUrl())\n').includes ('len(client.(ccxt.ClientInterface).GetUrl())'), 'GetUrl string');
     ok (f ('', '\tvar s string = "GetLength(x)"\n').includes ('"GetLength(x)"'), 'string literal untouched');
+    ok (f ('', '\tif ccxt.GetLength(this.Secret) > 1 {\n\t}\n').includes ('len(this.Secret) > 1'), 'credential string field');
+    ok (f ('', '\tif GetLength(this.Token) > 1 {\n\t}\n').includes ('GetLength(this.Token)'), 'boxed field keeps helper');
     return problems;
 }
 
