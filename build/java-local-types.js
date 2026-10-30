@@ -17700,6 +17700,7 @@ export function installJ10Types (transpiler) {
 // Joins what sections 13/16/50 keep apart: a casted Map producer (base safeDict*, a fresh-map method)
 // with omit-of-self / Map-copy writes. The J01 put and J02 get rules then see a declared Map receiver.
 const J11_MAP_CAST = '(java.util.Map<String, Object>)';
+const JAVA_BASE_MAP_HELPER_PLAIN = new Set ([ 'retrieveStarkAccount', 'decodeProtoMsg' ]);
 
 // { cast } when the printed value is a Map (or null) on every path, else undefined
 function j11MapValue (printer, node, declaration, depth = 0) {
@@ -17723,6 +17724,10 @@ function j11MapValue (printer, node, declaration, depth = 0) {
         return { cast: false }; // the typed omit(Map, ..) overload returns a fresh Map
     }
     const name = String (value.expression.name.text);
+    // hx11 W9 M533: hand-written base methods declared Map<String, Object> (ts/src/base declaration only)
+    if (JAVA_BASE_MAP_HELPER_PLAIN.has (name)) {
+        return resolvesToBaseOrStrippedAccessor (printer, value, name) ? { cast: false } : undefined;
+    }
     const defaultAt = SAFE_DICT_ACCESSORS.get (name);
     if (defaultAt !== undefined) {
         // BaseExchange.safeDict* hands back a Map element of the source or the default untouched
