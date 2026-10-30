@@ -26,7 +26,7 @@ const HX10G07_CALLEES: string[] = [
     'this.CheckAddress', 'this.CurrencyToPrecision', 'this.PriceToPrecision', 'this.CostToPrecision',
     'this.NetworkCodeToId', 'this.NetworkIdToCode', 'this.NetworkCodeToChainId',
     'this.SelectNetworkKeyFromNetworks', 'this.ParseToInt', 'this.SafeDict', 'this.SafeString',
-    'this.SafeString2', 'this.SafeValue', 'this.Market', 'SafeMapTyped', 'this.Iso8601',
+    'this.SafeString2', 'this.SafeValue', 'this.Market', 'SafeMapTyped', 'this.SafeDictMap', 'this.Iso8601',
 ];
 
 const HX10G07_START = /^([ \t]*)([A-Za-z_][A-Za-z0-9_]*) (:?=) func\(\) any \{$/;
