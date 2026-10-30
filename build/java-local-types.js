@@ -18367,6 +18367,7 @@ function j14ScalarLocal (printer, declaration) {
             writeOnly: true,
             nonNull: type === 'String' ? false : undefined,
             strictPlus: type === 'String',
+            stringAsCast: type === 'String', // `x as string` is an identity checkcast on a String local
             writeOk: (right) => j14Value (printer, right, declaration, type) !== undefined,
         });
         return ok ? { type, cast: init.cast } : undefined;
@@ -18408,6 +18409,22 @@ export function installJ14ScalarLocals (transpiler) {
         return printed.slice (0, at) + head + rest;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // `x as string` on a J14 String local is an identity checkcast: print the bare local
+    const upstreamAsString = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        if (node?.type?.kind === ts.SyntaxKind.StringKeyword && ts.isIdentifier (node.expression)) {
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+            } catch (e) {
+                declaration = undefined;
+            }
+            if (declaration !== undefined && typed.get (declaration) === 'String') {
+                return printer.printNode (node.expression, identation);
+            }
+        }
+        return upstreamAsString (node, identation);
+    };
     // later writes from an Object-declared producer take the same checkcast
     const upstreamBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node, identation) {
