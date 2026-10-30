@@ -47,7 +47,7 @@ function mapIsReadOnly (code: string, name: string): boolean {
     const decl = declLineStarts (code, name);
     for (const at of occurrences (code, name)) {
         if (decl.has (at)) { continue; }
-        const pre = code.slice (Math.max (0, at - 16), at);
+        const pre = code.slice (Math.max (0, at - 24), at);
         if (/(?:SafeListTyped|SafeMapTyped|this\.SafeListSlice|this\.SafeDictMap)\($/.test (pre)) { continue; }
         if (/IsEqual\($/.test (pre) && code.slice (at + name.length).startsWith (', nil)')) { continue; }
         return false;
@@ -114,5 +114,7 @@ export function hx11w8JsonOriginCheck (): string[] {
     want (base.replace ('var data []any = SafeListTyped(response, "data")', 'var data []any = SafeListTyped(this.Options, "data")') + use, '', 'field producer', false);
     want (base.replace ('SafeListTyped(response, "data")', 'ToArray(response)') + use, '', 'ToArray list', false);
     want (base.replace ('var response map[string]any = r1.Value', 'var raw map[string]any = r1.Value\n\tvar response map[string]any = SafeMapTyped(raw, "result")') + use, '', 'chained SafeMapTyped', true);
+    want (base.replace ('SafeListTyped(response, "data")', 'this.SafeListSlice(response, "data")') + use, '', 'SafeListSlice method form', true);
+    want (base.replace ('var response map[string]any = r1.Value', 'var raw map[string]any = r1.Value\n\tvar response map[string]any = this.SafeDictMap(raw, "result")') + use, '', 'chained SafeDictMap', true);
     return problems;
 }
