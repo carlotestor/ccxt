@@ -1615,6 +1615,8 @@ export const CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION = {
     'parseLeverage': 'Dictionary<string, object>',
     'parseMarginModification': 'Dictionary<string, object>',
     'parseIncome': 'Dictionary<string, object>',
+    // backpack stockDataRequest: single declaration, `return request` (the extend() local)
+    'stockDataRequest': 'Dictionary<string, object>',
 };
 
 // S54 census: sync `object` venue helpers whose every return path is an object/array literal
@@ -2634,6 +2636,7 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'getSystemConfig': 'IDictionary<string, object>',
     'getWithdrawNonce': 'double?',
     'authenticateUta': 'string?',
+    'prepareWsStockParams': 'IDictionary<string, object>',
     // U29: paradex's authenticateRest — retyped to Task<string?> by
     // installCsharpAsyncCoreReturns (CSHARP_AWAITED_CORE_RETURNS: both return paths hand back a
     // `string?` local), so the pro tree's `object token = await this.authenticateRest ()` takes
@@ -15236,6 +15239,8 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'getWithdrawNonce': 'double?',
     // kucoin (pro): the token string getUtaUrl() concatenates, null while unauthenticated
     'authenticateUta': 'string?',
+    // backpack (pro): `return query` (IDictionary local) or `return this.extend (...)` (Dictionary)
+    'prepareWsStockParams': 'IDictionary<string, object>',
     // S52 (ws cores). `authenticate` is declared by 35 ws classes and every declaration is
     // `virtual` (a fresh slot, never an override), so the per-declaration proof decides each
     // class on its own. Four hand the token / listen key back on every path — deepcoin,
@@ -15281,7 +15286,7 @@ const awaitedCoreProofs = new WeakMap ();
 const awaitedCoreInProgress = new WeakSet ();
 
 // the printed expression's own static type already IS `mapped`, so the funnel adds nothing
-function awaitedCoreReturnIsAlreadyTyped (value, mapped) {
+function awaitedCoreReturnIsAlreadyTyped (value, mapped, name) {
     if (/^[A-Za-z_]\w*$/.test (value)) {
         return true; // a bare local read: the proof resolved it to `mapped` (a param would not prove)
     }
@@ -15289,7 +15294,7 @@ function awaitedCoreReturnIsAlreadyTyped (value, mapped) {
         return value.startsWith ('new List<object>');
     }
     if (mapped === 'Dictionary<string, object>' || mapped === 'IDictionary<string, object>') {
-        return value.startsWith ('new Dictionary<string, object>') || /^this\.safeDict2?N?\s*\(/.test (value);
+        return value.startsWith ('new Dictionary<string, object>') || /^this\.safeDict2?N?\s*\(/.test (value) || (AWAITED_CORE_ARM_WIDENING.has (name) && /^this\.extend\s*\(/.test (value));
     }
     if (mapped === 'double?') {
         return /^this\.safeNumber(N|2)?\s*\(/.test (value);
@@ -15302,6 +15307,7 @@ function awaitedCoreReturnIsAlreadyTyped (value, mapped) {
 
 // every `return` of the method proves one type: a return with no expression boxes null,
 // an unprovable or conflicting path fails the whole proof (the conservative direction)
+const AWAITED_CORE_ARM_WIDENING = new Set ([ 'prepareWsStockParams' ]); // Dictionary + IDictionary returns -> IDictionary
 function awaitedCoreBoxType (csharp, declaration) {
     if (!declaration.body) {
         return undefined;
@@ -15316,8 +15322,12 @@ function awaitedCoreBoxType (csharp, declaration) {
         }
         if (node.kind === ts.SyntaxKind.ReturnStatement) {
             found = true;
-            const value = (node.expression === undefined) ? 'null' : csharpTypeOfValue (csharp, node.expression, context);
-            const joined = (proven === undefined) ? value : unifyArms (proven, value);
+            let value = (node.expression === undefined) ? 'null' : csharpTypeOfValue (csharp, node.expression, context);
+            if (value === undefined && AWAITED_CORE_ARM_WIDENING.has (declaration.name?.text) && node.expression?.kind === ts.SyntaxKind.Identifier) {
+                // the params slot of a handle*AndParams destructuring prints IDictionary (element1ParamsBinding)
+                value = element1ParamsBinding (csharp, resolveReference (csharp, node.expression)) ? CSHARP_ELEMENT_1_TYPE : undefined;
+            }
+            const joined = (proven === undefined) ? value : unifyArms (proven, value, AWAITED_CORE_ARM_WIDENING.has (declaration.name?.text));
             if (joined === undefined) {
                 failed = true;
             } else {
@@ -15385,7 +15395,8 @@ export function installCsharpAsyncCoreReturns (transpiler) {
     csharp.printReturnStatement = (node, identation) => {
         // nearest function-like: a `return` inside an arrow/function expression belongs
         // to that callback, never to the enclosing async core
-        const retype = asyncCoreReturnType (csharp, ts.findAncestor (node.parent, ts.isFunctionLike));
+        const owner = ts.findAncestor (node.parent, ts.isFunctionLike);
+        const retype = asyncCoreReturnType (csharp, owner);
         if (retype === undefined || !node.expression) {
             return upstreamReturnStatement (node, identation);
         }
@@ -15393,7 +15404,7 @@ export function installCsharpAsyncCoreReturns (transpiler) {
         let trailingComment = csharp.printTraillingComment (node, identation);
         trailingComment = trailingComment ? ' ' + trailingComment : trailingComment;
         const value = csharp.printNode (node.expression, identation).trim ();
-        const already = (retype.awaited ? awaitedCoreReturnIsAlreadyTyped (value, retype.type) : asyncCoreReturnIsAlreadyTyped (value)) || callReturnIsMapped (csharp, node.expression, retype.type);
+        const already = (retype.awaited ? awaitedCoreReturnIsAlreadyTyped (value, retype.type, owner.name?.text) : asyncCoreReturnIsAlreadyTyped (value)) || callReturnIsMapped (csharp, node.expression, retype.type);
         if (already) {
             return upstreamReturnStatement (node, identation);
         }
