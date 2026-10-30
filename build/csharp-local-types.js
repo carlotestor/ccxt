@@ -6894,7 +6894,13 @@ function conditionalArmType (csharp, node, context) {
     if (arm?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
     }
-    return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm);
+    return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm) ?? stringParameterArmType (csharp, arm);
+}
+
+// a narrowed `string` core parameter as an arm (`(symbol !== undefined) ? this.symbol (symbol) : symbol`)
+// reads as a string box (null allowed): nullable spelling, so the arm pair joins as `string?`
+function stringParameterArmType (csharp, arm) {
+    return (parameterArithmeticType (csharp, arm) === 'string') ? 'string?' : undefined;
 }
 
 // a parameter arm (`(limit === undefined) ? 100 : limit`) has the numeric type its emitted
