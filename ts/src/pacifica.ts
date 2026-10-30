@@ -914,7 +914,7 @@ export default class pacifica extends Exchange {
         }
     }
 
-    parseLeverageFromSetting (symbol: Str, setting: Dict): Leverage {
+    parseLeverageFromSetting (symbol: string, setting: Dict): Leverage {
         // {
         //   "WLFI/USDC:USDC": {
         //       "symbol": "WLFI",
