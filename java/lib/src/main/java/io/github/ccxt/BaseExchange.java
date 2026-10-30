@@ -1021,7 +1021,7 @@ public class BaseExchange {
     // Encode
     // =======================
 
-    public Object binaryConcat(Object... parts) {
+    public byte[] binaryConcat(Object... parts) {
         return Encode.binaryConcat(parts);
     }
 
@@ -1108,7 +1108,7 @@ public class BaseExchange {
         return Encode.remove0xPrefix(str2);
     }
 
-    public Object binaryConcatArray(Object arrays2) {
+    public byte[] binaryConcatArray(Object arrays2) {
         return Encode.binaryConcatArray(arrays2);
     }
 

@@ -146,7 +146,7 @@ public final class Encode {
     // binary concat
     // ----------------------------
 
-    public static Object binaryConcat(Object... parts) {
+    public static byte[] binaryConcat(Object... parts) {
         ArrayList<Byte> out = new ArrayList<>();
         for (Object part : parts) {
             if (part instanceof String s) {
@@ -163,7 +163,7 @@ public final class Encode {
         return res;
     }
 
-    public static Object binaryConcatArray(Object arrays2) {
+    public static byte[] binaryConcatArray(Object arrays2) {
         List<Object> arrays = (List<Object>) arrays2;
 
         int total = 0;
