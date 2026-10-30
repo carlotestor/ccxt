@@ -7861,12 +7861,12 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) EditSpotOrderAsync(id string, symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Binance) EditSpotOrderAsync(id string, symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editSpotOrderBody(ch, id, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Binance) editSpotOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Binance) editSpotOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -7935,15 +7935,15 @@ func (this *Binance) editSpotOrderBody(ch chan AsyncResult[Order], id string, sy
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Binance) EditSpotOrderRequest(id string, symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Binance) EditSpotOrderRequest(id string, symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	/**
@@ -7963,14 +7963,14 @@ func (this *Binance) EditSpotOrderRequest(id string, symbol any, typeVar any, si
 	 */
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeStringN(params, []any{"newClientOrderId", "clientOrderId", "origClientOrderId"})
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " editSpotOrderRequest() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"side":   ToUpper(side),
+		"side":   strings.ToUpper(side),
 	}
-	var initialUppercaseType string = ToUpper(typeVar)
+	var initialUppercaseType string = strings.ToUpper(typeVar)
 	var uppercaseType string = initialUppercaseType
 	var postOnly bool = this.IsPostOnly((initialUppercaseType == "MARKET"), (initialUppercaseType == "LIMIT_MAKER"), params)
 	if postOnly {
@@ -7988,9 +7988,9 @@ func (this *Binance) EditSpotOrderRequest(id string, symbol any, typeVar any, si
 	var validOrderTypes []any = SafeListTypedDefault(market["info"], "orderTypes", []any{})
 	if !this.InArray(uppercaseType, validOrderTypes) {
 		if initialUppercaseType != uppercaseType {
-			panic(InvalidOrder(Add(Add(this.Id+" triggerPrice parameter is not allowed for "+*this.SafeString(market, "symbol", "")+" ", typeVar), " orders")))
+			panic(InvalidOrder(this.Id + " triggerPrice parameter is not allowed for " + *this.SafeString(market, "symbol", "") + " " + typeVar + " orders"))
 		} else {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), this.SafeString(market, "symbol", "")), " market")))
+			panic(InvalidOrder(this.Id + " " + typeVar + " is not a valid order type for the " + *this.SafeString(market, "symbol", "") + " market"))
 		}
 	}
 	if clientOrderId == nil {
@@ -8042,7 +8042,7 @@ func (this *Binance) EditSpotOrderRequest(id string, symbol any, typeVar any, si
 	}
 	if priceIsRequired {
 		if price == nil {
-			panic(InvalidOrder(Add(Add(this.Id+" editOrder() requires a price argument for a ", typeVar), " order")))
+			panic(InvalidOrder(this.Id + " editOrder() requires a price argument for a " + typeVar + " order"))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
@@ -8051,7 +8051,7 @@ func (this *Binance) EditSpotOrderRequest(id string, symbol any, typeVar any, si
 	}
 	if triggerPriceIsRequired {
 		if triggerPrice == nil {
-			panic(InvalidOrder(Add(Add(this.Id+" editOrder() requires a triggerPrice extra param for a ", typeVar), " order")))
+			panic(InvalidOrder(this.Id + " editOrder() requires a triggerPrice extra param for a " + typeVar + " order"))
 		} else {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
@@ -8258,7 +8258,7 @@ func (this *Binance) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	if market["spot"] == true {
 
-		r1 := <-this.EditSpotOrderAsync(id, symbol, typeVar, side, amount, price, params)
+		r1 := <-this.EditSpotOrderAsync(id, StringArg(symbol), StringArg(typeVar), StringArg(side), amount, price, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
