@@ -9627,7 +9627,7 @@ function j38SelfTest (): string[] {
 // hx11w8 ws-cache-fields: BaseExchange declares these caches as Map<String, Object>, so a Map cast on `this.<field>` is a no-op
 function hx11w8CacheFieldCasts (content: string): string {
     if (!/\(\((?:java\.util\.)?Map\s*<[^()]*>\)\s*this\./.test (content)) return content;
-    return content.replace (/\(\((?:java\.util\.)?Map\s*<(?:\?\s*,\s*\?|String\s*,\s*Object)>\)\s*this\.(tickers|bidsasks|fundingRates|orderbooks|trades|ohlcvs)\)(?=\.(?:get|containsKey|remove|put|keySet|size|isEmpty)\()/g, (whole, f) =>
+    return content.replace (/\(\((?:java\.util\.)?Map\s*<(?:\?\s*,\s*\?|String\s*,\s*Object)>\)\s*this\.(tickers|bidsasks|fundingRates)\)(?=\.(?:get|containsKey|remove|put|keySet|size|isEmpty)\()/g, (whole, f) =>
         new RegExp (`^    (?:public |protected |private )?(?!Map<String, Object> )[\\w.<>, ?]+ ${f}\\s*(?:=|;)`, 'm').test (content) ? whole : `this.${f}`);
 }
 
