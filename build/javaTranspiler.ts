@@ -4934,7 +4934,6 @@ class NewTranspiler {
         javaSource = nativeJavaJ30CoreArgs(javaSource) // hx4 J30
         javaSource = nativeJavaJ33Compare(javaSource) // hx4 J33
         javaSource = nativeJavaJ34MapLocals(javaSource) // hx4 J34
-        javaSource = hx11w8PaginationCursorPuts(javaSource) // hx11 w8 pagination cursor
         javaSource = nativeJavaJ35(javaSource) // hx4 J35
         javaSource = nativeJavaJ36MultiplySubtract(javaSource) // hx4 J36
         javaSource = nativeJavaJ37DivModNeg(javaSource) // hx4 J37
@@ -4950,6 +4949,7 @@ class NewTranspiler {
         javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
         javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
         javaSource = hx10w10JO01(javaSource) // hx10 wave-10 JO01: counter RMW is one owner task
+        javaSource = hx11w8PaginationCursorPuts(javaSource) // hx11 w8 pagination cursor
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
