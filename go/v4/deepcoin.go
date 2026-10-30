@@ -3382,8 +3382,8 @@ func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketId *string = this.SafeString(order, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(order, "cTime")
-	var timestampString *string = this.SafeString(order, "cTime", "")
-	if len(*timestampString) < 13 {
+	var timestampString string = *this.SafeString(order, "cTime", "")
+	if len(timestampString) < 13 {
 		timestamp = this.SafeTimestamp(order, "cTime")
 	}
 	var state *string = this.SafeString(order, "state")
