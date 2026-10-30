@@ -2695,6 +2695,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'handleToken': 'string?',
     'authenticateRest': 'string?',
     'loadMultiSignAddress': 'string?',
+    // dydx fetchLatestBlockHeight (only declaration; prints Task<Int64>, typed-core Int64 awaits unwrapped)
+    'fetchLatestBlockHeight': 'Int64',
 };
 
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
