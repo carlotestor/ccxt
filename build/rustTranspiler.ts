@@ -9270,6 +9270,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativeDictLiteralGet(rustContent); // closure-free literal-key dict reads, last
 ||||||| parent of f6d4c9c429f (rust printer: closure-free literal-index array read (if let on as_array))
                 rustContent = this.nativeArrayIndexLiteral(rustContent); // closure-free X[N] literal index reads, last
+||||||| parent of 12cf419fa00 (rust printer: closure-free map keys if-let)
+                rustContent = this.nativeMapKeysIfLet(rustContent); // closure-free map keys
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10025,6 +10027,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeDictLiteralGet(finalFile); // closure-free literal-key dict reads, last
 ||||||| parent of f6d4c9c429f (rust printer: closure-free literal-index array read (if let on as_array))
         finalFile = this.nativeArrayIndexLiteral(finalFile); // closure-free X[N] literal index reads, last
+||||||| parent of 12cf419fa00 (rust printer: closure-free map keys if-let)
+        finalFile = this.nativeMapKeysIfLet(finalFile); // closure-free map keys
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13468,6 +13472,23 @@ impl std::ops::DerefMut for ${coreName} {
         const re = new RegExp(`(?<![A-Za-z0-9_.:])(${P})\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| __arr\\.get\\(([0-9]+)\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
         return content.replace(re, (m: string, x: string, n: string, off: number, whole: string) => {
             const text = `(if let Some(__arr) = ${x}.as_array() { __arr.get(${n}).cloned().unwrap_or(Value::Null) } else { Value::Null })`;
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        });
+    }
+
+||||||| parent of 12cf419fa00 (rust printer: closure-free map keys if-let)
+    // Map keys of a place, closure-free (the `|__m|`/`|__k|` closures counted as blobs):
+    //   Value::Array(X.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default())
+    //     -> Value::Array(if let Some(__m) = X.as_map() { __m.keys().map(|__k| Value::Str(__k.clone().into())).collect() } else { Vec::new() })
+    // A non-map X stays an empty array; X is a side-effect-free place path. Skips lines that would cross 400.
+    nativeMapKeysIfLet(content: string): string {
+        if (!content.includes('.as_map().map(|__m| __m.keys()')) return content;
+        const re = /(?<![A-Za-z0-9_.:])Value::Array\(([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.as_map\(\)\.map\(\|__m\| __m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\)\)\.unwrap_or_default\(\)\)/g;
+        return content.replace(re, (m: string, x: string, off: number, whole: string) => {
+            const text = `Value::Array(if let Some(__m) = ${x}.as_map() { __m.keys().map(|__k| Value::Str(__k.clone().into())).collect() } else { Vec::new() })`;
             const ls = whole.lastIndexOf('\n', off) + 1;
             let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
             const oldLen = le - ls;
