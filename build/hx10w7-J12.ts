@@ -86,8 +86,17 @@ export function j12AsyncThrows (content: string): string {
         let start = at;
         while (start > 0 && /[\w.$]/.test (masked[start - 1])) { start--; }
         if (start > 0 && masked[start - 1] === '.') { start--; while (start > 0 && /[\w.$]/.test (masked[start - 1])) { start--; } }
-        edits.push ([ start, closeParen + 1, `${nf}.failedFuture(${value})` ]);
-        from = closeParen + 1;
+        // A failed future never runs a converter: `.thenApply(<conv>)` after it is dropped and
+        // the method's declared element type is spelled as the failedFuture type argument.
+        let end = closeParen + 1;
+        let targ = '';
+        if (masked.slice (end, end + 11) === '.thenApply(') {
+            const tClose = j12Close (masked, end + 10, '(', ')');
+            const decl = [ ...content.slice (0, start).matchAll (/CompletableFuture<([\w.<>?, ]+)>\s+\w+\s*\(/g) ].pop ();
+            if (tClose !== -1 && decl !== undefined) { targ = `<${decl[1]}>`; end = tClose + 1; }
+        }
+        edits.push ([ start, end, `${nf}.${targ}failedFuture(${value})` ]);
+        from = end;
     }
     if (edits.length === 0) { return content; }
     let out = content;
@@ -103,16 +112,18 @@ export function j12SelfTest (): string[] {
     const ret = 'CompletableFuture<Order>';
     const cases: [string, string, (o: string) => boolean][] = [
         [ 'plain throw', cls (ret, '        return BaseExchange.supplyAsync(() -> {\n\n            throw new NotSupported((this.id + " closePosition() is not supported yet")) ;\n        }).thenApply(Order::new);'),
-            (o) => o.includes ('CompletableFuture.failedFuture(new NotSupported((this.id + " closePosition() is not supported yet")))')
-                && o.includes ('.thenApply(Order::new)') && !o.includes ('supplyAsync') && !o.includes ('throw new') ],
+            (o) => o.includes ('CompletableFuture.<Order>failedFuture(new NotSupported((this.id + " closePosition() is not supported yet")))')
+                && !o.includes ('thenApply') && !o.includes ('supplyAsync') && !o.includes ('throw new') ],
         [ 'bare static call', cls (ret, '        return supplyAsync(() -> { throw new NotSupported(Helpers.add(this.id, " redeem() is not supported yet")); });'),
             (o) => o.includes ('CompletableFuture.failedFuture(new NotSupported(Helpers.add(this.id, " redeem() is not supported yet")))') && !o.includes ('supplyAsync') ],
         [ 'body keeps other statements', cls (ret, '        return BaseExchange.supplyAsync(() -> {\n            if (parameters == null) { throw new NotSupported("x"); }\n            return null;\n        });'),
             (o) => o.includes ('supplyAsync(') && o.includes ('if (parameters == null)') ],
         [ 'executor overload kept', cls (ret, '        return BaseExchange.supplyAsync(() -> { throw new NotSupported("x"); }, this.executor);'),
             (o) => o.includes ('supplyAsync(') ],
-        [ 'thenApply lambda untouched', cls (ret, '        return BaseExchange.supplyAsync(() -> { throw new NotSupported("x"); }).thenApply(y -> y);'),
-            (o) => o.includes ('failedFuture(new NotSupported("x"))') && o.includes ('.thenApply(y -> y)') ],
+        [ 'thenApply converter dropped', cls (ret, '        return BaseExchange.supplyAsync(() -> { throw new NotSupported("x"); }).thenApply(y -> y);'),
+            (o) => o.includes ('CompletableFuture.<Order>failedFuture(new NotSupported("x"))') && !o.includes ('thenApply') ],
+        [ 'list converter dropped', cls ('CompletableFuture<List<Order>>', '        return BaseExchange.supplyAsync(() -> { throw new NotSupported("x"); }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));'),
+            (o) => o.includes ('CompletableFuture.<List<Order>>failedFuture(new NotSupported("x"));') && !o.includes ('thenApply') ],
         [ 'string literal mentioning throw', cls (ret, '        Object s = "supplyAsync(() -> { throw new X(); })";\n        return BaseExchange.supplyAsync(() -> { throw new NotSupported(s); });'),
             (o) => o.includes ('Object s = "supplyAsync(() -> { throw new X(); })"') && o.includes ('failedFuture(new NotSupported(s))') ],
     ];
