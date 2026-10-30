@@ -10984,6 +10984,18 @@ function sameFileGuardedStringCall (csharp, node) {
     return true;
 }
 
+// `this.numberToString (x)` with x a non-null Int64 (this.seconds / milliseconds / microseconds or an
+// Int64 value): the hand-written helper returns null only for a null argument.
+function numberToStringOfInt64Call (csharp, node, context) {
+    const call = stripParens (node);
+    const callee = call?.kind === ts.SyntaxKind.CallExpression ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'numberToString' || call.arguments?.length !== 1) {
+        return false;
+    }
+    return csharpTypeOfValue (csharp, call.arguments[0], context) === 'Int64';
+}
+
 function nonNullStringDefaultCall (csharp, node, context) {
     let initializer = node;
     while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
@@ -11511,6 +11523,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // the scan accepts as one): the non-null spelling binds add(string, *) on its `+` reads
     // (see nonNullStringValue)
     if (!safe && csharpType === 'string?' && nonNullStringValue (csharp, declaration, declaration.initializer, 0) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        safe = true;
+    }
+    // hx11 w9: `this.numberToString (<non-null Int64>)` is a non-null string (it only returns null
+    // for a null argument); the non-null spelling needs no cast, the helper returns `string`
+    if (!safe && csharpType === 'string?' && numberToStringOfInt64Call (csharp, declaration.initializer, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
         safe = true;
     }
