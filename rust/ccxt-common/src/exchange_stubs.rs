@@ -852,6 +852,14 @@ impl Exchange {
         }
     }
 
+    /// `safe_number2` without the box (no default): first key whose string form parses as f64.
+    pub fn safe_number2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
+        match self.safe_string2(obj, k1, k2, &[]) {
+            Value::Str(s) => s.parse::<f64>().ok(),
+            _ => None,
+        }
+    }
+
     pub fn safe_string_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
