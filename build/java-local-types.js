@@ -16400,9 +16400,25 @@ function j08DeclaredType (lines, from, to, name, cache) {
             types.add (m[1]);
         }
     }
-    const type = types.size === 1 ? [ ...types ][0] : undefined;
+    let type = types.size === 1 ? [ ...types ][0] : undefined;
+    if (type === 'var') type = j08VarIntCounter (lines, from, to, name) ? 'int' : undefined;
     cache.set (name, type);
     return type;
+}
+
+// `var i = 0` whose only other writes are i++ / i-- (a for-loop counter) is a Java int
+function j08VarIntCounter (lines, from, to, name) {
+    const init = new RegExp (`(?<![\\w.$])var\\s+${name}\\s*=\\s*-?\\d+\\s*;`);
+    const write = new RegExp (`(?<![\\w.$])${name}\\s*(?:[-+*/%&|^]|<<|>>>?)?=(?!=)|(?<![\\w.$])${name}\\s*(?:\\+\\+|--)|(?:\\+\\+|--)\\s*${name}(?![\\w$])`, 'g');
+    let inits = 0;
+    for (let i = from; i < to; i++) {
+        const line = longMultiplyMask (lines[i]);
+        if (init.test (line)) inits++;
+        for (const m of line.matchAll (write)) {
+            if (!/\+\+|--/.test (m[0]) && !init.test (line.slice (Math.max (0, m.index - 4)))) return false;
+        }
+    }
+    return inits === 1;
 }
 
 function j08NumKind (t, ctx) {
@@ -16417,8 +16433,8 @@ function j08NumKind (t, ctx) {
     if (!ctx.overrides && j08WholeCall (t, J08_LONG_CALL)) return 'Long';
     if (!ctx.overrides && j08WholeCall (t, J08_INT_CALL)) return 'int';
     if (/^\(\(List<\?>\)[A-Za-z_][\w.]*\)\.size\(\)$/.test (t)) return 'int';
-    const a = /^([A-Za-z_]\w*) [+-] \d+L$/.exec (t);
-    if (a !== null && [ 'Long', 'long' ].includes (j08NumKind (a[1], ctx))) return 'long';
+    const a = /^(?:\(\()?([A-Za-z_]\w*) [+-] \d+L(?:\)\))?$/.exec (t);
+    if (a !== null && [ 'Long', 'long', 'Integer', 'int' ].includes (j08NumKind (a[1], ctx))) return 'long';
     return undefined;
 }
 
