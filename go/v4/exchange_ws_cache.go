@@ -71,6 +71,7 @@ type wsCacheOp struct {
 	op     int
 	field  string
 	key    any
+	book   OrderBookInterface
 	value  any
 	create func() any
 	reply  chan any
@@ -334,8 +335,8 @@ func (this *BaseExchange) wsApplyOrderBookSnapshot(req *wsCacheOp) any {
 	// loadOrderBook applies a REST snapshot to the cached book: reading the book's cache,
 	// resetting it and feeding it deltas must happen on the owner like every handler does
 	book, bookIsMap := req.value.(map[string]any)
-	orderBook, orderBookIsInterface := req.key.(OrderBookInterface)
-	if !bookIsMap || !orderBookIsInterface {
+	orderBook := req.book
+	if !bookIsMap || orderBook == nil {
 		return false
 	}
 	deltas, deltasAreList := (*orderBook.GetCache()).([]any)
@@ -347,7 +348,7 @@ func (this *BaseExchange) wsApplyOrderBookSnapshot(req *wsCacheOp) any {
 		return false
 	}
 	orderBook.Reset(book)
-	this.DerivedExchange.HandleBookDeltas(req.key, deltas[int(index):])
+	this.DerivedExchange.HandleBookDeltas(orderBook, deltas[int(index):])
 	orderBook.SetCache(map[string]any{})
 	return true
 }
@@ -499,8 +500,11 @@ func (this *BaseExchange) WsClientRemove(url any) {
 // user-path code may call this: a handler already runs on the dispatch goroutine and would wait
 // on itself, so handlers keep indexing the maps directly.
 func (this *BaseExchange) wsCacheDo(op int, field string, key any, value any) any {
+	return this.wsCacheSend(&wsCacheOp{op: op, field: field, key: key, value: value, reply: make(chan any, 1)})
+}
+
+func (this *BaseExchange) wsCacheSend(req *wsCacheOp) any {
 	store := this.wsCacheStoreNow()
-	req := &wsCacheOp{op: op, field: field, key: key, value: value, reply: make(chan any, 1)}
 	select {
 	case store.ops <- req:
 		return <-req.reply
@@ -589,7 +593,11 @@ func (this *BaseExchange) WsCacheReplace(field string, value any) {
 // WsCacheApplyOrderBookSnapshot applies a fetched snapshot to the cached book on the owner and
 // reports whether the book was behind the cache.
 func (this *BaseExchange) WsCacheApplyOrderBookSnapshot(stored any, orderBook any) bool {
-	applied, _ := this.wsCacheDo(wsOpApplySnapshot, "Orderbooks", stored, orderBook).(bool)
+	book := OrderBookTyped(stored)
+	if book == nil {
+		return false
+	}
+	applied, _ := this.wsCacheSend(&wsCacheOp{op: wsOpApplySnapshot, field: "Orderbooks", book: book, value: orderBook, reply: make(chan any, 1)}).(bool)
 	return applied
 }
 
