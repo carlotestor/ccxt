@@ -268,6 +268,7 @@ type ICoreExchange interface {
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
 	SafeDictMap(dictionaryOrList any, key any, optionalArgs ...any) map[string]any
+	SafeListSlice(dictionaryOrList any, key any, optionalArgs ...any) []any
 	SafeDict2Map(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) map[string]any
 	SafeDictNMap(dictionaryOrList any, keys any, optionalArgs ...any) map[string]any
 	IsDictionary(dictionary any) bool

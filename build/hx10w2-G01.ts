@@ -13,7 +13,7 @@ const G01_DEREF_FIRST = new Set ([
     'ToUpper', 'Trim', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'JsonParse', 'ParseJSON',
     'ObjectKeys', 'ObjectValues', 'GetArrayLength', 'GetLength', 'MapTyped', 'ListTyped', 'MapOrEmpty',
     'SafeStringPtr', 'SafeBoolPtr', 'NumberToString', 'JSONStringify', 'JsonStringify', 'ToInt64',
-    'ToFloat64', 'SafeMapTyped', 'SafeListTyped', 'Int64Arg', 'DerefScalar', 'Shift', 'Reverse',
+    'ToFloat64', 'SafeMapTyped', 'SafeListTyped', 'SafeListSlice', 'Int64Arg', 'DerefScalar', 'Shift', 'Reverse',
     'Increment', 'Decrement', 'Negate', 'UnaryPlus', 'SafeString', 'SafeString2', 'SafeInteger',
     'SafeInteger2', 'SafeNumber', 'SafeBool', 'SafeValue', 'SafeDict', 'SafeList',
 ]);

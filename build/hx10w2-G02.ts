@@ -47,6 +47,7 @@ const callee: { [name: string]: string } = {
     'ArrayTyped': '[]any',
     'ListTyped': '[]any',
     'SafeListTyped': '[]any',
+    'SafeListSlice': '[]any',
     'SafeList2Typed': '[]any',
     'SafeListTypedDefault': '[]any',
     'ObjectKeys': '[]string',

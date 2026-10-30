@@ -84,7 +84,7 @@ function gp28ValueOk (funcText: string, field: string, name: string): boolean {
     if (!((decl.type === 'any') || (decl.type === ':='))) {
         return false;
     }
-    const fromField = new RegExp ('^(?:ccxt\\.)?(?:this\\.SafeValue|this\\.SafeMapTyped|GetValue|SafeValue|MapTyped)\\(this\\.' + field + ', \\w+\\)$');
+    const fromField = new RegExp ('^(?:ccxt\\.)?(?:this\\.SafeValue|this\\.SafeMapTyped|this\\.SafeDictMap|GetValue|SafeValue|MapTyped)\\(this\\.' + field + ', \\w+\\)$');
     const init = decl.init;
     if (!((init === '') || (init === 'nil') || GP28_POINTER_CTOR.test (init) || fromField.test (init))) {
         return false;
