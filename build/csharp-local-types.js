@@ -11401,8 +11401,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     }
     // hx11 w9: `let x: string = <required string param>`: the explicit annotation plus a proven
     // non-null string param start the join at `string`; the retype scan checks every write
-    if (csharpType === undefined && declaration.type?.kind === ts.SyntaxKind.StringKeyword
-            && declaration.initializer?.kind === ts.SyntaxKind.Identifier && hx11w9PrintedStringParam (csharp, declaration.initializer)) {
+    const hx11w9StringCopy = (csharpType === undefined && declaration.type?.kind === ts.SyntaxKind.StringKeyword
+        && declaration.initializer?.kind === ts.SyntaxKind.Identifier && hx11w9PrintedStringParam (csharp, declaration.initializer));
+    if (hx11w9StringCopy) {
         csharpType = 'string';
     }
     // a safeString* call with a proven non-null string default is a proven non-null string
@@ -11454,6 +11455,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // join the initializer with every later write, widening only along box-identical edges
         const dictionaryLiteral = declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression;
         csharpType = typeFromValueOrWrites (csharp, scope, declaration, sourceName, csharpType, ctx, copyEdges ?? cacheMemberEdges ?? orderbookEdges ?? (dictionaryLiteral ? DICTIONARY_LITERAL_WIDENING_EDGES : undefined));
+    }
+    if (hx11w9StringCopy && csharpType !== 'string') {
+        return undefined; // a nullable write joined in: keep the printer's own spelling
     }
     if (csharpType === undefined || csharpType === csharp.VAR_TOKEN) {
         return undefined;
