@@ -99,7 +99,7 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'fetchTransactionFee': [ 0 ], 'fetchOptionChain': [ 0 ], 'createSubAccount': [ 0 ], 'fetchTransfer': [ 0 ],
     'fetchLedgerEntry': [ 0 ], 'withdrawWs': [ 0, 2 ], 'fetchOrdersByStatusWs': [ 0 ],
     'editOrder': [ 0 ], 'fetchOrder': [ 0 ], 'fetchOrderRequest': [ 0 ], 'fetchOrderTrades': [ 0 ], 'withdraw': [ 0 ],
-    'transfer': [ 0, 2, 3 ], 'setMarginMode': [ 0 ],
+    'transfer': [ 0, 2, 3 ], 'setMarginMode': [ 0 ], 'fetchAccountIdByType': [ 0 ], 'editSpotOrderRequest': [ 1, 2, 3 ], 'editSpotOrder': [ 1, 2, 3 ],
     'parseKrakenAccountName': [ 0 ],  // hx11 w8: `account: string` in TS; a string key reads `accountByType[account]` natively, no pointer-key iife
     // required `code: string` currency-code params (every declaration in ts/src is a required string)
     'fetchBorrowRateHistory': [ 0 ], 'fetchVolatilityHistory': [ 0 ], 'futuresTransfer': [ 0 ], 'createGiftCode': [ 0 ],
