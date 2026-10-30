@@ -2969,7 +2969,7 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 		var marketBase string = *this.SafeString(market, "base", "")
 		var marketQuote string = *this.SafeString(market, "quote", "")
 		var marketLinear *bool = this.SafeBool(market, "linear", false)
-		var marketSymbol string = *this.SafeString(market, "symbol", "")
+		var marketSymbol *string = this.SafeString(market, "symbol", "")
 		// see comment on formats a bit above
 		var constructedId string
 		if marketLinear != nil && *marketLinear {

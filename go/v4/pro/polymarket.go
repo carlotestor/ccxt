@@ -1002,7 +1002,7 @@ func (this *Polymarket) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncR
 func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1021,12 +1021,12 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 		panic(r1.Err)
 	}
 	var messageHash string = "orders"
-	var symbolResolved any = symbol
+	var symbolResolved *string = symbol
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		var resolvedSymbol string = *this.SafeString(market, "symbol", "")
+		var resolvedSymbol *string = this.SafeString(market, "symbol", "")
 		symbolResolved = resolvedSymbol
-		messageHash = "orders:" + resolvedSymbol
+		messageHash = "orders:" + *resolvedSymbol
 	}
 	var subscribeHashes []any = []any{"orders"}
 	var request map[string]any = this.SendSubscription("sub", []any{"orders"}, []any{messageHash}, subscribeHashes, map[string]any{}, params, subscribeHashes)
@@ -1127,7 +1127,7 @@ func (this *Polymarket) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.Asyn
 func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1146,12 +1146,12 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 		panic(r1.Err)
 	}
 	var messageHash string = "myTrades"
-	var symbolResolved any = symbol
+	var symbolResolved *string = symbol
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		var resolvedSymbol string = *this.SafeString(market, "symbol", "")
+		var resolvedSymbol *string = this.SafeString(market, "symbol", "")
 		symbolResolved = resolvedSymbol
-		messageHash = "myTrades:" + resolvedSymbol
+		messageHash = "myTrades:" + *resolvedSymbol
 	}
 	var subscribeHashes []any = []any{"fills"}
 	var request map[string]any = this.SendSubscription("sub", []any{"fills"}, []any{messageHash}, subscribeHashes, map[string]any{}, params, subscribeHashes)

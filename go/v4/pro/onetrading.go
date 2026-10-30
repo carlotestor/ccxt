@@ -1293,7 +1293,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId *string = this.SafeString(market, "id", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId map[string]any = ccxt.SafeMapTyped(timeframes, timeframe)
@@ -1320,11 +1320,11 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	}
 	var subscriptionMarketId map[string]any = ccxt.SafeMapTyped(subscription, marketId)
 	if subscriptionMarketId == nil {
-		if !ccxt.IsEqual(marketId, nil) {
+		if marketId != nil {
 			ccxt.AddElementToObject(subscription, marketId, map[string]any{})
 		}
 	}
-	if (!ccxt.IsEqual(marketId, nil)) && (timeframe != nil) {
+	if (marketId != nil) && (timeframe != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(subscription, marketId), timeframe, true)
 	}
 	var properties []any = []any{}
