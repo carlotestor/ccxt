@@ -9268,11 +9268,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
                 rustContent = this.nativeDictLiteralGet(rustContent); // closure-free literal-key dict reads, last
-||||||| parent of f6d4c9c429f (rust printer: closure-free literal-index array read (if let on as_array))
                 rustContent = this.nativeArrayIndexLiteral(rustContent); // closure-free X[N] literal index reads, last
-||||||| parent of 12cf419fa00 (rust printer: closure-free map keys if-let)
                 rustContent = this.nativeMapKeysIfLet(rustContent); // closure-free map keys
-||||||| parent of 9b2de637b19 (rust printer: closure-free if-let for array join of place paths)
                 rustContent = this.nativeArrayJoin(rustContent); // closure-free array join, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
@@ -10027,11 +10024,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
         finalFile = this.nativeDictLiteralGet(finalFile); // closure-free literal-key dict reads, last
-||||||| parent of f6d4c9c429f (rust printer: closure-free literal-index array read (if let on as_array))
         finalFile = this.nativeArrayIndexLiteral(finalFile); // closure-free X[N] literal index reads, last
-||||||| parent of 12cf419fa00 (rust printer: closure-free map keys if-let)
         finalFile = this.nativeMapKeysIfLet(finalFile); // closure-free map keys
-||||||| parent of 9b2de637b19 (rust printer: closure-free if-let for array join of place paths)
         finalFile = this.nativeArrayJoin(finalFile); // closure-free array join, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
@@ -13465,7 +13459,6 @@ impl std::ops::DerefMut for ${coreName} {
         });
     }
 
-||||||| parent of f6d4c9c429f (rust printer: closure-free literal-index array read (if let on as_array))
     // Literal-index array read, closure-free (the `|__arr|` closure counted as a blob):
     //   X.as_array().and_then(|__arr| __arr.get(N)).cloned().unwrap_or(Value::Null)
     //     -> (if let Some(__arr) = X.as_array() { __arr.get(N).cloned().unwrap_or(Value::Null) } else { Value::Null })
@@ -13483,7 +13476,6 @@ impl std::ops::DerefMut for ${coreName} {
         });
     }
 
-||||||| parent of 12cf419fa00 (rust printer: closure-free map keys if-let)
     // Map keys of a place, closure-free (the `|__m|`/`|__k|` closures counted as blobs):
     //   Value::Array(X.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default())
     //     -> Value::Array(if let Some(__m) = X.as_map() { __m.keys().map(|__k| Value::Str(__k.clone().into())).collect() } else { Vec::new() })
@@ -13500,7 +13492,6 @@ impl std::ops::DerefMut for ${coreName} {
         });
     }
 
-||||||| parent of 9b2de637b19 (rust printer: closure-free if-let for array join of place paths)
     // Array join of a place, closure-free (the `|__a|` closure counted as a blob):
     //   X.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("L")).unwrap_or_default()
     //     -> (if let Some(__a) = X.as_array() { __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("L") } else { String::new() })
