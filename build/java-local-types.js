@@ -18623,6 +18623,32 @@ function j17RedeclaredByDescendant (method) {
 
 const J17_NUMERIC_RETURNS = { 'Int': 'Long', 'Num': 'Double' };
 
+// `: number` is Long or Double by its returns: every return is a local the printer declares Long (or Double)
+function j17NumberReturnTarget (printer, method) {
+    let target;
+    let ok = true;
+    const scan = (n) => {
+        if (!ok || (n !== method && ts.isFunctionLike (n))) {
+            return;
+        }
+        if (ts.isReturnStatement (n)) {
+            const value = n.expression === undefined ? undefined : printer.javaUnwrapReturnExpression (n.expression);
+            let type;
+            try {
+                type = value !== undefined && ts.isIdentifier (value) && printer.printNode (value, 0) === value.text ? printer.javaDeclaredTypeOf (value) : undefined;
+            } catch (e) {
+                type = undefined;
+            }
+            ok = (type === 'Long' || type === 'Double') && (target === undefined || target === type);
+            target = type;
+            return;
+        }
+        n.forEachChild (scan);
+    };
+    scan (method.body);
+    return ok ? target : undefined;
+}
+
 // any ts/src file calls this method name in a hazardous position for the box (over-approximated by name)
 function j17NumericCallHazard (method, table) {
     const name = method.name.text;
@@ -18719,6 +18745,9 @@ export function installJ17StringReturns (transpiler) {
     const upstreamTarget = printer.javaNativeReturnTypeTarget.bind (printer);
     printer.javaNativeReturnTypeTarget = function (node) {
         const own = upstreamTarget (node);
+        if (own === undefined && node?.type?.kind === ts.SyntaxKind.NumberKeyword) {
+            return j17NumberReturnTarget (printer, node);
+        }
         if (own !== undefined || node?.type === undefined || !ts.isTypeReferenceNode (node.type) || !ts.isIdentifier (node.type.typeName)) {
             return own;
         }
