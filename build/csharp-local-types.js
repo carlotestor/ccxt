@@ -2693,6 +2693,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'handleToken': 'string?',
     'authenticateRest': 'string?',
     'loadMultiSignAddress': 'string?',
+    // coinbase fetchCurrenciesFromCache (`: Promise<Dict>`, prints Task<Dictionary<string, object>>); only coinbase.ts declares/awaits it
+    'fetchCurrenciesFromCache': 'Dictionary<string, object>',
 };
 
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
