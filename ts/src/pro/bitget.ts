@@ -602,7 +602,7 @@ export default class bitget extends bitgetRest {
         const uta: Bool = values[0];
         const isStock = market['stock'];
         const paramsStock = this.omit (params, 'stock');
-        const isStockSpot = isStock && (market['spot'] === true);
+        const isStockSpot = isStock && market['spot'];
         const isStockOrUta = (isStockSpot || (uta === true));
         const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
