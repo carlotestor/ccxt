@@ -2697,6 +2697,19 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'loadMultiSignAddress': 'string?',
 };
 
+// Per-venue awaited types for same-named typed cores whose shape differs by class (createOrderRequest
+// is a sync List/Dict on ~29 other venues): consulted before the name-keyed table. nado's four request
+// builders are VENUE_TYPED_CORES Dictionary<string, object> cores; FromDict is the identity, so the
+// await stays bare and the Dictionary local is the box already held (REST and pro share the id).
+const CSHARP_LOCAL_AWAIT_RETURN_TYPES_BY_VENUE = {
+    'nado': {
+        'createOrderRequest': 'Dictionary<string, object>',
+        'editOrderRequest': 'Dictionary<string, object>',
+        'cancelAllOrdersRequest': 'Dictionary<string, object>',
+        'cancelOrdersRequest': 'Dictionary<string, object>',
+    },
+};
+
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
 // (baseTranspiler printPromiseAllCall) calls the hand-written helper
 // cs/ccxt/base/Exchange.TranspileHelpers.cs `public async Task<List<object>> promiseAll
@@ -3254,6 +3267,10 @@ function thisCallResultType (csharp, call) {
     const methodName = callee.name?.text;
     if (methodName === undefined) {
         return undefined;
+    }
+    const venueRegistered = CSHARP_LOCAL_AWAIT_RETURN_TYPES_BY_VENUE[sourceExchangeId (call)]?.[methodName];
+    if (venueRegistered !== undefined) {
+        return venueRegistered;
     }
     const registered = CSHARP_LOCAL_AWAIT_RETURN_TYPES[methodName];
     if (registered !== undefined) {
