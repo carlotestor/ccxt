@@ -2600,7 +2600,7 @@ export default class polymarket extends Exchange {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: string, privateKey: string) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const sVal = signature['s'];
@@ -2608,7 +2608,7 @@ export default class polymarket extends Exchange {
         return '0x' + r.padStart (64, '0') + sVal.padStart (64, '0') + v;
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: string) {
         return this.signHash (this.hashMessage (message), privateKey);
     }
 
@@ -2741,7 +2741,7 @@ export default class polymarket extends Exchange {
             'ts': ts,
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const proxyPrivateKey = this.safeString (credentials, 'privateKey');
+        const proxyPrivateKey = this.safeString (credentials, 'privateKey', '');
         const signature = this.signMessage (encoded, proxyPrivateKey);
         const envelope: Dict = {
             'op': bodyOp,
