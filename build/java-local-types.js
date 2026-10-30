@@ -448,6 +448,10 @@ if (JAVA_STRING_HELPER_PLAIN.has ('hash') || JAVA_STRING_HELPER_CAST.has ('hash'
     throw new Error ('java-local-types: hash/encode/binaryToString must never be retyped');
 }
 
+// hx11 w9 byte[] helpers: declared `byte[]` in the hand-written Java base on every path
+// (Encode.base16ToBinary -> convertHexStringToByteArray). Deliberately NOT in the String sets.
+export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base16ToBinary' ]);
+
 // helpers whose locals additionally run the guarded-string scan (the add-left rule and
 // the += rule below); the safeString family and the parse*/accessor families keep the
 // original scan untouched
@@ -505,6 +509,8 @@ const LOCAL_THIS_RETURN_TYPES = {
     'implodeHostname': { type: 'String', cast: '(String)' },
     'hmac': { type: 'String', cast: '(String)' },
     'eddsa': { type: 'String', cast: '(String)' },
+    // hx11 w9 bytes family: declared byte[] in the hand-written base (JAVA_BYTES_HELPER_PLAIN)
+    'base16ToBinary': { type: 'byte[]' },
 };
 
 // ===== market/currency structure locals =====
@@ -6246,6 +6252,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaStringListReturnLocals (transpiler);
     // (20) awaited ws list-stream locals read only as a cache (section 40)
     patchJavaWsListStreamLocals (transpiler);
+    // (21) hx11 w9 byte[] helper locals
+    patchJavaBytesHelperLocals (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -10392,6 +10400,134 @@ export function patchJavaSafeListLocalTypes (transpiler) {
         }
         const info = declaration !== undefined && typed.has (declaration) ? accumulatorWriteInfo (printer, node.right) : undefined;
         return info === undefined || info.type !== JAVA_SAFE_LIST_TYPE ? printed : accumulatorCastWrite (printer, node, printed, info);
+    };
+}
+
+// ===== hx11 w9: byte[] helper locals (`Object x = this.base16ToBinary (..)` -> `byte[] x = ..`) =====
+// Declaration-only retype: the hand-written Java base declares these helpers `byte[]` (the
+// call text is unchanged, no checkcast is needed). The use audit keeps overload binding
+// identical: a local is retyped only when every use is a `this.<m>(..)` argument, a return
+// value, an array/dict value or a write from another byte[] helper call. `+`, `==`, ternary
+// arms, receiver calls, Helpers.* arguments and every other shape keep Object.
+const JAVA_BYTES_TYPE = 'byte[]';
+
+function javaBytesHelperCall (printer, node) {
+    const call = unwrapParens (node);
+    if (call === undefined || !isThisCall (call) || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    const name = String (call.expression.name.text);
+    const accessor = LOCAL_THIS_RETURN_TYPES[name];
+    if (!JAVA_BYTES_HELPER_PLAIN.has (name) || accessor === undefined || accessor.type !== JAVA_BYTES_TYPE) {
+        return undefined;
+    }
+    // the helper is a class FIELD bound in ts/src/base/Exchange.ts (`base16ToBinary = base16ToBinary`),
+    // so the call's signature resolves into the codec; the member itself must be the base's own
+    let file;
+    try {
+        file = printer.getChecker ().getSymbolAtLocation (call.expression.name)?.valueDeclaration?.resolve ()?.getSourceFile ()?.fileName;
+    } catch (e) {
+        file = undefined;
+    }
+    if (file === undefined || !HELPER_SOURCE_FILE.test (file)) {
+        helperDebug ('bytes: non-base member ' + file + ' for ' + name, call);
+        return undefined;
+    }
+    return name;
+}
+
+function javaBytesUseOk (printer, n) {
+    const host = unwrapParensUp (n);
+    const parent = host.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    if (ts.isCallExpression (parent) && parent.arguments.includes (host)) {
+        return isThisCall (parent) && !isAsyncMethodCall (printer, parent);
+    }
+    if (ts.isReturnStatement (parent)) {
+        return true;
+    }
+    if (ts.isArrayLiteralExpression (parent)) {
+        return !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent)
+            && (ts.isCallExpression (parent.parent) || ts.isReturnStatement (parent.parent) || ts.isVariableDeclaration (parent.parent));
+    }
+    if (ts.isPropertyAssignment (parent)) {
+        return parent.initializer === host;
+    }
+    return false;
+}
+
+function javaBytesLocalName (printer, declaration, isProFile) {
+    const initializer = declaration.initializer;
+    const name = javaBytesHelperCall (printer, initializer);
+    if (name === undefined || !ts.isIdentifier (declaration.name)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const writeOk = (right) => javaBytesHelperCall (printer, right) !== undefined;
+    const opts = { writeOnly: true, nonNull: false, writeOk };
+    if (!isSafeToNarrow (printer, declaration, declaration.name.text, JAVA_BYTES_TYPE, isProFile, opts)) {
+        return undefined;
+    }
+    for (const n of (identifierIndex (scope).get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope) {
+            return undefined;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (ts.isBinaryExpression (parent) && parent.left === host && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            continue; // isSafeToNarrow proved the write through writeOk
+        }
+        if (!javaBytesUseOk (printer, n)) {
+            return undefined;
+        }
+    }
+    return name;
+}
+
+export function patchJavaBytesHelperLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBytesHelperLocalsPatched) {
+        return;
+    }
+    printer._javaBytesHelperLocalsPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declarations = node?.declarations;
+        if (declarations === undefined || declarations.length !== 1) {
+            return printed;
+        }
+        const declaration = declarations[0];
+        if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+        let name;
+        try {
+            name = javaBytesLocalName (printer, declaration, isProFile);
+        } catch (e) {
+            name = undefined;
+        }
+        if (name === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || !printed.slice (at + marker.length).startsWith ('this.' + name + '(')) {
+            return printed;
+        }
+        return printed.slice (0, at) + `${iden}${JAVA_BYTES_TYPE} ${printedName} = ` + printed.slice (at + marker.length);
     };
 }
 

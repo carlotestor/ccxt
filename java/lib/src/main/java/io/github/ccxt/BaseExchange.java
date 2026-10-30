@@ -1096,7 +1096,7 @@ public class BaseExchange {
         return Encode.intToBase16(number);
     }
 
-    public Object base16ToBinary(Object str2) {
+    public byte[] base16ToBinary(Object str2) {
         return Encode.base16ToBinary(str2);
     }
 

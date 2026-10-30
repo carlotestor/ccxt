@@ -24,7 +24,7 @@ public final class Encode {
     // base16 / hex
     // ----------------------------
 
-    public static Object base16ToBinary(Object str2) {
+    public static byte[] base16ToBinary(Object str2) {
         String s = (String) str2;
         return convertHexStringToByteArray(s);
     }
