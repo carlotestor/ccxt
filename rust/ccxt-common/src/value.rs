@@ -231,6 +231,13 @@ impl Value {
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
+    /// Elements of an array (empty for a non-array); the `Vec<Value>` dispatch bridge.
+    pub fn to_value_vec(&self) -> Vec<Value> {
+        match self {
+            Value::Arr(a) => a.to_vec(),
+            _ => Vec::new(),
+        }
+    }
     /// Display text of each array element (empty for a non-array); the `Vec<String>` dispatch bridge.
     pub fn to_str_vec(&self) -> Vec<String> {
         match self {
