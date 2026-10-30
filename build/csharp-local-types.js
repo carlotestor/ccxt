@@ -16508,8 +16508,10 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
         resolved++;
         const argument = site.call.arguments[position];
         if (tsStringOnly) {
-            if (!hx11w8TsStringArgument (csharp, argument)) {
-                return false; // hx11 w8: the argument must be a TS `string` (never undefined)
+            // hx11 w8: a TS `string` argument (never undefined) that also prints as a C# string
+            const printed = hx11w8TsStringArgument (csharp, argument) ? csharpArgumentType (csharp, argument, target) : undefined;
+            if (printed !== 'string' && printed !== 'string?') {
+                return false;
             }
             continue;
         }
