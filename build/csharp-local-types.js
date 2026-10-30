@@ -3547,6 +3547,12 @@ function assignable (target, source) {
 // every runtime value in the same box (nullability of a reference type is erased; a
 // Nullable<T> holding a value boxes as T; IList<object> only widens the static view of
 // the same List box). The left side of each pair is the narrower spelling.
+// declarations started by hx11w9AnnotatedParamCopy as Int64? (their int writes are accepted)
+const HX11W9_INT64_COPY_DECLS = new WeakSet ();
+const HX11W9_INT64_COPY_EDGES = [
+    [ 'int', 'Int64?' ],
+];
+
 const WIDENING_EDGES = [
     [ 'string', 'string?' ],
     [ 'bool', 'bool?' ],
@@ -7570,7 +7576,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
                     const written = csharpTypeOfValue (csharp, parent.right, context) ?? u17WriteValueType (csharp, declaration, parent.right);
-                    if (!assignable (csharpType, written)) {
+                    if (!assignable (csharpType, written) && !(csharpType === 'Int64?' && written === 'int' && HX11W9_INT64_COPY_DECLS.has (declaration))) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
                         // against the declaration being checked (see the self-write sections).
@@ -11399,12 +11405,16 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // the prediction tier's scalar annotations reach the same join (see the guard above)
         csharpType = 'null';
     }
-    // hx11 w9: `let x: string = <required string param>`: the explicit annotation plus a proven
-    // non-null string param start the join at `string`; the retype scan checks every write
-    const hx11w9StringCopy = (csharpType === undefined && declaration.type?.kind === ts.SyntaxKind.StringKeyword
-        && declaration.initializer?.kind === ts.SyntaxKind.Identifier && hx11w9PrintedStringParam (csharp, declaration.initializer));
+    // hx11 w9: `let x: string|Int|Str = <param>`: the explicit annotation plus a param whose printed
+    // type is that annotation's own start the join there; the retype scan checks every write
+    const hx11w9CopyType = (csharpType === undefined && declaration.initializer?.kind === ts.SyntaxKind.Identifier)
+        ? hx11w9AnnotatedParamCopy (csharp, declaration) : undefined;
+    const hx11w9StringCopy = (hx11w9CopyType !== undefined);
     if (hx11w9StringCopy) {
-        csharpType = 'string';
+        csharpType = hx11w9CopyType;
+        if (hx11w9CopyType === 'Int64?') {
+            HX11W9_INT64_COPY_DECLS.add (declaration);
+        }
     }
     // a safeString* call with a proven non-null string default is a proven non-null string
     // (nonNullStringDefaultCall), but it is NOT promoted to `string` here: the nullable
@@ -11441,7 +11451,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // COPY_WIDENING_EDGES). The accumulator rules that share joinTypes have no such
         // proof for this declaration, so the edge travels with this call only.
         const copyType = copyReadLocalType (csharp, declaration, ctx);
-        const copyEdges = (copyType !== undefined && copyType === csharpType && (copyType === 'Dictionary<string, object>' || copyType === 'IDictionary<string, object>')) ? COPY_WIDENING_EDGES : undefined;
+        const copyEdges = (copyType !== undefined && copyType === csharpType && (copyType === 'Dictionary<string, object>' || copyType === 'IDictionary<string, object>')) ? COPY_WIDENING_EDGES
+            : (hx11w9StringCopy && csharpType === 'IDictionary<string, object>') ? COPY_WIDENING_EDGES
+            : (hx11w9StringCopy && csharpType === 'Int64?') ? HX11W9_INT64_COPY_EDGES : undefined;
         // a read of a retyped ws cache member: the later cache-setup writes store an
         // ArrayCache constructor, which needs an edge to the declaration's own type to join
         const cacheElementType = wsCacheMemberReadType (csharp, declaration.initializer) ?? wsCacheBucketReadType (csharp, declaration.initializer);
@@ -11456,7 +11468,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         const dictionaryLiteral = declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression;
         csharpType = typeFromValueOrWrites (csharp, scope, declaration, sourceName, csharpType, ctx, copyEdges ?? cacheMemberEdges ?? orderbookEdges ?? (dictionaryLiteral ? DICTIONARY_LITERAL_WIDENING_EDGES : undefined));
     }
-    if (hx11w9StringCopy && csharpType !== 'string') {
+    if (hx11w9StringCopy && csharpType !== hx11w9CopyType) {
         return undefined; // a nullable write joined in: keep the printer's own spelling
     }
     if (csharpType === undefined || csharpType === csharp.VAR_TOKEN) {
@@ -16654,6 +16666,38 @@ function hx11w8TsStringArgument (csharp, argument) {
     } catch (e) {
         return false;
     }
+}
+
+// `let x: string|Int|Str = p` where p's printed type is the annotation's own C# spelling
+function hx11w9AnnotatedParamCopy (csharp, declaration) {
+    const kind = declaration.type?.kind;
+    const text = declaration.type?.getText?.();
+    const printed = hx11w9ParamPrintedType (csharp, declaration.initializer);
+    if (printed === undefined) {
+        return undefined;
+    }
+    if (kind === ts.SyntaxKind.StringKeyword) {
+        return (printed === 'string' && hx11w9PrintedStringParam (csharp, declaration.initializer)) ? 'string' : undefined;
+    }
+    if (text === 'Int' && printed === 'Int64?') {
+        return 'Int64?';
+    }
+    if (text === 'Str' && (printed === 'string?' || printed === 'string')) {
+        return 'string?';
+    }
+    if ((text === 'Dict' || text === 'Market') && printed === 'IDictionary<string, object>') {
+        return 'IDictionary<string, object>';
+    }
+    return undefined;
+}
+
+function hx11w9ParamPrintedType (csharp, identifier) {
+    const declaration = csharpIdentifierDeclaration (csharp, identifier);
+    if ((declaration?.kind !== ts.SyntaxKind.Parameter) || (declaration.dotDotDotToken !== undefined)
+        || csharpParameterIsWritten (csharp, declaration.parent, declaration)) {
+        return undefined;
+    }
+    return parameterArithmeticType (csharp, identifier);
 }
 
 // a required, never-written `string` parameter whose printed signature type is `string`
