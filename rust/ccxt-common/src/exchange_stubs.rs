@@ -751,6 +751,15 @@ impl Exchange {
         }
     }
 
+    /// `safe_bool_n` without the box: `Some` only for an actual boolean, else `None`.
+    #[inline]
+    pub fn safe_bool_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value_n(obj, keys, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
     #[inline]
     pub fn safe_bool_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         // Mirror CCXT `safeBool`: the value is returned ONLY when it is an
