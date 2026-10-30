@@ -352,7 +352,7 @@ func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
 	} else if event != nil && *event == "snapshot" {
 		ticker = ccxt.TickerToMap(this.ParseTicker(message, market))
 	} else if event != nil && *event == "updated" {
-		var lastTicker any = this.Tickers.Get(symbol)
+		var lastTicker map[string]any = this.Tickers.GetMap(symbol)
 		ticker = this.ParseWsUpdatedTicker(message, lastTicker, market)
 	}
 	var messageHash string = "ticker:" + *symbol

@@ -610,7 +610,7 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil)
 		symbol = ccxt.DerefScalar(this.SafeString(market, "symbol"))
-		var ticker map[string]any = ccxt.MapTyped(this.Tickers.Get(symbol))
+		var ticker map[string]any = this.Tickers.GetMap(symbol)
 		var rawTicker map[string]any = this.SafeDictMap(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = ccxt.TickerToMap(this.ParseTicker(merged))

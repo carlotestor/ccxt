@@ -363,7 +363,7 @@ func (this *Bullish) HandleTicker(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
 	if updateType == "update" {
-		var ticker map[string]any = ccxt.MapTyped(this.Tickers.Get(symbol))
+		var ticker map[string]any = this.Tickers.GetMap(symbol)
 		parsed = ccxt.TickerToMap(this.ParseTicker(this.Extend(this.SafeDict(ticker, "info", map[string]any{}), data), market))
 	}
 	this.Tickers.Store(symbol, parsed)

@@ -58,3 +58,8 @@ func (c TickerCache) ToMap() map[string]any {
 	}
 	return out
 }
+
+// GetMap answers the stored ticker as a map, nil when absent or not a map.
+func (c TickerCache) GetMap(k any) map[string]any {
+	return MapTyped(c.Get(k))
+}
