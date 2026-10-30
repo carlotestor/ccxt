@@ -7289,8 +7289,8 @@ export default class bingx extends Exchange {
         let version = section[1];
         let access = section[2];
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
-        let url = this.implodeHostname (this.urls['api'][type]);
-        if ((isSandbox) && url === undefined) {
+        const hostUrl = this.implodeHostname (this.urls['api'][type]);
+        if ((isSandbox) && hostUrl === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
         const pathValue: any = this.implodeParams (path, params);
@@ -7306,20 +7306,21 @@ export default class bingx extends Exchange {
             access = section[3];
         }
         const flatAccountPaths = [ 'account/apiPermissions', 'account/apiRestrictions' ];
+        let typePath = '';
         if (!this.inArray (pathValue, flatAccountPaths)) {
             if (type === 'spot' && version === 'v3') {
-                url += '/api';
+                typePath = '/api';
             } else {
-                url += '/' + type;
+                typePath = '/' + type;
             }
         }
-        url += '/' + version + '/' + pathValue;
+        let urlQuery = '';
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const paramsSorted: Dict = this.keysort (this.extend (this.omit (params, this.extractParams (pathValue)), { 'timestamp': this.nonce () }));
         if (access === 'public') {
             if (Object.keys (paramsSorted).length > 0) {
-                url += '?' + this.urlencode (paramsSorted);
+                urlQuery = '?' + this.urlencode (paramsSorted);
             }
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
@@ -7344,9 +7345,11 @@ export default class bingx extends Exchange {
                 requestBody = this.json (paramsSorted);
             } else {
                 const query = this.urlencode (parsedParams, true);
-                url += '?' + query + '&' + 'signature=' + signature;
+                urlQuery = '?' + query + '&' + 'signature=' + signature;
             }
         }
+        const urlTail = typePath + '/' + version + '/' + pathValue + urlQuery;
+        const url = hostUrl + urlTail;
         const bodyResult = requestBody;
         const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };

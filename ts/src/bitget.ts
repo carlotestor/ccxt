@@ -2396,7 +2396,7 @@ export default class bitget extends Exchange {
                 const yearPart = this.safeString (expiryParts, 0, '');
                 const dayPart = this.safeString (expiryParts, 2, '');
                 const year = yearPart.slice (2, 4);
-                const month = expiryParts[1];
+                const month = this.safeString (expiryParts, 1, '');
                 const day = dayPart.slice (0, 2);
                 const monthDay = month + day;
                 const expiryString = year + monthDay;
@@ -2685,7 +2685,7 @@ export default class bitget extends Exchange {
                 const yearPart = this.safeString (expiryParts, 0, '');
                 const dayPart = this.safeString (expiryParts, 2, '');
                 const year = yearPart.slice (2, 4);
-                const month = expiryParts[1];
+                const month = this.safeString (expiryParts, 1, '');
                 const day = dayPart.slice (0, 2);
                 const monthDay = month + day;
                 const expiryString = year + monthDay;
