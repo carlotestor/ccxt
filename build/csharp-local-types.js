@@ -1599,6 +1599,7 @@ export const CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION = {
     'createOrdersRequest': 'Dictionary<string, object>',
     'createSpotOrderRequest': 'Dictionary<string, object>',
     'editOrderRequest': 'Dictionary<string, object>',
+    'handleRouteAndParams': 'Dictionary<string, object>',
     // the single-row parse* builders (~400 declarations): every real return path of every
     // declaration is a dict literal, `this.safeLedgerEntry` / `this.safeOpenInterest` (both
     // above) or a `Dict`-annotated local, so each declaration proves on its own.
@@ -1805,6 +1806,11 @@ function collectionReturnExpressionProves (csharp, expression, mapped) {
     case ts.SyntaxKind.Identifier:
         return identifierType (csharp, node) === mapped;
     case ts.SyntaxKind.CallExpression:
+        // `this.omit (<Dictionary / IDictionary box>, keys)` binds a dict-receiver overload
+        // that returns the fresh Dictionary (omitReceiverIsDictionary)
+        if (mapped === 'Dictionary<string, object>' && omitDictionaryProducer (csharp, node)) {
+            return true;
+        }
         return callCollectionReturnType (csharp, node) === mapped;
     }
     return false;
