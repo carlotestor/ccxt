@@ -9526,7 +9526,7 @@ export default class binance extends Exchange {
         const currencyId = this.safeString (trade, 'fromAsset');
         const tradedCurrency = this.safeCurrencyCode (currencyId);
         const bnb = this.currency ('BNB');
-        const earnedCurrency = bnb['code'];
+        const earnedCurrency = this.safeString (bnb, 'code', '');
         const applicantSymbol = earnedCurrency + '/' + tradedCurrency;
         let tradedCurrencyIsQuote = false;
         if ((this.markets !== undefined) && (applicantSymbol in this.markets)) {
