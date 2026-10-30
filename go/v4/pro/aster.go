@@ -2260,7 +2260,7 @@ func (this *Aster) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	var cache any = this.WsCacheObjGet("Positions")
-	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (ccxt.IsEqual(cache, nil)) {
+	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
 		if r2.Err != nil {
