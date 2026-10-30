@@ -751,6 +751,18 @@ impl Exchange {
         }
     }
 
+    /// `safe_bool2` without the box: first key holding a real boolean wins, else `None`.
+    #[inline]
+    pub fn safe_bool2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<bool> {
+        if let Value::Bool(b) = self.safe_value(obj.clone(), k1, &[]) {
+            return Some(b);
+        }
+        match self.safe_value(obj, k2, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
     #[inline]
     pub fn safe_bool_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         // Mirror CCXT `safeBool`: the value is returned ONLY when it is an
