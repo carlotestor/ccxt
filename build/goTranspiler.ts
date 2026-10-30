@@ -11012,8 +11012,8 @@ function h2kG08TypedBoolCompareText (fn: string): string {
 // &sync.Map, map literal or untyped nil, or whose Go type is a map/slice: `== nil` is exact.
 // Credential fields stay: prediction writes a *string into ApiKey.
 function h2kG08FieldNilCompares (content: string): string {
-    // Balance is a Go map[string]any (exchange.go): the field and its string-keyed entries compare natively
-    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|Balance(?:\[\w+\])?), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+    // Balance is a Go map[string]any (exchange.go): the field compares natively
+    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
 }
 
 export function h2kG08NativeEquality (content: string): string {
