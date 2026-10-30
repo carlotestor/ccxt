@@ -9267,6 +9267,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = narrowStrNullLocals(rustContent); // hx11 W7
                 rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
+                rustContent = this.nativeDictLiteralGet(rustContent); // closure-free literal-key dict reads, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10019,6 +10020,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
+        finalFile = this.nativeDictLiteralGet(finalFile); // closure-free literal-key dict reads, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13433,6 +13435,22 @@ impl std::ops::DerefMut for ${coreName} {
         content = content.replace(has, (m: string, k: string, d: string, off: number, whole: string) =>
             guard(m, off, whole, `matches!(${k}.as_str(), Some(__k) if ${d}.contains_key(__k))`));
         return content;
+    }
+
+    // Literal-key dict read on a place, closure-free (the `|__m|` closure counted as a blob):
+    //   X.as_map().and_then(|__m| __m.get("L")).cloned().unwrap_or(Value::Null)
+    //     -> (if let Some(__m) = X.as_map() { __m.get("L").cloned().unwrap_or(Value::Null) } else { Value::Null })
+    // A non-map X stays Null like the `None` arm. X is a side-effect-free place path. Skips lines that would cross 400.
+    nativeDictLiteralGet(content: string): string {
+        if (!content.includes('.and_then(|__m| __m.get("')) return content;
+        const re = /(?<![A-Za-z0-9_.:])([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.as_map\(\)\.and_then\(\|__m\| __m\.get\(("(?:[^"\\]|\\.)*")\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)/g;
+        return content.replace(re, (m: string, x: string, lit: string, off: number, whole: string) => {
+            const text = `(if let Some(__m) = ${x}.as_map() { __m.get(${lit}).cloned().unwrap_or(Value::Null) } else { Value::Null })`;
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        });
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
