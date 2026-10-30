@@ -93,8 +93,8 @@ func (this *Bitstamp) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "orderbook:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook:" + symbolValue
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
@@ -141,9 +141,9 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var channel string = "diff_order_book_" + *this.SafeString(market, "id", "")
-	var subHash string = "orderbook:" + *symbolValue
+	var subHash string = "orderbook:" + symbolValue
 
 	r1 := <-this.UnWatchChannelAsync(channel, subHash, "orderbook", []any{symbolValue}, params)
 	if r1.Err != nil {
@@ -331,8 +331,8 @@ func (this *Bitstamp) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trades:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trades:" + symbolValue
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
@@ -383,9 +383,9 @@ func (this *Bitstamp) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var channel string = "live_trades_" + *this.SafeString(market, "id", "")
-	var subHash string = "trades:" + *symbolValue
+	var subHash string = "trades:" + symbolValue
 
 	r1 := <-this.UnWatchChannelAsync(channel, subHash, "trades", []any{symbolValue}, params)
 	if r1.Err != nil {
@@ -510,8 +510,8 @@ func (this *Bitstamp) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.Funding
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "fundingRate:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "fundingRate:" + symbolValue
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
@@ -594,7 +594,7 @@ func (this *Bitstamp) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var channel string = "private-my_orders"
 	var subscription map[string]any = map[string]any{
 		"symbol": symbolValue,
@@ -649,7 +649,7 @@ func (this *Bitstamp) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 
 	r1 := <-this.AuthenticateAsync()
 	if r1.Err != nil {
@@ -707,7 +707,7 @@ func (this *Bitstamp) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var channel string = "private-my_trades"
 	var messageHash string = channel + "_" + *this.SafeString(market, "id", "")
 	var subscription map[string]any = map[string]any{
@@ -763,7 +763,7 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 
 	r1 := <-this.AuthenticateAsync()
 	if r1.Err != nil {

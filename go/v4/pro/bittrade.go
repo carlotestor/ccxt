@@ -182,7 +182,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	// only supports a limit of 150 at this time
 	var marketId *string = this.SafeString(market, "id", "")
 	var messageHash string = "market." + *marketId + ".trade.detail"
@@ -301,7 +301,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var marketId *string = this.SafeString(market, "id", "")
 	var messageHash string = "market." + *marketId + ".kline." + *interval
@@ -422,7 +422,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	// only supports a limit of 150 at this time
 	var limitValue int = 150
 	var marketId *string = this.SafeString(market, "id", "")

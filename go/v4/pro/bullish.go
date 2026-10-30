@@ -297,12 +297,12 @@ func (this *Bullish) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTicker() has no public websocket url"))
 	}
-	var messageHash string = "ticker::" + *symbolValue
+	var messageHash string = "ticker::" + symbolValue
 
 	r1 := <-this.Watch(*wsUrl+"/trading-api/v1/market-data/tick/"+*this.SafeString(market, "id", ""), messageHash, params, messageHash)
 	if r1.Err != nil {

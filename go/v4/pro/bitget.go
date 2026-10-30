@@ -161,8 +161,8 @@ func (this *Bitget) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "ticker:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "ticker:" + symbolValue
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchTicker", "uta", false)
 	instTypeparamsValueVariable := this.GetInstType("watchTicker", market, uta, paramsUta)
 	var instType *string = ccxt.SafeStringPtr(instTypeparamsValueVariable[0])
@@ -663,7 +663,7 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var messageHash string
@@ -688,11 +688,11 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		args["topic"] = "kline"
 		args["symbol"] = market["id"]
 		args["interval"] = interval
-		messageHash = "kline:" + *symbolValue
+		messageHash = "kline:" + symbolValue
 	} else {
 		args["channel"] = ccxt.Add("candle", interval)
 		args["instId"] = market["id"]
-		messageHash = "candles:" + timeframe + ":" + *symbolValue
+		messageHash = "candles:" + timeframe + ":" + symbolValue
 	}
 
 	r1 := <-this.WatchPublicAsync(isStockOrUta, messageHash, args, paramsRequest)

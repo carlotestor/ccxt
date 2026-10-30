@@ -795,10 +795,10 @@ func (this *Deepcoin) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash string = "ohlcv" + "::" + *symbolValue + "::" + timeframe
+	var messageHash string = "ohlcv" + "::" + symbolValue + "::" + timeframe
 	var suffix string = "_" + *interval
 
 	r1 := <-this.WatchPublicAsync(market, messageHash, "11", params, suffix)
@@ -845,10 +845,10 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash string = "ohlcv" + "::" + *symbolValue + "::" + timeframe
+	var messageHash string = "ohlcv" + "::" + symbolValue + "::" + timeframe
 	var suffix string = "_" + *interval
 	var subscription map[string]any = map[string]any{
 		"topic":                "ohlcv",

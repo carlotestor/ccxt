@@ -196,10 +196,10 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var messageHash string = "trades"
-	var subscriptionHash string = "old:" + *symbolValue
+	var subscriptionHash string = "old:" + symbolValue
 	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
 	if client != nil {
 		var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
@@ -214,11 +214,11 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 			}
 		}
 	}
-	var baseId *string = this.SafeString(market, "base", "")
-	var quoteId *string = this.SafeString(market, "quote", "")
+	var baseId string = *this.SafeString(market, "base", "")
+	var quoteId string = *this.SafeString(market, "quote", "")
 	var message map[string]any = map[string]any{
 		"e":     "subscribe",
-		"rooms": []any{"pair-" + *baseId + "-" + *quoteId},
+		"rooms": []any{"pair-" + baseId + "-" + quoteId},
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
@@ -345,9 +345,9 @@ func (this *Cex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = "ticker:" + *symbolValue
+	var messageHash string = "ticker:" + symbolValue
 	var method *string = this.SafeString(params, "method", "private") // default to private because the specified ticker is received quicker
 	var message map[string]any = map[string]any{
 		"e":     "subscribe",
@@ -365,7 +365,7 @@ func (this *Cex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 			"data": []any{market["baseId"], market["quoteId"]},
 			"oid":  this.RequestId(),
 		}
-		subscriptionHash = "ticker:" + *symbolValue
+		subscriptionHash = "ticker:" + symbolValue
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
@@ -737,9 +737,9 @@ func (this *Cex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "myTrades:" + *symbolValue
-	var subscriptionHash string = "orders:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "myTrades:" + symbolValue
+	var subscriptionHash string = "orders:" + symbolValue
 	var message map[string]any = map[string]any{
 		"e": "open-orders",
 		"data": map[string]any{
@@ -1212,9 +1212,9 @@ func (this *Cex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 		panic(r1.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = "orderbook:" + *symbolValue
+	var messageHash string = "orderbook:" + symbolValue
 	var depth int64 = func() int64 {
 		if limit == nil {
 			return 0
@@ -1387,8 +1387,8 @@ func (this *Cex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "ohlcv:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "ohlcv:" + symbolValue
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var baseId *string = this.SafeString(market, "baseId", "")
 	var quoteId *string = this.SafeString(market, "quoteId", "")
