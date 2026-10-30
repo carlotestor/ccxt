@@ -2493,7 +2493,7 @@ public class BaseExchange {
     }
 
     /** Decode a protobuf message. Override in exchange-specific classes if needed. */
-    public Object decodeProtoMsg(Object data) {
+    public Map<String, Object> decodeProtoMsg(Object data) {
         throw new RuntimeException(this.id + " decodeProtoMsg is not supported in Java yet");
     }
 
@@ -3878,7 +3878,7 @@ public class BaseExchange {
     //     throw new RuntimeException("Not implemented");
     // }
 
-    public Object retrieveStarkAccount(Object signature, Object accountClassHash, Object accountProxyClassHash)
+    public Map<String, Object> retrieveStarkAccount(Object signature, Object accountClassHash, Object accountProxyClassHash)
     {
         // Starknet signing is not ported to Java; keep the base's account-map shape with no keys set
         return new HashMap<String, Object>();
