@@ -9318,12 +9318,12 @@ func (this *Htx) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry 
  * @param {string} [params.subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Htx) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Htx) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9356,7 +9356,7 @@ func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 	var fromSpot bool = (IsEqual(fromAccountIdStr, "pro"))
 	var toSpot bool = (IsEqual(toAccountIdStr, "pro"))
 	if fromSpot && toSpot {
-		panic(BadRequest(Add(Add(Add(this.Id+" transfer () cannot make a transfer between ", fromAccount), " and "), toAccount)))
+		panic(BadRequest(this.Id + " transfer () cannot make a transfer between " + fromAccount + " and " + toAccount))
 	}
 	var fromOrToFuturesAccount bool = (IsEqual(fromAccountIdStr, "futures")) || (IsEqual(toAccountIdStr, "futures"))
 	var response map[string]any = nil
@@ -9403,7 +9403,7 @@ func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 	} else {
 		var query any = paramsSubType
 		if subType != nil && *subType == "linear" {
-			if (IsEqual(fromAccountIdStr, "swap")) || (IsEqual(fromAccount, "linear-swap")) {
+			if (IsEqual(fromAccountIdStr, "swap")) || (fromAccount == "linear-swap") {
 				fromAccountId = "linear-swap"
 			} else {
 				toAccountId = "linear-swap"
