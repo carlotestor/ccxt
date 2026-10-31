@@ -69,6 +69,8 @@ function j04IntegralPrinted (printer, node) {
     }
     }
     if (n.kind !== ts.SyntaxKind.Identifier) return false;
+    // a `for (var i = 0; ...; i++)` counter prints as a primitive int
+    if (printer.javaPrimitiveCounterIndex?.(n) === true) return true;
     const type = printer.javaDeclaredTypeOf (n);
     return type !== undefined && j04IntegralTypes.has (type.replace (/^final\s+/, '').trim ());
 }

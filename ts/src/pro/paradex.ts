@@ -1079,7 +1079,7 @@ export default class paradex extends paradexRest {
         const first = this.parseToInt (offset);
         const size = this.parseToInt (length);
         const start = first * 2;
-        const end = this.sum (start, size * 2);
+        const end = start + size * 2;
         return this.binaryToString (this.base16ToBinary (frameHex.slice (start, end)));
     }
 
@@ -1091,8 +1091,7 @@ export default class paradex extends paradexRest {
         const raw = frameHex.slice (rawStart, rawEnd);
         let start = 63;
         for (let i = 0; i < 63; i++) {
-            const next = i + 1;
-            if (raw.slice (i, next) !== '0') {
+            if (raw.slice (i, i + 1) !== '0') {
                 start = i;
                 break;
             }
