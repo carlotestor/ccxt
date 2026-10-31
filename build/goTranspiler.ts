@@ -1202,6 +1202,10 @@ function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, bo
     if (/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (text) || /^(?:map\[string\]any|\[\]any)\{/.test (text)) {
         return !boxOnly;
     }
+    // a tuple-holder slot the printer reads natively holds what GetValue(h, i) answered
+    if (/^\w+Variable\[\d+\]$/.test (text)) {
+        return true;
+    }
     if (/^\w+$/.test (text)) {
         return !boxOnly && ident (text);
     }
@@ -16181,7 +16185,8 @@ function hx4G29Check (): string[] {
 // (a never-nil local of M, or a map parameter of M that the caller hands a never-nil local).
 function hx4G34TupleSlotNeverNil (maskedFunc: string, init: string, declOf: (name: string) => any, depth: number): boolean {
     const file: string[] | undefined = (hx4G34TupleSlotNeverNil as any).file;
-    const slot = /^(?:ccxt\.)?MapTyped\((\w+)\[([01])\]\)$/.exec (init);
+    const slotMatch = /^(?:(?:ccxt\.)?MapTyped\((\w+)\[([01])\]\)|(\w+)\[([01])\]\.\(map\[string\]any\))$/.exec (init);
+    const slot = (slotMatch === null) ? null : [ slotMatch[0], slotMatch[1] ?? slotMatch[3], slotMatch[2] ?? slotMatch[4] ];
     const callerLines = maskedFunc.split ('\n');
     const recv = /^func \(this \*(\w+)\) /.exec (callerLines[0]);
     if ((file === undefined) || (slot === null) || (recv === null) || (file.indexOf (callerLines[0]) < 0)) {
