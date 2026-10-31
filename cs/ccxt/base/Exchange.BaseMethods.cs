@@ -6022,9 +6022,9 @@ public partial class BaseExchange
             if (inOp(currencies, code))
             {
                 return ccxt.BaseExchange.ToDict(getValue(currencies, code));
-            } else if (((currenciesById != null)) && ((currenciesById != null && code != null && currenciesById.ContainsKey(code))))
+            } else if (((currenciesById != null)) && ((currenciesById != null && currenciesById.ContainsKey(code))))
             {
-                return ccxt.BaseExchange.ToDict((currenciesById != null && code != null && currenciesById.ContainsKey(code) ? currenciesById[code] : null));
+                return ccxt.BaseExchange.ToDict((currenciesById != null && currenciesById.ContainsKey(code) ? currenciesById[code] : null));
             }
         }
         throw new ExchangeError (((this.id + " does not have currency code ") + code)) ;
@@ -8063,7 +8063,7 @@ public partial class BaseExchange
 
     public async virtual Task loadMarketsAndSignIn()
     {
-        await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.signIn()});
     }
 
     public virtual Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
