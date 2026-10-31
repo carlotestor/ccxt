@@ -1873,6 +1873,33 @@ impl Exchange {
         arg_default(optional_args)
     }
 
+    /// `safe_integer_product_k` without the box (no default): `(obj[key] * factor) as i64`.
+    pub fn safe_integer_product_k_opt(&self, obj: Value, key: &str, factor: Value, _optional_args: &[Value]) -> Option<i64> {
+        let n = match self.safe_value_k(obj, key, &[]) {
+            Value::Int(n) => n as f64,
+            Value::Float(f) => f,
+            Value::Str(s) => s.parse::<f64>().ok()?,
+            _ => return None,
+        };
+        let f = match factor {
+            Value::Int(n) => n as f64,
+            Value::Float(f) => f,
+            _ => return None,
+        };
+        Some((n * f) as i64)
+    }
+
+    /// `safe_integer_product2` without the box (no default): first key yielding a product.
+    pub fn safe_integer_product2_opt(&self, obj: Value, k1: Value, k2: Value, factor: Value, _optional_args: &[Value]) -> Option<i64> {
+        let one = |k: &Value| self.safe_integer_product_k_opt(obj.clone(), &key_str(k), factor.clone(), &[]);
+        one(&k1).or_else(|| one(&k2))
+    }
+
+    /// `safe_integer_omit_zero` without the box (no default): an integer, `None` for null or 0.
+    pub fn safe_integer_omit_zero_opt(&self, obj: Value, key: Value, _optional_args: &[Value]) -> Option<i64> {
+        self.safe_integer(obj, key, &[]).as_i64().filter(|n| *n != 0)
+    }
+
     pub fn safe_timestamp2(
         &self,
         obj: Value,
