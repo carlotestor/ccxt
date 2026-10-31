@@ -1421,6 +1421,44 @@ function goChan3StructBind (masked: string, at: number, name: string, structs: M
     return ((enc !== undefined) ? structs.get (enc + '.' + bm) : undefined) ?? structs.get (bm);
 }
 
+// A same-T struct forward inside a struct core: the printer's `return await this.m()` reads as the map shadow
+// (`var retResN map[string]any = rN.Value` once MapTyped is dropped, or `retResN := rN.Value`) that is only nil-tested and sent. When
+// rN binds the very struct T the core carries, the shadow's `TToMap` / `TFromMap` round trip is the identity on
+// a T, so the whole forward is `ch <- AsyncResult[T]{Value: rN.Value}` (a comment between the lines stays).
+// Returns the [start, end, text] edits of each such block of the core body [bodyStart, bodyEnd).
+function goChan3SameTForwards (content: string, masked: string, bodyStart: number, bodyEnd: number, st: string, carrier: string, coreStructs: Map<string, string>): [ number, number, string ][] {
+    const out: [ number, number, string ][] = [];
+    const fn = masked.substring (bodyStart, bodyEnd);
+    const shadow = '(?:ccxt\\.)?AsyncResult\\[map\\[string\\]any\\]';
+    const decl = /\n([ \t]*)(?:var (retRes\d+) map\[string\]any = |(retRes\d+) := )(\w+)\.Value[ \t]*(?=\n)/g;
+    for (let m = decl.exec (fn); m !== null; m = decl.exec (fn)) {
+        const [ , ind ] = m;
+        const name = m[2] ?? m[3];
+        const recv = m[4];
+        const declEnd = m.index + m[0].length;
+        const tail = new RegExp ('^((?:\\n[ \\t]*)*)\\n' + ind + '(?:if ' + name + ' == nil \\{\\n' + ind + '\\tch <- ' + shadow + '\\{(?:Value: nil)?\\}\\n' + ind + '\\} else \\{\\n' + ind + '\\tch <- ' + shadow + '\\{Value: ' + name + '\\}\\n' + ind + '\\}'
+            + '|ch <- ' + shadow + '\\{Value: ' + name + '\\})').exec (fn.substring (declEnd));
+        if (tail === null) {
+            continue;
+        }
+        const uses = new RegExp ('(?<![\\w.])' + name + '\\b', 'g');
+        const blockEnd = declEnd + tail[0].length;
+        if ((fn.match (uses) ?? []).length !== (fn.substring (m.index, blockEnd).match (uses) ?? []).length) {
+            continue;   // the local is read elsewhere: it keeps the map round trip
+        }
+        if (goChan3StructBind (masked, bodyStart + m.index + 1, recv, coreStructs) !== st) {
+            continue;
+        }
+        const gap = content.substring (bodyStart + declEnd, bodyStart + declEnd + tail[1].length);
+        const sent = tail[0].substring (tail[1].length);
+        if ((content.substring (bodyStart + m.index, bodyStart + declEnd) !== m[0]) || (content.substring (bodyStart + declEnd + tail[1].length, bodyStart + blockEnd) !== sent)) {
+            continue;   // a trailing comment on the declaration or a send line: keep it
+        }
+        out.push ([ bodyStart + m.index + 1, bodyStart + blockEnd, ((gap === '') ? '' : (gap.substring (1) + '\n')) + ind + 'ch <- ' + carrier + '{Value: ' + recv + '.Value}' ]);
+    }
+    return out;
+}
+
 export function goChan3StructPass (content: string, table: Map<string, string>): string {
     const predictionFile = /^package ccxtprediction\s*$/m.test (content);
     const regStructs = goChan3StructEntries (table, false);
@@ -1453,6 +1491,7 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
     }
     // cores
     const coreBodies: [ number, number, string ][] = [];
+    const sameTBlocks: [ number, number ][] = [];
     const tramp = new RegExp ('^func \\(this \\*(\\w+)\\) (' + alt + ')Async\\([^\\n]*\\) <-chan (?:ccxt\\.)?AsyncResult\\[map\\[string\\]any\\] \\{\\n\\tch := make\\(chan (?:ccxt\\.)?AsyncResult\\[map\\[string\\]any\\], 1\\)\\n\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\n', 'gm');
     for (let m = tramp.exec (masked); m !== null; m = tramp.exec (masked)) {
         const [ whole, receiver, method, bodyName ] = m;
@@ -1477,10 +1516,17 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
         const headEnd = masked.indexOf ('\n', bodyStart);
         edits.push ({ 'start': bodyStart, 'end': headEnd, 'text': content.substring (bodyStart, headEnd).replace (q + 'AsyncResult[map[string]any]', carrier) });
         const fn = masked.substring (bodyStart, bodyEnd);
+        for (const [ s0, e0, text0 ] of goChan3SameTForwards (content, masked, bodyStart, bodyEnd, st, carrier, coreStructs)) {
+            edits.push ({ 'start': s0, 'end': e0, 'text': text0 });
+            sameTBlocks.push ([ s0, e0 ]);
+        }
         const send = /\n(\t+)ch <- /g;
         for (let s = send.exec (fn); s !== null; s = send.exec (fn)) {
             const at = bodyStart + s.index + s[0].length;
             const ind = s[1];
+            if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) {
+                continue;   // inside a same-T forward block, rewritten whole above
+            }
             if (masked.startsWith ('<-', at)) {
                 const fm = goChan3ReceiveMethod (masked, at, table);
                 const ft = (fm === undefined) ? undefined : (coreStructs.get (receiver + '.' + fm) ?? coreStructs.get (fm) ?? goChan3Lookup (table, receiver, fm));
@@ -1624,6 +1670,9 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
         for (let u = use.exec (masked); (u !== null) && (u.index < limit); u = use.exec (masked)) {
             const at = u.index;
             const end = at + u[0].length;
+            if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) {
+                continue;   // the read of a same-T forward block, rewritten whole by the core section
+            }
             const uls = masked.lastIndexOf ('\n', at) + 1;
             const before = masked.substring (uls, at);
             const after = masked.substring (end, masked.indexOf ('\n', end));
@@ -2330,6 +2379,25 @@ export function goChan3SelfTest (): string[] {
     ok (sv.includes ('ch <- AsyncResult[map[string]any]{Value: StructResultMap(r.Value, OrderToMap)}'), 'struct into map core: ' + sv);
     ok (sv.includes ('\tCreateOrderAsync(a any, optionalArgs ...any) <-chan AsyncResult[Order]\n'), 'struct interface line');
     ok (run (sv, goChan3Table ()) === sv, 'struct channel idempotent');
+    // same-T struct forward: `retResN` only nil-tested and sent, rN bound to the core's own T -> `rN.Value` as is
+    const fwdPre = '\tr := <-this.CreateOrderAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n';
+    const fwdBranch = '\tvar retRes12 map[string]any = MapTyped(r.Value)\n\t// only buy side\n\tif retRes12 == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t} else {\n\t\tch <- AsyncResult[any]{Value: retRes12}\n\t}\n\treturn nil\n';
+    goChan3SetTableForTest (new Map ([ [ 'CreateOrder', 'Order' ], [ 'FetchO', 'Order' ] ]), new Set ());
+    const fwd1 = run ('package ccxt\n' + sc (fwdPre + fwdBranch, 'FetchO'), goChan3Table ());
+    ok (fwd1.includes ('\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\t// only buy side\n\tch <- AsyncResult[Order]{Value: r.Value}\n\treturn nil\n') && !fwd1.includes ('retRes12') && !fwd1.includes ('StructResultMap') && !fwd1.includes ('OrderFromMap'), 'same-T branch forward: ' + fwd1);
+    ok (run (fwd1, goChan3Table ()) === fwd1, 'same-T branch forward idempotent');
+    const fwd2 = run ('package ccxt\n' + sc (fwdPre + '\tretRes7 := r.Value\n\tch <- AsyncResult[any]{Value: retRes7}\n\treturn nil\n', 'FetchO'), goChan3Table ());
+    ok (fwd2.includes ('\t}\n\tch <- AsyncResult[Order]{Value: r.Value}\n\treturn nil\n') && !fwd2.includes ('retRes7'), 'same-T short forward: ' + fwd2);
+    const fwd3 = run ('package ccxt\n' + sc (fwdPre + fwdBranch.replace ('\t// only buy side\n', '\tthis.Use(retRes12)\n'), 'FetchO'), goChan3Table ());
+    ok (fwd3.includes ('\tvar retRes12 map[string]any = StructResultMap(r.Value, OrderToMap)\n\tthis.Use(retRes12)\n') && fwd3.includes ('{Value: OrderFromMap(retRes12)}'), 'a local read elsewhere keeps the round trip: ' + fwd3);
+    goChan3SetTableForTest (new Map ([ [ 'CreateOrder', 'Order' ], [ 'FetchTickers', 'map[string]Ticker' ], [ 'FetchO', 'Order' ] ]), new Set ());
+    const fwd4 = run ('package ccxt\n' + sc ('\tr := <-this.FetchTickersAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n' + fwdBranch.replace ('\t// only buy side\n', ''), 'FetchO'), goChan3Table ());
+    ok (fwd4.includes ('\tvar retRes12 map[string]any = StructResultMap(r.Value, TickerMapToMap)\n') && !fwd4.includes ('{Value: r.Value}'), 'a receive of another T keeps the round trip: ' + fwd4);
+    goChan3SetTableForTest (new Map ([ [ 'FetchTickers', 'map[string]Ticker' ], [ 'WatchTickers', 'map[string]Ticker' ] ]), new Set ());
+    const fwdPro = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tr := <-this.FetchTickersAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar retRes12 map[string]any = MapTyped(r.Value)\n\tif retRes12 == nil {\n\t\tch <- ccxt.AsyncResult[any]{Value: nil}\n\t} else {\n\t\tch <- ccxt.AsyncResult[any]{Value: retRes12}\n\t}\n\treturn nil\n', 'WatchTickers', 'ccxt.'), goChan3Table ());
+    ok (fwdPro.includes ('\tch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: r.Value}\n\treturn nil\n') && !fwdPro.includes ('retRes12') && !fwdPro.includes ('StructResultMap'), 'ccxt-qualified map-of-struct forward: ' + fwdPro);
+    ok (run (fwdPro, goChan3Table ()) === fwdPro, 'ccxt-qualified forward idempotent');
+    goChan3SetTableForTest (new Map ([ [ 'CreateOrder', 'Order' ], [ 'FetchX', 'map[string]any' ] ]), new Set ());
     const pv = 'package ccxtprediction\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tch <- ccxt.AsyncResult[any]{Value: map[string]any{}}\n\treturn nil\n', 'CreateOrder', 'ccxt.');
     let pvOut = '';
     try { pvOut = run (pv, goChan3Table ()); } catch (e) { pvOut = 'THROW ' + e; }
