@@ -9276,6 +9276,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativePadIfLet(rustContent); // closure-free fixed-width pad, last
 ||||||| parent of 643d208c698 (rust printer: slice-substring-iflet-native (hx11 w9 M550))
                 rustContent = this.nativeSliceSubstring(rustContent); // closure-free char slice, last
+||||||| parent of 65ae17a931e (rust printer: floor-iflet-native (hx11 w8 M550))
+                rustContent = this.nativeFloorIfLet(rustContent); // closure-free floor of a numeric expr, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10037,6 +10039,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativePadIfLet(finalFile); // closure-free fixed-width pad, last
 ||||||| parent of 643d208c698 (rust printer: slice-substring-iflet-native (hx11 w9 M550))
         finalFile = this.nativeSliceSubstring(finalFile); // closure-free char slice, last
+||||||| parent of 65ae17a931e (rust printer: floor-iflet-native (hx11 w8 M550))
+        finalFile = this.nativeFloorIfLet(finalFile); // closure-free floor of a numeric expr, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13602,6 +13606,41 @@ impl std::ops::DerefMut for ${coreName} {
             const oldLen = le - ls;
             return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
         });
+    }
+
+||||||| parent of 65ae17a931e (rust printer: floor-iflet-native (hx11 w8 M550))
+    // Floor of a numeric expression without a closure (the `|__x|` closure counted as a blob):
+    //   (E).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)
+    //     -> (if let Some(__x) = (E).as_f64() { Value::Float(__x.floor()) } else { Value::Null })
+    // E is a balanced, string-free paren group evaluated once in both forms. Skips lines that would cross 400.
+    nativeFloorIfLet(content: string): string {
+        const tail = '.as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)';
+        if (!content.includes(tail)) return content;
+        let out = '';
+        let pos = 0;
+        for (let at = content.indexOf(tail); at >= 0; at = content.indexOf(tail, pos)) {
+            let start = -1;
+            if (content[at - 1] === ')') {
+                let depth = 0;
+                for (let i = at - 1; i >= 0 && at - i < 600; i--) {
+                    const ch = content[i];
+                    if (ch === '"') break;
+                    if (ch === ')') depth++;
+                    else if (ch === '(' && --depth === 0) { start = i; break; }
+                }
+            }
+            const end = at + tail.length;
+            if (start < pos) { out += content.slice(pos, end); pos = end; continue; }
+            const e = content.slice(start, at);
+            const text = `(if let Some(__x) = ${e}.as_f64() { Value::Float(__x.floor()) } else { Value::Null })`;
+            const ls = content.lastIndexOf('\n', start) + 1;
+            let le = content.indexOf('\n', end); if (le < 0) le = content.length;
+            const oldLen = le - ls;
+            const keep = oldLen <= 400 && oldLen - (end - start) + text.length > 400;
+            out += content.slice(pos, start) + (keep ? content.slice(start, end) : text);
+            pos = end;
+        }
+        return out + content.slice(pos);
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
