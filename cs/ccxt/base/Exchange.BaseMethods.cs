@@ -3963,6 +3963,7 @@ public partial class BaseExchange
 
     public async virtual Task<object> loadTradingLimits(IList<object> symbols = null, bool? reload = null, object parameters = null)
     {
+        // read the loaded table, write through the field: a published table is replaced, not edited in place
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         if (!((this.has.ContainsKey("fetchTradingLimits") ? this.has["fetchTradingLimits"] : null) == null) && (((this.has.ContainsKey("fetchTradingLimits") ? this.has["fetchTradingLimits"] : null) as bool?) != false))
@@ -3971,15 +3972,15 @@ public partial class BaseExchange
             {
                 Dictionary<string, object> response = await this.FetchTradingLimits(symbols);
                 object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
-                IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
-                if ((markets == null))
+                if ((this.markets == null))
                 {
                     throw new ExchangeError ((this.id + " markets not loaded")) ;
                 }
+                IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
                 for (int i = 0; i < getArrayLength(symbolsArray); i++)
                 {
                     object symbol = getValue(symbolsArray, i);
-                    markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null), (response != null && symbol != null && response.ContainsKey((string)symbol) ? response[(string)symbol] : null));
+                    this.markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null), (response != null && symbol != null && response.ContainsKey((string)symbol) ? response[(string)symbol] : null));
                 }
                 this.options["limitsLoaded"] = this.milliseconds();
             }
