@@ -1079,8 +1079,7 @@ export default class paradex extends paradexRest {
         const first = this.parseToInt (offset);
         const size = this.parseToInt (length);
         const start = first * 2;
-        const end = start + size * 2;
-        return this.binaryToString (this.base16ToBinary (frameHex.slice (start, end)));
+        return this.binaryToString (this.base16ToBinary (frameHex.slice (start, start + size * 2)));
     }
 
     sbeReadAddress (frameHex: string, offset: number): string {
